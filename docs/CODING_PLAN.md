@@ -40,6 +40,8 @@ AND Required review complete
 
 Issue 必须明确回答 Architecture impact、Public interface impact、Parameter/state impact、Realtime impact、Ownership impact、Tests、Comments、Module docs、`MODULE_INDEX` 和 ADR；无影响项写 `N/A`，不得省略。
 
+所有 production issue 同时受 [Documentation Synchronization Gate](DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate) 约束。Documentation Impact Analysis、same-PR documentation synchronization 以及 Documentation Consistency Review 属于 Production Definition of Done。
+
 优先级：
 
 - P0：当前 milestone exit gate 的必要条件；
