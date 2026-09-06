@@ -376,16 +376,16 @@ void testAudioEnginePrimesParametersOnFirstBlock() {
     EngineParameters parameters;
     parameters.inputGainLinear = 0.5f;
     parameters.globalMix = 0.25f;
-    parameters.outputGainLinear = 2.0f;
+    parameters.outputGainLinear = 1.5f;
 
     juce::AudioBuffer<float> firstBlock(1, spec.maximumBlockSize);
     fillBuffer(firstBlock, 1.0f);
     engine.process(firstBlock, parameters);
     // M1 wet is post-input pass-through, so globalMix does not alter identity. This checks that
     // input/output gain use live state from sample 0 rather than ramping from unity defaults.
-    expectNear(firstBlock.getSample(0, 0), 1.0f, 1.0e-6f,
+    expectNear(firstBlock.getSample(0, 0), 0.75f, 1.0e-6f,
                "prepare first block starts at the live input/output gain state");
-    expectNear(firstBlock.getSample(0, spec.maximumBlockSize - 1), 1.0f, 1.0e-6f,
+    expectNear(firstBlock.getSample(0, spec.maximumBlockSize - 1), 0.75f, 1.0e-6f,
                "prepare first block remains at the live gain state");
 
     engine.reset();
