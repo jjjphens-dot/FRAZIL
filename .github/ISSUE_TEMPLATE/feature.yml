@@ -1,0 +1,63 @@
+name: Feature or engineering task
+description: Plan an implementation, test, build, UI, or documentation task.
+title: "[M?][AREA-000] "
+labels:
+  - "type:feature"
+body:
+  - type: markdown
+    attributes:
+      value: "Use the stable ID from docs/CODING_PLAN.md. A Ready issue must be independently testable."
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / user or sound goal
+      description: Describe observable behavior and why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and non-goals
+      description: List included modules and explicitly excluded work.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Use measurable behavior, not implementation-only statements.
+      placeholder: "- [ ] Given ... when ... then ..."
+    validations:
+      required: true
+  - type: textarea
+    id: impacts
+    attributes:
+      label: Architecture, parameters and state impact
+      description: Cover routing, Parameter IDs/ranges/defaults, automation, state schema and realtime path; write N/A where appropriate.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Test and audio evaluation plan
+      description: Name unit/property/render/pluginval/DAW/listening/performance evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and risks
+      description: Link prerequisite issues/ADRs and list known blockers.
+    validations:
+      required: true
+  - type: checkboxes
+    id: ready
+    attributes:
+      label: Definition of Ready
+      options:
+        - label: The task fits one short-lived PR or has been split.
+          required: true
+        - label: Parameter/automation/state impact has been considered.
+          required: true
+        - label: Listening or DAW validation need is explicit.
+          required: true

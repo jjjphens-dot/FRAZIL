@@ -1,0 +1,32 @@
+# Build outputs stay on the project drive and are never committed.
+/build/
+/out/
+
+# Dependency checkout is restored by the pinned bootstrap script.
+/external/JUCE/
+
+# Project-local Python environment and caches.
+/.venv/
+/.cache/
+__pycache__/
+*.py[cod]
+
+# Local downloaded tools and generated test renders.
+/tools/bin/
+/tools/downloads/
+/testdata/rendered/
+
+# IDE and OS noise.
+.vs/
+.idea/
+*.user
+*.suo
+*.VC.db
+Thumbs.db
+
+# Generated CMake metadata.
+CMakeUserPresets.json
+compile_commands.json
+
+# Keep local machine settings out of the repository.
+.vscode/*.local.json

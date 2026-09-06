@@ -1,0 +1,37 @@
+diff --git a/extras/Build/CMake/JUCEUtils.cmake b/extras/Build/CMake/JUCEUtils.cmake
+index 8050aa8..d47c116 100644
+--- a/extras/Build/CMake/JUCEUtils.cmake
++++ b/extras/Build/CMake/JUCEUtils.cmake
+@@ -1111,0 +1112,8 @@
++    # The nested VST3 helper is configured as a separate Ninja project. On
++    # Windows with a non-default Visual Studio/Windows SDK drive, CMake may
++    # not rediscover the manifest tool there, even though the parent project
++    # has already found it. Pass the resolved tool through explicitly.
++    if(CMAKE_MT)
++        list(APPEND PASSTHROUGH_ARGS "-DCMAKE_MT=${CMAKE_MT}")
++    endif()
++
+diff --git a/extras/Build/juceaide/CMakeLists.txt b/extras/Build/juceaide/CMakeLists.txt
+index ff579af..d48501a 100644
+--- a/extras/Build/juceaide/CMakeLists.txt
++++ b/extras/Build/juceaide/CMakeLists.txt
+@@ -127,0 +128,19 @@
++    # Preserve the selected Windows toolchain when juceaide is configured as
++    # a nested Ninja project. This is important when MSVC and the Windows SDK
++    # live outside the default C: installation paths.
++    if(CMAKE_C_COMPILER)
++        list(APPEND PASSTHROUGH_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
++    endif()
++
++    if(CMAKE_CXX_COMPILER)
++        list(APPEND PASSTHROUGH_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
++    endif()
++
++    if(CMAKE_RC_COMPILER)
++        list(APPEND PASSTHROUGH_ARGS "-DCMAKE_RC_COMPILER=${CMAKE_RC_COMPILER}")
++    endif()
++
++    if(CMAKE_MT)
++        list(APPEND PASSTHROUGH_ARGS "-DCMAKE_MT=${CMAKE_MT}")
++    endif()
++

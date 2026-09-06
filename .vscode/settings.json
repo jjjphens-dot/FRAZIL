@@ -1,0 +1,25 @@
+{
+  "cmake.configureOnOpen": false,
+  "cmake.generator": "Ninja",
+  "cmake.buildDirectory": "${workspaceFolder}/build/${buildKit}",
+  "cmake.configureSettings": {
+    "CMAKE_MAKE_PROGRAM": "${workspaceFolder}/tools/bin/ninja.exe",
+    "CMAKE_CXX_STANDARD": "20",
+    "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+    "CMAKE_CXX_EXTENSIONS": "OFF",
+    "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+  },
+  "C_Cpp.default.cppStandard": "c++20",
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.venv": true,
+    "**/build": true,
+    "**/testdata/rendered": true
+  },
+  "search.exclude": {
+    "**/build": true,
+    "**/.venv": true,
+    "**/external/JUCE": true
+  }
+}

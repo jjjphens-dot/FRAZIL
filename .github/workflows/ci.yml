@@ -1,0 +1,43 @@
+name: FRAZIL CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-debug:
+    name: Windows Debug / CMake / CTest
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Enable MSVC developer environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Cache pinned JUCE checkout
+        uses: actions/cache@v4
+        with:
+          path: external/JUCE
+          key: juce-9.0.1-e18f7f506c0b96f2c738a0bcd7fe6467a5005ad8-${{ runner.os }}
+
+      - name: Restore pinned dependencies
+        shell: pwsh
+        run: ./tools/bootstrap_dependencies.ps1
+
+      - name: Configure
+        run: cmake --preset ci-windows-debug
+
+      - name: Build
+        run: cmake --build --preset ci-windows-debug --parallel
+
+      - name: Test
+        run: ctest --preset ci-windows-debug

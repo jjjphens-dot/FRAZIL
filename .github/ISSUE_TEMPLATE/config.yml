@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Development plan and issue IDs
+    url: https://github.com/jjjphens-dot/FRAZIL/blob/main/docs/CODING_PLAN.md
+    about: Check milestone order, dependencies and acceptance gates before filing.

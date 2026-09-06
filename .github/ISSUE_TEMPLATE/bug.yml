@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a reproducible audio, Host, state, UI, build, or performance defect.
+title: "[BUG] "
+labels:
+  - "type:bug"
+body:
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: Include audible/visible symptoms and whether data or hearing may be harmed.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: "1. Host/project setup\n2. Parameters/routing\n3. Action\n4. Result"
+    validations:
+      required: true
+  - type: input
+    id: build
+    attributes:
+      label: FRAZIL version or commit
+      placeholder: commit SHA / artifact name
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Windows, DAW/version, VST3 or Standalone, sample rate, block size, channels, audio device.
+    validations:
+      required: true
+  - type: textarea
+    id: state
+    attributes:
+      label: Parameters and state
+      description: Routing, all relevant values, automation, preset/project restore, random seed if reproducible.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs, render or project evidence
+      description: Attach minimal authorized artifacts; never attach credentials or private sessions.
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Reproduction frequency
+      options:
+        - Always
+        - Often
+        - Intermittent
+        - Once
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I checked that attached material contains no credentials or unlicensed/private audio.
+          required: true

@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "FRAZIL Standalone (Debug)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/windows-debug/FRAZIL_artefacts/Debug/Standalone/FRAZIL.exe",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "FRAZIL: build windows-debug",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    }
+  ]
+}

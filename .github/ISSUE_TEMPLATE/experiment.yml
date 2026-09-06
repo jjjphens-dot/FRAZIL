@@ -1,0 +1,49 @@
+name: DSP experiment
+description: Propose a Water/Ice/routing hypothesis before production integration.
+title: "[EXP][M?][EXP-X-000] "
+labels:
+  - "type:experiment"
+  - "needs:listening"
+body:
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Perceptual hypothesis
+      description: State the Water/Ice material property and how a listener should perceive it.
+    validations:
+      required: true
+  - type: textarea
+    id: mechanism
+    attributes:
+      label: Candidate mechanism and alternatives
+      description: Describe the smallest experiment and at least one comparison/baseline.
+    validations:
+      required: true
+  - type: textarea
+    id: controls
+    attributes:
+      label: Inputs, parameters and fixed seed
+      description: Define material, sample rate, block/offline mode, ranges and reproducibility.
+    validations:
+      required: true
+  - type: textarea
+    id: evaluation
+    attributes:
+      label: Listening and measurement protocol
+      description: Define loudness matching, clips, reviewers, success/failure signals and CPU/stability checks.
+    validations:
+      required: true
+  - type: textarea
+    id: promotion
+    attributes:
+      label: Promotion gate
+      description: What must be true before creating a production DSP issue?
+    validations:
+      required: true
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+      description: State what this experiment will not generalize or ship.
+    validations:
+      required: true

@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "openai.chatgpt",
+    "ms-vscode.cpptools",
+    "ms-vscode.cmake-tools",
+    "github.vscode-pull-request-github"
+  ],
+  "unwantedRecommendations": [
+    "ms-vscode.makefile-tools"
+  ]
+}

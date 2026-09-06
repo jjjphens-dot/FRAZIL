@@ -1,0 +1,158 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "windows-base",
+      "displayName": "Windows / Ninja base",
+      "description": "Shared FRAZIL configuration. Build directories remain on the F: workspace drive.",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "environment": {
+        "PATH": "${sourceDir}/tools/bin;$penv{PATH}"
+      },
+      "cacheVariables": {
+        "CMAKE_MAKE_PROGRAM": "${sourceDir}/tools/bin/ninja.exe",
+        "CMAKE_C_COMPILER": "F:/Visual Studio/Community/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe",
+        "CMAKE_CXX_COMPILER": "F:/Visual Studio/Community/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe",
+        "CMAKE_RC_COMPILER": "F:/Windows Kits/10/bin/10.0.22621.0/x64/rc.exe",
+        "CMAKE_MT": "F:/Windows Kits/10/bin/10.0.22621.0/x64/mt.exe",
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+        "CMAKE_CXX_EXTENSIONS": "OFF",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows Debug",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows Release",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-asan",
+      "displayName": "Windows AddressSanitizer",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_FLAGS": "/fsanitize=address /Zi",
+        "CMAKE_CXX_FLAGS": "/fsanitize=address /Zi /EHsc"
+      }
+    },
+    {
+      "name": "portable-windows-base",
+      "displayName": "Portable Windows base",
+      "description": "CI configuration. Toolchain discovery is provided by the runner environment.",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "environment": {
+        "PATH": "$env{VCToolsInstallDir}/bin/Hostx64/x64;$env{WindowsSdkDir}bin/$env{WindowsSDKVersion}x64;$penv{PATH}"
+      },
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "$env{VCToolsInstallDir}/bin/Hostx64/x64/cl.exe",
+        "CMAKE_CXX_COMPILER": "$env{VCToolsInstallDir}/bin/Hostx64/x64/cl.exe",
+        "CMAKE_RC_COMPILER": "rc",
+        "CMAKE_MT": "mt",
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+        "CMAKE_CXX_EXTENSIONS": "OFF",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "ci-windows-debug",
+      "displayName": "CI Windows Debug",
+      "inherits": "portable-windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-debug",
+      "configurePreset": "windows-debug",
+      "targets": [
+        "FRAZIL_All",
+        "frazil_smoke",
+        "frazil_tests"
+      ]
+    },
+    {
+      "name": "windows-release",
+      "configurePreset": "windows-release",
+      "targets": [
+        "FRAZIL_All",
+        "frazil_smoke",
+        "frazil_tests"
+      ]
+    },
+    {
+      "name": "windows-asan",
+      "configurePreset": "windows-asan",
+      "targets": [
+        "FRAZIL_All",
+        "frazil_smoke",
+        "frazil_tests"
+      ]
+    },
+    {
+      "name": "ci-windows-debug",
+      "configurePreset": "ci-windows-debug",
+      "targets": [
+        "FRAZIL_All",
+        "frazil_smoke",
+        "frazil_tests"
+      ]
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-debug",
+      "configurePreset": "windows-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-release",
+      "configurePreset": "windows-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-asan",
+      "configurePreset": "windows-asan",
+      "environment": {
+        "PATH": "F:/Visual Studio/Community/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64;F:/coding/FRAZIL/tools/bin;$penv{PATH}"
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug",
+      "configurePreset": "ci-windows-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

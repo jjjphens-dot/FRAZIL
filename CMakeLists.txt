@@ -1,0 +1,78 @@
+cmake_minimum_required(VERSION 3.22)
+
+project(FRAZIL VERSION 0.1.0 LANGUAGES C CXX)
+
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/JUCE/CMakeLists.txt")
+    message(FATAL_ERROR
+        "JUCE 9.0.1 is missing. Expected it at external/JUCE."
+    )
+endif()
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+add_subdirectory(external/JUCE)
+
+juce_add_plugin(FRAZIL
+    COMPANY_NAME "FRAZIL"
+    COMPANY_WEBSITE "https://example.invalid/frazil"
+    COMPANY_EMAIL "devnull@example.invalid"
+    BUNDLE_ID "com.frazil.audio.FRAZIL"
+    IS_SYNTH FALSE
+    NEEDS_MIDI_INPUT FALSE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    EDITOR_WANTS_KEYBOARD_FOCUS FALSE
+    COPY_PLUGIN_AFTER_BUILD FALSE
+    PLUGIN_MANUFACTURER_CODE Frzl
+    PLUGIN_CODE Frz1
+    FORMATS VST3 Standalone
+    PRODUCT_NAME "FRAZIL"
+    VST3_CATEGORIES Fx
+)
+
+target_sources(FRAZIL
+    PRIVATE
+        src/app/AudioEngine.cpp
+        src/app/AudioEngine.h
+        src/plugin/PluginEditor.cpp
+        src/plugin/PluginEditor.h
+        src/plugin/PluginProcessor.cpp
+        src/plugin/PluginProcessor.h
+)
+
+target_include_directories(FRAZIL PRIVATE src)
+
+target_compile_features(FRAZIL PRIVATE cxx_std_20)
+
+target_compile_definitions(FRAZIL
+    PRIVATE
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_VST3_CAN_REPLACE_VST2=0
+)
+
+target_link_libraries(FRAZIL
+    PRIVATE
+        juce::juce_audio_utils
+        juce::juce_audio_processors
+)
+
+juce_generate_juce_header(FRAZIL)
+
+enable_testing()
+
+add_executable(frazil_smoke tests/smoke/smoke.cpp)
+target_compile_features(frazil_smoke PRIVATE cxx_std_20)
+add_test(NAME frazil_smoke COMMAND frazil_smoke)
+
+add_executable(frazil_tests
+    tests/unit/test_main.cpp
+    src/app/AudioEngine.cpp
+    src/app/AudioEngine.h
+)
+target_compile_features(frazil_tests PRIVATE cxx_std_20)
+target_include_directories(frazil_tests PRIVATE src)
+target_link_libraries(frazil_tests PRIVATE juce::juce_audio_basics)
+add_test(NAME frazil_unit COMMAND frazil_tests)
