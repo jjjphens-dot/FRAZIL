@@ -1,8 +1,8 @@
 # [M0][HOST-000] 初始平台与 DAW 兼容性矩阵
 
-> 状态：**Proposed — 等待 Sound & Host Lead 决策与 Engineering Lead review**  
-> Implementation DRI：Sound & Host Lead  
-> Required reviewer：Engineering Lead  
+> 状态：**Proposed — 等待 Sound & Host Lead 决策与 Engineering Lead review**
+> Implementation DRI：Sound & Host Lead
+> Required reviewer：Engineering Lead
 > 审计基线：`origin/main` observed `b91f619`（2026-09-07）
 
 本文档只冻结 HOST-000 所需的候选范围、证据格式和后续 HOST-001 smoke 入口。它不把本机发现、历史 CI/pluginval 结果或未执行的 DAW 操作写成正式支持。
