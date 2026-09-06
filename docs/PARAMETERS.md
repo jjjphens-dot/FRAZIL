@@ -150,6 +150,8 @@ non-parameter persistent UI state: 仅在确有需要时加入
 edit history: 永不序列化
 ```
 
+当前 STATE-001 实现使用 `schemaVersion = 1`。没有 schema version 但包含已知参数的 pre-v1 state，以及显式 `schemaVersion = 0`，只通过受限 migration 入口转换为当前 schema；`water.enable`/`ice.enable` 只作为历史输入名映射到 `water.enabled`/`ice.enabled`。未知 schema、损坏输入或缺失/越界字段使用安全默认值，不形成对所有历史 build 的永久兼容承诺。
+
 规则：
 
 - 保存/恢复全部静态参数，包括当前模式下暂时无效的值；

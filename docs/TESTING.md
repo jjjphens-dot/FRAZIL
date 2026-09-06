@@ -85,6 +85,7 @@ M1 建立 generic `RandomSource` 的 fixed-seed、explicit injection、reseed、
 
 ### State / History
 
+- 当前 `frazil_unit` 覆盖 STATE-001 的 schemaVersion=1 value round-trip、默认/非法输入 fallback、已知 pre-v1 schema、`water.enable`/`ice.enable` migration、全部 9 个参数、三个 routing choice 和 inactive-mode value retention；Host/DAW restore 与完整 history integration 仍待执行。
 - 默认 state、全参数极值、三种 routing 的 round-trip；
 - inactive-mode 参数值跨切换和保存恢复保持；
 - 损坏/空/未知 schema 不崩溃；

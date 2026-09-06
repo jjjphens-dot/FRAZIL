@@ -42,6 +42,8 @@ target_sources(FRAZIL
         src/app/ParameterSnapshot.cpp
         src/app/ParameterSnapshot.h
         src/app/ProcessSpec.h
+        src/app/StateModel.cpp
+        src/app/StateModel.h
         src/dsp/DryWetMixer.cpp
         src/dsp/DryWetMixer.h
         src/dsp/primitives/LinearSmoother.cpp
@@ -54,6 +56,8 @@ target_sources(FRAZIL
         src/plugin/PluginEditor.h
         src/plugin/PluginProcessor.cpp
         src/plugin/PluginProcessor.h
+        src/plugin/StateAdapter.cpp
+        src/plugin/StateAdapter.h
 )
 
 target_include_directories(FRAZIL PRIVATE src)
@@ -91,6 +95,8 @@ add_executable(frazil_tests
     src/app/ParameterSnapshot.cpp
     src/app/ParameterSnapshot.h
     src/app/ProcessSpec.h
+    src/app/StateModel.cpp
+    src/app/StateModel.h
     src/dsp/DryWetMixer.cpp
     src/dsp/DryWetMixer.h
     src/dsp/primitives/LinearSmoother.cpp
@@ -99,6 +105,8 @@ add_executable(frazil_tests
     src/dsp/primitives/RandomSource.h
     src/plugin/ParameterLayout.cpp
     src/plugin/ParameterLayout.h
+    src/plugin/StateAdapter.cpp
+    src/plugin/StateAdapter.h
 )
 target_compile_features(frazil_tests PRIVATE cxx_std_20)
 target_include_directories(frazil_tests PRIVATE src)

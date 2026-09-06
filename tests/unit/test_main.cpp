@@ -1,10 +1,12 @@
 #include "app/AudioEngine.h"
 #include "app/ParameterMapper.h"
 #include "app/ParameterSnapshot.h"
+#include "app/StateModel.h"
 #include "dsp/DryWetMixer.h"
 #include "dsp/primitives/LinearSmoother.h"
 #include "dsp/primitives/RandomSource.h"
 #include "plugin/ParameterLayout.h"
+#include "plugin/StateAdapter.h"
 
 #include <algorithm>
 #include <array>
@@ -65,6 +67,19 @@ class TestAudioProcessor final : public juce::AudioProcessor {
     void getStateInformation(juce::MemoryBlock&) override {}
     void setStateInformation(const void*, int) override {}
 };
+
+void setParameterValue(juce::AudioProcessorValueTreeState& state, const char* id, float value) {
+    auto* parameter = state.getParameter(id);
+    expect(parameter != nullptr, "state test parameter exists");
+    if (parameter != nullptr)
+        parameter->setValueNotifyingHost(state.getParameterRange(id).convertTo0to1(value));
+}
+
+float getParameterValue(const juce::AudioProcessorValueTreeState& state, const char* id) {
+    const auto* value = state.getRawParameterValue(id);
+    expect(value != nullptr, "state test parameter value exists");
+    return value != nullptr ? value->load() : 0.0f;
+}
 
 void testProcessSpecValidation() {
     expect(ProcessSpec{48000.0, 128, 2}.isValid(), "valid process spec is accepted");
@@ -222,6 +237,200 @@ void testParameterMapperClampsAndConverts() {
     snapshot.routingModeIndex = 99;
     expect(ParameterMapper{}.map(snapshot).routing == RoutingMode::parallel,
            "invalid routing choice falls back to parallel");
+}
+
+void testStateModelRoundTrip() {
+    auto values = StateModel::defaultValues();
+    values.waterEnabled = false;
+    values.iceEnabled = true;
+    values.routing = RoutingMode::iceIntoWater;
+    values.parallelBalance = 0.25f;
+    values.waterAmount = 0.5f;
+    values.iceAmount = 0.75f;
+    values.inputGainDb = -6.0f;
+    values.globalMix = 0.4f;
+    values.outputGainDb = 3.0f;
+
+    const auto serialized = StateModel::serialize(values);
+    expect(serialized.schemaVersion == StateModel::kCurrentSchemaVersion,
+           "state serialization emits the current schema version");
+    const auto result = StateModel::deserialize(serialized);
+    expect(result.status == StateModel::DeserializeStatus::current,
+           "current state deserializes without migration");
+    expect(result.values.waterEnabled == values.waterEnabled,
+           "state round-trip retains Water enable");
+    expect(result.values.iceEnabled == values.iceEnabled, "state round-trip retains Ice enable");
+    expect(result.values.routing == values.routing, "state round-trip retains routing mode");
+    expectNear(result.values.parallelBalance, values.parallelBalance, 1.0e-6f,
+               "state round-trip retains parallel balance");
+    expectNear(result.values.waterAmount, values.waterAmount, 1.0e-6f,
+               "state round-trip retains Water amount");
+    expectNear(result.values.iceAmount, values.iceAmount, 1.0e-6f,
+               "state round-trip retains Ice amount");
+    expectNear(result.values.inputGainDb, values.inputGainDb, 1.0e-6f,
+               "state round-trip retains input gain");
+    expectNear(result.values.globalMix, values.globalMix, 1.0e-6f,
+               "state round-trip retains global mix");
+    expectNear(result.values.outputGainDb, values.outputGainDb, 1.0e-6f,
+               "state round-trip retains output gain");
+
+    for (const auto routing : {RoutingMode::parallel, RoutingMode::waterIntoIce,
+                               RoutingMode::iceIntoWater}) {
+        values.routing = routing;
+        const auto routingResult = StateModel::deserialize(StateModel::serialize(values));
+        expect(routingResult.status == StateModel::DeserializeStatus::current,
+               "each routing mode uses the current state schema");
+        expect(routingResult.values.routing == routing, "each routing mode round-trips");
+    }
+}
+
+void testStateModelMigrationAndFallback() {
+    const auto values = StateModel::defaultValues();
+    const auto serialized = StateModel::serialize(values);
+
+    auto legacy = serialized;
+    legacy.schemaVersion = StateModel::kLegacySchemaVersion;
+    const auto migrated = StateModel::deserialize(legacy);
+    expect(migrated.status == StateModel::DeserializeStatus::migrated,
+           "known legacy schema enters the migration path");
+
+    auto schemaLessLegacy = serialized;
+    schemaLessLegacy.schemaVersion.reset();
+    const auto schemaLessResult = StateModel::deserialize(schemaLessLegacy);
+    expect(schemaLessResult.status == StateModel::DeserializeStatus::migrated,
+           "schema-less known parameter state enters the pre-v1 migration path");
+
+    auto unknown = serialized;
+    unknown.schemaVersion = StateModel::kCurrentSchemaVersion + 1U;
+    const auto unknownResult = StateModel::deserialize(unknown);
+    expect(unknownResult.status == StateModel::DeserializeStatus::fallback,
+           "unknown schema falls back safely");
+    expect(unknownResult.values.routing == values.routing,
+           "unknown schema fallback uses safe default routing");
+
+    auto outOfRange = serialized;
+    outOfRange.parallelBalance = 2.0f;
+    const auto outOfRangeResult = StateModel::deserialize(outOfRange);
+    expect(outOfRangeResult.status == StateModel::DeserializeStatus::fallback,
+           "out-of-range state value uses safe fallback");
+    expectNear(outOfRangeResult.values.parallelBalance, values.parallelBalance, 1.0e-6f,
+               "out-of-range state value falls back to the documented default");
+
+    const auto emptyResult = StateModel::deserialize(StateModel::SerializedState{});
+    expect(emptyResult.status == StateModel::DeserializeStatus::fallback,
+           "empty state uses safe defaults");
+    expect(emptyResult.values.waterEnabled && emptyResult.values.iceEnabled,
+           "empty state restores default enabled values");
+}
+
+void testHostStateAdapterRoundTripAndInactiveRetention() {
+    TestAudioProcessor sourceProcessor;
+    juce::AudioProcessorValueTreeState source(sourceProcessor, nullptr, "FRAZIL",
+                                              frazil::plugin::createParameterLayout());
+    setParameterValue(source, frazil::plugin::parameterIds::waterEnabled, 0.0f);
+    setParameterValue(source, frazil::plugin::parameterIds::iceEnabled, 1.0f);
+    setParameterValue(source, frazil::plugin::parameterIds::routingMode, 2.0f);
+    setParameterValue(source, frazil::plugin::parameterIds::parallelBalance, 0.25f);
+    setParameterValue(source, frazil::plugin::parameterIds::waterAmount, 0.5f);
+    setParameterValue(source, frazil::plugin::parameterIds::iceAmount, 0.75f);
+    setParameterValue(source, frazil::plugin::parameterIds::inputGain, -6.0f);
+    setParameterValue(source, frazil::plugin::parameterIds::globalMix, 0.4f);
+    setParameterValue(source, frazil::plugin::parameterIds::outputGain, 3.0f);
+
+    const auto serialized = frazil::plugin::HostStateAdapter::serialize(source);
+    expect(serialized.hasType(juce::Identifier{"FRAZIL"}),
+           "host state adapter emits the FRAZIL root type");
+    expect(static_cast<int>(serialized.getProperty("schemaVersion")) ==
+               static_cast<int>(StateModel::kCurrentSchemaVersion),
+           "host state adapter emits schemaVersion");
+    expect(serialized.getNumChildren() == 9,
+           "host state adapter serializes all nine static parameters");
+
+    TestAudioProcessor restoredProcessor;
+    juce::AudioProcessorValueTreeState restored(restoredProcessor, nullptr, "FRAZIL",
+                                                 frazil::plugin::createParameterLayout());
+    expect(frazil::plugin::HostStateAdapter::restore(restored, serialized),
+           "current host state restores without fallback");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::waterEnabled), 0.0f,
+               1.0e-6f, "restored Water enable matches source");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::routingMode), 2.0f,
+               1.0e-6f, "restored routing mode matches source");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::parallelBalance), 0.25f,
+               1.0e-6f, "restored parallel balance matches source");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::waterAmount), 0.5f,
+               1.0e-6f, "restored inactive Water amount matches source");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::iceAmount), 0.75f,
+               1.0e-6f, "restored inactive Ice amount matches source");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::inputGain), -6.0f,
+               1.0e-6f, "restored input gain matches source");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::globalMix), 0.4f,
+               1.0e-6f, "restored global mix matches source");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::outputGain), 3.0f,
+               1.0e-6f, "restored output gain matches source");
+}
+
+void testHostStateAdapterLegacyIdsAndInvalidFallback() {
+    TestAudioProcessor sourceProcessor;
+    juce::AudioProcessorValueTreeState source(sourceProcessor, nullptr, "FRAZIL",
+                                              frazil::plugin::createParameterLayout());
+    setParameterValue(source, frazil::plugin::parameterIds::waterEnabled, 0.0f);
+    setParameterValue(source, frazil::plugin::parameterIds::iceEnabled, 1.0f);
+    setParameterValue(source, frazil::plugin::parameterIds::routingMode, 1.0f);
+    setParameterValue(source, frazil::plugin::parameterIds::waterAmount, 0.25f);
+    setParameterValue(source, frazil::plugin::parameterIds::iceAmount, 0.75f);
+
+    auto legacy = frazil::plugin::HostStateAdapter::serialize(source);
+    legacy.removeProperty("schemaVersion", nullptr);
+    for (int index = 0; index < legacy.getNumChildren(); ++index) {
+        auto parameter = legacy.getChild(index);
+        const auto id = parameter.getProperty("id").toString();
+        if (id == frazil::plugin::parameterIds::waterEnabled)
+            parameter.setProperty("id", "water.enable", nullptr);
+        else if (id == frazil::plugin::parameterIds::iceEnabled)
+            parameter.setProperty("id", "ice.enable", nullptr);
+    }
+
+    const auto decoded = frazil::plugin::HostStateAdapter::deserialize(legacy);
+    expect(decoded.status == StateModel::DeserializeStatus::migrated,
+           "legacy parameter IDs are recognized by the migration path");
+
+    TestAudioProcessor restoredProcessor;
+    juce::AudioProcessorValueTreeState restored(restoredProcessor, nullptr, "FRAZIL",
+                                                 frazil::plugin::createParameterLayout());
+    expect(frazil::plugin::HostStateAdapter::restore(restored, legacy),
+           "legacy state restores without fallback");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::waterEnabled), 0.0f,
+               1.0e-6f, "legacy Water ID migrates to the canonical ID");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::iceEnabled), 1.0f,
+               1.0e-6f, "legacy Ice ID migrates to the canonical ID");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::routingMode), 1.0f,
+               1.0e-6f, "legacy state retains routing mode");
+
+    auto unknownSchema = legacy;
+    unknownSchema.setProperty("schemaVersion", 99, nullptr);
+    expect(!frazil::plugin::HostStateAdapter::restore(restored, unknownSchema),
+           "unknown schema reports safe fallback");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::routingMode), 0.0f,
+               1.0e-6f, "unknown schema restores default routing");
+
+    auto malformed = frazil::plugin::HostStateAdapter::serialize(source);
+    for (int index = malformed.getNumChildren() - 1; index >= 0; --index) {
+        if (malformed.getChild(index).getProperty("id").toString() ==
+            frazil::plugin::parameterIds::globalMix) {
+            malformed.removeChild(index, nullptr);
+            break;
+        }
+    }
+    expect(!frazil::plugin::HostStateAdapter::restore(restored, malformed),
+           "missing parameter reports safe fallback");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::globalMix), 1.0f,
+               1.0e-6f, "missing parameter restores its documented default");
+
+    auto wrongRoot = juce::ValueTree{"NOT_FRAZIL"};
+    expect(!frazil::plugin::HostStateAdapter::restore(restored, wrongRoot),
+           "malformed root reports safe fallback");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::waterEnabled), 1.0f,
+               1.0e-6f, "malformed root restores default Water enable");
 }
 
 void testLinearSmootherReachesTarget() {
@@ -439,6 +648,10 @@ int main() {
     testParameterLayoutContract();
     testParameterSnapshotReadsOneCoherentSet();
     testParameterMapperClampsAndConverts();
+    testStateModelRoundTrip();
+    testStateModelMigrationAndFallback();
+    testHostStateAdapterRoundTripAndInactiveRetention();
+    testHostStateAdapterLegacyIdsAndInvalidFallback();
     testLinearSmootherReachesTarget();
     testLinearSmootherIsBlockSizeStable();
     testLinearSmootherRetargetsFromCurrentValue();
