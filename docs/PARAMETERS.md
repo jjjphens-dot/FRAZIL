@@ -52,7 +52,7 @@ RoutingEngine -> Water/Ice -> wet path ─────────────�
                                                     output
 ```
 
-v1 Material DSP 采用 `ARCH-LAT-001` 的 zero-latency-only 合同：Water/Ice 不得引入 lookahead、FFT/convolution 或其他需要额外 latency compensation 的处理。`global.mix` 的 dry reference 必须与 wet path 在内部 sample-aligned；相关 impulse/transient 验收由 `ROUTE-011` 负责。若候选算法不能满足该合同，应留在 experiment 或 post-v1 范围。
+v1 Material DSP 采用 `ARCH-LAT-001` 的 zero-latency-only processing-latency 合同：Host-reported processing latency 必须为 0 samples；Water/Ice 不得依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC 才能正确工作。Water/Ice 内部允许属于声音设计的 intentional effect delay/tail，例如 micro-delay、resonant ringing、comb/modal structure 或 natural decay；`intentional effect delay/tail != plugin processing latency`。`ROUTE-011` 只验证 routing/mixing infrastructure 不引入额外未声明 latency，不要求处理后的 Water/Ice waveform 与 dry waveform 逐样本对齐。
 
 ### Parallel
 

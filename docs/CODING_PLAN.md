@@ -193,7 +193,7 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 | HIST-001 | P0 | EditHistoryManager skeleton | bounded transaction store/API；message thread only；暂不要求完整 UI | unit tests for capacity/clear |
 | TESTDATA-001 | P0 | Establish licensed reference audio corpus | impulse、noise、drums、vocal、piano、guitar、pad、bass；每项记录 source/license/hash/sample rate/channels/storage/repository-artifact-LFS 策略；Water/Ice 共用 corpus | manifest review + hash/licence audit |
 | PERF-BASE-001 | P0 | Establish realtime performance baseline | Reference Machine、OS、compiler、build type、48 kHz/128、测量方法；记录 mean/P95/P99/worst callback、deadline、memory、allocation observation | reproducible baseline report；不预设百分比阈值 |
-| ARCH-LAT-001 | P0 | Define v1 latency model and dry/wet alignment | v1 Material DSP 采用 zero-latency-only；lookahead/FFT/convolution/其他引入额外 latency 的算法推迟到 post-v1；定义 `global.mix` 的 sample alignment、内部 dry reference 和 0-sample plugin reporting | ADR + impulse/alignment acceptance |
+| ARCH-LAT-001 | P0 | Define v1 latency model and dry/wet alignment | v1 Host-reported processing latency 为 0 samples；不依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC；Water/Ice 允许属于声音设计的 intentional effect delay/tail，但不得依赖 Host latency compensation | ADR + latency metadata/infrastructure acceptance |
 | RENDER-001 | P0 | offline WAV harness | 固定 `TESTDATA-001` input/config/seed -> WAV + manifest；不依赖实时设备；candidate A/B 可复现 | deterministic smoke render |
 | TEST-002 | P0 | processor property harness | finite/random/extreme/prepare-reset；矩阵参数化 | 44.1/48/96 + block subset |
 | HOST-001 | P0 | pluginval + Host smoke protocol | 枚举/state/editor/bus/automation；结果可追踪 SHA；DAW 目标来自 HOST-000 | strictness 5 PASS |
@@ -208,7 +208,7 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 - `AUTO-001` 的 block snapshot、sample-aware smoothing 和离散 transition 语义有测试证据；
 - `TESTDATA-001` manifest/hash/license 可追溯，`RENDER-001` 使用统一 corpus；
 - `PERF-BASE-001` 已记录 baseline，不以未测量的 CPU 百分比作为门槛；
-- `ARCH-LAT-001` 已接受，dry/wet 在内部 sample-aligned，v1 plugin latency reporting 明确；
+- `ARCH-LAT-001` 已接受，routing/mixing infrastructure 不引入未声明 processing latency，v1 Host-reported latency 为 0 samples；Water/Ice intentional effect delay/tail 由各自 ADR/tests 描述；
 - offline render 可复现，property tests 无 NaN/Inf；
 - Debug/Release/ASAN + pluginval PASS；
 - `HOST-000` 中定义的 primary target DAW 完成参数枚举与 project save/reopen smoke。
@@ -238,7 +238,7 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 | WATER-002 | P0 | Water core | 实现已选最小算法；固定 seed 可复现；处理参数极值 | render + finite tests |
 | WATER-003 | P0 | product macros | 名称体现用户听感；mapping 集中；自动化平滑；文档/parameter registry | mapping/automation tests |
 | WATER-004 | P0 | click-free enable | disabled=pass-through；重新开启保留 macro；过渡无异常峰值 | transient automation render |
-| WATER-005 | P0 | performance/tail | 引用 `PERF-BASE-001` 的 48k/128 baseline；报告 mean/P95/P99/worst；遵守 `ARCH-LAT-001` 的 zero-latency-only | benchmark + plugin metadata |
+| WATER-005 | P0 | performance/tail | 相对 `PERF-BASE-001` 的 48k/128 baseline 报告 mean/P95/P99/worst；不引入非零 Host-reported processing latency；intentional effect delay/tail 由 Water ADR/tests 描述 | benchmark + plugin metadata |
 | WATER-006 | P0 | listening pack | 使用 `TESTDATA-001` 的多类素材 dry/baseline/candidate + manifest；按 Water rubric 记录 | rubric accepted；未触发 Reject Criteria |
 | WATER-007 | P0 | integration | AudioEngine 的 Water-only 临时路径，不引入 routing 语义 | pluginval + DAW automation |
 
@@ -264,7 +264,7 @@ Water-only 在 `TESTDATA-001` 固定素材上具有一致可辨识的材质变�
 | ICE-002 | P0 | Ice core | 选定的摩擦/晶体/裂纹机制最小组合；finite/repeatable |
 | ICE-003 | P0 | product macros | 用户语义、mapping、smoothing、automation/state |
 | ICE-004 | P0 | enable transition | pass-through、value retention、click-free |
-| ICE-005 | P0 | performance/tail | 引用 `PERF-BASE-001` 的 Reference baseline；报告 mean/P95/P99/worst；遵守 `ARCH-LAT-001` |
+| ICE-005 | P0 | performance/tail | 相对 `PERF-BASE-001` 的 Reference baseline 报告 mean/P95/P99/worst；不引入非零 Host-reported processing latency；intentional effect delay/tail 由 Ice ADR/tests 描述 |
 | ICE-006 | P0 | listening pack | 使用 `TESTDATA-001`，跨素材且与 Water 可区分；按 Ice rubric 记录 |
 | ICE-007 | P0 | integration | Ice-only AudioEngine 路径 + pluginval/DAW smoke |
 
@@ -301,7 +301,7 @@ M1 只负责 `core contract stabilization`：建立静态参数、Snapshot、map
 | ROUTE-008 | P0 | Global integration | Input Gain -> Routing -> Global Mix -> Output Gain 顺序固定 | impulse/reference test |
 | ROUTE-009 | P0 | Host/state matrix | mode 切换、inactive automation、save/reopen、多实例 | integration + DAW |
 | ROUTE-010 | P0 | loudness review | Parallel law、Serial stage law、routing 切换的响度与偏好 | A/B notes + ADR update |
-| ROUTE-011 | P0 | latency alignment and reporting | 按 `ARCH-LAT-001` 验证 dry reference 与 wet path sample-aligned；所有 Global Mix endpoint、impulse/transient 对齐；v1 report 0 samples；routing 改变不制造未声明 latency | alignment render + plugin metadata/Host check |
+| ROUTE-011 | P0 | verify routing infrastructure latency and reporting | 验证 RoutingEngine、branch copies、scratch buffers、Parallel/Serial topology 和 Global Mix infrastructure 不额外引入非预期时间偏移或未声明 processing latency；bypass/identity impulse 不被无故平移；v1 report 0 samples；Water/Ice intentional delay/tail 由算法 ADR/tests 单独描述 | infrastructure impulse/render + plugin metadata/Host check |
 
 `ADR-R-001` 不预设最终实现。允许比较完整 old/new topology 双运行、复制/双 graph、以及 `old routing -> neutral/dry -> switch topology -> new routing` 的两阶段 transition；必须用测量和确定性测试说明 state、random、tail 和 CPU 后再选择。
 
@@ -311,13 +311,13 @@ M1 只负责 `core contract stabilization`：建立静态参数、Snapshot、map
 - `parallel.balance` 永不充当 serial amount；
 - amount 属于 StageMixer，不进入 Water/Ice 内部算法；
 - Input Gain 同时改变 dry reference 和 wet input；Output Gain 只在末端；
-- `ARCH-LAT-001` 的 v1 zero-latency-only 与 `ROUTE-011` 的内部 dry/wet alignment 必须成立；
+- `ARCH-LAT-001` 的 v1 Host-reported latency=0 与 `ROUTE-011` 的 routing infrastructure latency 检查必须成立；intentional Water/Ice delay/tail 不被误判为 plugin processing latency；
 - routing/enable 改变不重新注册 Host 参数、不清除 inactive values；
 - v1 不增加内部 Water->Ice 时间线。
 
 ### M4 Exit gate
 
-`docs/TESTING.md` 的完整 routing render matrix、automation stress、mode retention、state reopen、mono/stereo、sample-rate/block-size 子矩阵和 pluginval 全通过；`ADR-R-001` 与 `ROUTE-011` 证据齐备；切换无明显 click；性能峰值在 `PERF-BASE-001` 预算内；听测确认 crossfade/stage law。
+`docs/TESTING.md` 的完整 routing render matrix、automation stress、mode retention、state reopen、mono/stereo、sample-rate/block-size 子矩阵和 pluginval 全通过；`ADR-R-001` 与 `ROUTE-011` 证据齐备；切换无明显 click；性能数据相对 `PERF-BASE-001` baseline 记录，且无未解释的严重 realtime regression；正式阈值由 M6 `PERF-001` 基于实测锁定；听测确认 crossfade/stage law。
 
 ## 9. M5 — Product UI & Edit History
 
@@ -427,7 +427,7 @@ P2 只有在用户研究/真实声音问题证明价值、且通过新的 ADR �
 | 性能预算过晚 | vertical slice 已复杂且无法降级 | M2/M3 每 slice 报 avg/peak，再集成 |
 | reference 音频版权/仓库膨胀 | 来源不明、大 WAV 入 Git | manifest/许可审计，artifact/LFS 决策 |
 | routing state ownership 不明确 | transition 同 block 推进同一 Processor 两次、random/tail 不一致 | `ROUTE-006` 阻断至 `ADR-R-001` Accepted；比较双 graph 与两阶段 transition |
-| dry/wet latency 未对齐 | impulse comb filtering、transient smear、未声明 plugin latency | `ARCH-LAT-001` 采用 zero-latency-only；`ROUTE-011` 单独验收 alignment |
+| routing infrastructure 引入未预期 latency | identity impulse 被平移、Parallel/Serial branch 错位、Global Mix 隐藏 delay | `ARCH-LAT-001` 要求 Host-reported latency=0；`ROUTE-011` 验收 infrastructure；intentional effect delay/tail 由算法 ADR/tests 描述 |
 | production random 同步 | 多实例输出完全相同或 save/reopen 语义不明 | 区分测试 fixed seed 与 production instance seed；由 Water/Ice ADR 定义 persistent/offline 语义 |
 
 ## 15. Bootstrap Issue Map

@@ -35,7 +35,7 @@ git push -u origin main
 
 ## 3. Issue taxonomy
 
-以下是计划中的 label taxonomy，不代表当前 GitHub metadata 已经建立。最近一次公共页面审计显示当前仓库只有 GitHub 默认 labels；自定义 `type:*`、`area:*`、`priority:*`、`status:*` 等需由 `GH-001` 通过 GitHub Issue 创建并核验后才能使用。
+以下是计划中的 label taxonomy，不代表 GitHub metadata 自动存在。自定义 `type:*`、`area:*`、`priority:*`、`status:*` 等只有在 `GH-001` 实际创建并核验后才能使用；在此之前只能视为目标规则。
 
 ### 类型 label
 
@@ -62,15 +62,6 @@ Milestone 使用 `M0` 至 `M7`，issue title 使用 Coding Plan 的稳定 ID，�
 [M1][PARAM-001] Extract static ParameterLayout and lock core IDs
 [M4][ROUTE-004] Implement Water -> Ice serial processing
 ```
-
-### 当前远端审计（2026-09-06）
-
-- `main` 当前提交为 `1f4bb67`；`FRAZIL CI` 的两个可见运行均 completed successfully；
-- Issues 全状态筛选无结果；Milestones 页面为 Open 0 / Closed 0；Projects 页面为 Open 0 / Closed 0；
-- Labels 页面仅见 GitHub 默认 labels；项目自定义 taxonomy 尚未建立；
-- branch protection/ruleset 未验证，不得在本地文档中把 `GH-002` 描述成已完成。
-
-以上是远端页面可见事实，不替代 GitHub Issues/Project 的实时状态；API 查询因匿名 rate limit 未验证。
 
 ## 4. Board 与 WIP
 

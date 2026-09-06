@@ -10,7 +10,7 @@
 
 当前阻塞性差距：
 
-1. 本地 Git 工作树和 `origin` 已初始化，当前 HEAD `1f4bb67` 已与远端 `main` 对齐；
+1. 本次状态快照对应的 `main` 基线 HEAD 为 `1f4bb67`，与远端 `origin/main` 对齐；工作分支可在此基线之上另有 review 提交；
 2. GitHub Actions 页面显示 `FRAZIL CI` 的 run `34014018189`（`96b3659`）和 run `34014110580`（`1f4bb67`）均 completed successfully；workflow/API 的更细粒度权限与 branch protection 未验证；
 3. 参数 ID 存在 `water.enable`/`ice.enable` 与架构目标 `water.enabled`/`ice.enabled` 的冲突；
 4. APVTS 参数虽然已注册，但尚未通过 Snapshot/Mapper 进入 AudioEngine；
@@ -33,7 +33,7 @@
 | Tests | `frazil_smoke` + `frazil_tests` CTest | M0 wiring/lifecycle 覆盖；DSP/Host 测试未开始 |
 | Local validation | Debug 与 portable preset 已 configure/build；两个 CTest case 均 PASS | 已验证 |
 | pluginval | 本轮 Debug VST3 strictness 5 SUCCESS；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定，`main` 当前为 `1f4bb67` | GitHub Actions 两次 run success；Issues/Milestones/Projects metadata 未建立 |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定，本次审计的 `main` 基线为 `1f4bb67` | GitHub Actions 两次 run success；Issues/Milestones/Projects metadata 未建立 |
 
 ## 3. 当前源码映射
 
