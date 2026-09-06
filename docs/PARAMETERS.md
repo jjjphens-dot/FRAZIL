@@ -32,7 +32,7 @@ M1 是 `core contract stabilization`：建立静态参数注册、Snapshot、map
 
 ## 2. 已知 pre-v1 差异
 
-当前 M0 代码注册的是 `water.enable` 与 `ice.enable`。目标合同采用 `water.enabled` 与 `ice.enabled`，与架构总纲一致。
+M0 基线曾注册 `water.enable` 与 `ice.enable`；本分支的 M1 `ParameterLayout` 已完成一次性迁移，当前生产代码采用合同 ID `water.enabled` 与 `ice.enabled`。公开版本前仍需补齐 state compatibility/migration 证据。
 
 处理顺序：
 
@@ -96,7 +96,7 @@ struct ParameterSnapshot
 {
     bool waterEnabled;
     bool iceEnabled;
-    RoutingMode routingMode;
+    int routingModeIndex;
     float parallelBalance;
     float waterAmount;
     float iceAmount;
@@ -106,7 +106,7 @@ struct ParameterSnapshot
 };
 ```
 
-`ParameterMapper` 负责边界夹紧、choice 转 enum、dB/归一化语义和未来 macro 映射；不处理 buffer、不读取 UI、不拥有 smoother。
+`ParameterSnapshot::capture` 从 plugin 在构造阶段缓存的 raw parameter atomics 形成这组值，每个 source 在一个 block 边界只读取一次。`ParameterMapper` 负责边界夹紧、choice index 转 `RoutingMode`、dB→linear 语义和未来 macro 映射；不处理 buffer、不读取 UI、不拥有 smoother。当前 `EngineParameters` 使用 `inputGainLinear`/`outputGainLinear`，以明确 DSP 内部单位。
 
 ## 5. Smoothing 初始策略
 

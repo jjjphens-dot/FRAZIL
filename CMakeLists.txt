@@ -36,6 +36,20 @@ target_sources(FRAZIL
     PRIVATE
         src/app/AudioEngine.cpp
         src/app/AudioEngine.h
+        src/app/EngineParameters.h
+        src/app/ParameterMapper.cpp
+        src/app/ParameterMapper.h
+        src/app/ParameterSnapshot.cpp
+        src/app/ParameterSnapshot.h
+        src/app/ProcessSpec.h
+        src/dsp/DryWetMixer.cpp
+        src/dsp/DryWetMixer.h
+        src/dsp/primitives/LinearSmoother.cpp
+        src/dsp/primitives/LinearSmoother.h
+        src/dsp/primitives/RandomSource.cpp
+        src/dsp/primitives/RandomSource.h
+        src/plugin/ParameterLayout.cpp
+        src/plugin/ParameterLayout.h
         src/plugin/PluginEditor.cpp
         src/plugin/PluginEditor.h
         src/plugin/PluginProcessor.cpp
@@ -71,8 +85,22 @@ add_executable(frazil_tests
     tests/unit/test_main.cpp
     src/app/AudioEngine.cpp
     src/app/AudioEngine.h
+    src/app/EngineParameters.h
+    src/app/ParameterMapper.cpp
+    src/app/ParameterMapper.h
+    src/app/ParameterSnapshot.cpp
+    src/app/ParameterSnapshot.h
+    src/app/ProcessSpec.h
+    src/dsp/DryWetMixer.cpp
+    src/dsp/DryWetMixer.h
+    src/dsp/primitives/LinearSmoother.cpp
+    src/dsp/primitives/LinearSmoother.h
+    src/dsp/primitives/RandomSource.cpp
+    src/dsp/primitives/RandomSource.h
+    src/plugin/ParameterLayout.cpp
+    src/plugin/ParameterLayout.h
 )
 target_compile_features(frazil_tests PRIVATE cxx_std_20)
 target_include_directories(frazil_tests PRIVATE src)
-target_link_libraries(frazil_tests PRIVATE juce::juce_audio_basics)
+target_link_libraries(frazil_tests PRIVATE juce::juce_audio_basics juce::juce_audio_processors)
 add_test(NAME frazil_unit COMMAND frazil_tests)

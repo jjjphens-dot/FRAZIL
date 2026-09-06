@@ -32,11 +32,11 @@ UI -> narrow app edit/history command interface -> EditHistoryManager (message t
 
 ## Public Interfaces
 
-当前 `AudioEngine` 实际接口为 `prepare(double sampleRate, int maximumBlockSize, int numChannels)`、`reset()` 和 `process(juce::AudioBuffer<float>&) noexcept`。Snapshot/Mapper/StateModel/History 接口尚未实现，不能按规划接口写成当前事实。
+当前 M1 切片提供 `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`，以及 `AudioEngine::prepare(const ProcessSpec&)`、`reset()` 和 `process(juce::AudioBuffer<float>&, const EngineParameters&) noexcept`。StateModel/History 仍未实现。
 
 ## Parameter / Data Types
 
-正式 Host 参数由 plugin 层当前 inline 注册；M1 `PARAM-001` 将迁移到 `src/plugin/ParameterLayout.*`。AudioEngine 当前没有正式 `EngineParameters`/`ProcessSpec`，这些属于 M1 合同。app 不依赖 ParameterLayout、PluginProcessor 或 Host adapter。
+正式 Host 参数由 plugin 层 `src/plugin/ParameterLayout.*` 集中注册。app 层的 Snapshot 只接收由 plugin 缓存的原子参数指针，Mapper 输出不含 Host 对象的 `EngineParameters`；app 不依赖 ParameterLayout、PluginProcessor 或 Host adapter。
 
 ## Ownership & Lifetime
 
@@ -48,7 +48,7 @@ AudioEngine 为 PluginProcessor 的实例成员，拥有其生命周期内的准
 
 ## Implementation Overview
 
-M0 只有 pass-through `AudioEngine`。真实 gain、Snapshot/Mapper、routing、Water/Ice 和 state/history boundary 按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 的 M1-M5 顺序实现。
+M1 已实现参数到 `AudioEngine` 的 Snapshot/Mapper 路径、Input/Output gain、global dry/wet mix law、prepare 阶段 dry scratch 和基础 smoothing。首个有效 block 会从实时 `EngineParameters` priming smoother；runtime buffer 超出 `ProcessSpec` 时不在音频线程扩容，而使用有限、确定性的 fallback。Water/Ice、Routing、StateModel、History 仍按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 的后续 milestone 实现；当前 wet path 仍是 post-input pass-through。
 
 ## State / Tail / Latency
 
@@ -56,7 +56,7 @@ app 层不得自行宣称算法 tail 或 latency。v1 Host-reported processing l
 
 ## Tests
 
-当前以 `tests/unit/AudioEngineTests.cpp` 和 CTest smoke/lifecycle 为证据；后续按 [TESTING.md](../../docs/TESTING.md) 增加 snapshot、mapping、state、signal-chain 和 finite-output 测试。
+当前以 CTest smoke 和 `frazil_tests` 的 ProcessSpec、ParameterLayout、Snapshot、Mapper、DryWetMixer、smoothing block/retarget、RandomSource、gain staging、first-block priming、reset 和 runtime buffer invariant 测试为证据；state、render、property、DAW 和完整 M1 gate 仍未完成。
 
 ## Related ADRs
 
@@ -64,7 +64,7 @@ app 层不得自行宣称算法 tail 或 latency。v1 Host-reported processing l
 
 ## Files
 
-`AudioEngine.*` 当前存在；`ParameterSnapshot.*`、`ParameterMapper.*`、`StateModel.*`、`EditHistoryManager.*` 为 app 计划路径；`ParameterLayout.*` 为 `src/plugin/` 计划路径。
+`AudioEngine.*`、`ProcessSpec.h`、`EngineParameters.h`、`ParameterSnapshot.*` 和 `ParameterMapper.*` 当前存在；`StateModel.*`、`EditHistoryManager.*` 仍为 app 计划路径；`ParameterLayout.*` 属于已实现的 `src/plugin/` M1 路径。
 
 ## Modification Policy
 
