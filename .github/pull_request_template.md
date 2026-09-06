@@ -53,6 +53,19 @@ Closes #
 
 <!-- Screenshots at minimum/target size, or N/A. -->
 
+## Documentation Impact
+
+- [ ] No documentation impact, reason:
+- [ ] `MODULE_INDEX.md` reviewed
+- [ ] Affected module README reviewed
+- [ ] `PROJECT_STATUS.md` reviewed
+- [ ] `PARAMETERS.md` / state contract reviewed
+- [ ] `TESTING.md` reviewed
+- [ ] ADR impact reviewed
+- [ ] Architecture impact reviewed
+- [ ] Documentation consistency check completed
+- [ ] Documentation updates are included in this PR, or reviewed-but-unchanged files have a reason recorded
+
 ## Documentation and completion
 
 - [ ] Relevant docs/ADR updated
@@ -77,3 +90,8 @@ Closes #
 - [ ] Locked documentation unchanged, or change authorized by ADR
 - [ ] Tests updated or impact marked `N/A`
 - [ ] Comment & Documentation Pass completed
+
+### Human review evidence
+
+- [ ] Formal GitHub review submission recorded
+- [ ] If formal review is unavailable, a second developer comment records scope, reproduced evidence, limitations, and decision

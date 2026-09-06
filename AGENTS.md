@@ -4,11 +4,11 @@
 
 ## 1. 当前基线
 
-- 当前阶段：M0 已部分完成，M1 尚未完成。
-- 已有：JUCE 9.0.1、CMake/Ninja presets、VST3/Standalone、pass-through AudioEngine、APVTS 状态保存、9 个参数占位、smoke test。
-- 已有：可移植 CI preset 与 Hosted CI 验证；
-- 尚缺：ParameterMapper/Snapshot、真实 gain/routing/Water/Ice DSP、编辑历史、完整测试体系和正式 UI。
-- 当前参数占位使用 `water.enable` / `ice.enable`，而目标合同为 `water.enabled` / `ice.enabled`；必须在首个公开兼容性基线前完成一次性迁移并加测试。
+- 当前阶段：M1-C 前置；M1-A/M1-B Parameter/Engine foundation 已合入 `main`，M1 尚未完成。
+- 已有：JUCE 9.0.1、CMake/Ninja presets、VST3/Standalone、pass-through wet path、APVTS 状态保存、集中式 ParameterLayout、ParameterSnapshot/Mapper、基础 gain/mix/smoothing、9 个 Host 参数和 smoke test。
+- 已有：可移植 CI preset 与 Hosted CI 验证；M1-A/M1-B 的首块 priming、retarget 和 runtime buffer invariant regression 已建立。
+- 尚缺：versioned StateModel、state migration/fallback、automation integration、TESTDATA、render/performance harness、Host validation、编辑历史、Water/Ice/Routing DSP 和正式 UI。
+- 当前参数合同已将历史 `water.enable` / `ice.enable` 迁移为 `water.enabled` / `ice.enabled`；公开兼容性基线前仍需 state migration 与 compatibility evidence。
 - GitHub 远端为 `https://github.com/jjjphens-dot/FRAZIL`。开始产品代码前必须确认工作目录是该仓库的 Git 工作树，且 `origin` 指向该地址。
 
 不得把规划中的模块、历史验证结果或本地已有工具误写为“当前已实现”。完成状态必须由代码、测试或可复现验证记录支持。
@@ -46,6 +46,10 @@ Contract Review
 ```
 
 功能完成后不得跳过独立的 Code Quality Review 或 Comment & Documentation Pass。
+
+### Documentation Synchronization Gate
+
+任何改变架构、公共接口、模块职责、参数/state、realtime、routing、Host/UI 行为、测试证据、milestone 或 build/CI 的任务，必须在实现前执行 Documentation Impact Analysis，并按 [Documentation Synchronization Gate](docs/DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate) 检查受影响文档。需要更新的文档必须与实现进入同一个 PR；无更新必要也必须记录理由。最终反馈必须包含 Documentation Review（Changed、Reviewed, no update required、Consistency、Result）。
 
 ### Forbidden shortcuts
 
@@ -153,6 +157,7 @@ ctest --preset windows-debug
 - commit 建议使用 Conventional Commits：`feat(dsp): ...`、`fix(host): ...`、`docs(plan): ...`。
 - `main` 始终可配置、可构建、可测试；禁止直接提交未验证的生产 DSP。
 - PR 必须填写架构、参数/automation、实时安全、测试和音频评估影响。
+- PR 必须完成 Documentation Impact Review，并在模板中记录受影响文档和一致性检查结果。
 - 参数合同、routing、state、核心 DSP 或发布流程变更至少一名另一位开发者审批，相关讨论全部 resolve 后合并。
 - 禁止提交 `build/`、`.venv/`、工具二进制、下载归档、生成 render、DAW cache 或个人路径配置。
 - 未经明确请求，agent 不执行 push、merge、release、branch protection 或删除远端内容。
@@ -183,6 +188,7 @@ Issue 进入 Ready 前必须有：用户/声音问题、范围与非目标、acc
 - 遇到文档与代码冲突时显式列出，不擅自把任一方当成事实。
 - 完成后给出实际执行过的命令和结果；未执行的验证要明确标注。
 - 需要用户决定声音审美、许可、产品范围或不可逆外部操作时，停止在安全边界并提出一个具体问题。
+- 最终反馈必须明确列出文档变更、已审查但无需更新的文档、跨文档一致性结果和未执行的验证。
 
 ## 11. 本文件修改策略
 

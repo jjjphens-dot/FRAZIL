@@ -16,15 +16,16 @@
 
 当前阻塞性差距：
 
-1. 本次状态快照区分以下 refs：GitHub `main` 已包含 PR #2 / PR #3 的合并结果，当前合并后版本为 `229ca19`；`feat/m1-parameter-engine-contract` 保留为已完成 M1-A/M1-B 的历史 feature 分支；下一开发入口为独立的 M1-C state 分支；
+1. 本次状态快照记录的 observed `main` HEAD 为 `db02d1c`；PR #3 merge commit 为 `229ca19`，M1-A/M1-B foundation 已合入 `main`；`feat/m1-parameter-engine-contract` 保留为历史 feature 分支，下一开发入口为独立的 M1-C state 分支；本状态文件后续提交只表达 snapshot 与 merge/current-state relationship，不把其自身之前的提交长期称为 current HEAD；
 2. PR #3 最新 HEAD 的 [Hosted CI run 34044332388](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34044332388) 已完成 Windows Debug configure/build/test 并通过；PR #2 的 [Hosted CI run 34022773758](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34022773758) 也已通过；workflow/API 的更细粒度权限与 branch protection 未验证；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；兼容迁移策略仍属于 STATE/公开版本前置工作；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
 5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length 和 runtime buffer invariant；M1-A/M1-B 合并前的 Debug VST3 pluginval strictness 5 已通过，尚未覆盖版本化 state、render 和 DAW automation；
 6. Water、Ice、Routing、版本化 StateModel、EditHistoryManager、离线 render、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现。
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
-8. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-9. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证。
+8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug；从下一条需要双人 review 的核心 PR 开始，必须留下 formal review 或满足治理规则的第二位开发者 comment evidence；
+9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
+10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证。
 
 ## 2. 已有资产
 
@@ -38,9 +39,9 @@
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；first-block priming；wet pass-through；runtime buffer invariant fallback |
 | UI | 640x360 M0 占位界面 | 非产品 UI |
 | Tests | `frazil_smoke` + `frazil_tests` CTest | M1 contract/gain/smoothing/priming/invariant unit 覆盖；state/DSP property/Host 测试未完成 |
-| Local validation | 本分支 Debug、Release、ASAN 均 configure/build；三个 preset 的 CTest 均 2/2 PASS | 已验证 |
-| pluginval | 本轮修复后的 Debug VST3 strictness 5 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定，本次合并后 `main` 版本为 `229ca19` | PR #2 / PR #3 Hosted CI success；Issues/Milestones/Projects metadata 未建立 |
+| Local validation | `feat/m1-parameter-engine-contract` merge-candidate 的 Debug、Release、ASAN 均 configure/build；三个 preset 的 CTest 均 2/2 PASS | 已验证 |
+| pluginval | M1-A/M1-B merge-candidate Debug VST3 strictness 5 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；snapshot observed `main` HEAD 为 `db02d1c`，PR #3 merge commit 为 `229ca19` | PR #2 / PR #3 Hosted CI success；Issues/Milestones/Projects metadata 未建立 |
 
 ## 3. 当前源码映射
 
@@ -96,7 +97,7 @@ PluginProcessor
 
 | 语义 | 当前代码 | 目标合同 | 动作 |
 |---|---|---|---|
-| Water enable | M0 历史 `water.enable` | `water.enabled` | 本分支已迁移；首个公开版本前仍需 state compatibility/migration 证据 |
+| Water enable | M0 历史 `water.enable` | `water.enabled` | 合入 `main` 的集中式 ParameterLayout 已迁移；首个公开版本前仍需 state compatibility/migration 证据 |
 | Ice enable | M0 历史 `ice.enable` | `ice.enabled` | 同上 |
 | Routing | `routing.mode` | `routing.mode` | 保留 |
 | Parallel balance | `parallel.balance` | `parallel.balance` | 保留 |

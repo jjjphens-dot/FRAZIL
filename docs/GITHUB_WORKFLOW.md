@@ -91,8 +91,11 @@ PR 必需检查：
 - unit/DSP/integration tests；
 - 变更影响对应的 render/pluginval 检查；
 - 文档链接/状态一致性；
+- Documentation Impact Analysis 与跨文档 consistency review；
 - Code Quality Review 与 Comment & Documentation Pass；
 - module README、`docs/MODULE_INDEX.md` 和 PR 影响字段同步。
+
+Documentation Synchronization Gate 的 canonical 规则位于 [`DOCUMENT_GOVERNANCE.md`](DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate)。涉及 parameter/state、routing、realtime、核心 DSP、latency、random semantics、performance budget 或 release 的 PR，还必须留下可验证的 GitHub formal review；无法提交 formal review 时，第二位开发者必须在 PR comment 中写明 review scope、复现 evidence、limitations 和 decision。
 
 音频 render 和大型日志不要直接塞入 Git 历史；使用 GitHub Actions artifact 或 release asset，并在 PR 记录 manifest/hash。
 
