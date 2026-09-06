@@ -4,6 +4,10 @@
 > 依据：本地源码/构建目录审计、当前 Debug/portable build/CTest、GitHub 仓库页面与 Actions 页面。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
+## Modification Policy
+
+本文件属于 STATUS/EVIDENCE 文档，只能记录实际审计、测试、CI、兼容性或听测结果。计划、假设和未执行工作必须明确标为 planned/未验证，不得把本文件当作稳定计划合同。
+
 ## 1. 结论
 
 项目已有可构建的 JUCE M0 骨架，但尚未进入产品 DSP 实现。首次仓库接入和 Hosted CI 已验证；当前 M0 剩余重点是冻结平台/DAW 矩阵并建立 GitHub metadata，随后进入 M1 参数/状态/Application-DSP 接口合同。
@@ -67,6 +71,15 @@ PluginProcessor
   ├─ Global Mix
   └─ Output Gain
 ```
+
+## 3.1 M0 code quality audit
+
+本次代码审计只记录当前源码事实，不把计划模块当成实现：
+
+- 正向事实：`src/plugin`、`src/app`、`src/dsp`、`src/ui` 目录边界已经存在；当前未发现 mutable global runtime state；AudioEngine 的运行状态由实例成员持有；`JuceHeader.h` 目前局限在插件适配层。
+- 已确认技术债：参数 layout 仍 inline 在 `PluginProcessor.cpp`（对应 M1 `PARAM-001`）；`PluginProcessor` 仍公开 APVTS，后续需要收窄 Host parameter interface；AudioEngine 仍为 pass-through，已保存的 sample rate/block/channel 字段尚未形成 M1 `ProcessSpec` 合同。
+- 有意保留的未实现项：Water、Ice、Routing、真实 gain/mix、Snapshot/Mapper、正式 UI 和 EditHistoryManager 均仍按 Coding Plan 处于计划阶段；本次治理任务不提前创建生产依赖。
+- 当前验证边界：已有 smoke/lifecycle 和 AudioEngine unit 证据，不能据此宣称参数 automation、DSP property/render、DAW 或完整 realtime safety 已完成。
 
 ## 4. 参数差异审计
 

@@ -3,6 +3,10 @@
 - Status: Accepted
 - Date: 2026-09-06
 
+## Modification Policy
+
+本 ADR 的 Accepted Decision 是 LOCKED 历史合同，不原地改变参数/state 语义。任何变化必须新增 ADR、更新 `PARAMETERS.md`、补兼容性/迁移测试，并保留历史链。
+
 ## Context
 
 VST3 Parameter ID、choice index 与 state 一旦出现在用户 session/preset 中就是兼容性接口。DSP 直接读取 APVTS 会造成同一 block 参数不一致并耦合 Host 层。

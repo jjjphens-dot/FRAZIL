@@ -4,6 +4,10 @@
 > 团队：2 人  
 > 模型：轻量 GitHub Flow，`main` 始终可构建、可测试。
 
+## Modification Policy
+
+稳定的分支、PR、review、CI 和发布流程属于 CONTROLLED 内容，修改必须有治理 issue/review，并同步 `AGENTS.md` 与相关计划文档。当前远端 Issues、labels、Projects、Actions 或 branch protection 状态不写入本文件；这些事实只进入 `docs/PROJECT_STATUS.md`，并附实际核验时间和证据。
+
 ## 1. 首次接入
 
 首次接入必须在仓库 owner 明确授权后执行。执行前审计待提交文件，确认没有构建产物、工具二进制、下载归档、生成音频、凭据或私人路径；自动化 agent 不得在没有该明确授权时 push。
@@ -86,7 +90,9 @@ PR 必需检查：
 - formatting/lint（建立后）；
 - unit/DSP/integration tests；
 - 变更影响对应的 render/pluginval 检查；
-- 文档链接/状态一致性。
+- 文档链接/状态一致性；
+- Code Quality Review 与 Comment & Documentation Pass；
+- module README、`docs/MODULE_INDEX.md` 和 PR 影响字段同步。
 
 音频 render 和大型日志不要直接塞入 Git 历史；使用 GitHub Actions artifact 或 release asset，并在 PR 记录 manifest/hash。
 

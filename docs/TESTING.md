@@ -2,6 +2,10 @@
 
 > 目标：让“声音正确、实时安全、Host 可用、状态兼容”都由可重复证据支持，而不是只依赖编译成功或主观印象。
 
+## Modification Policy
+
+测试合同、测试层级、验收门槛和拒收条件属于 CONTROLLED 内容，修改必须有 issue/review，并同步 `CODING_PLAN.md` 或相关 ADR。实际运行结果属于 STATUS/EVIDENCE，只记录可复现的命令、环境和结果；计划中的测试不得写成已通过。
+
 ## 1. 测试分层
 
 | 层级 | 位置 | 主要问题 | 每次 PR |
@@ -44,6 +48,23 @@
 - enable 四组合；
 - routing/enable/amount/gain 快速变化无非有限样本和异常峰值；
 - mono/stereo 结果和通道独立性正确。
+
+### Inactive-control routing invariants
+
+这些是 routing invariant regression tests，不是 UI 显隐测试：
+
+Parallel：
+
+- Water only 时，`parallel.balance = 0 / 0.5 / 1` 不得改变 Water-only 输出；
+- Ice only 时，`parallel.balance = 0 / 0.5 / 1` 不得改变 Ice-only 输出；
+- 两个模块 disabled 时，任意 `parallel.balance` 不得改变 pass-through 结果；
+- 测试必须防止用未经 enable gating 的 `(1 - balance) * water` 逻辑错误衰减 active branch。
+
+Serial：
+
+- Water disabled 时，`water.amount = 0 / 0.5 / 1` 不得改变 Water stage 的 pass-through 行为；
+- Ice disabled 时，`ice.amount = 0 / 0.5 / 1` 不得改变 Ice stage 的 pass-through 行为；
+- inactive amount 仍保留 Host/state 值，但不得影响当前关闭的 stage 输出。
 
 ### Processor property
 
@@ -185,7 +206,7 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 
 ## 7. Performance protocol
 
-`PERF-BASE-001` 在 M1 固定 Reference Machine、OS、compiler、compiler flags、build type、Reference DAW、sample rate 48 kHz 和 block size 128，并记录测量工具、warm-up、采样窗口、线程/实例配置和统计方法。至少记录：
+所有性能记录必须注明 Reference Machine、OS、compiler、compiler flags、build type、Reference DAW、sample rate、block size、测量工具、warm-up、采样窗口、线程/实例配置和统计方法。至少记录：
 
 - mean callback time；
 - P95 callback time；
@@ -196,7 +217,18 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 - allocation observation/count；
 - denormal 行为。
 
-场景：Water only、Ice only、Parallel、两个 Serial、routing transition、automation stress、idle editor、animated editor、多实例。Water/Ice 的 `WATER-005`/`ICE-005` 必须相对这个 baseline 记录 mean/P95/P99/worst，不得出现未解释的严重 realtime regression；M6 `PERF-001` 才能基于测量锁定正式阈值。在有测量前不得编造固定 CPU 百分比目标。
+### Milestone performance scope
+
+| Milestone / work item | 允许测量的场景 | 目的 |
+|---|---|---|
+| M1 / `PERF-BASE-001` | pass-through AudioEngine、Parameter Snapshot/Mapper overhead、Input Gain、Global Mix、Output Gain、automation/smoothing baseline | 建立 48 kHz/128 samples 的 baseline；此时不得依赖尚未实现的 Water/Ice/Routing/UI |
+| M2 / `WATER-005` | Water only | 相对 M1 baseline 记录 Water vertical slice 的增量与 mean/P95/P99/worst |
+| M3 / `ICE-005` | Ice only | 相对 M1 baseline 记录 Ice vertical slice 的增量与 mean/P95/P99/worst |
+| M4 | Parallel、Water -> Ice、Ice -> Water、routing transition | 相对 baseline 记录完整 routing 的增量和 transition 峰值；不得出现未解释的严重 realtime regression |
+| M5 | editor closed、editor idle、editor animated | 记录 UI 生命周期/动画对 callback 的影响，不将 UI 状态混入 DSP baseline |
+| M6 / `PERF-001` | full matrix、multi-instance、long-run、最终 release 场景 | 基于累积实测锁定 formal performance budget / Beta threshold |
+
+`PERF-BASE-001` 只建立 baseline，不定义正式性能预算。M2/M3/M4 进行 regression tracking；M6 `PERF-001` 才能锁定正式阈值。在有测量前不得编造固定 CPU 百分比目标。
 
 ## 8. 验证命令
 
@@ -223,7 +255,7 @@ pluginval 路径与完整 MSVC 环境初始化见 `docs/ENVIRONMENT.md`。CI 命
 - M0：fresh clone 可配置/构建/测试，CI PASS，模板和 branch protection 就绪。
 - M1：`HOST-000` target DAW matrix、`TESTDATA-001` manifest、`PERF-BASE-001` report、`AUTO-001` automation contract、`ARCH-LAT-001` 的 0-sample Host reporting 与 latency policy、参数枚举/state/automation smoke、gain skeleton、finite output、offline render、pluginval PASS。
 - M2/M3：各自 vertical slice 的 property/render/listening rubric/Reject Criteria/pluginval PASS，并引用同一 reference corpus 与 performance baseline。
-- M4：`PARAM-FREEZE-001` 已完成，`ADR-R-001` Accepted，`ROUTE-011` 的 routing infrastructure latency 检查通过；完整 routing matrix、mode retention、click-free automation、loudness A/B PASS。
+- M4：`PARAM-FREEZE-001` 已完成，`ADR-R-001` Accepted，`ROUTE-011` 的 routing infrastructure latency 检查通过；inactive-control routing invariants、完整 routing matrix、mode retention、click-free automation、loudness A/B PASS。
 - M5：UI attachment、gesture/history、resize/accessibility 基线 PASS。
 - M6：全矩阵、ASAN、长稳、多实例、DAW、CPU/memory、listening regression PASS。
 - M7：Release clean build、VST3 validation、兼容性和 packaging 签核，known blockers=0。

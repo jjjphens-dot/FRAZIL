@@ -5,6 +5,10 @@
 > 输入：`FRAZIL_PROJECT_ARCHITECTURE_v0.3.md` + 当前源码/构建/远端审计  
 > 目标：把产品语义转化为可排序、可分工、可验收、可在 GitHub 追踪的工程工作。
 
+## Modification Policy
+
+本计划是 CONTROLLED 工程合同。工作项、依赖、验收标准和 exit gate 的修改必须通过 issue/review，并同步受影响的架构、测试、参数或治理文档；本文件不记录实时 issue 状态，也不以状态文字替代验证证据。
+
 ## 1. 计划使用方式
 
 本计划中的每一行工作项都应成为一个 GitHub issue，稳定 ID 写入 issue title、branch、PR 和 changelog。状态只允许：Backlog、Ready、In Progress、Review、Validation、Done、Blocked。
@@ -16,6 +20,22 @@
 `CODING_PLAN.md` 是稳定的工程计划合同，只定义 milestone、工作项、依赖、优先级、交付物、验收标准、exit gate 以及架构/流程约束。它不维护某个 issue 的实时状态，也不替代 GitHub Issues 或 Project。
 
 `docs/PROJECT_STATUS.md` 记录当前 milestone、已验证能力、blocker、验证结果和下一步建议；GitHub Issues/Project 是单个工作项实时状态的唯一来源。计划中的工作项即使已经在本地或远端完成，也保留在这里作为稳定定义，不在本文件维护动态 todo 清单。
+
+### Production Definition of Done
+
+任何 production issue 只有同时满足以下条件才可标记 Done：
+
+```text
+Implementation complete
+AND Tests PASS
+AND Code quality review complete
+AND Comment & Documentation Pass complete
+AND MODULE_INDEX/module README synchronized
+AND No unexplained realtime regression
+AND Required review complete
+```
+
+Issue 必须明确回答 Architecture impact、Public interface impact、Parameter/state impact、Realtime impact、Ownership impact、Tests、Comments、Module docs、`MODULE_INDEX` 和 ADR；无影响项写 `N/A`，不得省略。
 
 优先级：
 
@@ -112,6 +132,7 @@ M2 Water 与 M3 Ice 仍可并行开发。`PARAM-FREEZE-001` 必须在 M2/M3 完�
 |---|---:|---|---|---|---|
 | REPO-001 | P0 | 初始化 `main`、关联 `origin`、审计首次提交 | Git history + remote main | `git status` clean；remote 正确；忽略项未入库；GitHub 可 fresh clone | owner 授权 push |
 | DOC-001 | P0 | 纳入架构总纲、plan、status、parameters、testing、workflow、ADR、贡献规范 | `docs/` + AGENTS/README/templates | 文档链接有效；现状与目标分离；review 通过 | 无 |
+| ENG-STD-001 | P0 | 建立 code quality 与 documentation governance | `docs/CODE_STANDARDS.md`、`docs/DOCUMENT_GOVERNANCE.md`、`docs/MODULE_INDEX.md`、AGENTS 和 module README 更新 | cohesion、coupling、ownership、realtime、comments、module docs、document protection 和 post-code documentation pass 形成强制合同 | DOC-001 |
 | LEGAL-001 | P0 | 由 owner 选择并加入开源许可证 | `LICENSE` + README 声明 | 许可证与第三方 notices 一致；提交音频许可可追溯 | owner 产品决定 |
 | DEP-001 | P0 | 决定 JUCE 固定与补丁策略 | Accepted ADR-0004 | fresh directory 获取精确 JUCE revision；补丁可审计；不依赖 C: 或临时文件 | REPO-001 |
 | BUILD-001 | P0 | 分离本地 F: preset 与 portable CI preset | presets/toolchain/CMake | 本地三 preset 不退化；GitHub runner 不引用 F: 绝对路径 | DEP-001 |
@@ -126,7 +147,7 @@ M2 Water 与 M3 Ice 仍可并行开发。`PARAM-FREEZE-001` 必须在 M2/M3 完�
 
 ### 实施顺序
 
-1. DOC-001、LEGAL-001 与首次提交审计；
+1. DOC-001、ENG-STD-001、LEGAL-001 与首次提交审计；
 2. REPO-001；
 3. DEP-001 -> BUILD-001/002；
 4. HOST-000；
@@ -144,6 +165,7 @@ fresh clone
 -> CTest PASS
 -> CI required check PASS
 -> HOST-000 matrix recorded
+-> code/document governance and module index present
 -> Standalone launches
 -> VST3 can be inspected by pluginval smoke
 ```
@@ -184,16 +206,15 @@ PARAM-001 合并前必须确认是否存在任何外部构建/session 依赖旧 
 
 M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/global mix。此时 `global.mix` 不应改变声音，因为 dry/wet 相同；测试需解释这一点，不能误判为参数未接入。
 
-#### M1-C：State、history 骨架与工具
+#### M1-C：State boundary 与工具
 
 | ID | P | 模块/工作 | 具体要求 | 验收 |
 |---|---:|---|---|---|
-| STATE-001 | P0 | versioned StateModel/adapter | `schemaVersion`、全部参数、invalid input fallback；非音频线程迁移 | fixtures + round-trip |
+| STATE-001 | P0 | versioned StateModel/adapter and history boundary | `schemaVersion`、全部参数、invalid input fallback；非音频线程迁移；明确 Host automation/restore 不进入 plugin history 的边界 | fixtures + round-trip + boundary review |
 | STATE-002 | P0 | mode value retention | 切换三种 mode、保存、恢复，不重置 inactive values | integration scenario |
-| HIST-001 | P0 | EditHistoryManager skeleton | bounded transaction store/API；message thread only；暂不要求完整 UI | unit tests for capacity/clear |
 | TESTDATA-001 | P0 | Establish licensed reference audio corpus | impulse、noise、drums、vocal、piano、guitar、pad、bass；每项记录 source/license/hash/sample rate/channels/storage/repository-artifact-LFS 策略；Water/Ice 共用 corpus | manifest review + hash/licence audit |
 | PERF-BASE-001 | P0 | Establish realtime performance baseline | Reference Machine、OS、compiler、build type、48 kHz/128、测量方法；记录 mean/P95/P99/worst callback、deadline、memory、allocation observation | reproducible baseline report；不预设百分比阈值 |
-| ARCH-LAT-001 | P0 | Define v1 latency model and dry/wet alignment | v1 Host-reported processing latency 为 0 samples；不依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC；Water/Ice 允许属于声音设计的 intentional effect delay/tail，但不得依赖 Host latency compensation | ADR + latency metadata/infrastructure acceptance |
+| ARCH-LAT-001 | P0 | Define v1 processing latency and intentional delay/tail policy | v1 Host-reported processing latency 为 0 samples；不依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC；Water/Ice 允许属于声音设计的 intentional effect delay/tail，但不得依赖 Host latency compensation | ADR + latency metadata/infrastructure acceptance |
 | RENDER-001 | P0 | offline WAV harness | 固定 `TESTDATA-001` input/config/seed -> WAV + manifest；不依赖实时设备；candidate A/B 可复现 | deterministic smoke render |
 | TEST-002 | P0 | processor property harness | finite/random/extreme/prepare-reset；矩阵参数化 | 44.1/48/96 + block subset |
 | HOST-001 | P0 | pluginval + Host smoke protocol | 枚举/state/editor/bus/automation；结果可追踪 SHA；DAW 目标来自 HOST-000 | strictness 5 PASS |
@@ -204,6 +225,7 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 - AudioEngine 实际消费 Snapshot/EngineParameters；
 - gain/global mix 位置与数学由 tests 证明；
 - state version、round-trip、inactive retention 和 invalid state 通过；
+- Host automation、state restore 与 plugin EditHistory 的边界已记录；M1 不实现完整 history store；
 - process path 审查无 I/O/lock/allocation/history/UI；
 - `AUTO-001` 的 block snapshot、sample-aware smoothing 和离散 transition 语义有测试证据；
 - `TESTDATA-001` manifest/hash/license 可追溯，`RENDER-001` 使用统一 corpus；
@@ -332,12 +354,15 @@ M1 只负责 `core contract stabilization`：建立静态参数、Snapshot、map
 | UI-003 | P0 | routing selector | 三模式、信号流顺序清晰；Host attachment | automation + keyboard test |
 | UI-004 | P0 | mode controls | Parallel 只显示 balance；Serial 显示两个 amount 且视觉顺序随 flow | retention/visibility test |
 | UI-005 | P0 | module/gain controls | enabled、Water/Ice macros、Input/Global Mix/Output；0 dB reset | attachment/default tests |
+| HIST-001 | P0 | EditHistoryManager skeleton | bounded transaction store/API；message thread only；由 UI transaction 驱动；不记录 Host automation/restore | unit tests for capacity/clear/source isolation |
 | HIST-002 | P0 | gesture transactions | mouseDown/begin -> changes -> mouseUp/end 为一步；离散操作一步 | undo boundary tests |
 | HIST-003 | P0 | Undo/Redo controls | disabled state、redo branch、action label；不注册参数 | interaction tests |
 | HIST-004 | P0 | source isolation | Host automation/restore/init/smoothing 不入栈；restore 清栈 | integration tests |
 | UI-006 | P0 | tooltip/value formatting | 百分比/dB/choice 一致；说明 inactive mode | snapshot/manual review |
 | UI-007 | P1 | keyboard/accessibility | Ctrl/Cmd+Z、Redo、focus order、可读对比度/label | platform manual test |
 | UI-008 | P1 | meters/flow hint | 不阻塞音频线程；数据桥接无锁/有界 | performance + visual review |
+
+History 实现顺序固定为 `HIST-001 -> HIST-002 -> HIST-003 -> HIST-004`。M1 只定义 State/Host automation/restore 与 plugin history 的边界合同，不实现 EditHistoryManager。
 
 ### UI 状态原则
 
@@ -438,7 +463,7 @@ P2 只有在用户研究/真实声音问题证明价值、且通过新的 ADR �
 
 | Milestone | Stable ID | Issue title 示例 | 依赖 |
 |---|---|---|---|
-| M0 | REPO-001 / LEGAL-001 / DEP-001 | `[M0][REPO-001] Initialize repository and audit first tracked tree` | owner authorization |
+| M0 | REPO-001 / ENG-STD-001 / LEGAL-001 / DEP-001 | `[M0][REPO-001] Initialize repository and audit first tracked tree` | owner authorization |
 | M0 | BUILD-001 / BUILD-002 / TEST-001 | `[M0][BUILD-001] Add portable Windows CI presets without F-drive paths` | DEP-001 |
 | M0 | HOST-000 / CI-001 | `[M0][HOST-000] Freeze initial platform and DAW compatibility matrix` | REPO-001 |
 | M0 | GH-001 / GH-002 | `[M0][GH-001] Create repository labels, milestones and project board` | REPO-001 / CI-001 |

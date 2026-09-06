@@ -4,6 +4,10 @@
 > 适用：M1 至 v1.0  
 > 变更规则：任何 ID、范围、默认值、单位、routing 语义或 state schema 变更必须同步测试与 ADR。
 
+## Modification Policy
+
+参数注册表、参数语义和已冻结的 Host 兼容性规则属于 LOCKED/CONTROLLED 合同：已冻结内容只能通过明确 issue、必要 ADR、迁移策略和兼容性测试变更。解释性文字可维护，但不得借此改变参数事实；详细分级规则见 `docs/DOCUMENT_GOVERNANCE.md`。
+
 ## 1. Host 参数注册表
 
 所有参数在插件构造时一次性静态注册。`enabled` 与 `routing.mode` 也作为可自动化离散参数暴露；Undo/Redo 不注册。
@@ -52,7 +56,7 @@ RoutingEngine -> Water/Ice -> wet path ─────────────�
                                                     output
 ```
 
-v1 Material DSP 采用 `ARCH-LAT-001` 的 zero-latency-only processing-latency 合同：Host-reported processing latency 必须为 0 samples；Water/Ice 不得依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC 才能正确工作。Water/Ice 内部允许属于声音设计的 intentional effect delay/tail，例如 micro-delay、resonant ringing、comb/modal structure 或 natural decay；`intentional effect delay/tail != plugin processing latency`。`ROUTE-011` 只验证 routing/mixing infrastructure 不引入额外未声明 latency，不要求处理后的 Water/Ice waveform 与 dry waveform 逐样本对齐。
+v1 Material DSP 采用 `ARCH-LAT-001` 的 processing-latency 合同：Host-reported processing latency 必须为 0 samples；Water/Ice 不得依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC 才能正确工作。Water/Ice 内部允许属于声音设计的 intentional effect delay/tail，例如 micro-delay、resonant ringing、comb/modal structure 或 natural decay；`intentional effect delay/tail != plugin processing latency`。`ROUTE-011` 只验证 routing/mixing infrastructure 不引入额外未声明 latency，不要求处理后的 Water/Ice waveform 与 dry waveform 逐样本对齐。
 
 ### Parallel
 

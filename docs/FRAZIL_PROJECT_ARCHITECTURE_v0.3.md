@@ -24,6 +24,10 @@
 
 本文档优先级高于临时聊天结论。若架构或产品方向发生重大变化，应通过 ADR（Architecture Decision Record）记录理由并同步修改本文档。
 
+## Modification Policy
+
+产品语义和已 Accepted 的架构决策属于 LOCKED 合同；候选方案、接口边界、实时规则和正式预算属于 CONTROLLED 内容；纯解释性文字可维护。任何合同或边界变化必须遵循 `docs/DOCUMENT_GOVERNANCE.md`，补充 issue、ADR、测试与迁移/兼容性证据，不得用文字改写绕过既有决策。
+
 ---
 
 ## 0.1 v0.2 已确认的产品决策

@@ -3,6 +3,10 @@
 - Status: Accepted
 - Date: 2026-09-06
 
+## Modification Policy
+
+本 ADR 的 Accepted Decision 是 LOCKED 实时与层级合同，不原地降低限制。若边界变化，新增 ADR 并补代码路径审查、property/performance evidence 和受影响模块文档。
+
 ## Context
 
 实时音频 callback 的延迟上界和可预测性优先于一般应用代码便利性。FRAZIL 同时需要 Host/UI 状态、编辑历史、随机声音事件与可重复测试。
