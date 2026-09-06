@@ -22,7 +22,11 @@ void LinearSmoother::reset(float value) noexcept {
 }
 
 void LinearSmoother::setTarget(float target) noexcept {
-    targetValue_ = std::isfinite(target) ? target : currentValue_;
+    const auto nextTarget = std::isfinite(target) ? target : currentValue_;
+    if (nextTarget == targetValue_)
+        return;
+
+    targetValue_ = nextTarget;
 
     if (rampSamples_ <= 1 || targetValue_ == currentValue_) {
         currentValue_ = targetValue_;

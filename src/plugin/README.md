@@ -53,7 +53,7 @@ M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing �
 
 ## Tests
 
-当前证据为 CTest smoke/lifecycle、Debug build 和参数/mapper/engine unit tests；automation、state compatibility、render、完整 property、DAW matrix 和本次变更后的 pluginval 尚未执行。
+当前证据为 CTest smoke/lifecycle、Debug/Release/ASAN build 和参数/mapper/engine unit tests，包含参数类型/名称/单位/choice、smoothing block regression、首 block priming、reset 和 runtime buffer invariant；本轮 Debug VST3 的 pluginval strictness 5 已通过，automation、state compatibility、render、完整 property 和 DAW matrix 仍待执行。
 
 ## Related ADRs
 

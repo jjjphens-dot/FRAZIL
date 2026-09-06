@@ -19,5 +19,8 @@ class AudioEngine {
     LinearSmoother inputGainSmoother_;
     LinearSmoother globalMixSmoother_;
     LinearSmoother outputGainSmoother_;
+    // Set false by prepare/reset; the first valid process block primes smoothers from live
+    // EngineParameters so restored values do not ramp from arbitrary defaults.
+    bool parameterStatePrimed_{};
     bool prepared_{};
 };

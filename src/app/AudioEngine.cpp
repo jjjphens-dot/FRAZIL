@@ -5,6 +5,7 @@
 bool AudioEngine::prepare(const ProcessSpec& spec) noexcept {
     if (!spec.isValid()) {
         dryReference_.setSize(0, 0, false, false, true);
+        parameterStatePrimed_ = false;
         prepared_ = false;
         return false;
     }
@@ -23,6 +24,7 @@ void AudioEngine::reset() noexcept {
     globalMixSmoother_.reset(1.0f);
     outputGainSmoother_.reset(1.0f);
     dryReference_.clear();
+    parameterStatePrimed_ = false;
 }
 
 void AudioEngine::process(juce::AudioBuffer<float>& buffer,
@@ -30,14 +32,26 @@ void AudioEngine::process(juce::AudioBuffer<float>& buffer,
     if (!prepared_ || buffer.getNumSamples() <= 0 || buffer.getNumChannels() <= 0)
         return;
 
-    inputGainSmoother_.setTarget(parameters.inputGainLinear);
-    globalMixSmoother_.setTarget(parameters.globalMix);
-    outputGainSmoother_.setTarget(parameters.outputGainLinear);
+    if (!parameterStatePrimed_) {
+        inputGainSmoother_.reset(parameters.inputGainLinear);
+        globalMixSmoother_.reset(parameters.globalMix);
+        outputGainSmoother_.reset(parameters.outputGainLinear);
+        parameterStatePrimed_ = true;
+    } else {
+        inputGainSmoother_.setTarget(parameters.inputGainLinear);
+        globalMixSmoother_.setTarget(parameters.globalMix);
+        outputGainSmoother_.setTarget(parameters.outputGainLinear);
+    }
 
     const auto numChannels = buffer.getNumChannels();
     const auto numSamples = buffer.getNumSamples();
-    const bool canStoreDryReference = numChannels <= dryReference_.getNumChannels() &&
-                                      numSamples <= dryReference_.getNumSamples();
+    // ProcessSpec is an invariant: a host must not pass more channels or samples than declared
+    // during prepare. Do not resize on the audio thread; use a deterministic wet-as-dry fallback
+    // in release builds if a host violates the contract.
+    const bool runtimeBufferMatchesPreparedSpec = numChannels <= dryReference_.getNumChannels() &&
+                                                  numSamples <= dryReference_.getNumSamples();
+    jassert(runtimeBufferMatchesPreparedSpec);
+    const bool canStoreDryReference = runtimeBufferMatchesPreparedSpec;
 
     for (int sample = 0; sample < numSamples; ++sample) {
         const auto inputGain = inputGainSmoother_.getNextValue();

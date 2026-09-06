@@ -4,6 +4,7 @@ class LinearSmoother final {
   public:
     void prepare(double sampleRate, double rampSeconds) noexcept;
     void reset(float value) noexcept;
+    // Repeated targets preserve an in-flight ramp; a changed target retargets from currentValue_.
     void setTarget(float target) noexcept;
     float getNextValue() noexcept;
 

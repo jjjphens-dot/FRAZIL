@@ -24,7 +24,7 @@ app EngineParameters -> RoutingEngine -> StageMixer -> Water/Ice processors
 
 ## Public Interfaces
 
-`DryWetMixer`、`LinearSmoother` 和 `RandomSource` 已提供 M1 基础接口；Water/Ice/Routing 等材质和拓扑接口仍为 Planned。正式接口必须使用小型值类型、明确的 prepare/reset/process 生命周期和可测试的 transition contract。
+`DryWetMixer`、`LinearSmoother` 和 `RandomSource` 已提供 M1 基础接口；`LinearSmoother` 对跨 block 的重复 target 不重启 in-flight ramp，并对真正变化的 target 从当前值 retarget。Water/Ice/Routing 等材质和拓扑接口仍为 Planned。正式接口必须使用小型值类型、明确的 prepare/reset/process 生命周期和可测试的 transition contract。
 
 ## Ownership & Lifetime
 
@@ -36,7 +36,7 @@ DSP 状态由 AudioEngine/对应 DSP 实例拥有；delay、FFT、scratch buffer
 
 ## Implementation Overview
 
-M1 `DSP-002`/`DSP-004`/`DSP-005` 已建立 `DryWetMixer`、sample-rate-aware `LinearSmoother` 和可注入 `RandomSource`；M2 Water、M3 Ice 只使用并补 algorithm-specific random semantics；Routing/Gain M4 和其他 primitives 按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 实现。实验算法只有完成 `AGENTS.md` 的 production gate 后才能移入此目录。
+M1 `DSP-002`/`DSP-004`/`DSP-005` 已建立 `DryWetMixer`、sample-rate-aware `LinearSmoother` 和可注入 `RandomSource`；smoothing regression 覆盖 repeated target、retarget、多个 block size 和 sample rate。M2 Water、M3 Ice 只使用并补 algorithm-specific random semantics；Routing/Gain M4 和其他 primitives 按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 实现。实验算法只有完成 `AGENTS.md` 的 production gate 后才能移入此目录。
 
 ## State / Tail / Latency
 
