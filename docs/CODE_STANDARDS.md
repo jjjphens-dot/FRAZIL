@@ -4,20 +4,23 @@
 
 本规范适用于 `src/`、`tests/`、生产工具和所有后续 agent。它把“功能工作正常”与“代码可维护、可审查、可实时运行”分开：代码只有在功能验证、Code Quality Review 和 Comment & Documentation Pass 都完成后才能标记 Done。
 
-基本目标是高内聚、低耦合、明确所有权、可验证的实时安全和小而稳定的公共接口。任何例外都必须在 issue/PR 中说明影响、理由、替代方案和退出条件；涉及架构、参数、状态或实时边界时补 ADR。
+基本目标是高内聚、低耦合、明确所有权、可验证的实时安全和小而稳定的公共接口。任何例外都必须在 issue/PR 中说明影响、理由、替代方案和退出条件。修改前先检查既有合同：实现已接受的架构、参数、状态或实时合同不自动要求 ADR；只有改变决策、边界、兼容性或正式预算时才补 ADR。
 
 ## 2. 模块边界与依赖
 
 允许的主要方向：
 
 ```text
-ui -> plugin parameter interface
+ui -> narrow plugin parameter interface
+ui -> narrow app edit/history command interface
 plugin -> app -> dsp
 tests -> 被测模块
 ```
 
 - `WaterProcessor` 只负责 Water transform；`IceProcessor` 只负责 Ice transform；`RoutingEngine` 只负责拓扑和切换；`StageMixer`/`DryWetMixer` 只负责 mix law；`ParameterMapper` 只负责产品参数到 engine 参数的映射；`PluginProcessor` 只负责 Host/JUCE 适配和生命周期。
 - 禁止 `dsp -> app/plugin/ui`、`ui -> DSP object`、`DSP -> APVTS`、`Water/Ice -> RoutingMode`，也禁止用隐藏 service locator、global singleton 或前置声明绕过真实依赖。
+- UI 只可依赖 narrow plugin parameter interface 和 narrow app edit/history command interface；不得依赖 `AudioEngine`、Water/Ice、RoutingEngine、DSP primitives、DSP buffer/state 或具体 PluginProcessor。
+- `StateModel` 只依赖 application value types；Plugin Host State Adapter 调用 StateModel，禁止 `app -> plugin` 反向依赖。
 - 新依赖必须有明确 owner 和测试入口；不得为了复用把多个变化原因合进一个巨大 class，也不得为抽象而抽象。
 - Public API 保持小而稳定：优先值类型、`const` 引用和明确的 enum/value object；不得暴露可随意修改的内部容器或 APVTS 作为跨层通用接口。
 
@@ -36,13 +39,13 @@ tests -> 被测模块
 - 类型、class、struct、enum class 使用 `PascalCase`；函数、局部变量和参数使用 `lowerCamelCase`；私有成员使用 `member_`；常量使用有语义的 `k...` 名称。
 - 参数 ID 使用点分隔的小写合同名，例如 `water.enabled`、`global.mix`。
 - 用 `enum class` 表达有限集合；不要用裸整数表达 routing、来源或状态。
-- Header 自洽并只 include 直接使用的声明；避免循环 include。纯 DSP 不得依赖聚合 `JuceHeader.h`；插件适配层才引入 JUCE。
+- Header 自洽并只 include 直接使用的声明；避免循环 include。纯 app/DSP 不得使用聚合 `JuceHeader.h`，但在确有直接类型需求时可以使用最小 JUCE audio module（例如 `juce_audio_basics`、`juce_dsp`）；不得依赖 APVTS、PluginProcessor、PluginEditor、Host-specific object 或 UI module。
 - `clang-format` 不能替代设计审查；格式化后的大面积无关 diff 应避免混入功能 PR。
 
 ## 5. 常量、宏和复杂度
 
 - 消除 magic number：使用带单位/语义的 `constexpr`，例如 `kReferenceSampleRateHz`、`kMaximumHistoryEntries`，并在必要时说明来源或 ADR。
-- 宏只用于平台、JUCE 或构建系统确实要求的边界；新宏必须大写、作用域尽量小并在 PR 中写明理由。不得用宏代替普通 C++ abstraction、类型安全或配置数据。
+- 宏只用于平台、JUCE 或构建系统确实要求的边界；项目自行新增的宏必须在定义附近或关联文档说明 purpose、为何必须用宏、scope、platform/build impact，以及临时宏的 removal condition。JUCE/framework 必需宏不必重复解释框架本身，但其行为影响 ownership、ABI 或 build 时必须注明。不得用宏代替普通 C++ abstraction、类型安全或配置数据。
 - 函数应有单一可读的变化原因；当分支、嵌套或状态组合难以测试时拆分 helper/class，而不是复制代码或引入过度泛化的框架。
 - 删除死代码和已失效注释；deferred work 通过 issue/计划 ID 记录，不靠无主 TODO 隐藏。
 
@@ -61,6 +64,20 @@ tests -> 被测模块
 
 注释优先说明代码本身看不出的 why、contract、invariant、ownership、单位/range、实时限制和算法假设；不要逐行复述语法。公共 class/function、关键算法和跨线程/跨模块接口必须有准确说明，且变更时同步更新。
 
+### Mandatory comments for non-obvious persistent state
+
+以下持久状态若存在，必须有清晰注释：filter state、resonator state、delay read/write index、random generator state、seed、smoother state、routing transition state、crossfade state、scratch buffer、threshold、语义不明显的 counter、具有特殊行为的 sample/channel index、stateful DSP accumulator，以及单位不明显的 parameter-derived cached value。
+
+按实际需要说明 purpose、unit、range、lifetime、thread ownership、algorithmic role 和 reset behavior。例如：
+
+```cpp
+// Circular delay-line write position, in samples.
+// Owned and updated only by the audio thread; reset() returns it to zero.
+std::size_t delayWriteIndex_ {};
+```
+
+明显的局部变量不需要机械注释；优先使用好命名，并只为非显然的 contract/state/why 添加注释。
+
 每次代码修改完成后必须执行：
 
 1. 功能与相关测试验证；
@@ -70,7 +87,7 @@ tests -> 被测模块
 
 ## 8. 例外与修改规则
 
-违反本规范的例外必须可定位到 issue/PR；若改变合同或依赖方向，必须有 ADR 和测试。禁止为了赶 milestone 默默降低实时、所有权、模块边界或文档要求。
+违反本规范的例外必须可定位到 issue/PR；若改变既有架构决策、依赖方向、公共职责或其他 ADR trigger 合同，必须有 ADR 和测试。实现既有 accepted contract、补已有测试或不改变公共行为/依赖边界的 refactor 不自动要求 ADR。禁止为了赶 milestone 默默降低实时、所有权、模块边界或文档要求。
 
 ## Modification Policy
 

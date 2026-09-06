@@ -109,7 +109,7 @@ M2 Water 与 M3 Ice 仍可并行开发。`PARAM-FREEZE-001` 必须在 M2/M3 完�
 | 模块 | 必须提供 | 明确不负责 | 核心验收 |
 |---|---|---|---|
 | PluginProcessor | JUCE lifecycle、bus、Snapshot 入口、state adapter | Water/Ice 算法、routing math、UI layout | pluginval、mono/stereo、state/parameter tests |
-| ParameterLayout | 静态 ID/type/range/default/label | DSP mapping、显隐 | 精确枚举 regression |
+| ParameterLayout | `src/plugin/ParameterLayout.*` 的 Host/JUCE-facing 静态 ID/type/range/default/label/choice | DSP mapping、显隐 | 精确枚举 regression |
 | ParameterSnapshot | 每 block 一致的 POD 值 | smoothing、APVTS ownership | 无分配、一致性测试 |
 | ParameterMapper | user -> engine 语义、clamp、enum | buffer、Host timeline | table-driven unit tests |
 | AudioEngine | gain/routing/global mix 编排与生命周期 | 算法细节、UI/history | signal-chain/integration tests |
@@ -118,7 +118,7 @@ M2 Water 与 M3 Ice 仍可并行开发。`PARAM-FREEZE-001` 必须在 M2/M3 完�
 | RoutingEngine | Parallel/两个 Serial、enable、transition | Water/Ice 内部算法 | routing matrix、click-free、retention |
 | StageMixer | dry/processed mix law | Host/UI | endpoint/monotonicity/energy tests |
 | EditHistoryManager | UI transaction、bounded undo/redo | Host automation、audio thread | gesture/source/state tests |
-| UI | 产品参数表达、attachment、gesture | DSP 执行、动态参数注册 | interaction/resize/automation tests |
+| UI | 产品参数表达、attachment、gesture，以及 narrow app edit/history command interface 的调用 | DSP 执行、动态参数注册、直接持有 DSP object | interaction/resize/automation tests |
 
 ## 4. M0 — Repository, Governance & Reproducible Build
 
@@ -185,7 +185,7 @@ Proof artifacts：CI run URL、依赖 revision/checksum、首次提交 tree、lo
 | ID | P | 模块/工作 | 具体要求 | 验收 |
 |---|---:|---|---|---|
 | ARCH-001 | P0 | `ProcessSpec` + `EngineParameters` | 值类型、自包含 header；sampleRate/maxBlock/channels 前置校验；无 JUCE Host 对象泄漏进 DSP | lifecycle unit tests |
-| PARAM-001 | P0 | 提取 `ParameterLayout.*` | 集中注册 9 个核心参数；enabled ID 改为 `.enabled`；固定顺序/choice | 精确 contract test |
+| PARAM-001 | P0 | 提取 `src/plugin/ParameterLayout.*` | 在 Platform / Host Adapter 层集中注册 9 个核心参数；enabled ID 改为 `.enabled`；固定顺序/choice | 精确 contract test |
 | PARAM-002 | P0 | `ParameterSnapshot` | 缓存 raw parameter atomic pointers；每 block 一次 load；不查字符串、不分配 | snapshot consistency test |
 | PARAM-003 | P0 | `ParameterMapper` | routing enum、clamp、dB/normalized、inactive 值保留 | table-driven boundary tests |
 | PARAM-004 | P0 | automation gesture smoke | Host/UI 写值能进入下一 block Snapshot；参数枚举稳定 | integration + pluginval |

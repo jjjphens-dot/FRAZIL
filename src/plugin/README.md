@@ -8,7 +8,7 @@
 
 - `PluginProcessor` 的 bus、生命周期、APVTS 当前骨架、`processBlock` 和 XML state round-trip；
 - `PluginEditor` 的当前 M0 占位界面与 JUCE editor lifecycle；
-- 将来从静态 `ParameterLayout` 取得 Host 参数并创建 Snapshot，再调用 app 层。
+- `src/plugin/ParameterLayout.*` 将来负责 Host/JUCE-facing 静态参数注册，再创建 Snapshot 并调用 app 层。
 
 ## Non-responsibilities
 
@@ -18,13 +18,13 @@
 
 ```text
 Host/JUCE -> PluginProcessor -> app Snapshot/Mapper/AudioEngine -> dsp
-Host state <-> PluginProcessor state adapter
+Host state <-> Plugin Host State Adapter -> app StateModel
 PluginEditor -> plugin parameter interface
 ```
 
 ## Public Interfaces
 
-当前 `PluginProcessor` 暴露 JUCE lifecycle、`prepareToPlay`、`processBlock`、editor 和 state API；APVTS 目前为 public member，是 M1 需要收窄审查的技术债。当前参数 layout 仍 inline 于 `PluginProcessor.cpp`，目标由 `PARAM-001` 迁移到 `ParameterLayout.*`。
+当前 `PluginProcessor` 暴露 JUCE lifecycle、`prepareToPlay`、`processBlock`、editor 和 state API；APVTS 目前为 public member，是 M1 需要收窄审查的技术债。当前参数 layout 仍 inline 于 `PluginProcessor.cpp`，目标由 `PARAM-001` 迁移到 `src/plugin/ParameterLayout.*`。
 
 ## Parameter / State Contract
 
@@ -32,7 +32,7 @@ PluginEditor -> plugin parameter interface
 
 ## Ownership & Lifetime
 
-PluginProcessor 拥有 APVTS、AudioEngine 和 editor 生命周期；JUCE factory/editor 中的生命周期分配属于框架边界。新增跨层对象必须明确 owner、线程和销毁顺序，不得引入全局 service locator。
+PluginProcessor 拥有 APVTS、AudioEngine 和 editor 生命周期；JUCE factory/editor 中的生命周期分配属于框架边界。Plugin Host State Adapter 调用 app StateModel，但 StateModel 不反向依赖 plugin。新增跨层对象必须明确 owner、线程和销毁顺序，不得引入全局 service locator。
 
 ## Threading / Realtime Rules
 
@@ -44,16 +44,16 @@ M0 当前是 pass-through plugin shell：`processBlock` 将 buffer 交给 pass-t
 
 ## Tests
 
-当前证据为 CTest smoke/lifecycle、Debug/portable build 和已记录的 pluginval 结果；参数、automation、state compatibility、render 与 DAW matrix 仍按 `docs/TESTING.md` 分阶段补齐。
+当前证据为 CTest smoke/lifecycle、Debug/portable build 和已记录的 pluginval 结果；参数、automation、state compatibility、render 与 DAW matrix 仍按 [TESTING.md](../../docs/TESTING.md) 分阶段补齐。
 
 ## Related ADRs
 
-`docs/adr/0002-parameter-and-state-contract.md`、`docs/adr/0003-realtime-processing-boundary.md`、`docs/adr/0004-juce-and-ci-dependency-strategy.md`。
+[ADR-0002](../../docs/adr/0002-parameter-and-state-contract.md)、[ADR-0003](../../docs/adr/0003-realtime-processing-boundary.md)、[ADR-0004](../../docs/adr/0004-juce-and-ci-dependency-strategy.md)。
 
 ## Files
 
-`PluginProcessor.*`、`PluginEditor.*`、`README.md`。
+`PluginProcessor.*`、`PluginEditor.*`、planned `ParameterLayout.*`、`README.md`。
 
 ## Modification Policy
 
-本 README 属于 LEVEL 3 module documentation。Host 参数、state、生命周期或依赖边界变化时，必须同步 `PARAMETERS.md`、相关 ADR、测试、`docs/MODULE_INDEX.md` 和 PR 影响字段。
+本 README 属于 LEVEL 3 module documentation。Host 参数、state、生命周期或依赖边界变化时，必须同步 `PARAMETERS.md`、相关 ADR、测试、[MODULE_INDEX.md](../../docs/MODULE_INDEX.md) 和 PR 影响字段。

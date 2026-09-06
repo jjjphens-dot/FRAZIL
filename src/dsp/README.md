@@ -20,7 +20,7 @@
 app EngineParameters -> RoutingEngine -> StageMixer -> Water/Ice processors
 ```
 
-依赖方向只能由 app 指向 dsp；DSP 不反向依赖 app/plugin/ui。模块边界和计划路径见 `docs/MODULE_INDEX.md`。
+依赖方向只能由 app 指向 dsp；DSP 不反向依赖 app/plugin/ui。模块边界和计划路径见 [MODULE_INDEX.md](../../docs/MODULE_INDEX.md)。
 
 ## Public Interfaces
 
@@ -36,7 +36,7 @@ DSP 状态由 AudioEngine/对应 DSP 实例拥有；delay、FFT、scratch buffer
 
 ## Implementation Overview
 
-Water M2、Ice M3、Routing/Gain M4 和 primitives 按 `docs/CODING_PLAN.md` 实现。实验算法只有完成 `AGENTS.md` 的 production gate 后才能移入此目录。
+Water M2、Ice M3、Routing/Gain M4 和 primitives 按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 实现。实验算法只有完成 `AGENTS.md` 的 production gate 后才能移入此目录。
 
 ## State / Tail / Latency
 
@@ -44,11 +44,11 @@ DSP 可以拥有声音设计所需的 intentional effect delay/tail，但不得�
 
 ## Tests
 
-每个生产 DSP 模块需要 unit/property/render/listening/performance 中适用的证据；具体 gate 见 `docs/TESTING.md`。当前没有 Water/Ice/Routing 生产实现或对应通过记录。
+每个生产 DSP 模块需要 unit/property/render/listening/performance 中适用的证据；具体 gate 见 [TESTING.md](../../docs/TESTING.md)。当前没有 Water/Ice/Routing 生产实现或对应通过记录。
 
 ## Related ADRs
 
-`docs/adr/0001-routing-and-control-model.md`、`docs/adr/0003-realtime-processing-boundary.md`，以及未来各算法/transition ADR。
+[ADR-0001](../../docs/adr/0001-routing-and-control-model.md)、[ADR-0003](../../docs/adr/0003-realtime-processing-boundary.md)，以及未来各算法/transition ADR。
 
 ## Files
 
@@ -56,4 +56,4 @@ DSP 可以拥有声音设计所需的 intentional effect delay/tail，但不得�
 
 ## Modification Policy
 
-本 README 属于 LEVEL 3 module documentation。生产 DSP 新增或移动时必须同步代码质量审查、测试 evidence、`docs/MODULE_INDEX.md`、相关 ADR 和 Coding Plan。
+本 README 属于 LEVEL 3 module documentation。生产 DSP 新增或移动时必须同步代码质量审查、测试 evidence、[MODULE_INDEX.md](../../docs/MODULE_INDEX.md)、相关 ADR 和 Coding Plan。

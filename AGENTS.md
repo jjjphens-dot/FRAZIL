@@ -19,7 +19,7 @@
 2. 执行 `git status --short`，保护用户已有改动；不得覆盖或清理无关变更。
 3. 用 `rg` 定位现有实现和测试，避免创建平行架构。
 4. 将任务映射到 `docs/CODING_PLAN.md` 的 milestone、issue ID、依赖和 exit gate。
-5. 若涉及参数 ID、范围、state schema、routing 语义或实时路径，先更新/新增 ADR，再改实现。
+5. 若任务触及参数 ID、范围、state schema、routing 语义或实时路径，先检查现有合同。实现已接受合同不自动创建 ADR；只有需要改变架构决策、依赖边界、公共模块职责、参数/状态兼容性、routing、realtime、latency、random-state 或正式性能合同时，才先更新/新增 ADR，再改实现。
 
 ### Required reading
 
@@ -62,7 +62,7 @@ Agent 不得：
 
 ## 3. 目录与依赖方向
 
-- `src/plugin/`：JUCE `AudioProcessor`、VST3/Standalone 适配、总线、静态参数声明、Host state adapter。
+- `src/plugin/`：JUCE `AudioProcessor`、VST3/Standalone 适配、总线、`ParameterLayout.*` 静态参数声明、Host state adapter。
 - `src/app/`：`AudioEngine`、`ParameterMapper`、`ParameterSnapshot`、`StateModel`、`EditHistoryManager`。
 - `src/dsp/`：Water、Ice、Routing、StageMixer、DryWetMixer 与确有复用价值的 primitive。
 - `src/ui/`：编辑器和控件；只表达产品参数和发起 UI transaction，不执行 DSP。
@@ -74,12 +74,13 @@ Agent 不得：
 允许的主依赖方向：
 
 ```text
-ui -> plugin parameter interface
+ui -> narrow plugin parameter interface
+ui -> narrow app edit/history command interface
 plugin -> app -> dsp
 tests -> 被测模块
 ```
 
-禁止：`dsp -> app/plugin/ui`、`ui -> DSP object`、`Water/Ice -> RoutingMode`、DSP 直接读取 APVTS。
+`StateModel` 只依赖 application value types；Plugin Host State Adapter 调用 StateModel。禁止 `app -> plugin`、`dsp -> app/plugin/ui`、`ui -> AudioEngine/DSP object`、`Water/Ice -> RoutingMode`、DSP 直接读取 APVTS。
 
 ## 4. 实时音频线程硬规则
 
@@ -99,7 +100,7 @@ tests -> 被测模块
 
 ## 5. 参数与状态合同
 
-- 正式 Host 参数在初始化时静态注册，定义集中在 `ParameterLayout.*`；不得按 routing 动态增删。
+- 正式 Host 参数在初始化时静态注册，定义集中在 `src/plugin/ParameterLayout.*`；不得按 routing 动态增删。
 - ID、范围、默认值、单位、step、skew、automation 和 smoothing 要与 `docs/PARAMETERS.md` 一致。
 - Parallel 只用 `parallel.balance` 控制两支路相对比例；Serial 只用 `water.amount` / `ice.amount` 控制各 stage mix。
 - 暂时无效的参数保留值；切换模式不得重置。

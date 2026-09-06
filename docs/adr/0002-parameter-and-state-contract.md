@@ -13,7 +13,7 @@ VST3 Parameter ID、choice index 与 state 一旦出现在用户 session/preset 
 
 ## Decision
 
-- 参数静态注册，定义集中在 `ParameterLayout.*`；
+- 参数静态注册，定义集中在 `src/plugin/ParameterLayout.*`；
 - 正式 ID 以 `docs/PARAMETERS.md` 为 registry；enabled ID 使用 `water.enabled`/`ice.enabled`；
 - 每个 block 开始创建一次值类型 `ParameterSnapshot`，经 `ParameterMapper` 生成 EngineParameters；
 - DSP 不直接读取 APVTS；

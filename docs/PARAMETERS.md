@@ -37,7 +37,7 @@ M1 是 `core contract stabilization`：建立静态参数注册、Snapshot、map
 处理顺序：
 
 1. 在任何公开 release/preset/session 之前完成一次性更名；
-2. 将参数定义从 `PluginProcessor.cpp` 移至 `ParameterLayout.*`；
+2. 将参数定义从 `PluginProcessor.cpp` 移至 `src/plugin/ParameterLayout.*`；
 3. 添加精确 ID、顺序、类型、范围和默认值枚举测试；
 4. 添加 state round-trip 测试；
 5. 若确认已有外部 session 使用旧 ID，再通过 ADR 决定兼容读取，禁止默默丢值。

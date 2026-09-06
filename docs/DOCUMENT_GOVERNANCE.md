@@ -8,11 +8,11 @@
 
 ### LEVEL 1 — LOCKED CONTRACT
 
-产品语义、Accepted ADR Decision、`PARAM-FREEZE-001` 之后的参数 ID/range/default/choice/state 兼容性属于 LOCKED。变更需要明确 owner 请求、issue、ADR、兼容性/迁移策略和测试；不得直接改文字来迁就实现。
+产品语义、Accepted ADR Decision、`PARAM-FREEZE-001` 之后的参数 ID/range/default/choice/state 兼容性属于 LOCKED。变更需要明确 owner approval、issue、new/superseding ADR where applicable、兼容性/迁移分析、测试和 review；不得直接改文字来迁就实现。
 
 ### LEVEL 2 — CONTROLLED
 
-架构接口、实时/状态/测试合同、代码质量规范、routing transition、公共模块接口和 Accepted performance budget 属于 CONTROLLED。修改需要 issue、review、受影响测试和文档；跨边界或合同变化时补 ADR。
+架构接口、实时/状态/测试合同、代码质量规范、routing transition、公共模块接口和 Accepted performance budget 属于 CONTROLLED。普通修改需要 issue、review、受影响测试和文档；只有改变既有架构决策、依赖边界、公共职责、参数/状态兼容性、routing、realtime、latency、random-state 或正式性能合同时才补 ADR。
 
 ### LEVEL 3 — MAINTAINED / EDITABLE
 
@@ -39,10 +39,14 @@
 ## 4. 修改流程
 
 1. 先确定文档等级、owner、受影响的 issue/milestone 和是否改变合同；
-2. 若为 Level 1/2，先更新或新增 ADR，再修改实现/文档；
+2. 实现已接受合同时，使用 issue + code/docs + tests + review；只有触发 ADR 条件时才先更新或新增 ADR；
 3. 同步测试合同、模块 README、`MODULE_INDEX`、AGENTS 和计划中的受影响字段；
 4. 做链接/路径/状态一致性检查，并明确实际验证与未执行验证；
 5. PR 必须完成 Code Quality Review 和 Comment & Documentation Pass；Accepted ADR 不删除历史。
+
+### ADR trigger
+
+实现既有 accepted contract、添加已有测试合同要求的测试、修复 bug，或不改变公共行为和 dependency boundary 的 refactor，只需要 issue、代码/文档、测试和 review。只有改变 architecture decision、dependency boundary、public module responsibility、parameter semantics/ID/range/choice compatibility、state schema/compatibility strategy、routing semantics、realtime boundary、latency contract、random-state persistence semantics、formal performance contract/budget 或 major DSP algorithm decision 时才需要 ADR。
 
 文档出现冲突时，停止扩大实现范围，列出冲突事实和建议 owner，由 issue/ADR 决定，不擅自选择一方作为真相。
 

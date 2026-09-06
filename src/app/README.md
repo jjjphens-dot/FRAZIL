@@ -8,18 +8,19 @@
 
 - `AudioEngine` 的 prepare/reset/process 生命周期和未来的 gain/routing/global mix 编排；
 - `ParameterSnapshot`、`ParameterMapper`、`StateModel` 和 `EditHistoryManager` 的应用层边界；
-- 为 plugin 层提供小而明确的接口，为 dsp 层提供不依赖 JUCE/APVTS 的 engine 参数。
+- 为 plugin 层提供小而明确的接口，为 dsp 层提供不依赖 APVTS/Host 的 engine 参数；为 UI 提供狭窄的 message-thread edit/history command boundary。
 
 ## Non-responsibilities
 
-不得直接注册 Host 参数、访问 UI/UndoManager、实现 Water/Ice 算法或决定 RoutingMode 的内部算法。
+AudioEngine/DSP orchestration 不得直接注册 Host 参数、访问 UI 或 UndoManager；`EditHistoryManager` 只在 message thread 提供狭窄的编辑命令边界。app 不实现 Water/Ice 算法，也不决定 RoutingMode 的内部算法。
 
 ## Architecture / Data Flow
 
 ```text
-PluginProcessor -> ParameterSnapshot -> ParameterMapper -> AudioEngine -> dsp
-PluginProcessor -> StateModel
-UI transaction -> EditHistoryManager (message thread only)
+PluginProcessor -> src/plugin/ParameterLayout -> ParameterSnapshot -> ParameterMapper -> AudioEngine -> dsp
+Plugin Host State Adapter -> StateModel
+UI -> narrow plugin parameter interface
+UI -> narrow app edit/history command interface -> EditHistoryManager (message thread only)
 ```
 
 ## Public Interfaces
@@ -28,7 +29,7 @@ UI transaction -> EditHistoryManager (message thread only)
 
 ## Parameter / Data Types
 
-正式 Host 参数由 plugin 层当前 inline 注册；M1 `PARAM-001` 将迁移到 `ParameterLayout.*`。AudioEngine 当前没有正式 `EngineParameters`/`ProcessSpec`，这些属于 M1 合同。
+正式 Host 参数由 plugin 层当前 inline 注册；M1 `PARAM-001` 将迁移到 `src/plugin/ParameterLayout.*`。AudioEngine 当前没有正式 `EngineParameters`/`ProcessSpec`，这些属于 M1 合同。app 不依赖 ParameterLayout、PluginProcessor 或 Host adapter。
 
 ## Ownership & Lifetime
 
@@ -36,11 +37,11 @@ AudioEngine 为 PluginProcessor 的实例成员，拥有其生命周期内的准
 
 ## Threading / Realtime Rules
 
-`process` 位于音频线程边界：不得 I/O、logging、阻塞锁、UI/history 访问、运行时分配或直接多次读取 APVTS。每个 block 使用一致的 snapshot；规则详见 `docs/CODE_STANDARDS.md` 和 `docs/TESTING.md`。
+`process` 位于音频线程边界：不得 I/O、logging、阻塞锁、UI/history 访问、运行时分配或直接多次读取 APVTS。每个 block 使用一致的 snapshot；规则详见 [CODE_STANDARDS.md](../../docs/CODE_STANDARDS.md) 和 [TESTING.md](../../docs/TESTING.md)。
 
 ## Implementation Overview
 
-M0 只有 pass-through `AudioEngine`。真实 gain、Snapshot/Mapper、routing、Water/Ice 和 state/history boundary 按 `docs/CODING_PLAN.md` 的 M1-M5 顺序实现。
+M0 只有 pass-through `AudioEngine`。真实 gain、Snapshot/Mapper、routing、Water/Ice 和 state/history boundary 按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 的 M1-M5 顺序实现。
 
 ## State / Tail / Latency
 
@@ -48,16 +49,16 @@ app 层不得自行宣称算法 tail 或 latency。v1 Host-reported processing l
 
 ## Tests
 
-当前以 `tests/unit/AudioEngineTests.cpp` 和 CTest smoke/lifecycle 为证据；后续按 `docs/TESTING.md` 增加 snapshot、mapping、state、signal-chain 和 finite-output 测试。
+当前以 `tests/unit/AudioEngineTests.cpp` 和 CTest smoke/lifecycle 为证据；后续按 [TESTING.md](../../docs/TESTING.md) 增加 snapshot、mapping、state、signal-chain 和 finite-output 测试。
 
 ## Related ADRs
 
-`docs/adr/0002-parameter-and-state-contract.md`、`docs/adr/0003-realtime-processing-boundary.md`。
+[ADR-0002](../../docs/adr/0002-parameter-and-state-contract.md)、[ADR-0003](../../docs/adr/0003-realtime-processing-boundary.md)。
 
 ## Files
 
-`AudioEngine.*` 当前存在；`ParameterLayout.*`、`ParameterSnapshot.*`、`ParameterMapper.*`、`StateModel.*`、`EditHistoryManager.*` 为计划路径。
+`AudioEngine.*` 当前存在；`ParameterSnapshot.*`、`ParameterMapper.*`、`StateModel.*`、`EditHistoryManager.*` 为 app 计划路径；`ParameterLayout.*` 为 `src/plugin/` 计划路径。
 
 ## Modification Policy
 
-本 README 属于 LEVEL 3 module documentation。公共接口、依赖或线程事实变化时必须与代码、`docs/MODULE_INDEX.md`、相关测试和合同文档同一 PR 更新。
+本 README 属于 LEVEL 3 module documentation。公共接口、依赖或线程事实变化时必须与代码、[MODULE_INDEX.md](../../docs/MODULE_INDEX.md)、相关测试和合同文档同一 PR 更新。

@@ -433,6 +433,17 @@ FRAZIL 不采用“大而全”的多层企业架构，而采用适合两人音�
 
 依赖必须总体保持**单向**。
 
+职责分层图用于说明 ownership，不等同于 C++ include 顺序。实际允许的依赖边界是：
+
+```text
+ui -> narrow plugin parameter interface
+ui -> narrow app edit/history command interface
+plugin -> app -> dsp
+tests -> 被测模块
+```
+
+`ParameterLayout` 属于 `src/plugin/` 的 Platform / Host Adapter Layer，负责 JUCE-facing 静态参数注册；`StateModel` 属于 `src/app/`，只依赖 application value types。Plugin Host State Adapter 调用 StateModel，禁止 `app -> plugin` 反向依赖。
+
 禁止出现：
 
 ```text
@@ -479,6 +490,8 @@ UI 的任务是：
 不是：
 
 > **执行声音算法。**
+
+UI 只通过 narrow plugin parameter interface 表达 Host 参数，并通过 narrow app edit/history command interface 发起 begin/end gesture、discrete edit、undo 和 redo。UI 不直接持有 AudioEngine 或任何 DSP object。
 
 ---
 
@@ -565,7 +578,7 @@ PluginProcessor
 VST3 / Standalone glue
 host bus layout
 JUCE callback
-parameter declaration
+ParameterLayout（static Host/JUCE parameter declaration）
 state serialization adapter
 ```
 

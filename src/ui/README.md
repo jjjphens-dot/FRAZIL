@@ -12,19 +12,19 @@
 
 ## Non-responsibilities
 
-不得直接创建或持有 Water/Ice/Routing DSP object，不得直接访问 APVTS internals、AudioEngine、UndoManager 的音频线程路径，也不得在 UI 中执行实时音频处理。
+不得直接创建或持有 Water/Ice/Routing DSP object，不得依赖 AudioEngine、DSP primitives、DSP buffer/state、PluginProcessor internals 或 APVTS internals，也不得在 UI 中执行实时音频处理。UI 只使用 narrow plugin parameter interface 和 narrow app edit/history command interface。
 
 ## Architecture / Data Flow
 
 ```text
-UI component -> plugin parameter interface -> Host/APVTS
-UI transaction -> StateModel/EditHistoryManager (message thread)
+UI -> narrow plugin parameter interface -> Host/APVTS
+UI -> narrow app edit/history command interface -> EditHistoryManager (message thread)
 Audio thread -> no UI dependency
 ```
 
 ## Public Interfaces
 
-正式 UI component/attachment API 为 Planned；必须使用小而稳定的参数接口，不把 DSP 类型传播到 UI。
+正式 UI component/attachment API 为 Planned；必须使用小而稳定的 plugin parameter interface 和 app edit/history command interface，不把 DSP 类型传播到 UI。
 
 ## Ownership & Lifetime
 
@@ -40,11 +40,11 @@ M5 才实现正式 `src/ui/` 组件；当前 `src/plugin/PluginEditor.*` 仅提�
 
 ## Tests
 
-未来需要 interaction、resize、attachment、automation display 和 pluginval/DAW evidence；当前无正式 UI 测试。
+未来需要 interaction、resize、attachment、automation display 和 pluginval/DAW evidence；当前无正式 UI 测试，具体 gate 见 [TESTING.md](../../docs/TESTING.md)。
 
 ## Related ADRs
 
-`docs/adr/0002-parameter-and-state-contract.md`，以及未来 UI/state/history boundary ADR。
+[ADR-0002](../../docs/adr/0002-parameter-and-state-contract.md)，以及未来 UI/state/history boundary ADR。
 
 ## Files
 
@@ -52,4 +52,4 @@ M5 才实现正式 `src/ui/` 组件；当前 `src/plugin/PluginEditor.*` 仅提�
 
 ## Modification Policy
 
-本 README 属于 LEVEL 3 module documentation。UI 公共接口、参数 binding、线程或 transaction 边界变化时，必须同步 `docs/MODULE_INDEX.md`、参数/state/history 文档和测试计划。
+本 README 属于 LEVEL 3 module documentation。UI 公共接口、参数 binding、线程或 transaction 边界变化时，必须同步 [MODULE_INDEX.md](../../docs/MODULE_INDEX.md)、参数/state/history 文档和测试计划。
