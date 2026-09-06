@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-06  
+> 快照日期：2026-09-07<br>
 > 依据：本地源码/构建目录审计、当前 Debug/portable build/CTest、GitHub 仓库页面与 Actions 页面。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -10,19 +10,19 @@
 
 ## 1. 结论
 
-项目已有可构建的 JUCE M0 骨架；本开发分支已实现并继续收口 M1 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path。首次仓库接入和历史 Hosted CI 已验证；Water/Ice、Routing、版本化 state、render 和正式 UI 仍未实现。
+项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1 仍在进行中；Water/Ice、Routing、版本化 state、render 和正式 UI 仍未实现。
 
 `CODING_PLAN.md` v1.0 / Approved Development Baseline 已作为 M0→M7 的正式工程执行基线；这不代表 FRAZIL plugin v1.0 release，也不改变 M0/M1、Water/Ice/Routing 的实际完成状态。
 
 当前阻塞性差距：
 
-1. 本次状态快照区分以下 refs：GitHub `main` 基线为 `25724c29dcf9a1e24ea3295f36318d1165b7718a`；开发分支为 `feat/m1-parameter-engine-contract`；其 M1 实现/证据提交属于 [PR #3](https://github.com/jjjphens-dot/FRAZIL/pull/3)，当前 feature HEAD 以该 PR 的 head 为准，不把历史 CI SHA 混作 `main` 基线；
-2. 本轮已验证的 M1 修复提交为 `1adbde0`，对应 [Hosted CI run 34040797309](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34040797309) 的 Windows Debug configure/build/test 通过；GitHub Actions 另有历史 run `34014018189`（head SHA `96b3659`）和 `34014110580`（head SHA `1f4bb67`）成功，但它们不是当前 `main` 基线；workflow/API 的更细粒度权限与 branch protection 未验证；
-3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在本分支的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；兼容迁移策略仍属于 STATE/公开版本前置工作；
+1. 本次状态快照区分以下 refs：GitHub `main` 已包含 PR #2 / PR #3 的合并结果，当前合并后版本为 `229ca19`；`feat/m1-parameter-engine-contract` 保留为已完成 M1-A/M1-B 的历史 feature 分支；下一开发入口为独立的 M1-C state 分支；
+2. PR #3 最新 HEAD 的 [Hosted CI run 34044332388](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34044332388) 已完成 Windows Debug configure/build/test 并通过；PR #2 的 [Hosted CI run 34022773758](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34022773758) 也已通过；workflow/API 的更细粒度权限与 branch protection 未验证；
+3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；兼容迁移策略仍属于 STATE/公开版本前置工作；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
-5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length 和 runtime buffer invariant；本轮 Debug VST3 的 pluginval strictness 5 已通过，尚未覆盖版本化 state、render 和 DAW automation；
+5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length 和 runtime buffer invariant；M1-A/M1-B 合并前的 Debug VST3 pluginval strictness 5 已通过，尚未覆盖版本化 state、render 和 DAW automation；
 6. Water、Ice、Routing、版本化 StateModel、EditHistoryManager、离线 render、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现。
-7. PR #3 保留 `87fd69b docs: add two-person collaboration roles` 这一已有协作基线提交；该提交对应仍处于 open、未合入的 PR #2，因此本次不强制重写共享 feature 历史，PR 说明已明确其不是 M1 产品实现范围；
+7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
 9. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证。
 
@@ -40,7 +40,7 @@
 | Tests | `frazil_smoke` + `frazil_tests` CTest | M1 contract/gain/smoothing/priming/invariant unit 覆盖；state/DSP property/Host 测试未完成 |
 | Local validation | 本分支 Debug、Release、ASAN 均 configure/build；三个 preset 的 CTest 均 2/2 PASS | 已验证 |
 | pluginval | 本轮修复后的 Debug VST3 strictness 5 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定，本次审计的 `main` 基线为 `25724c29dcf9a1e24ea3295f36318d1165b7718a` | GitHub Actions 历史 run success；Issues/Milestones/Projects metadata 未建立 |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定，本次合并后 `main` 版本为 `229ca19` | PR #2 / PR #3 Hosted CI success；Issues/Milestones/Projects metadata 未建立 |
 
 ## 3. 当前源码映射
 
@@ -106,12 +106,12 @@ PluginProcessor
 | Global dry/wet | `global.mix` | `global.mix` | 保留；基础 DSP/continuous smoothing 已接入；仍待 automation/state/Host validation |
 | Output trim | `output.gain` | `output.gain` | 保留；基础 DSP/continuous smoothing 已接入；仍待 automation/state/Host validation |
 
-在 M1 参数合同 PR 合并前，不得创建公开 preset/session 兼容性承诺。若已有外部用户使用过当前占位构建，应先确认是否需要兼容别名/迁移。
+虽然 M1 参数合同已随 PR #3 合入 `main`，但在正式参数 freeze、state migration 和 compatibility evidence 前，不得创建公开 preset/session 兼容性承诺。若已有外部用户使用过当前占位构建，应先确认是否需要兼容别名/迁移。
 
 ## 5. 现状对应 milestone
 
 - M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000、GitHub metadata 与 branch protection 尚未收口。
-- M1 Audio Skeleton & Parameter Contract：**进行中**。ParameterLayout、Snapshot、Mapper、ProcessSpec、EngineParameters、Input/Output gain skeleton、Global DryWet primitive、continuous smoothing、RandomSource 和 Host -> Snapshot -> Mapper -> AudioEngine 路径已实现；本轮补充 repeated-target/retarget、首 block priming、精确参数合同和 runtime invariant regression，仍缺版本化 state、automation integration、render/property/performance、DAW 验证和正式参数 freeze。
+- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 已合入 `main`：ParameterLayout、Snapshot、Mapper、ProcessSpec、EngineParameters、Input/Output gain skeleton、Global DryWet primitive、continuous smoothing、RandomSource 和 Host -> Snapshot -> Mapper -> AudioEngine 路径已实现；仍缺版本化 state、automation integration、render/property/performance、DAW 验证和正式参数 freeze，下一入口为 M1-C。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
 - M4 Routing：**未开始**。
