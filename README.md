@@ -23,7 +23,7 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 - [GitHub 协作流程](docs/GITHUB_WORKFLOW.md)
 - [双人协作分工](docs/COLLABORATION_ROLES.md)
 - [开发环境](docs/ENVIRONMENT.md)
-- [HOST-000 平台与 DAW 兼容性矩阵（Proposed）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
+- [HOST-000 平台与 DAW 兼容性矩阵（产品目标已冻结，HOST-001 evidence pending）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
 - [贡献指南](CONTRIBUTING.md)
 
 ## 本地构建
