@@ -16,7 +16,7 @@
 
 当前阻塞性差距：
 
-1. 本次状态快照在 `feat/m1-parameter-engine-contract` 开发分支上；该分支从已审计的文档基线提交继续开发，当前修复提交的 SHA/PR/CI 证据待本轮提交后补录；
+1. 本次状态快照在 `feat/m1-parameter-engine-contract` 开发分支上；本轮修复提交为 `1adbde0`，对应 [PR #3](https://github.com/jjjphens-dot/FRAZIL/pull/3)；[Hosted CI run 34040797309](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34040797309) 已对该 SHA 完成 Windows Debug configure/build/test 并通过；
 2. GitHub Actions 页面显示 `FRAZIL CI` 的 run `34014018189`（`96b3659`）和 run `34014110580`（`1f4bb67`）均 completed successfully；workflow/API 的更细粒度权限与 branch protection 未验证；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在本分支的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；兼容迁移策略仍属于 STATE/公开版本前置工作；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
