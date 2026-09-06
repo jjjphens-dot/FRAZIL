@@ -16,7 +16,7 @@
 
 当前阻塞性差距：
 
-1. 本次状态快照记录的 observed `main` HEAD 为 `db02d1c`；PR #3 merge commit 为 `229ca19`，M1-A/M1-B foundation 已合入 `main`；`feat/m1-parameter-engine-contract` 保留为历史 feature 分支，下一开发入口为独立的 M1-C state 分支；本状态文件后续提交只表达 snapshot 与 merge/current-state relationship，不把其自身之前的提交长期称为 current HEAD；
+1. 本次状态快照记录的 observed `origin/main` HEAD 为 `b91f619`；该基线满足 HOST-000 审计要求；M1-A/M1-B foundation 已合入 `main`，`feat/m1-parameter-engine-contract` 保留为历史 feature 分支，下一开发入口为独立的 M1-C state 分支；本状态文件后续提交只表达 snapshot 与 merge/current-state relationship，不把其自身之前的提交长期称为 current HEAD；
 2. PR #3 最新 HEAD 的 [Hosted CI run 34044332388](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34044332388) 已完成 Windows Debug configure/build/test 并通过；PR #2 的 [Hosted CI run 34022773758](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34022773758) 也已通过；workflow/API 的更细粒度权限与 branch protection 未验证；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；兼容迁移策略仍属于 STATE/公开版本前置工作；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
@@ -25,7 +25,7 @@
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug；从下一条需要双人 review 的核心 PR 开始，必须留下 formal review 或满足治理规则的第二位开发者 comment evidence；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证。
+10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证；HOST-000 候选矩阵见 [HOST-000_COMPATIBILITY_MATRIX.md](HOST-000_COMPATIBILITY_MATRIX.md)，正式支持范围仍待 Sound & Host Lead 决策和 Engineering Lead review。
 
 ## 2. 已有资产
 
@@ -41,7 +41,7 @@
 | Tests | `frazil_smoke` + `frazil_tests` CTest | M1 contract/gain/smoothing/priming/invariant unit 覆盖；state/DSP property/Host 测试未完成 |
 | Local validation | `feat/m1-parameter-engine-contract` merge-candidate 的 Debug、Release、ASAN 均 configure/build；三个 preset 的 CTest 均 2/2 PASS | 已验证 |
 | pluginval | M1-A/M1-B merge-candidate Debug VST3 strictness 5 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；snapshot observed `main` HEAD 为 `db02d1c`，PR #3 merge commit 为 `229ca19` | PR #2 / PR #3 Hosted CI success；Issues/Milestones/Projects metadata 未建立 |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；HOST-000 audit observed `origin/main` HEAD 为 `b91f619`；PR #3 merge commit 为 `229ca19` | PR #2 / PR #3 Hosted CI success；Issues/Milestones/Projects metadata 未建立 |
 
 ## 3. 当前源码映射
 
@@ -111,7 +111,7 @@ PluginProcessor
 
 ## 5. 现状对应 milestone
 
-- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000、GitHub metadata 与 branch protection 尚未收口。
+- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 已形成 Proposed 候选矩阵，但 DAW 决策、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。
 - M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 已合入 `main`：ParameterLayout、Snapshot、Mapper、ProcessSpec、EngineParameters、Input/Output gain skeleton、Global DryWet primitive、continuous smoothing、RandomSource 和 Host -> Snapshot -> Mapper -> AudioEngine 路径已实现；仍缺版本化 state、automation integration、render/property/performance、DAW 验证和正式参数 freeze，下一入口为 M1-C。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
@@ -131,4 +131,4 @@ PluginProcessor
 
 ## 7. 下一步唯一推荐入口
 
-按 `docs/CODING_PLAN.md` 继续收口 M1-C：完成版本化 StateModel、automation integration、TESTDATA/RENDER/PERF harness 和 HOST-001 证据；在这些基础合同与验证就绪前，不进入 Water/Ice/Routing 生产实现。
+按依赖顺序先完成 `TESTDATA-001`；HOST-000 的正式支持分类和 HOST-001 的 DAW evidence 仍需 Sound & Host Lead 决策与 Engineering Lead review。在这些基础合同与验证就绪前，不进入 Water/Ice/Routing 生产实现。
