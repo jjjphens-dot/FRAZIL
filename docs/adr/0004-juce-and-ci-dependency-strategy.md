@@ -3,6 +3,10 @@
 - Status: Accepted
 - Date: 2026-09-06
 
+## Modification Policy
+
+本 ADR 的 Accepted Decision 是 LOCKED 依赖/CI 策略。升级 JUCE、补丁或 portable CI 合同必须新增/更新 ADR、记录 revision/兼容性证据，并同步环境与工作流文档；不删除历史事实。
+
 ## Context
 
 当前项目从 `external/JUCE` 构建 JUCE 9.0.1，本机副本含两个针对 F: 盘 MSVC/SDK 的兼容补丁；本地 CMake presets 也固定绝对路径。GitHub 远端为空，fresh clone 和 hosted CI 尚不可复现。

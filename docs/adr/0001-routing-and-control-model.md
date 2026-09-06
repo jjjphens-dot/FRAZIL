@@ -3,6 +3,10 @@
 - Status: Accepted
 - Date: 2026-09-06
 
+## Modification Policy
+
+本 ADR 的 Accepted Decision 是 LOCKED 历史合同，不原地改变语义。若 routing/control 决策变化，新增 ADR 并标明 supersedes/superseded by，同时补测试和迁移影响。
+
 ## Context
 
 FRAZIL 需要并联与两个串联方向。Parallel 的“两个分支相对比例”和 Serial 的“每个 stage 处理量”是不同产品语义；时间上的 Water -> Ice 变化又属于 DAW timeline。

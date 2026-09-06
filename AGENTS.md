@@ -6,7 +6,8 @@
 
 - 当前阶段：M0 已部分完成，M1 尚未完成。
 - 已有：JUCE 9.0.1、CMake/Ninja presets、VST3/Standalone、pass-through AudioEngine、APVTS 状态保存、9 个参数占位、smoke test。
-- 尚缺：可移植 CI、ParameterMapper/Snapshot、真实 gain/routing/Water/Ice DSP、编辑历史、完整测试体系和正式 UI。
+- 已有：可移植 CI preset 与 Hosted CI 验证；
+- 尚缺：ParameterMapper/Snapshot、真实 gain/routing/Water/Ice DSP、编辑历史、完整测试体系和正式 UI。
 - 当前参数占位使用 `water.enable` / `ice.enable`，而目标合同为 `water.enabled` / `ice.enabled`；必须在首个公开兼容性基线前完成一次性迁移并加测试。
 - GitHub 远端为 `https://github.com/jjjphens-dot/FRAZIL`。开始产品代码前必须确认工作目录是该仓库的 Git 工作树，且 `origin` 指向该地址。
 
@@ -18,15 +19,54 @@
 2. 执行 `git status --short`，保护用户已有改动；不得覆盖或清理无关变更。
 3. 用 `rg` 定位现有实现和测试，避免创建平行架构。
 4. 将任务映射到 `docs/CODING_PLAN.md` 的 milestone、issue ID、依赖和 exit gate。
-5. 若涉及参数 ID、范围、state schema、routing 语义或实时路径，先更新/新增 ADR，再改实现。
+5. 若任务触及参数 ID、范围、state schema、routing 语义或实时路径，先检查现有合同。实现已接受合同不自动创建 ADR；只有需要改变架构决策、依赖边界、公共模块职责、参数/状态兼容性、routing、realtime、latency、random-state 或正式性能合同时，才先更新/新增 ADR，再改实现。
+
+### Required reading
+
+每次生产代码任务开始前必须阅读：
+
+- `docs/CODE_STANDARDS.md`；
+- `docs/DOCUMENT_GOVERNANCE.md`；
+- `docs/MODULE_INDEX.md`；
+- 相关模块 README、`docs/CODING_PLAN.md`、`docs/PARAMETERS.md`、`docs/TESTING.md` 和 ADR。
+
+所有生产代码修改必须遵守 `docs/CODE_STANDARDS.md`。违反该规范的代码不能因为“功能工作正常”而视为 Done。
+
+### Mandatory development phases
+
+代码任务必须按以下阶段执行并在输出中报告：
+
+```text
+Contract Review
+  -> Implementation
+  -> Functional Validation
+  -> Code Quality Review
+  -> Comment & Documentation Pass
+  -> Final Validation
+```
+
+功能完成后不得跳过独立的 Code Quality Review 或 Comment & Documentation Pass。
+
+### Forbidden shortcuts
+
+Agent 不得：
+
+- 功能通过后直接结束而不更新注释、模块 README 或 `MODULE_INDEX.md`；
+- 修改 LOCKED contract 以迁就实现；
+- 使用 mutable global/static state 省事；
+- 用巨大 class 聚合多个变化原因；
+- 创建隐藏跨层 dependency、service locator 或 global singleton；
+- 用 macro 代替正常 C++ abstraction；
+- 复制代码而不检查共享 primitive 是否合理；
+- 为抽象而抽象，或顺手进行无关重构。
 
 ## 3. 目录与依赖方向
 
-- `src/plugin/`：JUCE `AudioProcessor`、VST3/Standalone 适配、总线、静态参数声明、Host state adapter。
+- `src/plugin/`：JUCE `AudioProcessor`、VST3/Standalone 适配、总线、`ParameterLayout.*` 静态参数声明、Host state adapter。
 - `src/app/`：`AudioEngine`、`ParameterMapper`、`ParameterSnapshot`、`StateModel`、`EditHistoryManager`。
 - `src/dsp/`：Water、Ice、Routing、StageMixer、DryWetMixer 与确有复用价值的 primitive。
 - `src/ui/`：编辑器和控件；只表达产品参数和发起 UI transaction，不执行 DSP。
-- `experiments/`：允许失败的声音实验；不能被生产 target 直接依赖。
+- `experiments/`：允许失败的声音实验；candidate、A/B、prototype 和 listening exploration 不自动要求 ADR，不能被生产 target 直接依赖；采纳为 production decision 或改变既有合同/边界时才按 ADR trigger 处理。
 - `tests/`：unit、DSP property、render、integration、host validation。
 - `testdata/input/` 与 `testdata/reference/`：小型、可授权、可复现的测试素材；`testdata/rendered/` 永不提交。
 - `external/`：固定版本的第三方依赖。除已记录的构建兼容补丁外，不修改 vendor 代码；升级或补丁必须有 ADR/说明。
@@ -34,12 +74,13 @@
 允许的主依赖方向：
 
 ```text
-ui -> plugin parameter interface
+ui -> narrow plugin parameter interface
+ui -> narrow app edit/history command interface
 plugin -> app -> dsp
 tests -> 被测模块
 ```
 
-禁止：`dsp -> app/plugin/ui`、`ui -> DSP object`、`Water/Ice -> RoutingMode`、DSP 直接读取 APVTS。
+`StateModel` 只依赖 application value types；Plugin Host State Adapter 调用 StateModel。禁止 `app -> plugin`、`dsp -> app/plugin/ui`、`ui -> AudioEngine/DSP object`、`Water/Ice -> RoutingMode`、DSP 直接读取 APVTS。
 
 ## 4. 实时音频线程硬规则
 
@@ -59,7 +100,7 @@ tests -> 被测模块
 
 ## 5. 参数与状态合同
 
-- 正式 Host 参数在初始化时静态注册，定义集中在 `ParameterLayout.*`；不得按 routing 动态增删。
+- 正式 Host 参数在初始化时静态注册，定义集中在 `src/plugin/ParameterLayout.*`；不得按 routing 动态增删。
 - ID、范围、默认值、单位、step、skew、automation 和 smoothing 要与 `docs/PARAMETERS.md` 一致。
 - Parallel 只用 `parallel.balance` 控制两支路相对比例；Serial 只用 `water.amount` / `ice.amount` 控制各 stage mix。
 - 暂时无效的参数保留值；切换模式不得重置。
@@ -126,6 +167,9 @@ Issue 进入 Ready 前必须有：用户/声音问题、范围与非目标、acc
 
 - 实现和相关文档同步；
 - 目标 presets 构建通过，相关自动测试通过；
+- Code Quality Review 已检查 cohesion、coupling、naming、scope、ownership、globals、magic numbers、macros、includes、realtime safety 和 dead code；
+- Comment & Documentation Pass 已检查 public API、关键算法、单位/range、ownership、realtime contract、module README 和 `MODULE_INDEX.md`；
+- 每个 architecture、parameter/state、realtime、performance 和 documentation 影响项都明确填写；无影响时写 `N/A`；
 - realtime-safety、smoothing、bypass、state、mode retention 按影响范围验证；
 - 涉及声音的变更有可重复 render 与听测结论；
 - 涉及 Host 的变更有 pluginval/DAW 证据；
@@ -139,3 +183,7 @@ Issue 进入 Ready 前必须有：用户/声音问题、范围与非目标、acc
 - 遇到文档与代码冲突时显式列出，不擅自把任一方当成事实。
 - 完成后给出实际执行过的命令和结果；未执行的验证要明确标注。
 - 需要用户决定声音审美、许可、产品范围或不可逆外部操作时，停止在安全边界并提出一个具体问题。
+
+## 11. 本文件修改策略
+
+`AGENTS.md` 是 Agent 直接入口，属于 CONTROLLED 文档。修改必须与工程治理或架构规则 issue 相关，并同步 `docs/DOCUMENT_GOVERNANCE.md`、`docs/CODE_STANDARDS.md` 或相关计划文档；不得通过修改本文件绕过 LOCKED contract。

@@ -1,6 +1,6 @@
 # FRAZIL 项目开发与架构规范
 
-> 文档状态：Draft v0.3  
+> 文档状态：Draft v0.3；Development baseline accepted<br>
 > 适用阶段：项目初始化 → v1.0  
 > 团队规模：2 人  
 > 目标产品：以“水 / 冰材质化”为核心声音特征的实时音频效果器，首要目标为 VST3，同时保留 Standalone 作为开发与测试宿主。
@@ -23,6 +23,10 @@
 10. 一个功能何时才算真正完成。
 
 本文档优先级高于临时聊天结论。若架构或产品方向发生重大变化，应通过 ADR（Architecture Decision Record）记录理由并同步修改本文档。
+
+## Modification Policy
+
+产品语义和已 Accepted 的架构决策属于 LOCKED 合同；候选方案、接口边界、实时规则和正式预算属于 CONTROLLED 内容；纯解释性文字可维护。`experiments/` 中的 candidate、A/B、prototype 和 listening exploration 不自动要求 ADR；只有候选方案被采纳为 production architecture/core DSP decision，或改变既有合同/边界时，才按 `docs/DOCUMENT_GOVERNANCE.md` 的 ADR trigger 补充 issue、ADR、测试与迁移/兼容性证据。
 
 ---
 
@@ -429,6 +433,17 @@ FRAZIL 不采用“大而全”的多层企业架构，而采用适合两人音�
 
 依赖必须总体保持**单向**。
 
+职责分层图用于说明 ownership，不等同于 C++ include 顺序。实际允许的依赖边界是：
+
+```text
+ui -> narrow plugin parameter interface
+ui -> narrow app edit/history command interface
+plugin -> app -> dsp
+tests -> 被测模块
+```
+
+`ParameterLayout` 属于 `src/plugin/` 的 Platform / Host Adapter Layer，负责 JUCE-facing 静态参数注册；`StateModel` 属于 `src/app/`，只依赖 application value types。Plugin Host State Adapter 调用 StateModel，禁止 `app -> plugin` 反向依赖。
+
 禁止出现：
 
 ```text
@@ -475,6 +490,8 @@ UI 的任务是：
 不是：
 
 > **执行声音算法。**
+
+UI 只通过 narrow plugin parameter interface 表达 Host 参数，并通过 narrow app edit/history command interface 发起 begin/end gesture、discrete edit、undo 和 redo。UI 不直接持有 AudioEngine 或任何 DSP object。
 
 ---
 
@@ -561,7 +578,7 @@ PluginProcessor
 VST3 / Standalone glue
 host bus layout
 JUCE callback
-parameter declaration
+ParameterLayout（static Host/JUCE parameter declaration）
 state serialization adapter
 ```
 
@@ -693,8 +710,9 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer&)
 {
     ScopedNoDenormals noDenormals;
 
-    const auto params = parameterMapper.makeSnapshot();
-    audioEngine.process(buffer, params);
+    const auto snapshot = parameterSnapshot.capture();
+    const auto engineParameters = parameterMapper.map(snapshot);
+    audioEngine.process(buffer, engineParameters);
 }
 ```
 
@@ -1375,13 +1393,13 @@ ice.amount
 正确结构：
 
 ```text
-DAW Automation / UI
+Host Parameter Atomics
         ↓
-      APVTS
+ParameterSnapshot
         ↓
  ParameterMapper
         ↓
-ParameterSnapshot
+ EngineParameters
         ↓
    AudioEngine
         ↓
@@ -2931,17 +2949,17 @@ DAW / VST3 Host
       ↓
 PluginProcessor
       │
-      ├── ParameterLayout
-      ├── State Adapter
-      │
-      ↓
-ParameterMapper
-      │
-      ↓
-ParameterSnapshot
-      │
-      ↓
-AudioEngine
+      ├── setup: ParameterLayout -> APVTS / Host Parameter Registry
+      ├── state: Host State Adapter -> StateModel
+      └── audio runtime: Host Parameter Atomics
+                                  ↓
+                           ParameterSnapshot
+                                  ↓
+                           ParameterMapper
+                                  ↓
+                           EngineParameters
+                                  ↓
+                             AudioEngine
       │
       ├→ Input Gain
       │

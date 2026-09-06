@@ -59,3 +59,21 @@ Closes #
 - [ ] Acceptance criteria satisfied
 - [ ] No generated builds, tools, credentials, unlicensed audio, or private paths committed
 - [ ] Deferred work is linked, not hidden in TODO comments
+
+### Code quality and documentation pass
+
+- [ ] High cohesion / low coupling reviewed
+- [ ] Dependency direction preserved
+- [ ] No unnecessary mutable globals/statics
+- [ ] Variable/member scopes minimized
+- [ ] Ownership and lifetime are clear
+- [ ] Naming and `.clang-format` style are consistent
+- [ ] Realtime path reviewed where relevant
+- [ ] Key algorithm, units, invariants, and ownership comments updated
+- [ ] Constants and macros have semantic names and rationale
+- [ ] Public interfaces documented
+- [ ] Module README updated
+- [ ] `docs/MODULE_INDEX.md` updated if module/path/interface/dependency facts changed
+- [ ] Locked documentation unchanged, or change authorized by ADR
+- [ ] Tests updated or impact marked `N/A`
+- [ ] Comment & Documentation Pass completed

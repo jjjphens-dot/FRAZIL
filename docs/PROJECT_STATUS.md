@@ -1,28 +1,35 @@
 # FRAZIL 当前实现与差距
 
 > 快照日期：2026-09-06  
-> 依据：本地源码/构建目录审计、当前 Debug/portable build/CTest、GitHub 仓库页面。  
+> 依据：本地源码/构建目录审计、当前 Debug/portable build/CTest、GitHub 仓库页面与 Actions 页面。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
+
+## Modification Policy
+
+本文件属于 STATUS/EVIDENCE 文档，只能记录实际审计、测试、CI、兼容性或听测结果。计划、假设和未执行工作必须明确标为 planned/未验证，不得把本文件当作稳定计划合同。
 
 ## 1. 结论
 
-项目已有可构建的 JUCE M0 骨架，但尚未进入产品 DSP 实现。最优先的工作不是 Water/Ice 算法，而是先把本地目录纳入 Git、建立可移植 CI，并锁定参数/状态/Application-DSP 接口合同。
+项目已有可构建的 JUCE M0 骨架，但尚未进入产品 DSP 实现。首次仓库接入和 Hosted CI 已验证；当前 M0 剩余重点是冻结平台/DAW 矩阵并建立 GitHub metadata，随后进入 M1 参数/状态/Application-DSP 接口合同。
+
+`CODING_PLAN.md` v1.0 / Approved Development Baseline 已作为 M0→M7 的正式工程执行基线；这不代表 FRAZIL plugin v1.0 release，也不改变 M0/M1、Water/Ice/Routing 的实际完成状态。
 
 当前阻塞性差距：
 
-1. 本地 Git 工作树和 `origin` 已初始化，首个 commit `96b3659` 已推送到远端 `main`；Hosted CI 尚未在本次审计中确认；
-2. 本机 presets 固定 F: 盘编译器/SDK；portable `ci-windows-debug` preset 已添加并在本机 MSVC 环境验证，Hosted CI 尚待首推后验证；
+1. 本次状态快照对应的 `main` 基线 HEAD 为 `1f4bb67`，与远端 `origin/main` 对齐；工作分支可在此基线之上另有 review 提交；
+2. GitHub Actions 页面显示 `FRAZIL CI` 的 run `34014018189`（`96b3659`）和 run `34014110580`（`1f4bb67`）均 completed successfully；workflow/API 的更细粒度权限与 branch protection 未验证；
 3. 参数 ID 存在 `water.enable`/`ice.enable` 与架构目标 `water.enabled`/`ice.enabled` 的冲突；
 4. APVTS 参数虽然已注册，但尚未通过 Snapshot/Mapper 进入 AudioEngine；
 5. 只有 pass-through、CTest smoke 和 M0 AudioEngine unit target，尚未覆盖插件参数行为；
 6. Water、Ice、Routing、gain processing、smoothing、Undo/Redo 和正式 UI 均未实现。
-7. MIT `LICENSE` 已加入；第三方 notice 策略和 GitHub 仓库 metadata 仍待收口。
+7. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
+8. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证。
 
 ## 2. 已有资产
 
 | 范围 | 当前事实 | 成熟度 |
 |---|---|---|
-| Build | CMake 3.22+、C++20、Ninja presets | 本机可用；不可移植 |
+| Build | CMake 3.22+、C++20、Ninja presets | 本机可用；portable preset 已由 Hosted CI 验证 |
 | Formats | JUCE target 声明 VST3 + Standalone | 已接入 |
 | Dependency | `external/JUCE` 为 9.0.1，本机文档记录两个兼容补丁 | 需确定仓库获取/补丁策略 |
 | Plugin shell | mono/stereo bus check、editor、state XML round-trip | 骨架 |
@@ -32,7 +39,7 @@
 | Tests | `frazil_smoke` + `frazil_tests` CTest | M0 wiring/lifecycle 覆盖；DSP/Host 测试未开始 |
 | Local validation | Debug 与 portable preset 已 configure/build；两个 CTest case 均 PASS | 已验证 |
 | pluginval | 本轮 Debug VST3 strictness 5 SUCCESS；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定，首个 `main` commit `96b3659` 已推送 | 已验证；Hosted CI 待确认 |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定，本次审计的 `main` 基线为 `1f4bb67` | GitHub Actions 两次 run success；Issues/Milestones/Projects metadata 未建立 |
 
 ## 3. 当前源码映射
 
@@ -54,18 +61,31 @@ PluginEditor
 
 ```text
 PluginProcessor
-  ├─ ParameterLayout
-  ├─ Host State Adapter
-  └─ ParameterSnapshot source
-          ↓
-    ParameterMapper
-          ↓
-      AudioEngine
+  ├─ setup: `src/plugin/ParameterLayout.*` -> APVTS / Host Parameter Registry
+  ├─ state: Host State Adapter -> StateModel
+  └─ audio runtime: Host Parameter Atomics
+                       ↓
+                 ParameterSnapshot
+                       ↓
+                 ParameterMapper
+                       ↓
+                 EngineParameters
+                       ↓
+                   AudioEngine
   ├─ Input Gain
   ├─ RoutingEngine -> Water / Ice / StageMixer
   ├─ Global Mix
   └─ Output Gain
 ```
+
+## 3.1 M0 code quality audit
+
+本次代码审计只记录当前源码事实，不把计划模块当成实现：
+
+- 正向事实：`src/plugin`、`src/app`、`src/dsp`、`src/ui` 目录边界已经存在；当前未发现 mutable global runtime state；AudioEngine 的运行状态由实例成员持有；`JuceHeader.h` 目前局限在插件适配层。
+- 已确认技术债：参数 layout 仍 inline 在 `PluginProcessor.cpp`（对应 M1 `PARAM-001`）；`PluginProcessor` 仍公开 APVTS，后续需要收窄 Host parameter interface；AudioEngine 仍为 pass-through，已保存的 sample rate/block/channel 字段尚未形成 M1 `ProcessSpec` 合同。
+- 有意保留的未实现项：Water、Ice、Routing、真实 gain/mix、Snapshot/Mapper、正式 UI 和 EditHistoryManager 均仍按 Coding Plan 处于计划阶段；本次治理任务不提前创建生产依赖。
+- 当前验证边界：已有 smoke/lifecycle 和 AudioEngine unit 证据，不能据此宣称参数 automation、DSP property/render、DAW 或完整 realtime safety 已完成。
 
 ## 4. 参数差异审计
 
@@ -85,7 +105,7 @@ PluginProcessor
 
 ## 5. 现状对应 milestone
 
-- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证和首次 push 已完成；Hosted CI 与 GitHub metadata 尚未收口。
+- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000、GitHub metadata 与 branch protection 尚未收口。
 - M1 Audio Skeleton & Parameter Contract：**进行中早期**。有 AudioEngine、静态参数和 state 骨架，缺 Snapshot/Mapper、真实 gain、自动化验收与离线渲染。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
@@ -105,4 +125,4 @@ PluginProcessor
 
 ## 7. 下一步唯一推荐入口
 
-按 `docs/CODING_PLAN.md` 收口 M0：确认 Hosted CI 与 GitHub metadata，再进入 M1 参数合同和 Application/DSP 接口。不要先写 Water/Ice 生产算法。
+按 `docs/CODING_PLAN.md` 收口 M0：完成 HOST-000、GitHub metadata 和 branch protection 的实际决策/验证，再进入 M1 参数合同和 Application/DSP 接口。不要先写 Water/Ice 生产算法。
