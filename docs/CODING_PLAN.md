@@ -416,6 +416,8 @@ Release gate：`CI PASS && validators PASS && DAW matrix acceptable && state com
 
 ## 12. 两人并行执行建议
 
+详细的角色职责、决策权、Issue 交接字段和 milestone 协作方式见 [COLLABORATION_ROLES.md](COLLABORATION_ROLES.md)。本节只保留稳定的阶段级分工；具体成员和实时任务状态由 GitHub Issues/Project 管理。
+
 只在接口冻结后并行，团队 WIP <= 2：
 
 | 波次 | Developer A（声音/DSP primary） | Developer B（plugin/architecture/tooling primary） | 合流点 |

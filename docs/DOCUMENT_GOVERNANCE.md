@@ -31,6 +31,7 @@
 | `PARAMETERS.md` | Level 1/2/3 | registry/语义按 freeze 保护；解释性文字可维护；ID/schema 变化必须迁移与测试 |
 | `TESTING.md` | Level 2/4 | 测试合同和 gate 受控；实际结果进入 status/evidence |
 | `GITHUB_WORKFLOW.md` | Level 2 | 只维护稳定流程；不写当前远端 metadata 或 Actions 状态 |
+| `COLLABORATION_ROLES.md` | Level 3 | 维护角色分工、交接和协作解释；live assignee/status 留在 GitHub；decision rights/workflow 变化触发 Level 2 同步 |
 | `PROJECT_STATUS.md` | Level 4 | 只写已核验的当前事实、证据和明确的未验证项 |
 | `docs/adr/*` | Level 1/2 | Accepted Decision 不原地改写；新决策通过 supersedes 链接演进 |
 | `CODE_STANDARDS.md` / 本文件 | Level 2 | 质量、治理和修改流程变更需同步 Agent/计划/模块文档 |
