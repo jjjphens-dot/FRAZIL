@@ -11,6 +11,12 @@
 
 一个工作项只有在代码/文档、自动测试、必要听测/DAW 证据和 review 全部满足后才是 Done。`[x]` 只表示本地审计确认，不表示已在 GitHub 关闭。
 
+### 文档职责边界
+
+`CODING_PLAN.md` 是稳定的工程计划合同，只定义 milestone、工作项、依赖、优先级、交付物、验收标准、exit gate 以及架构/流程约束。它不维护某个 issue 的实时状态，也不替代 GitHub Issues 或 Project。
+
+`docs/PROJECT_STATUS.md` 记录当前 milestone、已验证能力、blocker、验证结果和下一步建议；GitHub Issues/Project 是单个工作项实时状态的唯一来源。计划中的工作项即使已经在本地或远端完成，也保留在这里作为稳定定义，不在本文件维护动态 todo 清单。
+
 优先级：
 
 - P0：当前 milestone exit gate 的必要条件；
@@ -19,32 +25,64 @@
 
 不采用日历式虚假精度。团队用 issue 大小和依赖图排期；单个 issue 若无法由一人用一个短生命周期 PR 完成，必须继续拆分。
 
-## 2. 当前基线与关键路径
-
-### 已确认完成/部分完成
-
-- [x] JUCE 9.0.1 在本机 `external/JUCE` 可用；
-- [x] VST3 + Standalone targets、Debug/Release/ASAN presets 已存在；
-- [x] PluginProcessor、APVTS state、pass-through AudioEngine 和占位 editor 已存在；
-- [x] 9 个核心参数已占位注册，但 enabled ID 与目标合同不一致；
-- [x] Debug 与 portable CI preset 已 configure/build；`frazil_smoke` 与 `frazil_tests` CTest 通过；
-- [x] 本地 Git `main` 工作树和目标 `origin` 已初始化，首个 commit 已推送到远端 `main`；
-- [ ] Hosted CI 和 GitHub metadata 尚未完成；
-- [ ] Snapshot/Mapper、真实 DSP 和产品 UI 尚未完成。
+## 2. 计划关键路径与依赖
 
 ### Critical path
 
 ```text
-M0 可复现仓库/CI
-  -> M1 参数+状态+AudioEngine 合同
-  -> M2 Water 与 M3 Ice vertical slices（可并行）
-  -> M4 Routing/完整 gain staging
-  -> M5 UI/Edit History
-  -> M6 Beta hardening
-  -> M7 v1.0
+M0
+Repository / CI / Governance
+  |
+  +-> HOST-000
+  +-> CI-001 / Hosted CI validated
+  |
+  v
+
+M1
+Parameter / State / Engine Contract
+  |
+  +-> TESTDATA-001
+  +-> PERF-BASE-001
+  +-> automation granularity contract
+  |
+  v
+
+M2 Water --------+
+                 |
+M3 Ice ----------+
+                 |
+                 v
+
+PARAM-FREEZE-001
+v1 Host Parameter Contract Freeze
+                 |
+                 v
+
+ADR-R-001
+Routing Transition / DSP State Strategy
+                 |
+                 v
+
+M4
+Routing / Latency / Gain Integration
+                 |
+                 v
+
+M5
+UI / Edit History
+                 |
+                 v
+
+M6
+Beta Hardening
+                 |
+                 v
+
+M7
+v1.0 Release
 ```
 
-任何 Water/Ice 生产实现都依赖 M1 的 ProcessSpec、EngineParameters、Snapshot 和测试 harness。Routing 集成依赖 M2/M3 至少各有一个稳定 vertical slice。
+M2 Water 与 M3 Ice 仍可并行开发。`PARAM-FREEZE-001` 必须在 M2/M3 完成后、M4 开始前完成；`ADR-R-001` 必须在任何 `ROUTE-006` 实现前 Accepted。任何 Water/Ice 生产实现都依赖 M1 的 ProcessSpec、EngineParameters、Snapshot、统一测试素材和性能 baseline。
 
 ## 3. 跨模块完成合同
 
@@ -81,6 +119,7 @@ M0 可复现仓库/CI
 | TEST-001 | P0 | 接入可扩展单元测试框架 | `frazil_tests` target | CTest 能发现多个 case；失败返回非零；不依赖 plugin GUI | BUILD-001 |
 | CI-001 | P0 | Windows PR workflow | `.github/workflows/ci.yml` | clean checkout Debug configure/build/test PASS；最小权限；缓存失效规则正确 | BUILD-001/2, TEST-001 |
 | CI-002 | P1 | Release/ASAN/pluginval scheduled jobs | workflow jobs | 可手动触发；artifact/log 可追踪 commit；失败可诊断 | CI-001 |
+| HOST-000 | P0 | Freeze initial platform and DAW compatibility matrix | 支持矩阵 ADR/文档 | 记录 v1 正式支持、开发验证、best-effort 的 OS/架构/格式/DAW/Standalone 角色；目标 DAW 可用于后续 M1 smoke | REPO-001 |
 | GH-001 | P0 | 创建 labels、M0-M7 milestones、Project board | GitHub metadata | issue 可按 type/area/priority/milestone 查询 | REPO-001 |
 | GH-002 | P0 | 配置 main protection | ruleset | PR、1 approval、CI、resolved conversations、no force push | CI-001 稳定 |
 | TOOL-001 | P1 | 增加 formatting check | clang-format target/job | 与 `.clang-format` 一致；不自动改 vendor/generated | CI-001 |
@@ -90,9 +129,10 @@ M0 可复现仓库/CI
 1. DOC-001、LEGAL-001 与首次提交审计；
 2. REPO-001；
 3. DEP-001 -> BUILD-001/002；
-4. TEST-001 -> CI-001；
-5. GH-001/002；
-6. CI-002/TOOL-001。
+4. HOST-000；
+5. TEST-001 -> CI-001；
+6. GH-001/002；
+7. CI-002/TOOL-001。
 
 ### Exit gate
 
@@ -103,6 +143,7 @@ fresh clone
 -> build FRAZIL_All + tests
 -> CTest PASS
 -> CI required check PASS
+-> HOST-000 matrix recorded
 -> Standalone launches
 -> VST3 can be inspected by pluginval smoke
 ```
@@ -126,6 +167,7 @@ Proof artifacts：CI run URL、依赖 revision/checksum、首次提交 tree、lo
 | PARAM-002 | P0 | `ParameterSnapshot` | 缓存 raw parameter atomic pointers；每 block 一次 load；不查字符串、不分配 | snapshot consistency test |
 | PARAM-003 | P0 | `ParameterMapper` | routing enum、clamp、dB/normalized、inactive 值保留 | table-driven boundary tests |
 | PARAM-004 | P0 | automation gesture smoke | Host/UI 写值能进入下一 block Snapshot；参数枚举稳定 | integration + pluginval |
+| AUTO-001 | P0 | Define v1 automation granularity contract | Host 参数每 block 建立 coherent snapshot；连续参数由 DSP sample-aware smoother 处理；离散参数显式 transition；不承诺 sample-accurate Host automation | block-size/automation/no-click contract tests |
 
 PARAM-001 合并前必须确认是否存在任何外部构建/session 依赖旧 ID；若有，先更新 ADR-0002 的迁移方案。
 
@@ -138,7 +180,7 @@ PARAM-001 合并前必须确认是否存在任何外部构建/session 依赖旧 
 | DSP-002 | P0 | Global DryWetMixer | `mix=0` 精确 dry，`1` wet；中间 law 先显式记录 | endpoint/monotonicity tests |
 | DSP-003 | P0 | Output Gain | mix 后执行；不反馈进 Water/Ice | reference level tests |
 | DSP-004 | P0 | smoothing primitive/policy | sample-rate aware；不分配；reset/retarget 可预测 | step response + no-click proxy |
-| DSP-005 | P0 | deterministic RandomSource | 可设 seed；每实例独立；无全局可变状态 | exact sequence/reseed tests |
+| DSP-005 | P0 | RandomSource contract | 测试支持 deterministic fixed seed；生产实例必须 decorrelated；无全局可变状态；未来 ADR 决定 save/reopen、offline render、实时播放和 transition 时的 random state 语义 | exact sequence/reseed/instance-isolation tests |
 
 M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/global mix。此时 `global.mix` 不应改变声音，因为 dry/wet 相同；测试需解释这一点，不能误判为参数未接入。
 
@@ -149,9 +191,12 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 | STATE-001 | P0 | versioned StateModel/adapter | `schemaVersion`、全部参数、invalid input fallback；非音频线程迁移 | fixtures + round-trip |
 | STATE-002 | P0 | mode value retention | 切换三种 mode、保存、恢复，不重置 inactive values | integration scenario |
 | HIST-001 | P0 | EditHistoryManager skeleton | bounded transaction store/API；message thread only；暂不要求完整 UI | unit tests for capacity/clear |
-| RENDER-001 | P0 | offline WAV harness | 固定 input/config/seed -> WAV + manifest；不依赖实时设备 | deterministic smoke render |
+| TESTDATA-001 | P0 | Establish licensed reference audio corpus | impulse、noise、drums、vocal、piano、guitar、pad、bass；每项记录 source/license/hash/sample rate/channels/storage/repository-artifact-LFS 策略；Water/Ice 共用 corpus | manifest review + hash/licence audit |
+| PERF-BASE-001 | P0 | Establish realtime performance baseline | Reference Machine、OS、compiler、build type、48 kHz/128、测量方法；记录 mean/P95/P99/worst callback、deadline、memory、allocation observation | reproducible baseline report；不预设百分比阈值 |
+| ARCH-LAT-001 | P0 | Define v1 latency model and dry/wet alignment | v1 Material DSP 采用 zero-latency-only；lookahead/FFT/convolution/其他引入额外 latency 的算法推迟到 post-v1；定义 `global.mix` 的 sample alignment、内部 dry reference 和 0-sample plugin reporting | ADR + impulse/alignment acceptance |
+| RENDER-001 | P0 | offline WAV harness | 固定 `TESTDATA-001` input/config/seed -> WAV + manifest；不依赖实时设备；candidate A/B 可复现 | deterministic smoke render |
 | TEST-002 | P0 | processor property harness | finite/random/extreme/prepare-reset；矩阵参数化 | 44.1/48/96 + block subset |
-| HOST-001 | P0 | pluginval + Host smoke protocol | 枚举/state/editor/bus/automation；结果可追踪 SHA | strictness 5 PASS |
+| HOST-001 | P0 | pluginval + Host smoke protocol | 枚举/state/editor/bus/automation；结果可追踪 SHA；DAW 目标来自 HOST-000 | strictness 5 PASS |
 
 ### M1 Exit gate
 
@@ -160,9 +205,13 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 - gain/global mix 位置与数学由 tests 证明；
 - state version、round-trip、inactive retention 和 invalid state 通过；
 - process path 审查无 I/O/lock/allocation/history/UI；
+- `AUTO-001` 的 block snapshot、sample-aware smoothing 和离散 transition 语义有测试证据；
+- `TESTDATA-001` manifest/hash/license 可追溯，`RENDER-001` 使用统一 corpus；
+- `PERF-BASE-001` 已记录 baseline，不以未测量的 CPU 百分比作为门槛；
+- `ARCH-LAT-001` 已接受，dry/wet 在内部 sample-aligned，v1 plugin latency reporting 明确；
 - offline render 可复现，property tests 无 NaN/Inf；
 - Debug/Release/ASAN + pluginval PASS；
-- 至少一个目标 DAW 完成参数枚举与 project save/reopen smoke。
+- `HOST-000` 中定义的 primary target DAW 完成参数枚举与 project save/reopen smoke。
 
 ## 6. M2 — Water Vertical Slice
 
@@ -175,8 +224,8 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 | ID | P | 工作 | 交付/验收 |
 |---|---:|---|---|
 | EXP-W-001 | P0 | Water perceptual brief | 3-5 个可听属性（流动、液体扰动/水滴、共振、平滑度等）、反例、参考素材与评价表 |
-| EXP-W-002 | P0 | 候选机制实验 | 至少两种低耦合候选；固定输入/seed；baseline/A/B；参数空间与 CPU 初测 |
-| EXP-W-003 | P0 | 选择 vertical slice | 双人 loudness-matched review；选择理由、放弃理由、风险；确定最多 2 个首批 macro |
+| EXP-W-002 | P0 | 候选机制实验 | 使用 `TESTDATA-001`；至少两种低耦合候选；固定测试 seed；baseline/A/B；参数空间与 CPU 初测 |
+| EXP-W-003 | P0 | 选择 vertical slice | 使用统一 listening rubric 做双人 loudness-matched review；选择理由、放弃理由、风险；确定最多 2 个首批 macro |
 | ADR-W-001 | P0 | Water 算法 ADR | 信号结构、latency/tail、随机性、参数 mapping、性能与失败模式 |
 
 候选可探索 FlowModulator、DropletExciter、LiquidResonator、SpectralShaper 或 MicroDelayNetwork，但名称不是实现要求；以听感、稳定性和预算决定。
@@ -189,13 +238,13 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 | WATER-002 | P0 | Water core | 实现已选最小算法；固定 seed 可复现；处理参数极值 | render + finite tests |
 | WATER-003 | P0 | product macros | 名称体现用户听感；mapping 集中；自动化平滑；文档/parameter registry | mapping/automation tests |
 | WATER-004 | P0 | click-free enable | disabled=pass-through；重新开启保留 macro；过渡无异常峰值 | transient automation render |
-| WATER-005 | P0 | performance/tail | 48k/128 baseline；报告 avg/peak；正确声明 tail/latency | benchmark + plugin metadata |
-| WATER-006 | P0 | listening pack | 多类素材 dry/baseline/candidate + manifest | 两人 review accepted |
+| WATER-005 | P0 | performance/tail | 引用 `PERF-BASE-001` 的 48k/128 baseline；报告 mean/P95/P99/worst；遵守 `ARCH-LAT-001` 的 zero-latency-only | benchmark + plugin metadata |
+| WATER-006 | P0 | listening pack | 使用 `TESTDATA-001` 的多类素材 dry/baseline/candidate + manifest；按 Water rubric 记录 | rubric accepted；未触发 Reject Criteria |
 | WATER-007 | P0 | integration | AudioEngine 的 Water-only 临时路径，不引入 routing 语义 | pluginval + DAW automation |
 
 ### M2 Exit gate
 
-Water-only 在固定素材上具有一致可辨识的材质变化，输入仍可辨识；所有宏可 automation 且无明显 zipper；bypass/state/seed/render/property/performance/pluginval 通过；WaterProcessor 未依赖 Host、UI 或 RoutingMode。
+Water-only 在 `TESTDATA-001` 固定素材上具有一致可辨识的材质变化，输入仍可辨识；所有宏符合 `AUTO-001` 且无明显 zipper；通过 Water listening rubric 和 Reject Criteria；bypass/state/seed/render/property/performance/pluginval 通过；WaterProcessor 未依赖 Host、UI 或 RoutingMode。
 
 ## 7. M3 — Ice Vertical Slice
 
@@ -208,41 +257,53 @@ Water-only 在固定素材上具有一致可辨识的材质变化，输入仍可
 | ID | P | 工作 | 具体要求/验收 |
 |---|---:|---|---|
 | EXP-I-001 | P0 | Ice perceptual brief | 冰晶/摩擦/脆裂/硬度等属性、反例、参考与评价表 |
-| EXP-I-002 | P0 | 候选机制实验 | 至少两候选；固定输入/seed；A/B；CPU 和极端参数 |
-| EXP-I-003 | P0 | vertical slice selection | 双人听测；最多 2 个首批 macro；风险和弃选记录 |
+| EXP-I-002 | P0 | 候选机制实验 | 使用 `TESTDATA-001`；至少两候选；固定测试 seed；A/B；CPU 和极端参数 |
+| EXP-I-003 | P0 | vertical slice selection | 按 Ice listening rubric 双人听测；最多 2 个首批 macro；风险和弃选记录 |
 | ADR-I-001 | P0 | Ice 算法 ADR | 结构、transient/random、latency/tail、mapping、预算 |
 | ICE-001 | P0 | `IceProcessor` lifecycle | 与 Water 接口习惯一致但不强求内部对称；无 routing/APVTS |
 | ICE-002 | P0 | Ice core | 选定的摩擦/晶体/裂纹机制最小组合；finite/repeatable |
 | ICE-003 | P0 | product macros | 用户语义、mapping、smoothing、automation/state |
 | ICE-004 | P0 | enable transition | pass-through、value retention、click-free |
-| ICE-005 | P0 | performance/tail | Reference baseline，peak callback、tail/latency 正确 |
-| ICE-006 | P0 | listening pack | 跨素材且与 Water 可区分；双人 accepted |
+| ICE-005 | P0 | performance/tail | 引用 `PERF-BASE-001` 的 Reference baseline；报告 mean/P95/P99/worst；遵守 `ARCH-LAT-001` |
+| ICE-006 | P0 | listening pack | 使用 `TESTDATA-001`，跨素材且与 Water 可区分；按 Ice rubric 记录 |
 | ICE-007 | P0 | integration | Ice-only AudioEngine 路径 + pluginval/DAW smoke |
 
 候选可探索 FrictionTexture、CrackTransientGenerator、ModalResonator、CrystalExciter 或 SpectralShaper。随机裂纹事件必须有可控密度/幅度上界，不得造成不可预测爆峰。
 
 ### M3 Exit gate
 
-与 M2 同级质量门槛；额外要求 Water/Ice 对照盲听能稳定区分，两个模块不因“复用”而被迫共享不合适的算法抽象。
+与 M2 同级质量门槛并通过 Ice listening rubric 和 Reject Criteria；额外要求 Water/Ice 对照盲听能稳定区分，两个模块不因“复用”而被迫共享不合适的算法抽象。
+
+### M2/M3 后的 v1 Host contract gate
+
+| ID | P | 工作 | 具体要求 | 验收 |
+|---|---:|---|---|---|
+| PARAM-FREEZE-001 | P0 | Freeze v1 host parameter contract | Water/Ice product macros、所有 Parameter ID、order、choice index、range、default、unit、smoothing、inactive-mode behavior 全部定稿；automation tests 与 state compatibility fixtures 齐备 | M2/M3 exit gate 已通过；contract review/ADR accepted |
+
+M1 只负责 `core contract stabilization`：建立静态参数、Snapshot、mapping、state 和 automation 的基础合同。`PARAM-FREEZE-001` 才是 `v1 host API freeze`。完成后 M4/M5 不得随意修改 Host Parameter ID；确需修改时必须通过 ADR 与 migration/compatibility review。
 
 ## 8. M4 — Routing & Material Engine Integration
 
 ### 目标
 
-实现 ADR-0001 的完整信号合同，建立 click-free routing 与全模式 render/automation/state 证据。
+在 `PARAM-FREEZE-001` 和 `ADR-R-001` Accepted 后，实现 ADR-0001 的完整信号合同，建立 click-free routing 与全模式 render/automation/state 证据。
 
 | ID | P | 模块/工作 | 具体要求 | 验收 |
 |---|---:|---|---|---|
+| ADR-R-001 | P0 | Define routing transition and DSP state ownership | 决定 old/new topology 是否同时运行、两套 DSP state 如何管理、是否复制 Processor state、是否双 graph、random state 推进、delay/resonator tail、最大 transition CPU 成本及两阶段 transition 是否可用 | ADR Accepted 后才可开始 ROUTE-006 |
 | ROUTE-001 | P0 | scratch buffer plan | prepare 期为 Parallel 双支路和 transition 预分配；支持 max block/channels | allocation/size tests |
 | ROUTE-002 | P0 | StageMixer | stage dry/processed endpoints；amount 平滑；可选 equal-power 仅经 ADR | unit + energy tests |
 | ROUTE-003 | P0 | Parallel | 输入复制到 Water/Ice；balance；enable 四组合；两关为 pass-through | complete matrix renders |
 | ROUTE-004 | P0 | Water -> Ice | Water stage mix 后喂 Ice；amount 语义独立 | 0/0..100/100 matrix |
 | ROUTE-005 | P0 | Ice -> Water | 顺序反转但 ID/amount 语义不变 | 同上 |
-| ROUTE-006 | P0 | mode transition | 路由切换短 crossfade；不 reset 参数/算法状态；CPU 峰值有界 | automation stress/render |
+| ROUTE-006 | P0 | mode transition | `ADR-R-001` Accepted 后实现；路由切换 click-free；不 reset 参数/算法状态；CPU 峰值有界；不得默认在一个 block 内复用同一有状态 Processor 推进 old/new 两次 | automation stress/render |
 | ROUTE-007 | P0 | enable transition | 单模块 bypass 不硬切；inactive 值保留 | transient cases |
 | ROUTE-008 | P0 | Global integration | Input Gain -> Routing -> Global Mix -> Output Gain 顺序固定 | impulse/reference test |
 | ROUTE-009 | P0 | Host/state matrix | mode 切换、inactive automation、save/reopen、多实例 | integration + DAW |
 | ROUTE-010 | P0 | loudness review | Parallel law、Serial stage law、routing 切换的响度与偏好 | A/B notes + ADR update |
+| ROUTE-011 | P0 | latency alignment and reporting | 按 `ARCH-LAT-001` 验证 dry reference 与 wet path sample-aligned；所有 Global Mix endpoint、impulse/transient 对齐；v1 report 0 samples；routing 改变不制造未声明 latency | alignment render + plugin metadata/Host check |
+
+`ADR-R-001` 不预设最终实现。允许比较完整 old/new topology 双运行、复制/双 graph、以及 `old routing -> neutral/dry -> switch topology -> new routing` 的两阶段 transition；必须用测量和确定性测试说明 state、random、tail 和 CPU 后再选择。
 
 ### 关键不变量
 
@@ -250,12 +311,13 @@ Water-only 在固定素材上具有一致可辨识的材质变化，输入仍可
 - `parallel.balance` 永不充当 serial amount；
 - amount 属于 StageMixer，不进入 Water/Ice 内部算法；
 - Input Gain 同时改变 dry reference 和 wet input；Output Gain 只在末端；
+- `ARCH-LAT-001` 的 v1 zero-latency-only 与 `ROUTE-011` 的内部 dry/wet alignment 必须成立；
 - routing/enable 改变不重新注册 Host 参数、不清除 inactive values；
 - v1 不增加内部 Water->Ice 时间线。
 
 ### M4 Exit gate
 
-`docs/TESTING.md` 的完整 routing render matrix、automation stress、mode retention、state reopen、mono/stereo、sample-rate/block-size 子矩阵和 pluginval 全通过；切换无明显 click；性能峰值在测量预算内；听测确认 crossfade/stage law。
+`docs/TESTING.md` 的完整 routing render matrix、automation stress、mode retention、state reopen、mono/stereo、sample-rate/block-size 子矩阵和 pluginval 全通过；`ADR-R-001` 与 `ROUTE-011` 证据齐备；切换无明显 click；性能峰值在 `PERF-BASE-001` 预算内；听测确认 crossfade/stage law。
 
 ## 9. M5 — Product UI & Edit History
 
@@ -299,8 +361,8 @@ UI 只根据 Host-visible state 决定 visible/enabled，不保存一套平行�
 | QA-004 | P0 | automation stress | 所有连续/离散参数；高速、并发、mode inactive 写入 |
 | QA-005 | P0 | long-run/multi-instance | 长时间播放、editor 开关、多实例、sample-rate/device restart |
 | QA-006 | P0 | validator | pluginval 高严格度；Steinberg validator 若已接入 |
-| QA-007 | P0 | DAW matrix | 至少两个 Host；scan/load/save/reopen/automation/render |
-| PERF-001 | P0 | performance budget | Reference Machine 各 routing avg/peak/CPU/memory；阈值锁定 |
+| QA-007 | P0 | DAW matrix | 按 `HOST-000` 的正式支持/验证/best-effort 分类执行 scan/load/save/reopen/automation/render |
+| PERF-001 | P0 | performance budget | 继承 `PERF-BASE-001` Reference Machine，比较各 routing mean/P95/P99/worst/CPU/memory；基于测量锁定阈值 |
 | AUDIO-001 | P0 | listening regression | fixed pack 对比最后 accepted baseline；两人签核 |
 | DOC-002 | P0 | user/dev docs freeze | install、controls、automation、known limitations、license |
 | BUG-TRIAGE | P0 | blocker burn-down | P0=0；P1 有 owner/decision；P2 明确 deferred |
@@ -364,21 +426,27 @@ P2 只有在用户研究/真实声音问题证明价值、且通过新的 ADR �
 | UI history 污染 Host automation | parameterChanged 全部 push | 只从 UI gesture/command 创建 transaction |
 | 性能预算过晚 | vertical slice 已复杂且无法降级 | M2/M3 每 slice 报 avg/peak，再集成 |
 | reference 音频版权/仓库膨胀 | 来源不明、大 WAV 入 Git | manifest/许可审计，artifact/LFS 决策 |
+| routing state ownership 不明确 | transition 同 block 推进同一 Processor 两次、random/tail 不一致 | `ROUTE-006` 阻断至 `ADR-R-001` Accepted；比较双 graph 与两阶段 transition |
+| dry/wet latency 未对齐 | impulse comb filtering、transient smear、未声明 plugin latency | `ARCH-LAT-001` 采用 zero-latency-only；`ROUTE-011` 单独验收 alignment |
+| production random 同步 | 多实例输出完全相同或 save/reopen 语义不明 | 区分测试 fixed seed 与 production instance seed；由 Water/Ice ADR 定义 persistent/offline 语义 |
 
-## 15. 下一批立即可创建的 Issues
+## 15. Bootstrap Issue Map
 
-按顺序：
+本节是稳定 ID 到 GitHub Issue 的映射规则，不是实时 todo list。Issue 的实际状态、assignee、board column 和是否已创建只在 GitHub 维护；如果某个 ID 已有 issue，不得重复创建。
 
-1. `[M0][REPO-001] Initialize repository and audit first tracked tree`
-2. `[M0][LEGAL-001] Choose the repository license and third-party notice policy`
-3. `[M0][DEP-001] Accept a reproducible JUCE 9.0.1 dependency strategy`
-4. `[M0][BUILD-001] Add portable Windows CI presets without F-drive paths`
-5. `[M0][TEST-001] Add the production unit-test target`
-6. `[M0][CI-001] Build VST3, Standalone and tests on pull requests`
-7. `[M1][PARAM-001] Extract ParameterLayout and lock core parameter IDs`
-8. `[M1][ARCH-001] Define ProcessSpec and EngineParameters contracts`
-9. `[M1][PARAM-002] Build one coherent parameter snapshot per audio block`
-10. `[M1][PARAM-003] Add ParameterMapper with boundary tests`
-11. `[M1][APP-001] Route EngineParameters through AudioEngine`
+标题格式统一为：`[<milestone>][<stable-id>] <short action>`。初次初始化时至少应按依赖创建以下入口；它们的完成状态不在本文件重复维护：
+
+| Milestone | Stable ID | Issue title 示例 | 依赖 |
+|---|---|---|---|
+| M0 | REPO-001 / LEGAL-001 / DEP-001 | `[M0][REPO-001] Initialize repository and audit first tracked tree` | owner authorization |
+| M0 | BUILD-001 / BUILD-002 / TEST-001 | `[M0][BUILD-001] Add portable Windows CI presets without F-drive paths` | DEP-001 |
+| M0 | HOST-000 / CI-001 | `[M0][HOST-000] Freeze initial platform and DAW compatibility matrix` | REPO-001 |
+| M0 | GH-001 / GH-002 | `[M0][GH-001] Create repository labels, milestones and project board` | REPO-001 / CI-001 |
+| M1 | ARCH-001 / PARAM-001 / PARAM-002 / PARAM-003 | `[M1][PARAM-001] Extract ParameterLayout and lock core parameter IDs` | HOST-000 |
+| M1 | AUTO-001 / TESTDATA-001 / PERF-BASE-001 / ARCH-LAT-001 | `[M1][PERF-BASE-001] Establish realtime performance baseline` | M1 contract types |
+| M1 | APP-001 / RENDER-001 / HOST-001 | `[M1][APP-001] Route EngineParameters through AudioEngine` | PARAM-002/003 |
+| M2/M3 | EXP-W-* / EXP-I-* / WATER-* / ICE-* | `[M2][EXP-W-001] Define Water perceptual brief` | TESTDATA-001 |
+| M4 | PARAM-FREEZE-001 / ADR-R-001 | `[M4][PARAM-FREEZE-001] Freeze v1 host parameter contract` | M2 + M3 exit gates |
+| M4 | ROUTE-001..011 | `[M4][ROUTE-006] Implement routing transition policy` | ADR-R-001 |
 
 M0 项未达到 exit gate 前，Water/Ice 只允许在 `experiments/` 探索，不进入 production target。
