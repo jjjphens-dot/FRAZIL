@@ -1,6 +1,7 @@
 # FRAZIL 分阶段 Coding Plan
 
-> 版本：1.0-draft  
+> 版本：1.0<br>
+> 状态：Approved Development Baseline<br>
 > 日期：2026-09-06  
 > 输入：`FRAZIL_PROJECT_ARCHITECTURE_v0.3.md` + 当前源码/构建/远端审计  
 > 目标：把产品语义转化为可排序、可分工、可验收、可在 GitHub 追踪的工程工作。
@@ -8,6 +9,8 @@
 ## Modification Policy
 
 本计划是 CONTROLLED 工程合同。工作项、依赖、验收标准和 exit gate 的修改必须通过 issue/review，并同步受影响的架构、测试、参数或治理文档；本文件不记录实时 issue 状态，也不以状态文字替代验证证据。
+
+`CODING_PLAN.md v1.0` 是 FRAZIL 从 M0 到 M7 的正式工程执行基线，不等于 FRAZIL plugin v1.0 release。插件当前仍处于 M0/M1 早期开发阶段。
 
 ## 1. 计划使用方式
 
@@ -202,7 +205,7 @@ PARAM-001 合并前必须确认是否存在任何外部构建/session 依赖旧 
 | DSP-002 | P0 | Global DryWetMixer | `mix=0` 精确 dry，`1` wet；中间 law 先显式记录 | endpoint/monotonicity tests |
 | DSP-003 | P0 | Output Gain | mix 后执行；不反馈进 Water/Ice | reference level tests |
 | DSP-004 | P0 | smoothing primitive/policy | sample-rate aware；不分配；reset/retarget 可预测 | step response + no-click proxy |
-| DSP-005 | P0 | RandomSource contract | 测试支持 deterministic fixed seed；生产实例必须 decorrelated；无全局可变状态；未来 ADR 决定 save/reopen、offline render、实时播放和 transition 时的 random state 语义 | exact sequence/reseed/instance-isolation tests |
+| DSP-005 | P0 | RandomSource contract | M1 建立最小 generic RandomSource primitive/contract：deterministic fixed seed、explicit seed injection、production instance decorrelation、无全局可变状态、instance isolation、reseed、realtime-safe API 和无 audio-thread allocation；M2/M3 只补 algorithm-specific random semantics | exact sequence/reseed/instance-isolation tests |
 
 M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/global mix。此时 `global.mix` 不应改变声音，因为 dry/wet 相同；测试需解释这一点，不能误判为参数未接入。
 

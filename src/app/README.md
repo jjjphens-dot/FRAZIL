@@ -17,8 +17,15 @@ AudioEngine/DSP orchestration 不得直接注册 Host 参数、访问 UI 或 Und
 ## Architecture / Data Flow
 
 ```text
-PluginProcessor -> src/plugin/ParameterLayout -> ParameterSnapshot -> ParameterMapper -> AudioEngine -> dsp
+Setup / Construction:
+PluginProcessor -> src/plugin/ParameterLayout -> APVTS / Host Parameter Registry
+
+Audio Runtime:
+Host Parameter Atomics -> ParameterSnapshot -> ParameterMapper -> EngineParameters -> AudioEngine -> dsp
+
+State:
 Plugin Host State Adapter -> StateModel
+
 UI -> narrow plugin parameter interface
 UI -> narrow app edit/history command interface -> EditHistoryManager (message thread only)
 ```

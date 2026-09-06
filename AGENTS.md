@@ -66,7 +66,7 @@ Agent 不得：
 - `src/app/`：`AudioEngine`、`ParameterMapper`、`ParameterSnapshot`、`StateModel`、`EditHistoryManager`。
 - `src/dsp/`：Water、Ice、Routing、StageMixer、DryWetMixer 与确有复用价值的 primitive。
 - `src/ui/`：编辑器和控件；只表达产品参数和发起 UI transaction，不执行 DSP。
-- `experiments/`：允许失败的声音实验；不能被生产 target 直接依赖。
+- `experiments/`：允许失败的声音实验；candidate、A/B、prototype 和 listening exploration 不自动要求 ADR，不能被生产 target 直接依赖；采纳为 production decision 或改变既有合同/边界时才按 ADR trigger 处理。
 - `tests/`：unit、DSP property、render、integration、host validation。
 - `testdata/input/` 与 `testdata/reference/`：小型、可授权、可复现的测试素材；`testdata/rendered/` 永不提交。
 - `external/`：固定版本的第三方依赖。除已记录的构建兼容补丁外，不修改 vendor 代码；升级或补丁必须有 ADR/说明。

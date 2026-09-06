@@ -17,14 +17,23 @@
 ## Architecture / Data Flow
 
 ```text
-Host/JUCE -> PluginProcessor -> app Snapshot/Mapper/AudioEngine -> dsp
+Setup / Construction:
+PluginProcessor -> src/plugin/ParameterLayout -> APVTS / Host Parameter Registry
+
+Audio Runtime:
+Host Parameter Atomics -> ParameterSnapshot -> ParameterMapper -> EngineParameters -> AudioEngine -> dsp
+
+State:
 Host state <-> Plugin Host State Adapter -> app StateModel
+
 PluginEditor -> plugin parameter interface
 ```
 
 ## Public Interfaces
 
 当前 `PluginProcessor` 暴露 JUCE lifecycle、`prepareToPlay`、`processBlock`、editor 和 state API；APVTS 目前为 public member，是 M1 需要收窄审查的技术债。当前参数 layout 仍 inline 于 `PluginProcessor.cpp`，目标由 `PARAM-001` 迁移到 `src/plugin/ParameterLayout.*`。
+
+`ParameterLayout` 只参与 Plugin construction/setup 的稳定 Host 参数注册，不参与 per-block audio runtime chain；runtime 从 Host Parameter Atomics 建立 `ParameterSnapshot` 开始。
 
 ## Parameter / State Contract
 

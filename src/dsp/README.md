@@ -36,7 +36,7 @@ DSP 状态由 AudioEngine/对应 DSP 实例拥有；delay、FFT、scratch buffer
 
 ## Implementation Overview
 
-Water M2、Ice M3、Routing/Gain M4 和 primitives 按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 实现。实验算法只有完成 `AGENTS.md` 的 production gate 后才能移入此目录。
+generic `RandomSource` primitive/contract 由 M1 `DSP-005` 建立；M2 Water、M3 Ice 只使用并补 algorithm-specific random semantics；Routing/Gain M4 和其他 primitives 按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 实现。实验算法只有完成 `AGENTS.md` 的 production gate 后才能移入此目录。
 
 ## State / Tail / Latency
 

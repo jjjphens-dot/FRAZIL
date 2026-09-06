@@ -1,6 +1,6 @@
 # FRAZIL 项目开发与架构规范
 
-> 文档状态：Draft v0.3  
+> 文档状态：Draft v0.3；Development baseline accepted<br>
 > 适用阶段：项目初始化 → v1.0  
 > 团队规模：2 人  
 > 目标产品：以“水 / 冰材质化”为核心声音特征的实时音频效果器，首要目标为 VST3，同时保留 Standalone 作为开发与测试宿主。
@@ -26,7 +26,7 @@
 
 ## Modification Policy
 
-产品语义和已 Accepted 的架构决策属于 LOCKED 合同；候选方案、接口边界、实时规则和正式预算属于 CONTROLLED 内容；纯解释性文字可维护。任何合同或边界变化必须遵循 `docs/DOCUMENT_GOVERNANCE.md`，补充 issue、ADR、测试与迁移/兼容性证据，不得用文字改写绕过既有决策。
+产品语义和已 Accepted 的架构决策属于 LOCKED 合同；候选方案、接口边界、实时规则和正式预算属于 CONTROLLED 内容；纯解释性文字可维护。`experiments/` 中的 candidate、A/B、prototype 和 listening exploration 不自动要求 ADR；只有候选方案被采纳为 production architecture/core DSP decision，或改变既有合同/边界时，才按 `docs/DOCUMENT_GOVERNANCE.md` 的 ADR trigger 补充 issue、ADR、测试与迁移/兼容性证据。
 
 ---
 
@@ -710,8 +710,9 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer&)
 {
     ScopedNoDenormals noDenormals;
 
-    const auto params = parameterMapper.makeSnapshot();
-    audioEngine.process(buffer, params);
+    const auto snapshot = parameterSnapshot.capture();
+    const auto engineParameters = parameterMapper.map(snapshot);
+    audioEngine.process(buffer, engineParameters);
 }
 ```
 
@@ -1392,13 +1393,13 @@ ice.amount
 正确结构：
 
 ```text
-DAW Automation / UI
+Host Parameter Atomics
         ↓
-      APVTS
+ParameterSnapshot
         ↓
  ParameterMapper
         ↓
-ParameterSnapshot
+ EngineParameters
         ↓
    AudioEngine
         ↓
@@ -2948,17 +2949,17 @@ DAW / VST3 Host
       ↓
 PluginProcessor
       │
-      ├── ParameterLayout
-      ├── State Adapter
-      │
-      ↓
-ParameterMapper
-      │
-      ↓
-ParameterSnapshot
-      │
-      ↓
-AudioEngine
+      ├── setup: ParameterLayout -> APVTS / Host Parameter Registry
+      ├── state: Host State Adapter -> StateModel
+      └── audio runtime: Host Parameter Atomics
+                                  ↓
+                           ParameterSnapshot
+                                  ↓
+                           ParameterMapper
+                                  ↓
+                           EngineParameters
+                                  ↓
+                             AudioEngine
       │
       ├→ Input Gain
       │

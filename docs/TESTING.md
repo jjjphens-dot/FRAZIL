@@ -79,6 +79,10 @@ zero/short/maximum supported block 不越界
 
 若算法有合理 tail，测试 tail reporting 与衰减；无 tail 时验证清零/旁路行为。
 
+### RandomSource / DSP-005
+
+M1 建立 generic `RandomSource` 的 fixed-seed、explicit injection、reseed、instance isolation、deterministic sequence、realtime-safe 和无 audio-thread allocation 合同。M2/M3 只在各自算法 ADR/测试中定义 production seed source、save/reopen、offline render、实时播放和 routing transition 的 algorithm-specific random semantics。
+
 ### State / History
 
 - 默认 state、全参数极值、三种 routing 的 round-trip；

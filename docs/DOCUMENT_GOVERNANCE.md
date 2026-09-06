@@ -26,7 +26,7 @@
 
 | 文档 | 主要等级 | 修改边界 |
 |---|---|---|
-| `FRAZIL_PROJECT_ARCHITECTURE_v0.3.md` | Level 1/2/3 | 产品语义和 Accepted 决策受保护；候选方案需 ADR；解释性文字可维护 |
+| `FRAZIL_PROJECT_ARCHITECTURE_v0.3.md` | Level 1/2/3 | 产品语义和 Accepted 决策受保护；candidate/experiment 可先自由验证，采纳为 production decision 或改变合同时按 ADR trigger；解释性文字可维护 |
 | `CODING_PLAN.md` | Level 2 | 只维护工作项定义、依赖、交付物、验收和 exit gate；不写实时 issue 状态 |
 | `PARAMETERS.md` | Level 1/2/3 | registry/语义按 freeze 保护；解释性文字可维护；ID/schema 变化必须迁移与测试 |
 | `TESTING.md` | Level 2/4 | 测试合同和 gate 受控；实际结果进入 status/evidence |

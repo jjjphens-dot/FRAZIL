@@ -12,6 +12,8 @@
 
 项目已有可构建的 JUCE M0 骨架，但尚未进入产品 DSP 实现。首次仓库接入和 Hosted CI 已验证；当前 M0 剩余重点是冻结平台/DAW 矩阵并建立 GitHub metadata，随后进入 M1 参数/状态/Application-DSP 接口合同。
 
+`CODING_PLAN.md` v1.0 / Approved Development Baseline 已作为 M0→M7 的正式工程执行基线；这不代表 FRAZIL plugin v1.0 release，也不改变 M0/M1、Water/Ice/Routing 的实际完成状态。
+
 当前阻塞性差距：
 
 1. 本次状态快照对应的 `main` 基线 HEAD 为 `1f4bb67`，与远端 `origin/main` 对齐；工作分支可在此基线之上另有 review 提交；
@@ -59,13 +61,17 @@ PluginEditor
 
 ```text
 PluginProcessor
-  ├─ ParameterLayout
-  ├─ Host State Adapter
-  └─ ParameterSnapshot source
-          ↓
-    ParameterMapper
-          ↓
-      AudioEngine
+  ├─ setup: `src/plugin/ParameterLayout.*` -> APVTS / Host Parameter Registry
+  ├─ state: Host State Adapter -> StateModel
+  └─ audio runtime: Host Parameter Atomics
+                       ↓
+                 ParameterSnapshot
+                       ↓
+                 ParameterMapper
+                       ↓
+                 EngineParameters
+                       ↓
+                   AudioEngine
   ├─ Input Gain
   ├─ RoutingEngine -> Water / Ice / StageMixer
   ├─ Global Mix
