@@ -28,8 +28,8 @@
 - [x] PluginProcessor、APVTS state、pass-through AudioEngine 和占位 editor 已存在；
 - [x] 9 个核心参数已占位注册，但 enabled ID 与目标合同不一致；
 - [x] Debug 与 portable CI preset 已 configure/build；`frazil_smoke` 与 `frazil_tests` CTest 通过；
-- [x] 本地 Git `main` 工作树和目标 `origin` 已初始化；
-- [ ] 首次 commit/push、Hosted CI 和 GitHub metadata 尚未完成；
+- [x] 本地 Git `main` 工作树和目标 `origin` 已初始化，首个 commit 已推送到远端 `main`；
+- [ ] Hosted CI 和 GitHub metadata 尚未完成；
 - [ ] Snapshot/Mapper、真实 DSP 和产品 UI 尚未完成。
 
 ### Critical path

@@ -51,4 +51,4 @@ GitHub：<https://github.com/jjjphens-dot/FRAZIL>
 
 许可证：MIT，详见 [LICENSE](LICENSE)。
 
-在远端首次推送前，应先完成 `docs/CODING_PLAN.md` 的 M0 仓库接入清单，并确认提交内容不包含 `build/`、`.venv/`、`tools/bin/`、`tools/downloads/` 或生成音频。
+初版已按 `docs/CODING_PLAN.md` 的 M0 仓库接入清单推送到 `main`。后续提交仍需确认不包含 `build/`、`.venv/`、`tools/bin/`、`tools/downloads/` 或生成音频。

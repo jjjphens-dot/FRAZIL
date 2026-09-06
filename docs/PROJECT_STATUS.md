@@ -10,7 +10,7 @@
 
 当前阻塞性差距：
 
-1. 本地 Git 工作树和 `origin` 已初始化，但首次 commit/push 尚未完成，远端 GitHub 仓库仍为空；
+1. 本地 Git 工作树和 `origin` 已初始化，首个 commit `96b3659` 已推送到远端 `main`；Hosted CI 尚未在本次审计中确认；
 2. 本机 presets 固定 F: 盘编译器/SDK；portable `ci-windows-debug` preset 已添加并在本机 MSVC 环境验证，Hosted CI 尚待首推后验证；
 3. 参数 ID 存在 `water.enable`/`ice.enable` 与架构目标 `water.enabled`/`ice.enabled` 的冲突；
 4. APVTS 参数虽然已注册，但尚未通过 Snapshot/Mapper 进入 AudioEngine；
@@ -32,7 +32,7 @@
 | Tests | `frazil_smoke` + `frazil_tests` CTest | M0 wiring/lifecycle 覆盖；DSP/Host 测试未开始 |
 | Local validation | Debug 与 portable preset 已 configure/build；两个 CTest case 均 PASS | 已验证 |
 | pluginval | 本轮 Debug VST3 strictness 5 SUCCESS；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` 为 public empty repository；`origin` 已绑定 | 待首次推送 |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定，首个 `main` commit `96b3659` 已推送 | 已验证；Hosted CI 待确认 |
 
 ## 3. 当前源码映射
 
@@ -85,7 +85,7 @@ PluginProcessor
 
 ## 5. 现状对应 milestone
 
-- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target 和 MIT 许可证已补齐；首次 push、Hosted CI 和 GitHub metadata 尚未收口。
+- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证和首次 push 已完成；Hosted CI 与 GitHub metadata 尚未收口。
 - M1 Audio Skeleton & Parameter Contract：**进行中早期**。有 AudioEngine、静态参数和 state 骨架，缺 Snapshot/Mapper、真实 gain、自动化验收与离线渲染。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
@@ -105,4 +105,4 @@ PluginProcessor
 
 ## 7. 下一步唯一推荐入口
 
-按 `docs/CODING_PLAN.md` 执行 M0：先建立 Git 工作树与远端关系，审计首次提交，解决 CI 与 JUCE 获取策略，再进入 M1 参数合同和 Application/DSP 接口。不要先写 Water/Ice 生产算法。
+按 `docs/CODING_PLAN.md` 收口 M0：确认 Hosted CI 与 GitHub metadata，再进入 M1 参数合同和 Application/DSP 接口。不要先写 Water/Ice 生产算法。
