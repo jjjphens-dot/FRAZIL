@@ -32,7 +32,7 @@ M1 是 `core contract stabilization`：建立静态参数注册、Snapshot、map
 
 ## 2. 已知 pre-v1 差异
 
-M0 基线曾注册 `water.enable` 与 `ice.enable`；本分支的 M1 `ParameterLayout` 已完成一次性迁移，当前生产代码采用合同 ID `water.enabled` 与 `ice.enabled`。公开版本前仍需补齐 state compatibility/migration 证据。
+M0 基线曾注册 `water.enable` 与 `ice.enable`；已合入 `main` 的 M1 `ParameterLayout` 已完成一次性迁移，当前生产代码采用合同 ID `water.enabled` 与 `ice.enabled`。公开版本前仍需补齐 state compatibility/migration 证据。
 
 处理顺序：
 
