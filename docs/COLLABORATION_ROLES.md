@@ -68,11 +68,31 @@ Sound & Host Lead 不单独决定 production audio-thread 是否安全、跨模�
 | Beta performance | Engineering Lead 测量/优化 | Sound & Host Lead 检查声音无退化 | mean/P95/P99/worst + listening |
 | Release | Engineering Lead 技术签核 | Sound & Host Lead 产品签核 | validators、DAW、listening、hash |
 
-## 4. 当前 M0/M1 的立即分工
+## 4. 当前阶段职责重心
 
-当前分支已将参数 layout、Snapshot/Mapper 和基础 gain/mix skeleton 接入 AudioEngine，但 wet path 仍是 pass-through；StateModel、Water/Ice、Routing 与正式 UI 均未实现。因此先继续收口 Host/Engine/state 合同，再并行开发 Water 与 Ice。
+当前 M1 已建立 Parameter/Engine foundation：
 
-### Sound & Host Lead
+- `ParameterLayout`；
+- `ProcessSpec` / `EngineParameters`；
+- `ParameterSnapshot` / `ParameterMapper`；
+- 基础 Input/Output Gain；
+- Global Dry/Wet primitive；
+- continuous smoothing 与 `RandomSource`；
+- Host -> Snapshot -> Mapper -> AudioEngine 参数路径。
+
+当前 M1 后续重点：
+
+- versioned StateModel；
+- state migration / invalid-state fallback；
+- automation integration；
+- `TESTDATA-001`；
+- offline render / measurement tooling；
+- `PERF-BASE-001`；
+- `HOST-001` / DAW validation。
+
+Water、Ice、Routing 和正式 UI 尚未进入 production implementation；在 M1-C 的状态、automation、render、performance 与 Host 边界完成前，不提前推进 production DSP。
+
+### Sound & Host Lead 当前重点
 
 1. `HOST-000`：冻结平台和 DAW compatibility matrix；
 2. `TESTDATA-001`：建立 Water/Ice 共用且许可/hash 可追溯的 reference corpus；
@@ -81,16 +101,14 @@ Sound & Host Lead 不单独决定 production audio-thread 是否安全、跨模�
 5. 为 `PERF-BASE-001` 选择代表性音频、项目和实际 block size；
 6. 起草 `EXP-W-001` Water perceptual brief，不把候选算法写成结论。
 
-### Engineering Lead
+### Engineering Lead 当前重点
 
-1. 收口 `GH-001/GH-002`、Hosted CI、dependency bootstrap 和测试入口；
-2. `ARCH-001`：建立 ProcessSpec 与 EngineParameters；
-3. `PARAM-001`：提取 `src/plugin/ParameterLayout.*` 并处理 `.enable` -> `.enabled`；
-4. `PARAM-002`：建立每 block coherent ParameterSnapshot；
-5. `PARAM-003`：建立 ParameterMapper 和边界测试；
-6. `APP-001`：让 AudioEngine 消费 EngineParameters；
-7. `DSP-001..005`：gain、Global Mix、smoothing 和 RandomSource；
-8. `STATE-001/002`、`RENDER-001`、`TEST-002` 与 `PERF-BASE-001` 工具/证据。
+1. `STATE-001/002`：建立 versioned StateModel、migration、invalid-state fallback 和 inactive-value retention；
+2. automation integration：验证 Host -> APVTS -> Snapshot -> Mapper -> Engine 的完整链路；
+3. `RENDER-001`：建立 offline render / measurement tooling；
+4. `TEST-002`：补齐 M1-C 所需的 fixtures、boundary 和 integration evidence；
+5. `PERF-BASE-001`：建立基础 AudioEngine 的性能基线；
+6. 提供 `HOST-001` / DAW validation 的工程支持与复现入口。
 
 ### 当前合流点
 
