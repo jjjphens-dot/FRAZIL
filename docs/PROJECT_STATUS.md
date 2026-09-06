@@ -16,14 +16,15 @@
 
 当前阻塞性差距：
 
-1. 本次状态快照在 `feat/m1-parameter-engine-contract` 开发分支上；本轮修复提交为 `1adbde0`，对应 [PR #3](https://github.com/jjjphens-dot/FRAZIL/pull/3)；[Hosted CI run 34040797309](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34040797309) 已对该 SHA 完成 Windows Debug configure/build/test 并通过；
-2. GitHub Actions 页面显示 `FRAZIL CI` 的 run `34014018189`（`96b3659`）和 run `34014110580`（`1f4bb67`）均 completed successfully；workflow/API 的更细粒度权限与 branch protection 未验证；
+1. 本次状态快照区分以下 refs：GitHub `main` 基线为 `25724c29dcf9a1e24ea3295f36318d1165b7718a`；开发分支为 `feat/m1-parameter-engine-contract`；其 M1 实现/证据提交属于 [PR #3](https://github.com/jjjphens-dot/FRAZIL/pull/3)，当前 feature HEAD 以该 PR 的 head 为准，不把历史 CI SHA 混作 `main` 基线；
+2. 本轮已验证的 M1 修复提交为 `1adbde0`，对应 [Hosted CI run 34040797309](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34040797309) 的 Windows Debug configure/build/test 通过；GitHub Actions 另有历史 run `34014018189`（head SHA `96b3659`）和 `34014110580`（head SHA `1f4bb67`）成功，但它们不是当前 `main` 基线；workflow/API 的更细粒度权限与 branch protection 未验证；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在本分支的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；兼容迁移策略仍属于 STATE/公开版本前置工作；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
 5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length 和 runtime buffer invariant；本轮 Debug VST3 的 pluginval strictness 5 已通过，尚未覆盖版本化 state、render 和 DAW automation；
 6. Water、Ice、Routing、版本化 StateModel、EditHistoryManager、离线 render、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现。
-7. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-8. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证。
+7. PR #3 保留 `87fd69b docs: add two-person collaboration roles` 这一已有协作基线提交；该提交对应仍处于 open、未合入的 PR #2，因此本次不强制重写共享 feature 历史，PR 说明已明确其不是 M1 产品实现范围；
+8. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
+9. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证。
 
 ## 2. 已有资产
 
@@ -39,7 +40,7 @@
 | Tests | `frazil_smoke` + `frazil_tests` CTest | M1 contract/gain/smoothing/priming/invariant unit 覆盖；state/DSP property/Host 测试未完成 |
 | Local validation | 本分支 Debug、Release、ASAN 均 configure/build；三个 preset 的 CTest 均 2/2 PASS | 已验证 |
 | pluginval | 本轮修复后的 Debug VST3 strictness 5 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定，本次审计的 `main` 基线为 `1f4bb67` | GitHub Actions 两次 run success；Issues/Milestones/Projects metadata 未建立 |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定，本次审计的 `main` 基线为 `25724c29dcf9a1e24ea3295f36318d1165b7718a` | GitHub Actions 历史 run success；Issues/Milestones/Projects metadata 未建立 |
 
 ## 3. 当前源码映射
 
@@ -101,9 +102,9 @@ PluginProcessor
 | Parallel balance | `parallel.balance` | `parallel.balance` | 保留 |
 | Water stage amount | `water.amount` | `water.amount` | 保留 |
 | Ice stage amount | `ice.amount` | `ice.amount` | 保留 |
-| Input trim | `input.gain` | `input.gain` | 保留，补 DSP 与 smoothing |
-| Global dry/wet | `global.mix` | `global.mix` | 保留，补 DSP 与 smoothing |
-| Output trim | `output.gain` | `output.gain` | 保留，补 DSP 与 smoothing |
+| Input trim | `input.gain` | `input.gain` | 保留；基础 DSP/continuous smoothing 已接入；仍待 automation/state/Host validation |
+| Global dry/wet | `global.mix` | `global.mix` | 保留；基础 DSP/continuous smoothing 已接入；仍待 automation/state/Host validation |
+| Output trim | `output.gain` | `output.gain` | 保留；基础 DSP/continuous smoothing 已接入；仍待 automation/state/Host validation |
 
 在 M1 参数合同 PR 合并前，不得创建公开 preset/session 兼容性承诺。若已有外部用户使用过当前占位构建，应先确认是否需要兼容别名/迁移。
 
