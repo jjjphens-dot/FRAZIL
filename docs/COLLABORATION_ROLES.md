@@ -70,7 +70,7 @@ Sound & Host Lead 不单独决定 production audio-thread 是否安全、跨模�
 
 ## 4. 当前 M0/M1 的立即分工
 
-当前代码仍是 pass-through AudioEngine；参数 layout 位于 PluginProcessor，Snapshot/Mapper、真实 gain/mix、Water/Ice、Routing 与正式 UI 均未实现。因此先建立 Host/Engine 合同，不立即并行开发 Water 与 Ice。
+当前分支已将参数 layout、Snapshot/Mapper 和基础 gain/mix skeleton 接入 AudioEngine，但 wet path 仍是 pass-through；StateModel、Water/Ice、Routing 与正式 UI 均未实现。因此先继续收口 Host/Engine/state 合同，再并行开发 Water 与 Ice。
 
 ### Sound & Host Lead
 

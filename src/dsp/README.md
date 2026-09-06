@@ -2,7 +2,7 @@
 
 ## Purpose
 
-承载 Water、Ice、Routing、StageMixer、DryWetMixer 和可复用的实时 DSP primitives。当前目录只有 README；规划模块尚未进入生产 target。
+承载 Water、Ice、Routing、StageMixer、DryWetMixer 和可复用的实时 DSP primitives。M1 已加入 `DryWetMixer`、`LinearSmoother` 和 `RandomSource`；Water/Ice/Routing/StageMixer 尚未进入生产 target。
 
 ## Responsibilities
 
@@ -24,7 +24,7 @@ app EngineParameters -> RoutingEngine -> StageMixer -> Water/Ice processors
 
 ## Public Interfaces
 
-Water/Ice/Routing 等接口均为 Planned，不能在当前代码中视为已实现。正式接口必须使用小型值类型、明确的 prepare/reset/process 生命周期和可测试的 transition contract。
+`DryWetMixer`、`LinearSmoother` 和 `RandomSource` 已提供 M1 基础接口；Water/Ice/Routing 等材质和拓扑接口仍为 Planned。正式接口必须使用小型值类型、明确的 prepare/reset/process 生命周期和可测试的 transition contract。
 
 ## Ownership & Lifetime
 
@@ -36,7 +36,7 @@ DSP 状态由 AudioEngine/对应 DSP 实例拥有；delay、FFT、scratch buffer
 
 ## Implementation Overview
 
-generic `RandomSource` primitive/contract 由 M1 `DSP-005` 建立；M2 Water、M3 Ice 只使用并补 algorithm-specific random semantics；Routing/Gain M4 和其他 primitives 按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 实现。实验算法只有完成 `AGENTS.md` 的 production gate 后才能移入此目录。
+M1 `DSP-002`/`DSP-004`/`DSP-005` 已建立 `DryWetMixer`、sample-rate-aware `LinearSmoother` 和可注入 `RandomSource`；M2 Water、M3 Ice 只使用并补 algorithm-specific random semantics；Routing/Gain M4 和其他 primitives 按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 实现。实验算法只有完成 `AGENTS.md` 的 production gate 后才能移入此目录。
 
 ## State / Tail / Latency
 
@@ -44,7 +44,7 @@ DSP 可以拥有声音设计所需的 intentional effect delay/tail，但不得�
 
 ## Tests
 
-每个生产 DSP 模块需要 unit/property/render/listening/performance 中适用的证据；具体 gate 见 [TESTING.md](../../docs/TESTING.md)。当前没有 Water/Ice/Routing 生产实现或对应通过记录。
+每个生产 DSP 模块需要 unit/property/render/listening/performance 中适用的证据；具体 gate 见 [TESTING.md](../../docs/TESTING.md)。当前 primitives 只有 unit 证据；没有 Water/Ice/Routing 生产实现或对应通过记录。
 
 ## Related ADRs
 
@@ -52,7 +52,7 @@ DSP 可以拥有声音设计所需的 intentional effect delay/tail，但不得�
 
 ## Files
 
-规划路径包括 `src/dsp/water/`、`src/dsp/ice/`、`src/dsp/routing/` 和 `src/dsp/primitives/`；当前仅有本 README。
+当前文件包括 `src/dsp/DryWetMixer.*`、`src/dsp/primitives/LinearSmoother.*` 和 `src/dsp/primitives/RandomSource.*`；规划路径还包括 `src/dsp/water/`、`src/dsp/ice/` 和 `src/dsp/routing/`。
 
 ## Modification Policy
 

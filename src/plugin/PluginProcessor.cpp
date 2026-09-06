@@ -1,51 +1,38 @@
 #include "PluginProcessor.h"
+
+#include "ParameterLayout.h"
 #include "PluginEditor.h"
 
 FRAZILAudioProcessor::FRAZILAudioProcessor()
     : AudioProcessor(BusesProperties()
                          .withInput("Input", juce::AudioChannelSet::stereo(), true)
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-      parameters(*this, nullptr, "FRAZIL", createParameterLayout())
-{
+      parameters(*this, nullptr, "FRAZIL", createParameterLayout()) {
+    parameterSources_ = {
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::waterEnabled),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::iceEnabled),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::routingMode),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::parallelBalance),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::waterAmount),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::iceAmount),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::inputGain),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::globalMix),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::outputGain)};
 }
 
-juce::AudioProcessorValueTreeState::ParameterLayout FRAZILAudioProcessor::createParameterLayout()
-{
-    using Range = juce::NormalisableRange<float>;
-    juce::AudioProcessorValueTreeState::ParameterLayout layout;
-
-    layout.add(std::make_unique<juce::AudioParameterBool>("water.enable", "Water Enable", true));
-    layout.add(std::make_unique<juce::AudioParameterBool>("ice.enable", "Ice Enable", true));
-    layout.add(std::make_unique<juce::AudioParameterChoice>(
-        "routing.mode", "Routing Mode", juce::StringArray { "Parallel", "Water -> Ice", "Ice -> Water" }, 0));
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "parallel.balance", "Parallel Balance", Range { 0.0f, 1.0f, 0.001f }, 0.5f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "water.amount", "Water Amount", Range { 0.0f, 1.0f, 0.001f }, 1.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "ice.amount", "Ice Amount", Range { 0.0f, 1.0f, 0.001f }, 1.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "input.gain", "Input Gain", Range { -24.0f, 24.0f, 0.01f }, 0.0f, "dB"));
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "global.mix", "Global Mix", Range { 0.0f, 1.0f, 0.001f }, 1.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "output.gain", "Output Gain", Range { -24.0f, 24.0f, 0.01f }, 0.0f, "dB"));
-
-    return layout;
+juce::AudioProcessorValueTreeState::ParameterLayout FRAZILAudioProcessor::createParameterLayout() {
+    return frazil::plugin::createParameterLayout();
 }
 
-void FRAZILAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
-{
-    audioEngine.prepare(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
+void FRAZILAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
+    audioEngine.prepare(ProcessSpec{sampleRate, samplesPerBlock, getTotalNumOutputChannels()});
 }
 
-void FRAZILAudioProcessor::releaseResources()
-{
+void FRAZILAudioProcessor::releaseResources() {
     audioEngine.reset();
 }
 
-bool FRAZILAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
-{
+bool FRAZILAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
     const auto& input = layouts.getMainInputChannelSet();
     const auto& output = layouts.getMainOutputChannelSet();
 
@@ -55,88 +42,71 @@ bool FRAZILAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) co
     return input == juce::AudioChannelSet::mono() || input == juce::AudioChannelSet::stereo();
 }
 
-void FRAZILAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
-{
+void FRAZILAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&) {
     juce::ScopedNoDenormals noDenormals;
-    audioEngine.process(buffer);
+    const auto snapshot = ParameterSnapshot::capture(parameterSources_);
+    const auto engineParameters = parameterMapper_.map(snapshot);
+    audioEngine.process(buffer, engineParameters);
 }
 
-juce::AudioProcessorEditor* FRAZILAudioProcessor::createEditor()
-{
+juce::AudioProcessorEditor* FRAZILAudioProcessor::createEditor() {
     return new FRAZILAudioProcessorEditor(*this);
 }
 
-bool FRAZILAudioProcessor::hasEditor() const
-{
+bool FRAZILAudioProcessor::hasEditor() const {
     return true;
 }
 
-const juce::String FRAZILAudioProcessor::getName() const
-{
+const juce::String FRAZILAudioProcessor::getName() const {
     return "FRAZIL";
 }
 
-bool FRAZILAudioProcessor::acceptsMidi() const
-{
+bool FRAZILAudioProcessor::acceptsMidi() const {
     return false;
 }
 
-bool FRAZILAudioProcessor::producesMidi() const
-{
+bool FRAZILAudioProcessor::producesMidi() const {
     return false;
 }
 
-bool FRAZILAudioProcessor::isMidiEffect() const
-{
+bool FRAZILAudioProcessor::isMidiEffect() const {
     return false;
 }
 
-double FRAZILAudioProcessor::getTailLengthSeconds() const
-{
+double FRAZILAudioProcessor::getTailLengthSeconds() const {
     return 0.0;
 }
 
-int FRAZILAudioProcessor::getNumPrograms()
-{
+int FRAZILAudioProcessor::getNumPrograms() {
     return 1;
 }
 
-int FRAZILAudioProcessor::getCurrentProgram()
-{
+int FRAZILAudioProcessor::getCurrentProgram() {
     return 0;
 }
 
-void FRAZILAudioProcessor::setCurrentProgram(int)
-{
-}
+void FRAZILAudioProcessor::setCurrentProgram(int) {}
 
-const juce::String FRAZILAudioProcessor::getProgramName(int)
-{
+const juce::String FRAZILAudioProcessor::getProgramName(int) {
     return {};
 }
 
-void FRAZILAudioProcessor::changeProgramName(int, const juce::String&)
-{
-}
+void FRAZILAudioProcessor::changeProgramName(int, const juce::String&) {}
 
-void FRAZILAudioProcessor::getStateInformation(juce::MemoryBlock& destinationData)
-{
+void FRAZILAudioProcessor::getStateInformation(juce::MemoryBlock& destinationData) {
     const auto state = parameters.copyState();
     if (auto xml = state.createXml())
         copyXmlToBinary(*xml, destinationData);
 }
 
-void FRAZILAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
-{
-    if (auto xml = getXmlFromBinary(data, sizeInBytes))
-    {
+void FRAZILAudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
+    if (auto xml = getXmlFromBinary(data, sizeInBytes)) {
         const auto state = juce::ValueTree::fromXml(*xml);
         if (state.isValid() && state.hasType(parameters.state.getType()))
             parameters.replaceState(state);
     }
 }
 
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
-{
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() {
     return new FRAZILAudioProcessor();
 }

@@ -1,12 +1,14 @@
 #pragma once
 
+#include "../app/AudioEngine.h"
+#include "../app/ParameterMapper.h"
+#include "../app/ParameterSnapshot.h"
+#include "../app/ProcessSpec.h"
+
 #include <JuceHeader.h>
 
-#include "../app/AudioEngine.h"
-
-class FRAZILAudioProcessor final : public juce::AudioProcessor
-{
-public:
+class FRAZILAudioProcessor final : public juce::AudioProcessor {
+  public:
     FRAZILAudioProcessor();
     ~FRAZILAudioProcessor() override = default;
 
@@ -37,7 +39,9 @@ public:
 
     juce::AudioProcessorValueTreeState parameters;
 
-private:
+  private:
+    ParameterSourcePointers parameterSources_;
+    ParameterMapper parameterMapper_;
     AudioEngine audioEngine;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FRAZILAudioProcessor)

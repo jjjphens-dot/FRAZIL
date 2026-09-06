@@ -8,7 +8,7 @@
 
 - `PluginProcessor` 的 bus、生命周期、APVTS 当前骨架、`processBlock` 和 XML state round-trip；
 - `PluginEditor` 的当前 M0 占位界面与 JUCE editor lifecycle；
-- `src/plugin/ParameterLayout.*` 将来负责 Host/JUCE-facing 静态参数注册，再创建 Snapshot 并调用 app 层。
+- `src/plugin/ParameterLayout.*` 负责 Host/JUCE-facing 静态参数注册；`PluginProcessor` 缓存原子参数源并在 audio block 边界创建 Snapshot，再调用 app 层。
 
 ## Non-responsibilities
 
@@ -31,13 +31,13 @@ PluginEditor -> plugin parameter interface
 
 ## Public Interfaces
 
-当前 `PluginProcessor` 暴露 JUCE lifecycle、`prepareToPlay`、`processBlock`、editor 和 state API；APVTS 目前为 public member，是 M1 需要收窄审查的技术债。当前参数 layout 仍 inline 于 `PluginProcessor.cpp`，目标由 `PARAM-001` 迁移到 `src/plugin/ParameterLayout.*`。
+当前 `PluginProcessor` 暴露 JUCE lifecycle、`prepareToPlay`、`processBlock`、editor 和 state API；APVTS 仍为 public member，是后续需要收窄审查的技术债。参数 layout 已迁移到 `src/plugin/ParameterLayout.*`，并由 M1 合同测试固定顺序和 ID。
 
 `ParameterLayout` 只参与 Plugin construction/setup 的稳定 Host 参数注册，不参与 per-block audio runtime chain；runtime 从 Host Parameter Atomics 建立 `ParameterSnapshot` 开始。
 
 ## Parameter / State Contract
 
-当前代码仍注册 `water.enable`/`ice.enable` 占位 ID；目标合同是 `water.enabled`/`ice.enabled`。state XML 当前只证明骨架 round-trip，不代表 M1 版本化 StateModel、automation/history 边界已完成。
+当前代码注册合同 ID `water.enabled`/`ice.enabled` 以及其余 7 个核心参数。state XML 当前仍只证明骨架 round-trip，不代表 M1 版本化 StateModel、automation/history 边界已完成。
 
 ## Ownership & Lifetime
 
@@ -49,11 +49,11 @@ PluginProcessor 拥有 APVTS、AudioEngine 和 editor 生命周期；JUCE factor
 
 ## Implementation Overview
 
-M0 当前是 pass-through plugin shell：`processBlock` 将 buffer 交给 pass-through AudioEngine；正式 gain、Snapshot/Mapper、真实 DSP、routing 和产品 UI 按 Coding Plan 实现。
+M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing 的 gain/mix skeleton；wet path 仍为 pass-through。真实 Water/Ice、routing、版本化 state 和产品 UI 按 Coding Plan 后续实现。
 
 ## Tests
 
-当前证据为 CTest smoke/lifecycle、Debug/portable build 和已记录的 pluginval 结果；参数、automation、state compatibility、render 与 DAW matrix 仍按 [TESTING.md](../../docs/TESTING.md) 分阶段补齐。
+当前证据为 CTest smoke/lifecycle、Debug build 和参数/mapper/engine unit tests；automation、state compatibility、render、完整 property、DAW matrix 和本次变更后的 pluginval 尚未执行。
 
 ## Related ADRs
 
@@ -61,7 +61,7 @@ M0 当前是 pass-through plugin shell：`processBlock` 将 buffer 交给 pass-t
 
 ## Files
 
-`PluginProcessor.*`、`PluginEditor.*`、planned `ParameterLayout.*`、`README.md`。
+`PluginProcessor.*`、`PluginEditor.*`、`ParameterLayout.*`、`README.md`。
 
 ## Modification Policy
 
