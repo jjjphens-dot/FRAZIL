@@ -87,6 +87,8 @@ std::size_t delayWriteIndex_ {};
 
 实现前还必须完成 [Documentation Synchronization Gate](DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate)：识别受影响合同和证据文档，必要更新与实现放在同一个 PR，并记录 reviewed-but-unchanged 文档及一致性检查结果。
 
+对涉及 State、Water、Ice、Routing、automation 或 edit/history behavior 的实现工作，在阅读 Architecture、Coding Plan、Parameters contract 和相关 Accepted ADR 后，还应 review `docs/CORE_IMPLEMENTATION_GUIDE.md`。该文档是 Level 3 maintained implementation guide，只可解释实现方法和 experiment candidates，不得覆盖 Level 1/2 contracts 或 Accepted ADR decisions。
+
 ## 8. 例外与修改规则
 
 违反本规范的例外必须可定位到 issue/PR；`experiments/` 中的 candidate、A/B 和 prototype 可以先不建 ADR。若候选被采纳为 production architecture/core DSP decision，或改变既有架构决策、依赖方向、公共职责或其他 ADR trigger 合同，才必须有 ADR 和测试。实现既有 accepted contract、补已有测试或不改变公共行为/依赖边界的 refactor 不自动要求 ADR。禁止为了赶 milestone 默默降低实时、所有权、模块边界或文档要求。

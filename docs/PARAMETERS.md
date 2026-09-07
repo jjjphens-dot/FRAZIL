@@ -144,13 +144,22 @@ M1 应从裸 APVTS XML 约定升级为有版本的 state adapter：
 
 ```text
 root type: FRAZIL
-schemaVersion: integer
-parameters: APVTS state
+schemaVersion: 1
+parameters:
+  exactly nine canonical static Host parameter values;
+  each serialized as a PARAM node with `id` and `value` attributes by the versioned Host State Adapter
+APVTS remains the Host-side source/restore target and is not the stable wire-format contract itself.
 non-parameter persistent UI state: 仅在确有需要时加入
 edit history: 永不序列化
 ```
 
 当前 STATE-001 实现使用 `schemaVersion = 1`。没有 schema version 但包含已知参数的 pre-v1 state，以及显式 `schemaVersion = 0`，只通过受限 migration 入口转换为当前 schema；`water.enable`/`ice.enable` 只作为历史输入名映射到 `water.enabled`/`ice.enabled`。未知 schema、损坏输入或缺失/越界字段使用安全默认值，不形成对所有历史 build 的永久兼容承诺。
+
+Current schemaVersion=1 contains the nine canonical STATE-001 Host parameters.
+This is the current schema contract, not a declaration that FRAZIL v1.0 will always expose exactly nine Host parameters.
+Future Water/Ice macros adopted during M2/M3 must not be silently added as new required fields to schemaVersion=1.
+Adding a new persistent Host parameter requires explicit state compatibility review, migration/default fixtures and an
+agreed schema evolution strategy before registry/state changes are merged. This guard does not create schemaVersion=2.
 
 规则：
 
