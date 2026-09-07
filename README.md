@@ -17,13 +17,13 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 
 - [架构总纲](docs/FRAZIL_PROJECT_ARCHITECTURE_v0.3.md)
 - [高密度 Coding Plan](docs/CODING_PLAN.md)
-- [核心实施与算法指南](docs/CORE_IMPLEMENTATION_GUIDE.md)
 - [当前实现与差距](docs/PROJECT_STATUS.md)
 - [参数与状态合同](docs/PARAMETERS.md)
 - [测试与发布门槛](docs/TESTING.md)
 - [GitHub 协作流程](docs/GITHUB_WORKFLOW.md)
 - [双人协作分工](docs/COLLABORATION_ROLES.md)
 - [开发环境](docs/ENVIRONMENT.md)
+- [HOST-000 平台与 DAW 兼容性矩阵（产品目标已冻结，HOST-001 evidence pending）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
 - [贡献指南](CONTRIBUTING.md)
 
 ## 本地构建
@@ -32,20 +32,23 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 
 ```powershell
 .\tools\bootstrap_dependencies.ps1
+python tools/check_portability.py
 ```
 
-本机工具链构建：
+在已初始化 MSVC developer environment 的 Windows PowerShell 中构建：
+
+本地构建入口使用 tools/build_safe.py，默认 6 个 job、硬上限 8 个 job。 共享 configure preset 同时注入 CMAKE_BUILD_PARALLEL_LEVEL=6，约束 JUCE configure 阶段的 nested build；本机 Debug、Release、ASAN 等重型 pipeline 必须串行执行。
 
 ```powershell
 cmake --preset windows-debug
-cmake --build --preset windows-debug
+python tools/build_safe.py --preset windows-debug
 ctest --preset windows-debug
 ```
 
 `windows-release` 与 `windows-asan` 使用同名 configure/build/test preset。CI 或其他 Windows
-机器在 MSVC developer environment 已初始化后使用 `ci-windows-debug`，它不包含 F: 盘路径。
-Windows 工具链初始化、pluginval 和本机固定路径见 [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)。
-所有构建输出、Python 环境和工具缓存必须留在工作区且不得提交。
+机器在 MSVC developer environment 已初始化后使用 `ci-windows-debug`，所有共享 preset 都使用 portable tool discovery。
+Windows 工具链初始化、pluginval 和本地配置见 [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)。
+所有构建输出、Python 环境和工具缓存必须保持 repository-local 或由 ignored local configuration 指定，并且不得提交。
 
 ## 仓库
 

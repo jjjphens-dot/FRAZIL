@@ -2,6 +2,20 @@
 
 本文件约束所有在本仓库内工作的自动化 agent 与开发者。产品与架构真相以 `docs/FRAZIL_PROJECT_ARCHITECTURE_v0.3.md` 为总纲；阶段顺序、依赖和验收门槛以 `docs/CODING_PLAN.md` 为准。若两者冲突，先停止扩大实现范围，新增或更新 ADR，再同步相关文档。
 
+## 0. 哈希计算默认禁用
+
+- Agent 默认不得对源码、构建产物、依赖、render、日志或工作树批量计算、比较或记录 hash/checksum。
+- 只有在用户明确要求、现有验收/安全完整性合同明确要求，或发布流程的既有步骤不可避免地需要时，才允许执行哈希操作，并应限定到必要的目标。
+- 不得为了生成报告、证明普通构建成功、比较普通工作树差异或“顺手留证”而启动哈希工具；已有 commit SHA 作为 Git 身份引用时不等于需要重新计算内容 hash。
+- 没有上述必要性时，直接跳过哈希步骤，不新增 hash 字段、manifest 或相关文档证据。
+## 0.1 本地构建资源安全
+
+- 禁止 agent 在本机执行不带明确 job 数的 cmake --build ... --parallel。
+- 本地 Windows 构建必须通过 python tools/build_safe.py --preset <name>，默认 6 个 job，硬上限 8 个 job；wrapper 会在构建前检查可用物理内存，并把完整输出写入 ignored 的 build 日志。
+- 安全检查拒绝时不得通过删除检查、提高并发上限或改用裸 CMake/Ninja 命令绕过；应停止并报告资源状态。
+- Hosted CI 也使用同一受控 wrapper；构建失败时只回显有限日志尾部，避免把海量 compiler include 输出灌入终端。
+- 共享的 portable-windows-base configure preset 注入 CMAKE_BUILD_PARALLEL_LEVEL=6，用于约束 configure 阶段的 JUCE nested build；不得通过修改环境变量绕过安全检查。
+- Agent 不得在本机并发运行多个 configure/build/test pipeline；Debug、Release、ASAN 和其他重型 preset 必须串行执行。
 ## 1. 当前基线
 
 - 当前阶段：M1-C 前置；M1-A/M1-B Parameter/Engine foundation 已合入 `main`，M1 尚未完成。
@@ -134,13 +148,22 @@ tests -> 被测模块
 
 ## 7. 构建与验证
 
-构建产物必须留在 F: 工作区：
+构建产物必须保存在 repository-local 或 developer-configured build directory 中，并且不得提交到 Git。
+例如 <repo-root>/build/，或由 CMakeUserPresets.json 指定的本地构建目录。
 
 ```powershell
 cmake --preset windows-debug
-cmake --build --preset windows-debug
+python tools/build_safe.py --preset windows-debug
 ctest --preset windows-debug
 ```
+
+### Repository Portability Rules
+
+- 禁止在 tracked source/config/script/canonical documentation 中提交开发者个人绝对路径。
+- 禁止依赖固定盘符、开发者用户名或 Visual Studio、Windows SDK、Python、DAW 的个人安装目录。
+- 机器相关路径必须使用 repo-relative path、environment variable、tool discovery、CMakeUserPresets.json 或 ignored local configuration。
+- Tracked reference-machine evidence 可以记录 OS、工具版本、SDK/toolchain 版本和泛化后的路径占位符，但不得保存开发者原始绝对路径。
+- 确实需要保存的本机原始路径只能存在于 ignored/untracked local evidence 中，不得提交到 Git。
 
 其他预设：`windows-release`、`windows-asan`。本机完整 MSVC 环境命令见 `docs/ENVIRONMENT.md`。
 
