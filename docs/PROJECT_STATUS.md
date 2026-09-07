@@ -1,7 +1,7 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-07<br>
-> 依据：本地源码/构建目录审计、当前 Debug/portable build/CTest、GitHub 仓库页面与 Actions 页面。<br>
+> 快照日期：2026-09-08<br>
+> 依据：rebase 后 `experiment/music-dsp` 的本地文档审计、当前 `origin/main`/feature branch Git 状态、portable build/CTest 与 GitHub Actions 页面。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
 ## Modification Policy
@@ -11,6 +11,8 @@
 ## 1. 结论
 
 项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；M1 仍在进行中；Water/Ice、Routing、render 和正式 UI 仍未实现。
+
+当前 `experiment/music-dsp` 在最新 `origin/main` 基础上保留 HOST-000 兼容性矩阵，并新增正式的 FRAZIL 产品身份文档；这些 feature-branch 文档在 Engineering Lead review 与 PR merge 完成前不视为 `main` 已合入事实。
 
 `CODING_PLAN.md` v1.0 / Approved Development Baseline 已作为 M0→M7 的正式工程执行基线；这不代表 FRAZIL plugin v1.0 release，也不改变 M0/M1、Water/Ice/Routing 的实际完成状态。
 
@@ -25,7 +27,7 @@
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug；从下一条需要双人 review 的核心 PR 开始，必须留下 formal review 或满足治理规则的第二位开发者 comment evidence；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；不据此推断不存在其它规则集。
+10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；不据此推断不存在其它规则集；当前 feature branch 的 HOST-000 Engineering Lead review、PR/CI/merge 仍 pending。
 
 ## 2. 已有资产
 
@@ -38,6 +40,7 @@
 | Parameters | 9 个集中式 APVTS 参数静态注册；enabled ID 已使用 `.enabled` | M1 参数路径已接入；合同仍待 freeze |
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration pending；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
 | UI | 640x360 M0 占位界面 | 非产品 UI |
+| Product identity | `docs/PRODUCT_IDENTITY.md` | FRAZIL adopted working/product name；命名词汇不改变参数合同；法律/商标 clearance 不属于当前工程范围 |
 | Tests | `frazil_smoke` + `frazil_tests` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state/XML restore unit 覆盖；DSP property/Host/DAW 测试未完成 |
 | Local validation | STATE-001 Debug/Release/ASAN configure/build；三个 preset 的 CTest 均 2/2 PASS | 已验证；对应实现已合入 main |
 | pluginval | STATE-001 Debug VST3 strictness 5 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
@@ -128,7 +131,7 @@ PluginProcessor
 
 ## 5. 现状对应 milestone
 
-- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000、GitHub metadata 与 branch-protection evidence 尚未收口（branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level 配置未独立验证）。
+- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和 Hosted CI success 已验证；HOST-000 目标文档与产品身份文档已在当前 feature branch 整理，Engineering Lead review、PR/CI、merge、GitHub metadata 与 branch-protection evidence 尚未收口（branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level 配置未独立验证）。
 - M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 M1-C STATE-001 versioned StateModel/Host State Adapter foundation 已实现并合入 `main`；STATE-002 mode-value-retention integration、automation integration、render/property/performance、DAW 验证和正式参数 freeze 仍未完成；M5 EditHistoryManager 仍未开始。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
@@ -148,4 +151,4 @@ PluginProcessor
 
 ## 7. 下一步唯一推荐入口
 
-按 `docs/CODING_PLAN.md` 继续收口 M1-C：完成 STATE-002 mode retention integration、automation integration、TESTDATA/RENDER/PERF harness 和 HOST-001 证据；在这些基础合同与验证就绪前，不进入 Water/Ice/Routing 生产实现。
+按 `docs/CODING_PLAN.md` 先完成 HOST-000 的 Engineering Lead review、PR/CI/merge，再继续收口 M1-C：完成 STATE-002 mode retention integration、automation integration、TESTDATA/RENDER/PERF harness 和 HOST-001 证据；在这些基础合同与验证就绪前，不进入 Water/Ice/Routing 生产实现。
