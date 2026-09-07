@@ -46,6 +46,10 @@
 
 所有生产代码修改必须遵守 `docs/CODE_STANDARDS.md`。违反该规范的代码不能因为“功能工作正常”而视为 Done。
 
+涉及 Water、Ice、State、Routing、automation 或 history 的实现任务，在阅读上述 canonical contracts 和
+相关 ADR 之后，还应 review `docs/CORE_IMPLEMENTATION_GUIDE.md`；该指南只提供 Level 3 实现解释和
+候选算法参考，不覆盖 Architecture、Coding Plan、Parameters 或 Accepted ADR。
+
 ### Mandatory development phases
 
 代码任务必须按以下阶段执行并在输出中报告：
@@ -158,7 +162,8 @@ ctest --preset windows-debug
 - 禁止在 tracked source/config/script/canonical documentation 中提交开发者个人绝对路径。
 - 禁止依赖固定盘符、开发者用户名或 Visual Studio、Windows SDK、Python、DAW 的个人安装目录。
 - 机器相关路径必须使用 repo-relative path、environment variable、tool discovery、CMakeUserPresets.json 或 ignored local configuration。
-- Reference-machine evidence 可以记录本机路径，但必须明确标记为 evidence，且不得被 build/test/runtime logic 使用。
+- Tracked reference-machine evidence 可以记录 OS、工具版本、SDK/toolchain 版本和泛化后的路径占位符，但不得保存开发者原始绝对路径。
+- 确实需要保存的本机原始路径只能存在于 ignored/untracked local evidence 中，不得提交到 Git。
 
 其他预设：`windows-release`、`windows-asan`。本机完整 MSVC 环境命令见 `docs/ENVIRONMENT.md`。
 

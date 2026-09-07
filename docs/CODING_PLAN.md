@@ -24,6 +24,8 @@
 
 `docs/PROJECT_STATUS.md` 记录当前 milestone、已验证能力、blocker、验证结果和下一步建议；GitHub Issues/Project 是单个工作项实时状态的唯一来源。计划中的工作项即使已经在本地或远端完成，也保留在这里作为稳定定义，不在本文件维护动态 todo 清单。
 
+`docs/CORE_IMPLEMENTATION_GUIDE.md` 维护实现解释、候选 DSP 数学和工程方法参考。它不定义 milestone status、work-item dependencies、acceptance criteria、parameter contracts 或 Accepted architecture decisions；这些仍由本文件、`PARAMETERS.md`、架构总纲和 ADR 负责。
+
 ### Production Definition of Done
 
 任何 production issue 只有同时满足以下条件才可标记 Done：

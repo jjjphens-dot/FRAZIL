@@ -66,7 +66,7 @@ ASAN test preset 会从 VCToolsInstallDir 加入 MSVC runtime directory；如果
 
 在仓库根目录打开 VS Code：
 
-- Ctrl+Shift+B 调用 FRAZIL: build windows-debug；
+- Ctrl+Shift+B 调用 FRAZIL: build windows-debug (safe)；
 - Run and Debug 中选择 FRAZIL Standalone (Debug)；
 - task 和 launch configuration 使用 workspaceFolder，不知道开发者的 clone 位置；build task 调用受控 wrapper；
 - 首次 checkout 先完成 configure，再使用 build task。

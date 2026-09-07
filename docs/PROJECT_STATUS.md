@@ -10,14 +10,14 @@
 
 ## 1. 结论
 
-项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已随 PR #5 合入 `main`，提供 versioned StateModel/Host State Adapter foundation；M1 仍在进行中；Water/Ice、Routing、render 和正式 UI 仍未实现。
+项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；本分支新增实际 PluginProcessor automation/state integration evidence；M1 仍在进行中；Water/Ice、Routing、render 和正式 UI 仍未实现。
 
 `CODING_PLAN.md` v1.0 / Approved Development Baseline 已作为 M0→M7 的正式工程执行基线；这不代表 FRAZIL plugin v1.0 release，也不改变 M0/M1、Water/Ice/Routing 的实际完成状态。
 
 当前阻塞性差距：
 
-1. 历史 integration audit 曾记录较早的 origin/main snapshot；这些记录仅具历史意义，不代表当前远端真相。需要当前状态时必须通过 Git 命令确认；PR #5 已将 STATE-001 合入 main，并保留 feat/m1-parameter-engine-contract 作为历史 feature 分支；
-2. PR #4 的 [Hosted CI run 34046691706](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34046691706)、合并后 main 的 [Hosted CI run 34049822657](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34049822657)、PR #3 的 [Hosted CI run 34044332388](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34044332388) 与 PR #2 的 [Hosted CI run 34022773758](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34022773758) 均已记录 Windows Debug configure/build/test 通过；workflow/API 的更细粒度权限与 branch protection 未验证；
+1. PR #5 squash merge commit 为 `12d36a40d03944f9c69cd273d1cc3dca3e0b6ee7`；STATE-001 = MERGED / validated；`feat/m1-parameter-engine-contract` 与 `feat/m1-state-contract` 保留为历史 feature 分支。本文件记录 verified merge/evidence snapshots；current `main` HEAD should be read from GitHub，不把本文件中的 snapshot 当作永久 current HEAD；
+2. PR #5 合并后 main 的 [Hosted CI run 34091515810](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34091515810) 已完成 Windows Debug configure/build/test 并通过；PR #4、PR #3 和 PR #2 的既有 Hosted CI 证据也已通过；当前 GitHub branch listing 报告 `main` 为 `protected:false`；fine-grained repository ruleset / admin-level branch-protection configuration 尚未以充分的管理员证据独立验证；不据此推断不存在其它规则集；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；STATE-001 已建立已知 pre-v1 ID migration fixture，公开版本兼容性仍需后续 freeze/evidence；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
 5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention 和 XML state reopen；本分支 Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；尚未覆盖 render 和真实 DAW automation；
@@ -25,7 +25,7 @@
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug；从下一条需要双人 review 的核心 PR 开始，必须留下 formal review 或满足治理规则的第二位开发者 comment evidence；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证；HOST-000 产品目标已由 Sound & Host Lead 冻结并推送至 `origin/experiment/music-dsp`；首次 HOST-000 frozen-target push commit 为 `ceccc2d51598a7a794220b4d71009c359f25e007`，实时 branch HEAD 必须由 Git 命令确认；矩阵见 [HOST-000_COMPATIBILITY_MATRIX.md](HOST-000_COMPATIBILITY_MATRIX.md)；Engineering Lead review、PR/CI 和 merge pending，HOST-001 实际 DAW evidence pending，REAPER exact version pending。
+10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；HOST-000 产品目标已由 Sound & Host Lead 冻结并推送至 `origin/experiment/music-dsp`；Engineering Lead review、PR/CI 和 merge pending，HOST-001 实际 DAW evidence pending，REAPER exact version pending；不据此推断不存在其它规则集。
 
 ## 2. 已有资产
 
@@ -38,12 +38,28 @@
 | Parameters | 9 个集中式 APVTS 参数静态注册；enabled ID 已使用 `.enabled` | M1 参数路径已接入；合同仍待 freeze |
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration verified；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
 | UI | 640x360 M0 占位界面 | 非产品 UI |
-| Tests | `frazil_smoke` + `frazil_tests` + `frazil_plugin_integration` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state/XML restore + STATE-002/AUTO-001 plugin integration 覆盖；DSP property/真实 DAW 测试未完成 |
-| Local validation | 本分支使用当前机器 VS2022/MSVC 14.44 的 windows-debug/windows-release/windows-asan preset；每个配置的 smoke、unit、plugin integration 共 3/3 PASS | 已验证；本机绝对路径仅在 ignored `CMakeUserPresets.json`，仓库 preset 保持可移植 |
-| pluginval | 本分支 `ci-windows-debug` Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | jjjphens-dot/FRAZIL public repository；origin 已绑定；当前 remote HEAD 需要由 Git 命令确认；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main | HOST-000 push 已完成；本次 portability follow-up 的 PR/CI/merge 状态按当前 GitHub 页面确认；Issues/Milestones/Projects metadata 未建立 |
+| Tests | `frazil_smoke` + `frazil_tests` + `frazil_plugin_integration` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state/XML restore + PluginProcessor automation/state integration 覆盖；DSP property/真实 DAW 测试未完成 |
+| Local validation | 本轮 `ci-windows-debug` configure、6-job safe build 和 CTest 均通过；smoke、unit、plugin integration 共 3/3 PASS | 已验证；本机绝对路径仅在 ignored `CMakeUserPresets.json`，仓库 preset 保持可移植 |
+| pluginval | 本分支已有 Debug VST3 artifact 的 pluginval 1.0.4、strictness 5、seed 12345 `SUCCESS` 记录；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`main` 当前为 `12ef3fb`，审查分支为 `9955cdb`；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main | 本分支等待当前 PR/CI/review；Issues/Milestones/Projects metadata 未建立 |
 
-## 2.1 Repository portability remediation evidence
+## 2.1 Clean portability/build-safety PR evidence
+
+Clean portability/build-safety implementation baseline: 03bee6a, based on origin/main 00ebd8e. Hosted PR CI run 34128576335 (pull_request) validated that implementation baseline successfully. Current PR head, current mergeability, and latest CI state are live GitHub state and must be queried from GitHub when needed.
+
+- Portability scanner：PASS。
+- Portability regression tests：PASS。
+- Build-safety regression tests：PASS。
+- Configure：PASS；portable-windows-base provides CMAKE_BUILD_PARALLEL_LEVEL=6。
+- Safe ci-windows-debug build：PASS。
+- CTest：PASS。
+- Evidence-time PR mergeability：MERGEABLE / CLEAN；current live mergeability must be read from GitHub。
+- Local 6-job and 8-job check-only：REFUSED by the existing memory gate because only about 2.45-2.48 GiB was available；no local C++ build was started。
+- Release：NOT RUN。
+- ASAN：NOT RUN。
+
+
+## 2.2 Repository portability remediation evidence
 
 repository-portability remediation 与 bounded build-safety guard 已在 commit 7d5f9a8 对应版本完成静态和安全 preflight 验证：python tools/check_portability.py、python tools/test_check_portability.py、python tools/test_build_safe.py、cmake --list-presets、CMake/VS Code JSON 解析和 6/8 job preflight 均通过；9 job 与 CMAKE_BUILD_PARALLEL_LEVEL=32 的绕过尝试均被拒绝。事故前 519ede8 的 Debug/Release/ASAN 本地构建记录保持为历史证据。Hosted GitHub Actions 已在 PR #7 的 run 34125302391（workflow_dispatch，Windows Debug / CMake / CTest，4m55s）通过；Fresh clone 与 VS Code GUI task 仍未在本机单独复验。
 
@@ -59,6 +75,12 @@ repository-portability remediation 与 bounded build-safety guard 已在 commit 
 - 本机 post-incident full Debug build：NOT RUN；本轮没有启动本机高负载构建。
 
 Branch audit 仅报告未合并分支中的既有基线路径污染，不改写其它 branch；合并或 cherry-pick 本修复后应重新运行 portability scan。
+
+## 2.3 Plugin integration validation evidence
+
+本审查分支在合入当前 `main` 基线后重新执行了 repository portability scan、scanner regression、build-safety regression、portable `ci-windows-debug` configure、6-job safe build 和 CTest。`frazil_smoke`、`frazil_unit` 与 `frazil_plugin_integration` 共 3/3 PASS。integration target 覆盖实际 PluginProcessor 参数写入进入 audio path、连续 gain automation smoothing、routing mode 切换后的 inactive value retention，以及 XML state reopen。
+
+本机开发者工具链和构建目录只存在于 ignored local configuration/build output；tracked CMake preset 不包含个人安装路径。干净 clone 的依赖 bootstrap 仍需在 GitHub 网络可用时单独复验。
 ## 3. 当前源码映射
 
 ```text

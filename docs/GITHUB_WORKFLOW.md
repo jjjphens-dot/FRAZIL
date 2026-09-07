@@ -15,7 +15,7 @@
 建议顺序：
 
 ```powershell
-在 cloned FRAZIL repository root 打开 PowerShell；后续命令均从该目录执行。
+Set-Location <repo-root>
 git init -b main
 git remote add origin https://github.com/jjjphens-dot/FRAZIL.git
 git status --short
