@@ -161,3 +161,36 @@ target_link_libraries(frazil_plugin_integration
 )
 juce_generate_juce_header(frazil_plugin_integration)
 add_test(NAME frazil_plugin_integration COMMAND frazil_plugin_integration)
+
+# MSVC ASAN uses a dynamic runtime DLL. Keep test execution independent from the
+# shell that launched CTest and make the test artifacts directly runnable.
+if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
+    get_filename_component(frazil_msvc_tool_bin_dir "${CMAKE_CXX_COMPILER}" DIRECTORY)
+    set(frazil_asan_runtime_dll
+        "${frazil_msvc_tool_bin_dir}/clang_rt.asan_dynamic-x86_64.dll")
+
+    set_property(
+        TEST frazil_smoke frazil_unit frazil_plugin_integration
+        PROPERTY ENVIRONMENT_MODIFICATION
+                 "PATH=path_list_prepend:${frazil_msvc_tool_bin_dir}"
+    )
+    foreach(frazil_test_target IN ITEMS frazil_smoke frazil_tests frazil_plugin_integration)
+        if(EXISTS "${frazil_asan_runtime_dll}")
+            add_custom_command(
+                TARGET ${frazil_test_target}
+                POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        "${frazil_asan_runtime_dll}"
+                        "$<TARGET_FILE_DIR:${frazil_test_target}>"
+                VERBATIM
+            )
+        endif()
+    endforeach()
+
+    if(NOT EXISTS "${frazil_asan_runtime_dll}")
+        message(WARNING
+            "MSVC ASAN runtime was not found at ${frazil_asan_runtime_dll}; "
+            "ASAN test executables may not run outside a Developer environment."
+        )
+    endif()
+endif()

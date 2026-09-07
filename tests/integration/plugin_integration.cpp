@@ -86,6 +86,39 @@ void testParameterAutomationReachesAudioPath(TestContext& context) {
                "automated input gain reaches its final value without restarting the ramp");
 }
 
+void testStateRestoreAfterPrepareReachesAudioPath(TestContext& context) {
+    constexpr int kBlockSize = 64;
+    FRAZILAudioProcessor source;
+    setParameterValue(context, source, frazil::plugin::parameterIds::inputGain, -4.0f);
+    setParameterValue(context, source, frazil::plugin::parameterIds::outputGain, 7.0f);
+
+    juce::MemoryBlock serializedState;
+    source.getStateInformation(serializedState);
+    expect(context, serializedState.getSize() > 0, "lifecycle state save produces an XML payload");
+
+    FRAZILAudioProcessor restored;
+    restored.prepareToPlay(48000.0, kBlockSize);
+    restored.setStateInformation(serializedState.getData(),
+                                 static_cast<int>(serializedState.getSize()));
+
+    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::inputGain), -4.0f,
+               1.0e-6f, "state restore after prepare retains input gain");
+    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::outputGain), 7.0f,
+               1.0e-6f, "state restore after prepare retains output gain");
+
+    juce::MidiBuffer midi;
+    juce::AudioBuffer<float> buffer(2, kBlockSize);
+    fillBuffer(buffer, 1.0f);
+    restored.processBlock(buffer, midi);
+
+    constexpr float kExpectedNetGainDb = 3.0f;
+    const auto expectedGain = std::pow(10.0f, kExpectedNetGainDb / 20.0f);
+    expect(context, std::isfinite(buffer.getSample(0, 0)),
+           "state restore after prepare produces finite audio");
+    expectNear(context, buffer.getSample(0, kBlockSize - 1), expectedGain, 1.0e-5f,
+               "state restore after prepare is applied to the first audio block");
+}
+
 void testModeSwitchRetainsInactiveValuesAcrossStateReopen(TestContext& context) {
     constexpr int kBlockSize = 64;
     FRAZILAudioProcessor source;
@@ -159,11 +192,12 @@ void testModeSwitchRetainsInactiveValuesAcrossStateReopen(TestContext& context) 
 int main() {
     TestContext context;
     testParameterAutomationReachesAudioPath(context);
+    testStateRestoreAfterPrepareReachesAudioPath(context);
     testModeSwitchRetainsInactiveValuesAcrossStateReopen(context);
 
     if (context.failures != 0)
         return 1;
 
-    std::cout << "FRAZIL plugin integration tests passed (2 groups)\n";
+    std::cout << "FRAZIL plugin integration tests passed (3 groups)\n";
     return 0;
 }
