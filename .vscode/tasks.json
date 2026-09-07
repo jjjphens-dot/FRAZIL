@@ -4,12 +4,13 @@
     {
       "label": "FRAZIL: build windows-debug",
       "type": "process",
-      "command": "C:\\Windows\\System32\\cmd.exe",
-      "args": [
-        "/d",
-        "/c",
-        "call \"F:\\Visual Studio\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\" && set \"PATH=F:\\coding\\FRAZIL\\tools\\bin;%PATH%\" && cmake --build --preset windows-debug --parallel 4"
-      ],
+      "command": "cmake",
+      "args": ["--build", "--preset", "windows-debug", "--parallel", "4"],
+      "options": {
+        "env": {
+          "PATH": "${workspaceFolder}\\tools\\bin;${env:PATH}"
+        }
+      },
       "problemMatcher": [
         "$msCompile"
       ],

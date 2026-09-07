@@ -253,7 +253,7 @@ cmake --build --preset windows-asan
 ctest --preset windows-asan
 ```
 
-pluginval 路径与完整 MSVC 环境初始化见 `docs/ENVIRONMENT.md`。CI 命令应使用 portable preset，不能依赖本机 F: 盘绝对路径。
+pluginval 路径与完整 MSVC 环境初始化见 `docs/ENVIRONMENT.md`。CI 命令应使用 portable preset，不能依赖本机绝对路径。
 
 ## 9. Milestone gates
 

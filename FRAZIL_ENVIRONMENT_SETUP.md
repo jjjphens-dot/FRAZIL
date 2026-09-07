@@ -4,14 +4,14 @@
 >
 > 适用范围：Windows 11、VS Code、CMake/Ninja、JUCE、MSVC、VST3/Standalone 开发。
 >
-> 当前验证日期：2026-09-06
+> 当前验证日期：2026-09-07
 
 ## 1. 配置原则
 
 - IDE 使用 VS Code。
 - 不新增、升级或依赖 Visual Studio IDE 工作流。
 - Windows 原生 C++ 编译仍使用现有的 MSVC v143 和 Windows SDK；它们来自机器上已有的 Visual Studio Community 工具链安装。
-- 项目依赖、构建输出、Python 虚拟环境和本地工具统一放在 F: 盘。
+- 项目依赖、构建输出、Python 虚拟环境和本地工具统一放在当前项目工作区 `<workspace-root>`。
 - 不向全局 Python 环境安装 DSP 依赖。
 - 不把 Ninja、pluginval 等二进制工具提交到 Git 仓库。
 
@@ -22,7 +22,7 @@
 项目根目录：
 
 ```text
-F:\coding\FRAZIL
+<workspace-root>
 ├─ .venv\                         项目专用 Python 环境
 ├─ build\
 │  ├─ windows-debug\              Debug 构建
@@ -40,7 +40,7 @@ F:\coding\FRAZIL
 └─ FRAZIL_ENVIRONMENT_SETUP.md
 ```
 
-系统中已经存在的工具仍可能位于 C: 或 D: 盘，例如 CMake、Python、Windows 系统文件和 LLVM；本次没有迁移或重装它们。新增的项目文件、缓存和依赖均放在 F: 盘。
+系统级工具可能位于任意系统安装位置，例如 CMake、Python、Windows 系统文件、Visual Studio 和 LLVM；本次没有迁移或重装它们。新增的项目文件、缓存和依赖均放在当前项目工作区。
 
 ## 3. 已验证工具版本
 
@@ -49,22 +49,22 @@ F:\coding\FRAZIL
 | 工具 | 版本/位置 | 用途 |
 |---|---|---|
 | Windows | Windows 11 23H2，Build 22631 | 操作系统 |
-| VS Code | 1.136.1，`D:\Microsoft VS Code` | IDE |
-| Git | 2.46.0，`D:\Git` | 版本控制和依赖获取 |
-| CMake | 4.3.2 | 配置和生成构建文件 |
-| CTest | 4.3.2 | 自动化测试 |
-| MSVC | 19.43.34809，`F:\Visual Studio\Community` | C/C++ 编译器和链接器 |
-| Windows SDK | 10.0.22621.0，`F:\Windows Kits\10` | Windows 头文件、资源编译器、Manifest 工具 |
-| LLVM | 19.1.3，`D:\LLVM` | clang-format/clang-tidy |
-| Python | 3.12.4，`C:\Program Files\python` | 创建项目虚拟环境和 DSP 实验 |
+| VS Code | 1.136.1，`<vs-code-installation>` | IDE |
+| Git | 2.46.0，`<git-installation>` | 版本控制和依赖获取 |
+| CMake | 4.4.3 | 配置和生成构建文件 |
+| CTest | 4.4.3 | 自动化测试 |
+| MSVC | 19.44.35211，`<msvc-root>` | C/C++ 编译器和链接器 |
+| Windows SDK | 10.0.26100.0，`<windows-sdk-root>` | Windows 头文件、资源编译器、Manifest 工具 |
+| LLVM | 19.1.3，`<llvm-root>` | clang-format/clang-tidy |
+| Python | 3.12.4，`<system-python>` | 创建项目虚拟环境和 DSP 实验 |
 
 ### 3.2 项目本地工具和依赖
 
 | 工具/依赖 | 版本 | 项目内位置 |
 |---|---:|---|
-| Ninja | 1.13.2 | `F:\coding\FRAZIL\tools\bin\ninja.exe` |
-| JUCE | 9.0.1 | `F:\coding\FRAZIL\external\JUCE` |
-| pluginval | 1.0.4 | `F:\coding\FRAZIL\tools\bin\pluginval.exe` |
+| Ninja | 1.13.2 | `<workspace-root>\tools\bin\ninja.exe` |
+| JUCE | 9.0.1 | `<workspace-root>\external\JUCE` |
+| pluginval | 1.0.4 | `<workspace-root>\tools\bin\pluginval.exe` |
 | NumPy | 2.5.2 | `.venv` |
 | SciPy | 1.18.1 | `.venv` |
 | soundfile | 0.14.0 | `.venv` |
@@ -79,12 +79,12 @@ Ninja 使用官方发布包，pluginval 使用 Tracktion 官方发布包。协�
 ### 4.1 创建项目目录
 
 ```powershell
-Set-Location F:\coding\FRAZIL
+$ProjectRoot = (Get-Location).Path
 
 New-Item -ItemType Directory -Force `
-  F:\coding\FRAZIL\tools\bin, `
-  F:\coding\FRAZIL\tools\downloads, `
-  F:\coding\FRAZIL\external | Out-Null
+  (Join-Path $ProjectRoot 'tools\bin'), `
+  (Join-Path $ProjectRoot 'tools\downloads'), `
+  (Join-Path $ProjectRoot 'external') | Out-Null
 ```
 
 ### 4.2 创建 Python 虚拟环境
@@ -92,8 +92,8 @@ New-Item -ItemType Directory -Force `
 使用已有的系统 Python 创建副本式虚拟环境，避免项目运行时依赖系统 Python 的目录结构：
 
 ```powershell
-$ProjectRoot = 'F:\coding\FRAZIL'
-$PythonExe = 'C:\Program Files\python\python.exe'
+$ProjectRoot = (Get-Location).Path
+$PythonExe = (Get-Command python.exe).Source
 
 & $PythonExe -m venv --copies "$ProjectRoot\.venv"
 $env:PIP_CACHE_DIR = "$ProjectRoot\.cache\pip"
@@ -108,19 +108,19 @@ $env:PIP_CACHE_DIR = "$ProjectRoot\.cache\pip"
 & .\.venv\Scripts\python.exe -c "import numpy, scipy, soundfile, matplotlib; print(numpy.__version__, scipy.__version__, soundfile.__version__, matplotlib.__version__)"
 ```
 
-### 4.3 安装 Ninja 到 F 盘
+### 4.3 安装 Ninja 到项目工作区
 
 ```powershell
-$NinjaZip = 'F:\coding\FRAZIL\tools\downloads\ninja-win.zip'
+$NinjaZip = Join-Path $ProjectRoot 'tools\downloads\ninja-win.zip'
 
 Invoke-WebRequest `
   -Uri 'https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-win.zip' `
   -OutFile $NinjaZip
 
 Expand-Archive -LiteralPath $NinjaZip `
-  -DestinationPath 'F:\coding\FRAZIL\tools\bin' -Force
+  -DestinationPath (Join-Path $ProjectRoot 'tools\bin') -Force
 
-& 'F:\coding\FRAZIL\tools\bin\ninja.exe' --version
+& (Join-Path $ProjectRoot 'tools\bin\ninja.exe') --version
 ```
 
 ### 4.4 获取 JUCE
@@ -128,7 +128,7 @@ Expand-Archive -LiteralPath $NinjaZip `
 全新 checkout 不要依赖工作区中偶然存在的 `external\JUCE`，执行仓库脚本：
 
 ```powershell
-& F:\coding\FRAZIL\tools\bootstrap_dependencies.ps1
+& (Join-Path $ProjectRoot 'tools\bootstrap_dependencies.ps1')
 ```
 
 脚本固定 JUCE 9.0.1 commit，并应用仓库内 `tools\patches` 的兼容补丁；重新获取 JUCE 后仍使用该脚本校验和恢复。
@@ -136,92 +136,92 @@ Expand-Archive -LiteralPath $NinjaZip `
 ### 4.5 获取 pluginval
 
 ```powershell
-$PluginvalZip = 'F:\coding\FRAZIL\tools\downloads\pluginval_Windows.zip'
+$PluginvalZip = Join-Path $ProjectRoot 'tools\downloads\pluginval_Windows.zip'
 
 Invoke-WebRequest `
   -Uri 'https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Windows.zip' `
   -OutFile $PluginvalZip
 
 Expand-Archive -LiteralPath $PluginvalZip `
-  -DestinationPath 'F:\coding\FRAZIL\tools\bin' -Force
+  -DestinationPath (Join-Path $ProjectRoot 'tools\bin') -Force
 ```
 
 解压后确保最终文件存在：
 
 ```text
-F:\coding\FRAZIL\tools\bin\pluginval.exe
+<workspace-root>\tools\bin\pluginval.exe
 ```
 
 ## 5. CMake 和 MSVC 配置
 
-项目使用 [CMakePresets.json](F:/coding/FRAZIL/CMakePresets.json)，不依赖 CMake GUI，也不依赖 Visual Studio IDE。
-GitHub Actions 或其他标准 Windows 环境使用 `ci-windows-debug` portable preset；本机固定 F: 工具链使用 `windows-debug`、`windows-release` 和 `windows-asan`。
+项目使用 [CMakePresets.json](CMakePresets.json)，不依赖 CMake GUI，也不依赖 Visual Studio IDE。
+仓库内的 `windows-debug`、`windows-release` 和 `windows-asan` 只依赖已初始化的 MSVC developer environment；GitHub Actions 使用 `ci-windows-debug` portable preset。开发者机器的绝对工具链路径只能写入被 `.gitignore` 忽略的 `CMakeUserPresets.json`，不能提交或推送。
 
-预设中固定了以下路径：
+仓库内 preset 使用以下可移植配置：
 
 ```text
-CMAKE_MAKE_PROGRAM = F:/coding/FRAZIL/tools/bin/ninja.exe
-CMAKE_C_COMPILER  = F:/Visual Studio/Community/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe
-CMAKE_CXX_COMPILER = F:/Visual Studio/Community/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe
-CMAKE_RC_COMPILER = F:/Windows Kits/10/bin/10.0.22621.0/x64/rc.exe
-CMAKE_MT = F:/Windows Kits/10/bin/10.0.22621.0/x64/mt.exe
+CMAKE_MAKE_PROGRAM = ${sourceDir}/tools/bin/ninja.exe
+CMAKE_C_COMPILER  = cl
+CMAKE_CXX_COMPILER = cl
+CMAKE_RC_COMPILER = rc
+CMAKE_MT = mt
 ```
 
 构建前仍建议调用 MSVC 环境脚本：
 
 ```powershell
-$vcvars = 'F:\Visual Studio\Community\VC\Auxiliary\Build\vcvars64.bat'
-
-cmd /d /c 'call "F:\Visual Studio\Community\VC\Auxiliary\Build\vcvars64.bat" && set "PATH=F:\coding\FRAZIL\tools\bin;%PATH%" && cmake --preset windows-debug'
+# Run these commands from an MSVC Developer PowerShell, or after calling
+# the local Visual Studio environment script in the current shell.
+cmake --preset windows-debug
 ```
 
-注意：必须在 `vcvars64.bat` 执行完成后再把项目 Ninja 目录放到 PATH 前面。否则 `vcvars64.bat` 可能覆盖 PATH，导致 CMake 调用到其他位置的 Ninja。
+注意：必须在 `VsDevCmd.bat` 执行完成后再把项目 Ninja 目录放到 PATH 前面。否则 `VsDevCmd.bat` 可能覆盖 PATH，导致 CMake 调用到其他位置的 Ninja。
 
 ## 6. 构建、测试和插件验证
 
 ### 6.1 Debug
 
 ```powershell
-cmd /d /c 'call "F:\Visual Studio\Community\VC\Auxiliary\Build\vcvars64.bat" && set "PATH=F:\coding\FRAZIL\tools\bin;%PATH%" && cmake --preset windows-debug'
-cmd /d /c 'call "F:\Visual Studio\Community\VC\Auxiliary\Build\vcvars64.bat" && set "PATH=F:\coding\FRAZIL\tools\bin;%PATH%" && cmake --build --preset windows-debug --parallel 4'
+cmake --preset windows-debug
+cmake --build --preset windows-debug --parallel 4
 ctest --preset windows-debug
 ```
 
 Debug 输出：
 
 ```text
-F:\coding\FRAZIL\build\windows-debug\FRAZIL_artefacts\Debug\Standalone\FRAZIL.exe
-F:\coding\FRAZIL\build\windows-debug\FRAZIL_artefacts\Debug\VST3\FRAZIL.vst3
+<workspace-root>\build\windows-debug\FRAZIL_artefacts\Debug\Standalone\FRAZIL.exe
+<workspace-root>\build\windows-debug\FRAZIL_artefacts\Debug\VST3\FRAZIL.vst3
 ```
 
 ### 6.2 Release
 
 ```powershell
-cmd /d /c 'call "F:\Visual Studio\Community\VC\Auxiliary\Build\vcvars64.bat" && set "PATH=F:\coding\FRAZIL\tools\bin;%PATH%" && cmake --preset windows-release'
-cmd /d /c 'call "F:\Visual Studio\Community\VC\Auxiliary\Build\vcvars64.bat" && set "PATH=F:\coding\FRAZIL\tools\bin;%PATH%" && cmake --build --preset windows-release --parallel 4'
+cmake --preset windows-release
+cmake --build --preset windows-release --parallel 4
 ctest --preset windows-release
 ```
 
 ### 6.3 AddressSanitizer
 
 ```powershell
-cmd /d /c 'call "F:\Visual Studio\Community\VC\Auxiliary\Build\vcvars64.bat" && set "PATH=F:\coding\FRAZIL\tools\bin;%PATH%" && cmake --preset windows-asan'
-cmd /d /c 'call "F:\Visual Studio\Community\VC\Auxiliary\Build\vcvars64.bat" && set "PATH=F:\coding\FRAZIL\tools\bin;%PATH%" && cmake --build --preset windows-asan --parallel 4'
+cmake --preset windows-asan
+cmake --build --preset windows-asan --parallel 4
 ctest --preset windows-asan
 ```
 
-ASAN 测试运行时需要把 MSVC 的运行时目录加入 PATH；该配置已经写入 `windows-asan` test preset：
+ASAN 测试运行时需要把 MSVC 的运行时目录加入 PATH；仓库内 preset 依赖已初始化的 MSVC developer environment，本机若需显式配置则写入被忽略的 `local-windows-asan` test preset：
 
 ```text
-F:/Visual Studio/Community/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64
+MSVC developer environment 的 Hostx64/x64 目录
 ```
 
 ### 6.4 pluginval
 
 ```powershell
-& 'F:\coding\FRAZIL\tools\bin\pluginval.exe' `
+& '.\tools\bin\pluginval.exe' `
   --strictness-level 5 `
-  --validate 'F:\coding\FRAZIL\build\windows-debug\FRAZIL_artefacts\Debug\VST3\FRAZIL.vst3'
+  --validate '.\build\windows-debug\FRAZIL_artefacts\Debug\VST3\FRAZIL.vst3'
 ```
 
 当前验证覆盖了冷启动、热启动、编辑器、状态保存恢复、参数自动化、音频处理、总线布局，以及 44100/48000/96000 Hz 和多种 block size。
@@ -240,9 +240,9 @@ F:/Visual Studio/Community/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64
 project(FRAZIL VERSION 0.1.0 LANGUAGES C CXX)
 ```
 
-### 问题 2：JUCE 嵌套项目没有继承 F 盘工具链
+### 问题 2：JUCE 嵌套项目没有继承固定工具链
 
-**现象**：顶层 CMake 能识别 F 盘的 MSVC、Windows SDK 和 Ninja，但 JUCE 的 `juceaide` 或 VST3 manifest helper 在嵌套配置阶段找不到 `mt.exe`，或者调用了 C 盘其他位置的 Ninja。
+**现象**：顶层 CMake 能识别已初始化环境中的 MSVC、Windows SDK 和项目 Ninja，但 JUCE 的 `juceaide` 或 VST3 manifest helper 在嵌套配置阶段找不到 `mt.exe`，或者调用了其他位置的 Ninja。
 
 **原因**：JUCE 的部分辅助工程通过嵌套 CMake 调用生成，未自动继承本项目明确指定的 `CMAKE_MT`、编译器和资源编译器路径。
 
@@ -254,19 +254,19 @@ project(FRAZIL VERSION 0.1.0 LANGUAGES C CXX)
 2. `external/JUCE/extras/Build/juceaide/CMakeLists.txt`
    - `juceaide` 嵌套配置显式传递 `CMAKE_C_COMPILER`、`CMAKE_CXX_COMPILER`、`CMAKE_RC_COMPILER` 和 `CMAKE_MT`。
 
-这不是 FRAZIL 业务代码修改，而是为了支持“MSVC/Windows SDK 安装在 F 盘”的 JUCE 构建兼容补丁。若更换 JUCE 版本，应更新 patch、commit 和 ADR，并重新验证。
+这不是 FRAZIL 业务代码修改，而是为了支持“MSVC/Windows SDK 安装在非默认路径”的 JUCE 构建兼容补丁。若更换 JUCE 版本，应更新 patch、commit 和 ADR，并重新验证。
 
 ### 问题 3：PATH 顺序导致调用了错误的 Ninja
 
 **现象**：明明项目内有 `tools\bin\ninja.exe`，但构建日志显示 CMake 调用了其他位置的 Ninja。
 
-**原因**：先设置项目 PATH，再运行 `vcvars64.bat` 时，Visual Studio 环境脚本重新整理了 PATH。
+**原因**：先设置项目 PATH，再运行 `VsDevCmd.bat` 时，Visual Studio 环境脚本重新整理了 PATH。
 
 **修复**：始终采用以下顺序：
 
 ```text
-先 call vcvars64.bat
-再把 F:\coding\FRAZIL\tools\bin 放到 PATH 前面
+先 call VsDevCmd.bat
+再把 <workspace-root>\tools\bin 放到 PATH 前面
 最后执行 cmake
 ```
 
@@ -276,7 +276,7 @@ project(FRAZIL VERSION 0.1.0 LANGUAGES C CXX)
 
 **原因**：PATH 中的 LLVM 排在 MSVC 工具链前，CMake 自动选择了 Clang。
 
-**修复**：本机 Windows 预设明确指定 MSVC 的 `cl.exe`、`rc.exe` 和 `mt.exe`；portable CI 预设从 MSVC developer environment 解析 `cl.exe`，并通过 PATH 使用 `rc`/`mt`，ASAN 继续使用 MSVC AddressSanitizer。
+**修复**：仓库内 Windows preset 使用 `cl`、`rc` 和 `mt` 的环境发现；本机如需固定安装位置，使用被忽略的 `CMakeUserPresets.json`，portable CI 预设从 MSVC developer environment 解析工具，ASAN 继续使用 MSVC AddressSanitizer。
 
 ### 问题 5：ASAN CTest 找不到运行时 DLL
 
@@ -284,10 +284,10 @@ project(FRAZIL VERSION 0.1.0 LANGUAGES C CXX)
 
 **原因**：测试进程找不到 MSVC AddressSanitizer 运行时 DLL。
 
-**修复**：在 `windows-asan` test preset 的 PATH 前面加入：
+**修复**：在 MSVC developer environment 中运行 CTest；本机若需要显式加入运行时目录，将其写在被忽略的 `local-windows-asan` test preset 中，不进入仓库：
 
 ```text
-F:\Visual Studio\Community\VC\Tools\MSVC\14.43.34808\bin\Hostx64\x64
+<msvc-root>\VC\Tools\MSVC\14.44.35207\bin\Hostx64\x64
 ```
 
 修复后 ASAN smoke test 通过。
@@ -301,7 +301,7 @@ F:\Visual Studio\Community\VC\Tools\MSVC\14.43.34808\bin\Hostx64\x64
 **修复**：`CMakePresets.json` 的 Debug、Release、ASAN build preset 均指定：
 
 ```json
-"targets": ["FRAZIL_All", "frazil_smoke", "frazil_tests"]
+"targets": ["FRAZIL_All", "frazil_smoke", "frazil_tests", "frazil_plugin_integration"]
 ```
 
 这样协作者使用 `cmake --build --preset ...` 时会同时构建 Standalone 和 VST3。
@@ -319,7 +319,7 @@ F:\Visual Studio\Community\VC\Tools\MSVC\14.43.34808\bin\Hostx64\x64
 打开目录：
 
 ```text
-F:\coding\FRAZIL
+<workspace-root>
 ```
 
 推荐扩展由 `.vscode\extensions.json` 提供，核心扩展为：
@@ -336,12 +336,12 @@ F:\coding\FRAZIL
 
 ## 9. 当前验证结论
 
-截至 2026-09-06：
+截至 2026-09-07：
 
 - Debug 构建通过。
 - Release 构建通过。
-- Debug、Release、ASAN 的 `frazil_smoke` CTest 通过；Debug 还验证了 `frazil_tests` 的 2 个 unit cases。
-- Debug 和 Release VST3 均通过 pluginval 严格度 5。
+- Debug、Release、ASAN 的 smoke、unit 和 plugin integration CTest 均通过（每个配置 3/3）。
+- Debug VST3 通过 pluginval 严格度 5、seed 12345；Steinberg VST3 Validator 尚未配置。
 - Standalone 和 VST3 产物均可生成。
 - 日常 VS Code 编译、Standalone 调试和 VST3 验证链路可用。
 

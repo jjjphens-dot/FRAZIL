@@ -43,8 +43,8 @@ ctest --preset windows-debug
 ```
 
 `windows-release` 与 `windows-asan` 使用同名 configure/build/test preset。CI 或其他 Windows
-机器在 MSVC developer environment 已初始化后使用 `ci-windows-debug`，它不包含 F: 盘路径。
-Windows 工具链初始化、pluginval 和本机固定路径见 [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)。
+机器在 MSVC developer environment 已初始化后使用 `ci-windows-debug`，它不包含本机绝对路径。
+Windows 工具链初始化、pluginval 和本机 ignored user preset 规则见 [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)。
 所有构建输出、Python 环境和工具缓存必须留在工作区且不得提交。
 
 ## 仓库

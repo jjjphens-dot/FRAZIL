@@ -9,7 +9,7 @@
     {
       "name": "windows-base",
       "displayName": "Windows / Ninja base",
-      "description": "Shared FRAZIL configuration. Build directories remain on the F: workspace drive.",
+      "description": "Shared FRAZIL configuration. Build directories remain under the workspace.",
       "hidden": true,
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
@@ -18,10 +18,10 @@
       },
       "cacheVariables": {
         "CMAKE_MAKE_PROGRAM": "${sourceDir}/tools/bin/ninja.exe",
-        "CMAKE_C_COMPILER": "F:/Visual Studio/Community/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe",
-        "CMAKE_CXX_COMPILER": "F:/Visual Studio/Community/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe",
-        "CMAKE_RC_COMPILER": "F:/Windows Kits/10/bin/10.0.22621.0/x64/rc.exe",
-        "CMAKE_MT": "F:/Windows Kits/10/bin/10.0.22621.0/x64/mt.exe",
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_RC_COMPILER": "rc",
+        "CMAKE_MT": "mt",
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_CXX_STANDARD_REQUIRED": "ON",
         "CMAKE_CXX_EXTENSIONS": "OFF",
@@ -145,7 +145,7 @@
       "name": "windows-asan",
       "configurePreset": "windows-asan",
       "environment": {
-        "PATH": "F:/Visual Studio/Community/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64;F:/coding/FRAZIL/tools/bin;$penv{PATH}"
+        "PATH": "${sourceDir}/tools/bin;$penv{PATH}"
       },
       "output": {
         "outputOnFailure": true

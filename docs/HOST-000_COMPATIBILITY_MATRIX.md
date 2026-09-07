@@ -101,8 +101,8 @@ Windows 11 x64 是当前 v1 support intent，不是对所有 Windows 11 机器�
 
 | Host | Exact version discovered | Local executable / evidence | Frozen role | Current status |
 |---|---|---|---|---|
-| Ableton Live 12 Suite | `12.4.2` | `C:\ProgramData\Ableton\Live 12 Suite\Program\Ableton Live 12 Suite.exe`; executable ProductVersion/FileVersion `12.4.2` | Primary development DAW | Installed/discovered; launch, scan, enumeration, automation and save/reopen **Not run** |
-| FL Studio 2025 | `25.1.4.4951` | `D:\Arrange\FL25\FL64.exe`; executable ProductVersion `25.1.4.4951` | Primary validation DAW | Installed/discovered; launch, scan, enumeration, automation and save/reopen **Not run** |
+| Ableton Live 12 Suite | `12.4.2` | Installed-app executable discovered; absolute local path intentionally omitted | Primary development DAW | Installed/discovered; launch, scan, enumeration, automation and save/reopen **Not run** |
+| FL Studio 2025 | `25.1.4.4951` | Installed-app executable discovered; absolute local path intentionally omitted | Primary validation DAW | Installed/discovered; launch, scan, enumeration, automation and save/reopen **Not run** |
 | REAPER | Exact version not discovered | No matching installed-app entry or executable found in the audited locations | Secondary/lightweight validation candidate | **Unknown / not installed evidence**; cannot claim validation |
 | JUCE Standalone | Project target; runtime version not separately frozen | Role defined by JUCE/CMake target | Development/debug host | **Not a DAW**; no DAW compatibility claim |
 
@@ -258,7 +258,7 @@ Per the current working instruction, use version/commit identifiers and evidence
 
 ### Current local availability
 
-- `E:\FRAZIL\tools\bin\pluginval.exe` was found with ProductVersion/FileVersion `1.0.4`.
+- `tools/bin/pluginval.exe` was found with ProductVersion/FileVersion `1.0.4`; the absolute local path is intentionally omitted.
 - The executable responded to `--help`; this proves tool availability only, not FRAZIL validation.
 - HOST-000 did not run pluginval against a current artifact.
 

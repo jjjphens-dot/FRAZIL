@@ -39,7 +39,7 @@
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration verified；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
 | UI | 640x360 M0 占位界面 | 非产品 UI |
 | Tests | `frazil_smoke` + `frazil_tests` + `frazil_plugin_integration` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state/XML restore + STATE-002/AUTO-001 plugin integration 覆盖；DSP property/真实 DAW 测试未完成 |
-| Local validation | 本分支使用当前机器 VS2022/MSVC 14.44 的 portable Debug configure/build，以及独立 Release/ASAN configure/build；每个配置的 smoke、unit、plugin integration 共 3/3 PASS | 已验证；仓库固定 F: preset 因当前环境路径不同未使用 |
+| Local validation | 本分支使用当前机器 VS2022/MSVC 14.44 的 windows-debug/windows-release/windows-asan preset；每个配置的 smoke、unit、plugin integration 共 3/3 PASS | 已验证；本机绝对路径仅在 ignored `CMakeUserPresets.json`，仓库 preset 保持可移植 |
 | pluginval | 本分支 `ci-windows-debug` Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
 | Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；本次 integration audit 观察到 `origin/main` 为 `12d36a4`；HOST-000 frozen-target 首次 push commit 为 `ceccc2d51598a7a794220b4d71009c359f25e007`；实时 branch HEAD 由 Git 命令确认；PR #5 已将 STATE-001 合入 `main` | HOST-000 push 已完成；PR/CI/merge 尚未完成；Issues/Milestones/Projects metadata 未建立 |
 
