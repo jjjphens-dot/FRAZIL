@@ -15,7 +15,7 @@
 建议顺序：
 
 ```powershell
-Set-Location F:\coding\FRAZIL
+Set-Location <repo-root>
 git init -b main
 git remote add origin https://github.com/jjjphens-dot/FRAZIL.git
 git status --short

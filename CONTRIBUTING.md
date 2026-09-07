@@ -44,7 +44,7 @@ PR 保持单一目标，并使用仓库模板填写：
 
 ```powershell
 cmake --preset windows-debug
-cmake --build --preset windows-debug
+python tools/build_safe.py --preset windows-debug
 ctest --preset windows-debug
 ```
 
