@@ -17,7 +17,7 @@
 当前阻塞性差距：
 
 1. PR #5 squash merge commit 为 `12d36a40d03944f9c69cd273d1cc3dca3e0b6ee7`；STATE-001 = MERGED / validated；`feat/m1-parameter-engine-contract` 与 `feat/m1-state-contract` 保留为历史 feature 分支。本文件记录 verified merge/evidence snapshots；current `main` HEAD should be read from GitHub，不把本文件中的 snapshot 当作永久 current HEAD；
-2. PR #5 合并后 main 的 [Hosted CI run 34091515810](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34091515810) 已完成 Windows Debug configure/build/test 并通过；PR #4、PR #3 和 PR #2 的既有 Hosted CI 证据也已通过；workflow/API 的更细粒度权限与 branch protection 未验证；
+2. PR #5 合并后 main 的 [Hosted CI run 34091515810](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34091515810) 已完成 Windows Debug configure/build/test 并通过；PR #4、PR #3 和 PR #2 的既有 Hosted CI 证据也已通过；当前 GitHub branch listing 报告 `main` 为 `protected:false`；fine-grained repository ruleset / admin-level branch-protection configuration 尚未以充分的管理员证据独立验证；不据此推断不存在其它规则集；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；STATE-001 已建立已知 pre-v1 ID migration fixture，公开版本兼容性仍需后续 freeze/evidence；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
 5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；本次 STATE-001 Debug VST3 pluginval strictness 5 已通过，尚未覆盖 render 和 DAW automation；
@@ -25,7 +25,7 @@
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug；从下一条需要双人 review 的核心 PR 开始，必须留下 formal review 或满足治理规则的第二位开发者 comment evidence；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证。
+10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；不据此推断不存在其它规则集。
 
 ## 2. 已有资产
 
@@ -111,7 +111,7 @@ PluginProcessor
 
 ## 5. 现状对应 milestone
 
-- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000、GitHub metadata 与 branch protection 尚未收口。
+- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000、GitHub metadata 与 branch-protection evidence 尚未收口（branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level 配置未独立验证）。
 - M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 M1-C STATE-001 versioned StateModel/Host State Adapter foundation 已实现并合入 `main`；STATE-002 mode-value-retention integration、automation integration、render/property/performance、DAW 验证和正式参数 freeze 仍未完成；M5 EditHistoryManager 仍未开始。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。

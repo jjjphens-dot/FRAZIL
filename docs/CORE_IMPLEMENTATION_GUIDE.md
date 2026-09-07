@@ -419,7 +419,8 @@ y_k[n]=2r_k\cos(\omega_k)y_k[n-1]-r_k^2y_k[n-2]+b_kx[n]
 - `fk` 始终低于带安全裕量的 Nyquist；
 - modulation 后重新 clamp；
 - 模态总 gain 有明确上界；
-- `reset()` 清零全部 delay state；
+- `reset()` clears all resonator/modal persistent state, including previous modal samples such as
+  `y[n-1]`/`y[n-2]` and any candidate-specific modulation/envelope state owned by the processor；
 - silence tail 应按算法定义衰减。
 - silence tail 必须检查 denormal/subnormal behavior，不能在长静音或 tail 期间出现 uncontrolled
 CPU spike；可由 production implementation 选择 `juce::ScopedNoDenormals` 或 mathematically
@@ -576,8 +577,13 @@ I(x)=x+\beta_f f+\beta_m\sum_k y_k+\beta_c\sum_j c_j
 
 ```text
 root type: FRAZIL
-schemaVersion: integer
-parameters: complete static APVTS state
+schemaVersion: 1
+parameters:
+  exactly nine canonical static Host parameter values;
+  each encoded as a PARAM node with `id` and `value` attributes
+APVTS:
+  source and restore target for Host parameter values;
+  APVTS internal ValueTree layout is not itself the persistent wire schema
 non-parameter persistent UI state: only when required
 edit history: never serialized
 ```

@@ -144,8 +144,11 @@ M1 应从裸 APVTS XML 约定升级为有版本的 state adapter：
 
 ```text
 root type: FRAZIL
-schemaVersion: integer
-parameters: APVTS state
+schemaVersion: 1
+parameters:
+  exactly nine canonical static Host parameter values;
+  each serialized as a PARAM node with `id` and `value` attributes by the versioned Host State Adapter
+APVTS remains the Host-side source/restore target and is not the stable wire-format contract itself.
 non-parameter persistent UI state: 仅在确有需要时加入
 edit history: 永不序列化
 ```
