@@ -33,7 +33,7 @@ git push -u origin main
 
 1. `tools/bootstrap_dependencies.ps1` 拉取 JUCE 9.0.1 的固定 commit；
 2. 脚本幂等应用 `tools/patches/JUCE-9.0.1-msvc-toolchain.patch`；
-3. 本地 F: preset 与 portable CI preset 分离。
+3. 所有共享 Windows preset 使用 portable tool discovery；本地 toolchain 或 build directory 差异只写入 ignored `CMakeUserPresets.json`。
 
 不允许“依赖开发者机器上恰好存在的 external/JUCE”。`tools/bin` 和下载包不入库，bootstrap 文档固定下载地址和 revision。
 
@@ -138,7 +138,7 @@ Documentation Synchronization Gate 的 canonical 规则位于 [`DOCUMENT_GOVERNA
 - 目标 DAW matrix；
 - artifact hash、版本、changelog、license/notice。
 
-CI 不应使用本机 F: 盘绝对 compiler/SDK 路径。保留 `windows-debug` 等本地 presets，同时新增继承同一 cache contract 的 portable CI preset。
+CI 不应使用本机盘符、compiler/SDK 安装目录或用户名路径。`windows-debug`、`windows-release`、`windows-asan` 与 `ci-windows-debug` 共享 portable tool discovery；本地差异通过 ignored `CMakeUserPresets.json` 注入，CI 不读取该文件。
 
 ## 8. Release 与版本
 
