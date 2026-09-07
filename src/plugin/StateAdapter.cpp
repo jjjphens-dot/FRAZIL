@@ -3,10 +3,8 @@
 #include "ParameterLayout.h"
 
 #include <array>
-#include <cctype>
-#include <cerrno>
+#include <charconv>
 #include <cmath>
-#include <cstdlib>
 #include <limits>
 
 namespace frazil::plugin {
@@ -31,6 +29,10 @@ enum class KnownParameter : std::uint8_t {
     outputGain,
 };
 
+bool isAsciiDigit(char character) noexcept {
+    return character >= '0' && character <= '9';
+}
+
 bool isNativeNumeric(const juce::var& value) noexcept {
     return value.isInt() || value.isInt64() || value.isDouble();
 }
@@ -42,18 +44,18 @@ bool parseNumericString(const juce::String& text, double& result) {
     if (cursor == nullptr || *cursor == '\0')
         return false;
 
-    if (*cursor == '+' || *cursor == '-')
+    if (*cursor == '-')
         ++cursor;
 
     bool hasMantissaDigit = false;
-    while (std::isdigit(static_cast<unsigned char>(*cursor)) != 0) {
+    while (isAsciiDigit(*cursor)) {
         hasMantissaDigit = true;
         ++cursor;
     }
 
     if (*cursor == '.') {
         ++cursor;
-        while (std::isdigit(static_cast<unsigned char>(*cursor)) != 0) {
+        while (isAsciiDigit(*cursor)) {
             hasMantissaDigit = true;
             ++cursor;
         }
@@ -68,7 +70,7 @@ bool parseNumericString(const juce::String& text, double& result) {
             ++cursor;
 
         bool hasExponentDigit = false;
-        while (std::isdigit(static_cast<unsigned char>(*cursor)) != 0) {
+        while (isAsciiDigit(*cursor)) {
             hasExponentDigit = true;
             ++cursor;
         }
@@ -80,10 +82,8 @@ bool parseNumericString(const juce::String& text, double& result) {
     if (*cursor != '\0')
         return false;
 
-    errno = 0;
-    char* end = nullptr;
-    result = std::strtod(text.toRawUTF8(), &end);
-    return end != nullptr && *end == '\0' && errno != ERANGE;
+    const auto parsed = std::from_chars(text.toRawUTF8(), cursor, result);
+    return parsed.ec == std::errc{} && parsed.ptr == cursor;
 }
 
 bool readNumericValue(const juce::var& value, double& result) {
