@@ -43,6 +43,23 @@
 | pluginval | STATE-001 Debug VST3 strictness 5 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
 | Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；PR #5 STATE-001 squash merge snapshot 已验证；current main HEAD 应从 GitHub 读取，feature branch 作为历史/协作分支保留 | PR #2 / PR #3 / PR #4 / PR #5 与 post-merge main Hosted CI success；Issues/Milestones/Projects metadata 未建立 |
 
+## 2.1 Clean portability/build-safety PR evidence
+
+Clean branch fix/repository-portability-safety is based on origin/main at 00ebd8e; final head is 03bee6a and PR #8 targets main. Hosted GitHub Actions run 34128576335 (pull_request) completed successfully.
+
+- Portability scanner：PASS。
+- Portability regression tests：PASS。
+- Build-safety regression tests：PASS。
+- Configure：PASS；portable-windows-base provides CMAKE_BUILD_PARALLEL_LEVEL=6。
+- Safe ci-windows-debug build：PASS。
+- CTest：PASS。
+- Final PR mergeability：MERGEABLE / CLEAN。
+- Local 6-job and 8-job check-only：REFUSED by the existing memory gate because only about 2.45-2.48 GiB was available；no local C++ build was started。
+- Release：NOT RUN。
+- ASAN：NOT RUN。
+
+本 clean PR 保留 current main 的 FRAZIL_All、frazil_smoke 和 frazil_tests targets；没有移植 HOST-000、M1 state/automation、frazil_plugin_integration 或产品/DSP/UI 修改。
+
 ## 3. 当前源码映射
 
 ```text
