@@ -14,7 +14,8 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "environment": {
-        "PATH": "${sourceDir}/tools/bin;$penv{PATH}"
+        "PATH": "${sourceDir}/tools/bin;$penv{PATH}",
+        "CMAKE_BUILD_PARALLEL_LEVEL": "6"
       },
       "cacheVariables": {
         "CMAKE_MAKE_PROGRAM": "ninja",

@@ -37,7 +37,7 @@ python tools/check_portability.py
 
 在已初始化 MSVC developer environment 的 Windows PowerShell 中构建：
 
-本地构建入口使用 tools/build_safe.py，默认 6 个 job、硬上限 8 个 job。
+本地构建入口使用 tools/build_safe.py，默认 6 个 job、硬上限 8 个 job。 共享 configure preset 同时注入 CMAKE_BUILD_PARALLEL_LEVEL=6，约束 JUCE configure 阶段的 nested build；本机 Debug、Release、ASAN 等重型 pipeline 必须串行执行。
 
 ```powershell
 cmake --preset windows-debug

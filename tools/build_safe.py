@@ -8,6 +8,7 @@ import ctypes
 import os
 import subprocess
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,15 +47,34 @@ def validate_job_count(jobs: int) -> int:
     return jobs
 
 
-def validate_environment() -> None:
-    value = os.environ.get("CMAKE_BUILD_PARALLEL_LEVEL")
+def validate_environment(
+    environment: Mapping[str, str] | None = None,
+) -> int | None:
+    values = os.environ if environment is None else environment
+    value = values.get("CMAKE_BUILD_PARALLEL_LEVEL")
     if value is None:
-        return
+        return None
     try:
         environment_jobs = int(value)
-    except ValueError as error:
+    except (TypeError, ValueError) as error:
         raise ValueError("CMAKE_BUILD_PARALLEL_LEVEL must be an integer") from error
-    validate_job_count(environment_jobs)
+    return validate_job_count(environment_jobs)
+
+
+def required_memory_bytes(jobs: int) -> int:
+    validate_job_count(jobs)
+    return max(BASE_AVAILABLE_MEMORY_BYTES, jobs * MEMORY_PER_JOB_BYTES)
+
+
+def validate_memory(available_bytes: int | None, jobs: int) -> None:
+    required_memory = required_memory_bytes(jobs)
+    if available_bytes is None or available_bytes >= required_memory:
+        return
+    available_gib = available_bytes / (1024**3)
+    raise ValueError(
+        f"only {available_gib:.2f} GiB physical memory is available; "
+        f"at least {required_memory / (1024**3):.0f} GiB is required for {jobs} jobs."
+    )
 
 
 def available_physical_memory() -> int | None:
@@ -86,6 +106,18 @@ def tail_log(log_path: Path, line_count: int = 80) -> list[str]:
     return lines[-line_count:]
 
 
+def run_build(command: list[str], log_path: Path) -> int:
+    with log_path.open("w", encoding="utf-8", errors="replace") as log_file:
+        result = subprocess.run(
+            command,
+            cwd=ROOT,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+    return result.returncode
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--preset", choices=SUPPORTED_PRESETS, required=True)
@@ -96,23 +128,9 @@ def main() -> int:
     try:
         jobs = validate_job_count(args.jobs)
         validate_environment()
+        validate_memory(available_physical_memory(), jobs)
     except ValueError as error:
         print(f"Build safety check: REFUSED: {error}", file=sys.stderr)
-        return 2
-
-    required_memory = max(BASE_AVAILABLE_MEMORY_BYTES, jobs * MEMORY_PER_JOB_BYTES)
-    available_memory = available_physical_memory()
-    if (
-        available_memory is not None
-        and available_memory < required_memory
-    ):
-        available_gib = available_memory / (1024**3)
-        print(
-            "Build safety check: REFUSED: only "
-            f"{available_gib:.2f} GiB physical memory is available; "
-            f"at least {required_memory / (1024**3):.0f} GiB is required for {jobs} jobs.",
-            file=sys.stderr,
-        )
         return 2
 
     if args.check_only:
@@ -128,23 +146,16 @@ def main() -> int:
     )
 
     try:
-        with log_path.open("w", encoding="utf-8", errors="replace") as log_file:
-            result = subprocess.run(
-                command,
-                cwd=ROOT,
-                stdout=log_file,
-                stderr=subprocess.STDOUT,
-                check=False,
-            )
+        result = run_build(command, log_path)
     except OSError as error:
         print(f"Build safety check: FAILED to start build: {error}", file=sys.stderr)
         return 1
 
-    if result.returncode != 0:
-        print(f"Build failed with exit code {result.returncode}. Last log lines:")
+    if result != 0:
+        print(f"Build failed with exit code {result}. Last log lines:")
         for line in tail_log(log_path):
             print(line)
-        return result.returncode if 0 < result.returncode < 256 else 1
+        return result if 0 < result < 256 else 1
 
     print("Build completed successfully.")
     return 0

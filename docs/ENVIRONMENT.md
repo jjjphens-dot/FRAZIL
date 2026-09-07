@@ -60,7 +60,7 @@ tracked 的 CMakePresets.json、.vscode/tasks.json 和 CI workflow 不包含开�
 
 ASAN test preset 会从 VCToolsInstallDir 加入 MSVC runtime directory；如果从普通 PowerShell 运行，请先进入 Developer PowerShell 或对应的 x64 Native Tools 环境。
 
-本地 build 必须通过 tools/build_safe.py；默认使用 6 个 job，硬上限 8 个 job，并按可用物理内存执行 preflight。wrapper 将完整编译输出写入 ignored 的 build/safe-build 日志，避免终端被 include trace 淹没。
+本地 build 必须通过 tools/build_safe.py；默认使用 6 个 job，硬上限 8 个 job，并按可用物理内存执行 preflight。wrapper 将完整编译输出写入 ignored 的 build/safe-build 日志，避免终端被 include trace 淹没。 共享 configure preset 将 CMAKE_BUILD_PARALLEL_LEVEL 固定为 6，用于约束 JUCE configure 阶段的 nested build；本机重型 pipeline 必须串行执行。
 
 ## VS Code
 
@@ -68,7 +68,7 @@ ASAN test preset 会从 VCToolsInstallDir 加入 MSVC runtime directory；如果
 
 - Ctrl+Shift+B 调用 FRAZIL: build windows-debug；
 - Run and Debug 中选择 FRAZIL Standalone (Debug)；
-- task 和 launch configuration 使用 workspaceFolder，不知道开发者的 clone 位置；
+- task 和 launch configuration 使用 workspaceFolder，不知道开发者的 clone 位置；build task 调用受控 wrapper；
 - 首次 checkout 先完成 configure，再使用 build task。
 
 ## pluginval

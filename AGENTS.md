@@ -14,6 +14,8 @@
 - 本地 Windows 构建必须通过 python tools/build_safe.py --preset <name>，默认 6 个 job，硬上限 8 个 job；wrapper 会在构建前检查可用物理内存，并把完整输出写入 ignored 的 build 日志。
 - 安全检查拒绝时不得通过删除检查、提高并发上限或改用裸 CMake/Ninja 命令绕过；应停止并报告资源状态。
 - Hosted CI 也使用同一受控 wrapper；构建失败时只回显有限日志尾部，避免把海量 compiler include 输出灌入终端。
+- 共享的 portable-windows-base configure preset 注入 CMAKE_BUILD_PARALLEL_LEVEL=6，用于约束 configure 阶段的 JUCE nested build；不得通过修改环境变量绕过安全检查。
+- Agent 不得在本机并发运行多个 configure/build/test pipeline；Debug、Release、ASAN 和其他重型 preset 必须串行执行。
 ## 1. 当前基线
 
 - 当前阶段：M1-C 前置；M1-A/M1-B Parameter/Engine foundation 已合入 `main`，M1 尚未完成。

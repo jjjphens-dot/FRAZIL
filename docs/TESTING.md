@@ -237,7 +237,7 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 
 ## 8. 验证命令
 
-本机基础：
+本机基础：configure preset 会为 configure 阶段的 JUCE nested build 注入 CMAKE_BUILD_PARALLEL_LEVEL=6；build 必须通过 build_safe wrapper。Debug、Release、ASAN 和其他重型 configure/build/test pipeline 必须串行执行，不得并发启动。
 
 仓库 portability：
 

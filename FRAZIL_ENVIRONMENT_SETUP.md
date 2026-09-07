@@ -114,7 +114,7 @@ Release 和 ASAN：
 
 ASAN CTest 通过 VCToolsInstallDir 找到 MSVC runtime directory；这要求测试命令继承已初始化的 MSVC environment。
 
-本地构建统一使用 tools/build_safe.py；默认 6 个 job、硬上限 8 个 job，并在低可用内存时拒绝启动。完整编译输出写入 ignored 的 build/safe-build 日志。
+本地构建统一使用 tools/build_safe.py；默认 6 个 job、硬上限 8 个 job，并在低可用内存时拒绝启动。完整编译输出写入 ignored 的 build/safe-build 日志。 共享 configure preset 将 CMAKE_BUILD_PARALLEL_LEVEL 固定为 6，以约束 JUCE nested build；本机重型 configure/build/test pipeline 必须串行执行。
 
 ## 9. Portability scan
 
@@ -132,7 +132,7 @@ scanner 检查 tracked source/config/script/canonical documentation 中的 Windo
 
 - Ctrl+Shift+B 执行 FRAZIL: build windows-debug；
 - Run and Debug 选择 FRAZIL Standalone (Debug)；
-- task 使用 workspaceFolder，并直接调用 cmake；
+- task 使用 workspaceFolder，并调用受控 build_safe wrapper；
 - 首次 checkout 先运行 windows-debug configure。
 
 VS Code task 不负责猜测 Visual Studio 安装位置；工具链初始化由开发者环境完成。

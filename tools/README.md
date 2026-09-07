@@ -22,7 +22,7 @@ Build safety:
 The wrapper is the only approved local build entry: it refuses more than eight
 jobs and defaults to six, refuses insufficient available physical memory, and writes full compiler
 output to ignored build/safe-build/<preset>.log. It prints only a bounded tail
-when the build fails. Do not replace it with a bare --parallel invocation.
+when the build fails. The shared configure preset also sets CMAKE_BUILD_PARALLEL_LEVEL=6 for JUCE nested builds. Do not replace it with a bare --parallel invocation, and do not run multiple heavy configure/build/test pipelines concurrently.
 Portability checks：
 
     python tools/check_portability.py
