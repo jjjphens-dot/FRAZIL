@@ -1,6 +1,6 @@
 # [M0][HOST-000] 初始平台与 DAW 兼容性矩阵
 
-> 状态：**Product targets frozen by Sound & Host Lead; Engineering Lead review pending; HOST-001 evidence pending**
+> 状态：**Product targets frozen by Sound & Host Lead; Engineering Lead review required; HOST-001 evidence required**
 > Implementation DRI：Sound & Host Lead
 > Required reviewer：Engineering Lead
 > Initial HOST-000 audit baseline：`origin/main` observed `b91f619`（历史事实，2026-09-07）；本次 integration audit observed `origin/main` `12d36a4`；live remote HEAD 必须由 Git 命令确认
@@ -135,7 +135,7 @@ The following layers answer different questions and must not be substituted for 
 | Layer | Tool / scope | Evidence boundary | Current status |
 |---|---|---|---|
 | Layer 1 — VST3 format conformance | Steinberg VST3 Validator | Checks VST3 API, component, bundle and format conformance; suitable for CI | Validator was not configured/run in this task; `Planned` |
-| Layer 2 — Cross-host stress validation | Tracktion `pluginval` | Generic plugin stability/compatibility checks; PR strictness 5, nightly 7, Beta/Release 10 | Historical strictness 5 evidence exists; current artifact not run; 7/10 `Planned` |
+| Layer 2 — Cross-host stress validation | Tracktion `pluginval` | Generic plugin stability/compatibility checks; HOST-001 strictness 5; higher-strictness nightly/Beta/Release runs are non-binding proposals and remain TBD until added to the canonical testing contract | Historical strictness 5 evidence exists; current artifact not run; higher-strictness runs are not current acceptance gates |
 | Layer 3 — Real DAW acceptance | Ableton `12.4.2`, FL Studio `25.1.4.4951`, REAPER exact version TBD | Scan/load, bus, parameter, automation, state, editor and offline render | HOST-001; current cases `Not run` |
 | Layer 4 — Release environment | Clean Windows 11 x64 machine | Install/uninstall, standard VST3 path, versioned artifact, multi-instance and long-running behavior | M6/M7 scope; not HOST-000 evidence |
 
@@ -143,7 +143,7 @@ Validator PASS or pluginval PASS does not equal real DAW PASS. Standalone PASS d
 
 ## 7. M1 Host smoke scenarios
 
-Each frozen host target must run the following HOST-001 cases: the primary development DAW, the primary validation DAW, and the secondary host once its exact REAPER version is locked. Each result is recorded as `Verified`, `Failed`, `Blocked` or `Not run`; “planned” is not evidence.
+Each frozen host target must run the following HOST-001 cases: the primary development DAW, the primary validation DAW, and the secondary host once its exact REAPER version is locked. Each result is recorded as `Passed`, `Failed`, `Blocked` or `Not run`; “planned” is not evidence.
 
 ### 7.1 Scan and load
 
@@ -286,7 +286,7 @@ The verification layers and host-format boundaries use the following primary ref
 - Ableton Live and FL Studio are installed candidates, not validated hosts.
 - REAPER was not discovered; the secondary host role is unresolved.
 - Windows 11 x64 is the frozen v1 platform target; the reference machine is not evidence that every Windows 11 machine is compatible.
-- Official v1 target intent is frozen by Sound & Host Lead; formal Engineering Lead review and HOST-001 evidence are pending. Do not call this `Done` or `Development Validated`.
+- Official v1 target intent is frozen by Sound & Host Lead; `Officially Supported` and `Development Validated` classifications require the review and HOST-001 evidence conditions above. Do not call this `Done` or `Development Validated` without those conditions.
 - No ADR is required because this records the existing Windows VST3 v1 boundary and does not change architecture or public parameter semantics. A new ADR is required only if a future decision changes a locked contract or product boundary.
 
 ## 13. Review checklist
