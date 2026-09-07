@@ -112,7 +112,7 @@ Release 和 ASAN：
     python tools/build_safe.py --preset windows-asan
     ctest --preset windows-asan
 
-ASAN CTest 通过 VCToolsInstallDir 找到 MSVC runtime directory；这要求测试命令继承已初始化的 MSVC environment。
+ASAN configure 从 C++ compiler 目录发现 MSVC runtime；构建时将 clang_rt.asan_dynamic-x86_64.dll 复制到测试 executable 旁，CTest 通过同一目录注入 PATH。因此构建仍需 VS Code/MSVC developer environment，但构建完成后可从普通 PowerShell、VS Code 测试面板或 executable 目录运行 ASAN 测试。
 
 本地构建统一使用 tools/build_safe.py；默认 6 个 job、硬上限 8 个 job，并在低可用内存时拒绝启动。完整编译输出写入 ignored 的 build/safe-build 日志。 共享 configure preset 将 CMAKE_BUILD_PARALLEL_LEVEL 固定为 6，以约束 JUCE nested build；本机重型 configure/build/test pipeline 必须串行执行。
 
@@ -154,7 +154,7 @@ VS Code workspace profile 和 task 会自动加载 MSVC developer environment，
 - configure 找不到 cl、rc 或 mt：确认当前 VS Code terminal 使用 FRAZIL MSVC x64 profile，并重新运行 FRAZIL: configure windows-debug (MSVC)；
 - configure 找不到 Ninja：安装 Ninja，或把固定版本放入 tools/bin；
 - JUCE 缺失或 revision 不匹配：重新运行 tools/bootstrap_dependencies.ps1；
-- ASAN 测试找不到 runtime DLL：确认命令继承 VCToolsInstallDir，且使用 windows-asan test preset；
+- ASAN 测试找不到 runtime DLL：先重新配置并构建 windows-asan；runtime 会从 C++ compiler 目录发现并复制到测试 executable 旁，不要通过个人绝对路径修改 tracked preset；
 - VS Code build task 找不到 build tree：先运行 cmake --preset windows-debug；
 - 不要把上述问题通过修改 tracked preset 改成某个个人绝对路径。
 

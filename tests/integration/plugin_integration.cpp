@@ -135,19 +135,17 @@ void testModeSwitchRetainsInactiveValuesAcrossStateReopen(TestContext& context) 
     juce::MidiBuffer midi;
     juce::AudioBuffer<float> buffer(2, kBlockSize);
     constexpr std::array<float, 4> routingModes{0.0f, 1.0f, 2.0f, 0.0f};
-    constexpr std::array<float, 4> waterAmounts{0.35f, 0.45f, 0.65f, 0.35f};
-    constexpr std::array<float, 4> iceAmounts{0.8f, 0.55f, 0.25f, 0.8f};
-    for (std::size_t index = 0; index < routingModes.size(); ++index) {
-        setParameterValue(context, source, frazil::plugin::parameterIds::routingMode, routingModes[index]);
-        setParameterValue(context, source, frazil::plugin::parameterIds::waterAmount, waterAmounts[index]);
-        setParameterValue(context, source, frazil::plugin::parameterIds::iceAmount, iceAmounts[index]);
+    constexpr float kWaterAmount = 0.35f;
+    constexpr float kIceAmount = 0.8f;
+    for (const auto routingMode : routingModes) {
+        setParameterValue(context, source, frazil::plugin::parameterIds::routingMode, routingMode);
         fillBuffer(buffer, 1.0f);
         source.processBlock(buffer, midi);
 
         expectNear(context, getParameterValue(context, source, frazil::plugin::parameterIds::waterAmount),
-                   waterAmounts[index], 1.0e-6f, "Water amount survives every routing mode switch");
+                   kWaterAmount, 1.0e-6f, "Water amount survives every routing mode switch");
         expectNear(context, getParameterValue(context, source, frazil::plugin::parameterIds::iceAmount),
-                   iceAmounts[index], 1.0e-6f, "Ice amount survives every routing mode switch");
+                   kIceAmount, 1.0e-6f, "Ice amount survives every routing mode switch");
     }
 
     juce::MemoryBlock serializedState;

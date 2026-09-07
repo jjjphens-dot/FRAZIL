@@ -41,7 +41,7 @@
 | Tests | `frazil_smoke` + `frazil_tests` + `frazil_plugin_integration` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state/XML restore + PluginProcessor automation/state integration 覆盖；DSP property/真实 DAW 测试未完成 |
 | Local validation | 本轮 `ci-windows-debug` configure、6-job safe build 和 CTest 均通过；smoke、unit、plugin integration 共 3/3 PASS | 已验证；本机绝对路径仅在 ignored `CMakeUserPresets.json`，仓库 preset 保持可移植 |
 | pluginval | 本分支已有 Debug VST3 artifact 的 pluginval 1.0.4、strictness 5、seed 12345 `SUCCESS` 记录；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`main` 当前为 `12ef3fb`，审查分支为 `9955cdb`；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main | 本分支等待当前 PR/CI/review；Issues/Milestones/Projects metadata 未建立 |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`main` 和审查分支的当前 SHA、mergeability 与 CI 状态以 GitHub live query 为准；`9955cdb` 仅为历史 safety follow-up baseline，不是当前审查分支 head；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main | 本分支等待当前 PR/CI/review；Issues/Milestones/Projects metadata 未建立 |
 
 ## 2.1 Clean portability/build-safety PR evidence
 
