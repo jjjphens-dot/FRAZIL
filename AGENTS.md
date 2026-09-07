@@ -162,7 +162,8 @@ ctest --preset windows-debug
 - 禁止在 tracked source/config/script/canonical documentation 中提交开发者个人绝对路径。
 - 禁止依赖固定盘符、开发者用户名或 Visual Studio、Windows SDK、Python、DAW 的个人安装目录。
 - 机器相关路径必须使用 repo-relative path、environment variable、tool discovery、CMakeUserPresets.json 或 ignored local configuration。
-- Reference-machine evidence 可以记录本机路径，但必须明确标记为 evidence，且不得被 build/test/runtime logic 使用。
+- Tracked reference-machine evidence 可以记录 OS、工具版本、SDK/toolchain 版本和泛化后的路径占位符，但不得保存开发者原始绝对路径。
+- 确实需要保存的本机原始路径只能存在于 ignored/untracked local evidence 中，不得提交到 Git。
 
 其他预设：`windows-release`、`windows-asan`。本机完整 MSVC 环境命令见 `docs/ENVIRONMENT.md`。
 

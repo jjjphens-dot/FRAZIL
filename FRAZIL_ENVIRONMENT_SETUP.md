@@ -130,7 +130,7 @@ scanner 检查 tracked source/config/script/canonical documentation 中的 Windo
 
 在 <repo-root> 打开 VS Code：
 
-- Ctrl+Shift+B 执行 FRAZIL: build windows-debug；
+- Ctrl+Shift+B 执行 FRAZIL: build windows-debug (safe)；
 - Run and Debug 选择 FRAZIL Standalone (Debug)；
 - task 使用 workspaceFolder，并调用受控 build_safe wrapper；
 - 首次 checkout 先运行 windows-debug configure。
@@ -155,4 +155,5 @@ VS Code task 不负责猜测 Visual Studio 安装位置；工具链初始化由�
 - VS Code build task 找不到 build tree：先运行 cmake --preset windows-debug；
 - 不要把上述问题通过修改 tracked preset 改成某个个人绝对路径。
 
-本指南只记录可迁移的操作。某台机器的安装目录、用户名和盘符只能留在明确标注的 reference-machine-only evidence 中。
+Tracked reference-machine evidence 只能记录工具版本、OS 信息和泛化后的路径描述，不得保存开发者原始安装目录、用户名、盘符或其它 raw absolute paths。
+如本地诊断确需保存这些信息，应放在 ignored/untracked local evidence 中。

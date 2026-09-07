@@ -45,7 +45,7 @@
 
 ## 2.1 Clean portability/build-safety PR evidence
 
-Clean branch fix/repository-portability-safety is based on origin/main at 00ebd8e; final head is 03bee6a and PR #8 targets main. Hosted GitHub Actions run 34128576335 (pull_request) completed successfully.
+Clean portability/build-safety implementation baseline: 03bee6a, based on origin/main 00ebd8e. Hosted PR CI run 34128576335 (pull_request) validated that implementation baseline successfully. Current PR head, current mergeability, and latest CI state are live GitHub state and must be queried from GitHub when needed.
 
 - Portability scanner：PASS。
 - Portability regression tests：PASS。
@@ -53,7 +53,7 @@ Clean branch fix/repository-portability-safety is based on origin/main at 00ebd8
 - Configure：PASS；portable-windows-base provides CMAKE_BUILD_PARALLEL_LEVEL=6。
 - Safe ci-windows-debug build：PASS。
 - CTest：PASS。
-- Final PR mergeability：MERGEABLE / CLEAN。
+- Evidence-time PR mergeability：MERGEABLE / CLEAN；current live mergeability must be read from GitHub。
 - Local 6-job and 8-job check-only：REFUSED by the existing memory gate because only about 2.45-2.48 GiB was available；no local C++ build was started。
 - Release：NOT RUN。
 - ASAN：NOT RUN。
