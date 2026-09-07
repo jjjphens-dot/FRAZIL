@@ -32,7 +32,7 @@ F:\coding\FRAZIL\tools       # Ninja、pluginval 等外部工具本地副本
 - Python 3.12.4 已创建项目 `.venv`，并安装 NumPy、SciPy、soundfile、matplotlib。
 - JUCE 9.0.1 已放置在 `external/JUCE`；pluginval 1.0.4 已放置在 `tools/bin`。
 - `tools/bootstrap_dependencies.ps1` 已固定 JUCE 9.0.1 commit，并负责恢复仓库内兼容补丁。
-- Debug / Release / ASAN 配置、构建和 CTest smoke 测试均已验证；Debug VST3 已通过 pluginval 严格度 5；Debug unit target 已验证。
+- Debug / Release / ASAN 配置、构建和 CTest（各 2/2）均已验证；本次 STATE-001 Debug VST3 已通过 pluginval 严格度 5；Steinberg VST3 Validator 尚未接入。
 - Steinberg VST3 Validator 和 Catch2 尚未接入，它们不是当前 VS Code 日常编译调试的阻塞项。
 
 ## VS Code 调试入口

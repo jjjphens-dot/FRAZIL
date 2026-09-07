@@ -32,7 +32,7 @@ UI -> narrow app edit/history command interface -> EditHistoryManager (message t
 
 ## Public Interfaces
 
-当前 M1 切片提供 `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`，以及 `AudioEngine::prepare(const ProcessSpec&)`、`reset()` 和 `process(juce::AudioBuffer<float>&, const EngineParameters&) noexcept`。StateModel/History 仍未实现。
+当前 M1 切片提供 `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`，以及 `AudioEngine::prepare(const ProcessSpec&)`、`reset()` 和 `process(juce::AudioBuffer<float>&, const EngineParameters&) noexcept`。M1-C STATE-001 进一步提供 JUCE-free 的 `StateModel::Values`、`SerializedState`、`serialize`/`deserialize` value API；`EditHistoryManager` remains planned for M5 (HIST-001..004)。
 
 ## Parameter / Data Types
 
@@ -48,7 +48,7 @@ AudioEngine 为 PluginProcessor 的实例成员，拥有其生命周期内的准
 
 ## Implementation Overview
 
-M1 已实现参数到 `AudioEngine` 的 Snapshot/Mapper 路径、Input/Output gain、global dry/wet mix law、prepare 阶段 dry scratch 和基础 smoothing。首个有效 block 会从实时 `EngineParameters` priming smoother；runtime buffer 超出 `ProcessSpec` 时不在音频线程扩容，而使用有限、确定性的 fallback。Water/Ice、Routing、StateModel、History 仍按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 的后续 milestone 实现；当前 wet path 仍是 post-input pass-through。
+M1 已实现参数到 `AudioEngine` 的 Snapshot/Mapper 路径、Input/Output gain、global dry/wet mix law、prepare 阶段 dry scratch 和基础 smoothing。首个有效 block 会从实时 `EngineParameters` priming smoother；runtime buffer 超出 `ProcessSpec` 时不在音频线程扩容，而使用有限、确定性的 fallback。M1-C STATE-001 已实现版本化 state value/schema、known pre-v1 migration、invalid fallback 和全部 9 个参数的保留；JUCE `ValueTree`/XML conversion 由 plugin Host State Adapter 持有。Water/Ice、Routing 仍按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 的后续 milestone 实现；`EditHistoryManager` remains planned for M5 (HIST-001..004)；当前 wet path 仍是 post-input pass-through。
 
 ## State / Tail / Latency
 
@@ -56,7 +56,7 @@ app 层不得自行宣称算法 tail 或 latency。v1 Host-reported processing l
 
 ## Tests
 
-当前以 CTest smoke 和 `frazil_tests` 的 ProcessSpec、ParameterLayout、Snapshot、Mapper、DryWetMixer、smoothing block/retarget、RandomSource、gain staging、first-block priming、reset 和 runtime buffer invariant 测试为证据；state、render、property、DAW 和完整 M1 gate 仍未完成。
+当前以 CTest smoke 和 `frazil_tests` 的 ProcessSpec、ParameterLayout、Snapshot、Mapper、StateModel/Host State Adapter round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、legacy ID migration、duplicate/nonnumeric/malformed invalid parser fallback、三种 routing、inactive retention、DryWetMixer、smoothing block/retarget、RandomSource、gain staging、first-block priming、reset 和 runtime buffer invariant 测试为证据；render、property、真实 DAW restore 和完整 M1 gate 仍未完成。
 
 ## Related ADRs
 
@@ -64,7 +64,7 @@ app 层不得自行宣称算法 tail 或 latency。v1 Host-reported processing l
 
 ## Files
 
-`AudioEngine.*`、`ProcessSpec.h`、`EngineParameters.h`、`ParameterSnapshot.*` 和 `ParameterMapper.*` 当前存在；`StateModel.*`、`EditHistoryManager.*` 仍为 app 计划路径；`ParameterLayout.*` 属于已实现的 `src/plugin/` M1 路径。
+`AudioEngine.*`、`ProcessSpec.h`、`EngineParameters.h`、`ParameterSnapshot.*`、`ParameterMapper.*` 和 `StateModel.*` 当前存在；`EditHistoryManager.*` 仍为 app 计划路径；`ParameterLayout.*` 属于已实现的 `src/plugin/` M1 路径。
 
 ## Modification Policy
 
