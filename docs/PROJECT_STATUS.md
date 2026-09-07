@@ -45,7 +45,7 @@
 
 ## 2.1 Repository portability remediation evidence
 
-repository-portability remediation 已在 commit 519ede8 对应版本完成本地验证：python tools/check_portability.py、cmake --list-presets、Debug/Release/ASAN configure/build/CTest 均通过；三套本机构建的 CTest 均为 3/3 PASS（含 plugin integration）。另在非 F: 的短路径 fresh clone 中确认无 CMakeUserPresets.json，并完成 scanner、tools/bootstrap_dependencies.ps1、Debug configure/build/CTest，均通过。后续 follow-up 的 scanner regression test 也已在本地通过。VS Code GUI task 因 Windows UI automation helper 不可用而未执行；Hosted GitHub Actions 对 commit 519ede8 未运行，因为当时没有对应 PR，feature branch 普通 push 不触发该 workflow。
+repository-portability remediation 与 bounded build-safety guard 已在 commit 7d5f9a8 对应版本完成静态和安全 preflight 验证：python tools/check_portability.py、python tools/test_check_portability.py、python tools/test_build_safe.py、cmake --list-presets、CMake/VS Code JSON 解析和 6/8 job preflight 均通过；9 job 与 CMAKE_BUILD_PARALLEL_LEVEL=32 的绕过尝试均被拒绝。事故前 519ede8 的 Debug/Release/ASAN 本地构建记录保持为历史证据；本轮安全 wrapper 应用后未重新启动 C++ 全量构建，以避免重复触发资源风险。Fresh clone、VS Code GUI task 和 Hosted GitHub Actions 尚未针对 7d5f9a8 验证。
 
 Branch audit 仅报告未合并分支中的既有基线路径污染，不改写其它 branch；合并或 cherry-pick 本修复后应重新运行 portability scan。
 ## 3. 当前源码映射
