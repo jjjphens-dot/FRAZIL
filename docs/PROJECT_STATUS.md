@@ -10,14 +10,14 @@
 
 ## 1. 结论
 
-项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。当前 M1-C STATE-001 已在 PR #5 的 `feat/m1-state-contract` 实现 versioned StateModel/Host State Adapter foundation，并处于 review；M1 仍在进行中；Water/Ice、Routing、render 和正式 UI 仍未实现。
+项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；M1 仍在进行中；Water/Ice、Routing、render 和正式 UI 仍未实现。
 
 `CODING_PLAN.md` v1.0 / Approved Development Baseline 已作为 M0→M7 的正式工程执行基线；这不代表 FRAZIL plugin v1.0 release，也不改变 M0/M1、Water/Ice/Routing 的实际完成状态。
 
 当前阻塞性差距：
 
-1. 本次状态快照记录的 observed `main` HEAD 为 `b91f619`；PR #4 governance merge commit 为 `b91f619`，PR #3 merge commit 为 `229ca19`，M1-A/M1-B foundation 与 Documentation Synchronization Gate 已合入 `main`；`feat/m1-parameter-engine-contract` 保留为历史 feature 分支，`feat/m1-state-contract` 已快进到最新 main 并承载 STATE-001；本状态文件后续提交只表达 snapshot 与 merge/current-state relationship，不把其自身之前的提交长期称为 current HEAD；
-2. PR #4 的 [Hosted CI run 34046691706](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34046691706) 与合并后 main 的 [Hosted CI run 34049822657](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34049822657) 均已完成 Windows Debug configure/build/test 并通过；PR #3 的 [Hosted CI run 34044332388](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34044332388) 与 PR #2 的 [Hosted CI run 34022773758](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34022773758) 也已通过；workflow/API 的更细粒度权限与 branch protection 未验证；
+1. PR #5 squash merge commit 为 `12d36a40d03944f9c69cd273d1cc3dca3e0b6ee7`；STATE-001 = MERGED / validated；`feat/m1-parameter-engine-contract` 与 `feat/m1-state-contract` 保留为历史 feature 分支。本文件记录 verified merge/evidence snapshots；current `main` HEAD should be read from GitHub，不把本文件中的 snapshot 当作永久 current HEAD；
+2. PR #5 合并后 main 的 [Hosted CI run 34091515810](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34091515810) 已完成 Windows Debug configure/build/test 并通过；PR #4、PR #3 和 PR #2 的既有 Hosted CI 证据也已通过；workflow/API 的更细粒度权限与 branch protection 未验证；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；STATE-001 已建立已知 pre-v1 ID migration fixture，公开版本兼容性仍需后续 freeze/evidence；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
 5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；本次 STATE-001 Debug VST3 pluginval strictness 5 已通过，尚未覆盖 render 和 DAW automation；
@@ -39,9 +39,9 @@
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration pending；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
 | UI | 640x360 M0 占位界面 | 非产品 UI |
 | Tests | `frazil_smoke` + `frazil_tests` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state/XML restore unit 覆盖；DSP property/Host/DAW 测试未完成 |
-| Local validation | `feat/m1-state-contract` STATE-001 Debug/Release/ASAN configure/build；三个 preset 的 CTest 均 2/2 PASS | 已验证 |
+| Local validation | STATE-001 Debug/Release/ASAN configure/build；三个 preset 的 CTest 均 2/2 PASS | 已验证；对应实现已合入 main |
 | pluginval | STATE-001 Debug VST3 strictness 5 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；snapshot observed `main` HEAD 为 `b91f619`，PR #4 governance merge commit 为 `b91f619` | PR #2 / PR #3 / PR #4 与 post-merge main Hosted CI success；Issues/Milestones/Projects metadata 未建立 |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；PR #5 STATE-001 squash merge snapshot 已验证；current main HEAD 应从 GitHub 读取，feature branch 作为历史/协作分支保留 | PR #2 / PR #3 / PR #4 / PR #5 与 post-merge main Hosted CI success；Issues/Milestones/Projects metadata 未建立 |
 
 ## 3. 当前源码映射
 
@@ -112,7 +112,7 @@ PluginProcessor
 ## 5. 现状对应 milestone
 
 - M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000、GitHub metadata 与 branch protection 尚未收口。
-- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 M1-C STATE-001 versioned StateModel/Host State Adapter foundation 已实现并处于 review；仍缺 STATE-002 mode-value-retention integration、automation integration、render/property/performance、DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
+- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 M1-C STATE-001 versioned StateModel/Host State Adapter foundation 已实现并合入 `main`；STATE-002 mode-value-retention integration、automation integration、render/property/performance、DAW 验证和正式参数 freeze 仍未完成；M5 EditHistoryManager 仍未开始。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
 - M4 Routing：**未开始**。

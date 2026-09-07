@@ -32,6 +32,10 @@
 
 所有生产代码修改必须遵守 `docs/CODE_STANDARDS.md`。违反该规范的代码不能因为“功能工作正常”而视为 Done。
 
+涉及 Water、Ice、State、Routing、automation 或 history 的实现任务，在阅读上述 canonical contracts 和
+相关 ADR 之后，还应 review `docs/CORE_IMPLEMENTATION_GUIDE.md`；该指南只提供 Level 3 实现解释和
+候选算法参考，不覆盖 Architecture、Coding Plan、Parameters 或 Accepted ADR。
+
 ### Mandatory development phases
 
 代码任务必须按以下阶段执行并在输出中报告：
