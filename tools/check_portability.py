@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PORTABILITY_ALLOW = "PORTABILITY_ALLOW"
 EXCLUDED_PARTS = {
     ".git",
     ".venv",
@@ -40,20 +39,23 @@ BINARY_SUFFIXES = {
 }
 
 backslash = chr(92)
+escaped_backslash = re.escape(backslash)
+whitespace = backslash + "s"
 windows_absolute = re.compile(
-    r"(?<![A-Za-z0-9])[A-Za-z]:" + "[" + re.escape(backslash) + r"/]"
+    "(?<![A-Za-z0-9])[A-Za-z]:" + "[" + escaped_backslash + "/]"
 )
-path_component = r"[^/\s" + re.escape(backslash) + "]"
-linux_user_path = re.compile("/" + "home" + "/" + path_component + "+/")
-macos_user_path = re.compile("/" + "Users" + "/" + path_component + "+/")
+path_component = "[^/" + whitespace + escaped_backslash + "]"
+linux_user_path = re.compile("/home/" + path_component + "+/")
+macos_user_path = re.compile("/Users/" + path_component + "+/")
 unc_path = re.compile(
-    re.escape(backslash * 2)
-    + r"[^\s"
-    + re.escape(backslash)
-    + r"/]+"
-    + re.escape(backslash)
+    escaped_backslash * 2
+    + "[^"
+    + whitespace
+    + escaped_backslash
+    + "/]+"
+    + escaped_backslash
 )
-markdown_link = re.compile(r"\]\(\s*")
+markdown_link = re.compile(re.escape("](") + whitespace + "*")
 
 
 def tracked_paths() -> list[Path]:
@@ -63,7 +65,7 @@ def tracked_paths() -> list[Path]:
         check=True,
         capture_output=True,
     )
-    return [Path(item) for item in result.stdout.decode("utf-8").split("\0") if item]
+    return [Path(item) for item in result.stdout.decode("utf-8").split(chr(0)) if item]
 
 
 def is_scannable(path: Path) -> bool:
@@ -75,17 +77,6 @@ def is_scannable(path: Path) -> bool:
     if path.suffix.lower() in BINARY_SUFFIXES:
         return False
     return True
-
-
-def allowed_line(line: str) -> bool:
-    if PORTABILITY_ALLOW not in line:
-        return False
-    lowered = line.lower()
-    return (
-        "reference" in lowered
-        and "evidence" in lowered
-        and ("not used" in lowered or "machine-specific" in lowered)
-    )
 
 
 def classify(line: str) -> list[tuple[str, int]]:
@@ -104,6 +95,14 @@ def classify(line: str) -> list[tuple[str, int]]:
     return matches
 
 
+def scan_text(relative_path: Path, text: str) -> list[tuple[str, int, str, str]]:
+    findings: list[tuple[str, int, str, str]] = []
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        for category, _ in classify(line):
+            findings.append((relative_path.as_posix(), line_number, category, line.strip()))
+    return findings
+
+
 def main() -> int:
     findings: list[tuple[str, int, str, str]] = []
     for relative_path in tracked_paths():
@@ -115,14 +114,10 @@ def main() -> int:
         except OSError as error:
             print(f"ERROR: cannot read {relative_path}: {error}", file=sys.stderr)
             return 2
-        if b"\0" in raw:
+        if bytes([0]) in raw:
             continue
         text = raw.decode("utf-8", errors="replace")
-        for line_number, line in enumerate(text.splitlines(), start=1):
-            for category, column in classify(line):
-                if allowed_line(line):
-                    continue
-                findings.append((relative_path.as_posix(), line_number, category, line.strip()))
+        findings.extend(scan_text(relative_path, text))
 
     if findings:
         print("Repository portability scan: FAIL")
@@ -130,7 +125,7 @@ def main() -> int:
             print(f"{path}:{line_number}: {category}: {line}")
         print(
             "Use repo-relative paths, environment/tool discovery, or ignored local "
-            "configuration. Only explicit reference evidence may use PORTABILITY_ALLOW."
+            "configuration. Tracked reference evidence must not contain raw machine paths."
         )
         return 1
 

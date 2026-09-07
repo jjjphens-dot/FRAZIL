@@ -242,19 +242,21 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 仓库 portability：
 
     python tools/check_portability.py
+    python tools/test_check_portability.py
+    python tools/test_build_safe.py
 
 
 ```powershell
 cmake --preset windows-debug
-cmake --build --preset windows-debug
+python tools/build_safe.py --preset windows-debug
 ctest --preset windows-debug
 
 cmake --preset windows-release
-cmake --build --preset windows-release
+python tools/build_safe.py --preset windows-release
 ctest --preset windows-release
 
 cmake --preset windows-asan
-cmake --build --preset windows-asan
+python tools/build_safe.py --preset windows-asan
 ctest --preset windows-asan
 ```
 

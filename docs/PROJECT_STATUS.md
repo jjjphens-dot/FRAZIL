@@ -16,7 +16,7 @@
 
 当前阻塞性差距：
 
-1. 本次 integration audit 观察到 `origin/main` 为 `12d36a4`；PR #5 已将 STATE-001 合入 `main`，并保留 `feat/m1-parameter-engine-contract` 作为历史 feature 分支；本状态文件后续提交只表达 snapshot 与 merge/current-state relationship，不把其自身之前的提交长期称为 current HEAD；
+1. 历史 integration audit 曾记录较早的 origin/main snapshot；这些记录仅具历史意义，不代表当前远端真相。需要当前状态时必须通过 Git 命令确认；PR #5 已将 STATE-001 合入 main，并保留 feat/m1-parameter-engine-contract 作为历史 feature 分支；
 2. PR #4 的 [Hosted CI run 34046691706](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34046691706)、合并后 main 的 [Hosted CI run 34049822657](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34049822657)、PR #3 的 [Hosted CI run 34044332388](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34044332388) 与 PR #2 的 [Hosted CI run 34022773758](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34022773758) 均已记录 Windows Debug configure/build/test 通过；workflow/API 的更细粒度权限与 branch protection 未验证；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；STATE-001 已建立已知 pre-v1 ID migration fixture，公开版本兼容性仍需后续 freeze/evidence；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
@@ -41,11 +41,11 @@
 | Tests | `frazil_smoke` + `frazil_tests` + `frazil_plugin_integration` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state/XML restore + STATE-002/AUTO-001 plugin integration 覆盖；DSP property/真实 DAW 测试未完成 |
 | Local validation | 本分支使用当前机器 VS2022/MSVC 14.44 的 windows-debug/windows-release/windows-asan preset；每个配置的 smoke、unit、plugin integration 共 3/3 PASS | 已验证；本机绝对路径仅在 ignored `CMakeUserPresets.json`，仓库 preset 保持可移植 |
 | pluginval | 本分支 `ci-windows-debug` Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；本次 integration audit 观察到 `origin/main` 为 `12d36a4`；HOST-000 frozen-target 首次 push commit 为 `ceccc2d51598a7a794220b4d71009c359f25e007`；实时 branch HEAD 由 Git 命令确认；PR #5 已将 STATE-001 合入 `main` | HOST-000 push 已完成；PR/CI/merge 尚未完成；Issues/Milestones/Projects metadata 未建立 |
+| Remote | jjjphens-dot/FRAZIL public repository；origin 已绑定；当前 remote HEAD 需要由 Git 命令确认；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main | HOST-000 push 已完成；本次 portability follow-up 的 PR/CI/merge 状态按当前 GitHub 页面确认；Issues/Milestones/Projects metadata 未建立 |
 
 ## 2.1 Repository portability remediation evidence
 
-本次 working tree 的 repository-portability 修复已完成静态扫描和本机验证：`python tools/check_portability.py`、`cmake --list-presets`、Debug/Release/ASAN configure/build/CTest 均通过；三套本机构建的 CTest 均为 3/3 PASS（含 plugin integration）。另在非 F: 的短路径 fresh clone 中确认无 `CMakeUserPresets.json`，并完成 scanner、`tools/bootstrap_dependencies.ps1`、Debug configure/build/CTest，均通过。VS Code GUI task 因 Windows UI automation helper 不可用而未执行；Hosted GitHub Actions 尚未针对这组未提交改动执行。
+repository-portability remediation 已在 commit 519ede8 对应版本完成本地验证：python tools/check_portability.py、cmake --list-presets、Debug/Release/ASAN configure/build/CTest 均通过；三套本机构建的 CTest 均为 3/3 PASS（含 plugin integration）。另在非 F: 的短路径 fresh clone 中确认无 CMakeUserPresets.json，并完成 scanner、tools/bootstrap_dependencies.ps1、Debug configure/build/CTest，均通过。后续 follow-up 的 scanner regression test 也已在本地通过。VS Code GUI task 因 Windows UI automation helper 不可用而未执行；Hosted GitHub Actions 对 commit 519ede8 未运行，因为当时没有对应 PR，feature branch 普通 push 不触发该 workflow。
 
 Branch audit 仅报告未合并分支中的既有基线路径污染，不改写其它 branch；合并或 cherry-pick 本修复后应重新运行 portability scan。
 ## 3. 当前源码映射

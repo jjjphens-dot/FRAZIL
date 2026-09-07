@@ -37,9 +37,11 @@ python tools/check_portability.py
 
 在已初始化 MSVC developer environment 的 Windows PowerShell 中构建：
 
+本地构建入口使用 tools/build_safe.py，默认 6 个 job、硬上限 8 个 job。
+
 ```powershell
 cmake --preset windows-debug
-cmake --build --preset windows-debug
+python tools/build_safe.py --preset windows-debug
 ctest --preset windows-debug
 ```
 

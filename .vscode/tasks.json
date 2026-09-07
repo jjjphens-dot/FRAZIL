@@ -2,14 +2,13 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "FRAZIL: build windows-debug",
+      "label": "FRAZIL: build windows-debug (safe)",
       "type": "process",
-      "command": "cmake",
+      "command": "python",
       "args": [
-        "--build",
+        "tools/build_safe.py",
         "--preset",
-        "windows-debug",
-        "--parallel"
+        "windows-debug"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

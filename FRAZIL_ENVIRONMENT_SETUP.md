@@ -99,20 +99,22 @@ CMakePresets.json 使用 cl、rc、mt 的 tool discovery，不使用任何个人
 
     cmake --list-presets
     cmake --preset windows-debug
-    cmake --build --preset windows-debug --parallel
+    python tools/build_safe.py --preset windows-debug
     ctest --preset windows-debug
 
 Release 和 ASAN：
 
     cmake --preset windows-release
-    cmake --build --preset windows-release --parallel
+    python tools/build_safe.py --preset windows-release
     ctest --preset windows-release
 
     cmake --preset windows-asan
-    cmake --build --preset windows-asan --parallel
+    python tools/build_safe.py --preset windows-asan
     ctest --preset windows-asan
 
 ASAN CTest 通过 VCToolsInstallDir 找到 MSVC runtime directory；这要求测试命令继承已初始化的 MSVC environment。
+
+本地构建统一使用 tools/build_safe.py；默认 6 个 job、硬上限 8 个 job，并在低可用内存时拒绝启动。完整编译输出写入 ignored 的 build/safe-build 日志。
 
 ## 9. Portability scan
 
@@ -122,7 +124,7 @@ ASAN CTest 通过 VCToolsInstallDir 找到 MSVC runtime directory；这要求测
 
 scanner 检查 tracked source/config/script/canonical documentation 中的 Windows、Linux user、macOS user、UNC 和绝对 Markdown link 路径；它排除 .git、build、external、.venv、tools/bin、tools/downloads 和 generated/rendered/binary files。发现未经允许的路径时返回非零退出码。
 
-唯一允许的例外必须在同一行使用 PORTABILITY_ALLOW，并明确说明它是 reference-machine evidence、不会被 build/test/runtime logic 使用。不要用大范围 allowlist 绕过扫描。
+当前仓库不提供 absolute-path allowlist；tracked source/config/script/canonical documentation 中发现的机器相关绝对路径一律失败。未来若确有 reference-machine evidence 需求，必须先设计针对明确文件的窄范围机制，不得在 build/test/runtime/CI/tooling 文件中绕过扫描。
 
 ## 10. VS Code
 

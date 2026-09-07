@@ -8,6 +8,12 @@
 - 只有在用户明确要求、现有验收/安全完整性合同明确要求，或发布流程的既有步骤不可避免地需要时，才允许执行哈希操作，并应限定到必要的目标。
 - 不得为了生成报告、证明普通构建成功、比较普通工作树差异或“顺手留证”而启动哈希工具；已有 commit SHA 作为 Git 身份引用时不等于需要重新计算内容 hash。
 - 没有上述必要性时，直接跳过哈希步骤，不新增 hash 字段、manifest 或相关文档证据。
+## 0.1 本地构建资源安全
+
+- 禁止 agent 在本机执行不带明确 job 数的 cmake --build ... --parallel。
+- 本地 Windows 构建必须通过 python tools/build_safe.py --preset <name>，默认 6 个 job，硬上限 8 个 job；wrapper 会在构建前检查可用物理内存，并把完整输出写入 ignored 的 build 日志。
+- 安全检查拒绝时不得通过删除检查、提高并发上限或改用裸 CMake/Ninja 命令绕过；应停止并报告资源状态。
+- Hosted CI 也使用同一受控 wrapper；构建失败时只回显有限日志尾部，避免把海量 compiler include 输出灌入终端。
 ## 1. 当前基线
 
 - 当前阶段：M1-C 前置；M1-A/M1-B Parameter/Engine foundation 已合入 `main`，M1 尚未完成。
@@ -141,7 +147,7 @@ tests -> 被测模块
 
 ```powershell
 cmake --preset windows-debug
-cmake --build --preset windows-debug
+python tools/build_safe.py --preset windows-debug
 ctest --preset windows-debug
 ```
 

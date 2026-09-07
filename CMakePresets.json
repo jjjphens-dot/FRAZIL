@@ -67,6 +67,7 @@
     {
       "name": "windows-debug",
       "configurePreset": "windows-debug",
+      "jobs": 6,
       "targets": [
         "FRAZIL_All",
         "frazil_smoke",
@@ -77,6 +78,7 @@
     {
       "name": "windows-release",
       "configurePreset": "windows-release",
+      "jobs": 6,
       "targets": [
         "FRAZIL_All",
         "frazil_smoke",
@@ -87,6 +89,7 @@
     {
       "name": "windows-asan",
       "configurePreset": "windows-asan",
+      "jobs": 6,
       "targets": [
         "FRAZIL_All",
         "frazil_smoke",
@@ -97,6 +100,7 @@
     {
       "name": "ci-windows-debug",
       "configurePreset": "ci-windows-debug",
+      "jobs": 6,
       "targets": [
         "FRAZIL_All",
         "frazil_smoke",

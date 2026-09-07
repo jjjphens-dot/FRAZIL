@@ -45,20 +45,22 @@ tracked 的 CMakePresets.json、.vscode/tasks.json 和 CI workflow 不包含开�
     .\tools\bootstrap_dependencies.ps1
     cmake --list-presets
     cmake --preset windows-debug
-    cmake --build --preset windows-debug --parallel
+    python tools/build_safe.py --preset windows-debug
     ctest --preset windows-debug
 
 其他配置：
 
     cmake --preset windows-release
-    cmake --build --preset windows-release --parallel
+    python tools/build_safe.py --preset windows-release
     ctest --preset windows-release
 
     cmake --preset windows-asan
-    cmake --build --preset windows-asan --parallel
+    python tools/build_safe.py --preset windows-asan
     ctest --preset windows-asan
 
 ASAN test preset 会从 VCToolsInstallDir 加入 MSVC runtime directory；如果从普通 PowerShell 运行，请先进入 Developer PowerShell 或对应的 x64 Native Tools 环境。
+
+本地 build 必须通过 tools/build_safe.py；默认使用 6 个 job，硬上限 8 个 job，并按可用物理内存执行 preflight。wrapper 将完整编译输出写入 ignored 的 build/safe-build 日志，避免终端被 include trace 淹没。
 
 ## VS Code
 
@@ -87,7 +89,7 @@ GitHub Actions 和其他已初始化 MSVC developer environment 的 Windows 机�
     .\tools\bootstrap_dependencies.ps1
     python tools/check_portability.py
     cmake --preset ci-windows-debug
-    cmake --build --preset ci-windows-debug --parallel
+    python tools/build_safe.py --preset ci-windows-debug
     ctest --preset ci-windows-debug
 
 ci-windows-debug 不引用个人盘符、用户名或工具安装目录。CI 在 configure 前运行 portability scan。
