@@ -128,9 +128,6 @@
     {
       "name": "windows-asan",
       "configurePreset": "windows-asan",
-      "environment": {
-        "PATH": "$env{VCToolsInstallDir}/bin/Hostx64/x64;${sourceDir}/tools/bin;$penv{PATH}"
-      },
       "output": {
         "outputOnFailure": true
       }
