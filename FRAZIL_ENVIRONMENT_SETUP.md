@@ -7,7 +7,7 @@
 ## 1. 工具要求
 
 - Windows x64；
-- Git、PowerShell、CMake 3.22+、CTest 和 Ninja；
+- Git、PowerShell、CMake 3.25+、CTest 和 Ninja；
 - MSVC v143、Windows SDK，以及已初始化的 MSVC developer environment；
 - Python 和 requirements-dsp.txt 中的 DSP 实验依赖；
 - JUCE 9.0.1 由仓库 bootstrap 脚本恢复；
@@ -121,6 +121,8 @@ ASAN CTest 通过 VCToolsInstallDir 找到 MSVC runtime directory；这要求测
 提交前和本地验证时运行：
 
     python tools/check_portability.py
+    python tools/check_markdown_links.py
+    python tools/check_vscode_tasks.py
 
 scanner 检查 tracked source/config/script/canonical documentation 中的 Windows、Linux user、macOS user、UNC 和绝对 Markdown link 路径；它排除 .git、build、external、.venv、tools/bin、tools/downloads 和 generated/rendered/binary files。发现未经允许的路径时返回非零退出码。
 

@@ -36,7 +36,7 @@ def expect_environment_refusal(value: str) -> None:
     raise AssertionError(f"CMAKE_BUILD_PARALLEL_LEVEL={value!r} should have been refused")
 
 
-def expect_memory_refusal(available_bytes: int, jobs: int) -> None:
+def expect_memory_refusal(available_bytes: int | None, jobs: int) -> None:
     try:
         validate_memory(available_bytes, jobs)
     except ValueError:
@@ -82,6 +82,39 @@ def assert_check_only_does_not_run_build() -> None:
     assert calls == []
 
 
+def assert_memory_failure_refuses_build() -> None:
+    calls: list[tuple[list[str], Path]] = []
+
+    def unexpected_build(command: list[str], log_path: Path) -> int:
+        calls.append((command, log_path))
+        raise AssertionError("unknown memory status must refuse before build")
+
+    original_args = sys.argv
+    original_runner = build_safe.run_build
+    original_memory = build_safe.available_physical_memory
+    try:
+        build_safe.run_build = unexpected_build
+        build_safe.available_physical_memory = lambda: None
+        sys.argv = [
+            "build_safe.py",
+            "--preset",
+            "windows-debug",
+            "--jobs",
+            "6",
+        ]
+        with patch.dict(
+            build_safe.os.environ,
+            {"CMAKE_BUILD_PARALLEL_LEVEL": "6"},
+        ):
+            assert build_safe.main() == 2
+    finally:
+        sys.argv = original_args
+        build_safe.run_build = original_runner
+        build_safe.available_physical_memory = original_memory
+
+    assert calls == []
+
+
 def assert_tail_is_bounded() -> None:
     with tempfile.TemporaryDirectory() as temporary_directory:
         log_path = Path(temporary_directory) / "build.log"
@@ -97,6 +130,8 @@ def assert_tail_is_bounded() -> None:
 
 def main() -> int:
     assert validate_job_count(1) == 1
+    assert validate_job_count(6) == 6
+    assert validate_job_count(8) == 8
     assert validate_job_count(MAX_BUILD_JOBS) == MAX_BUILD_JOBS
     expect_refusal(0)
     expect_refusal(MAX_BUILD_JOBS + 1)
@@ -110,7 +145,7 @@ def main() -> int:
     required_memory = required_memory_bytes(6)
     expect_memory_refusal(required_memory - 1, 6)
     validate_memory(required_memory, 6)
-    validate_memory(None, 6)
+    expect_memory_refusal(None, 6)
 
     command = build_command("windows-debug", MAX_BUILD_JOBS)
     assert command == [
@@ -124,6 +159,7 @@ def main() -> int:
     assert command[-1] != ""
 
     assert_check_only_does_not_run_build()
+    assert_memory_failure_refuses_build()
     assert_tail_is_bounded()
     print("Build safety regression tests: PASS")
     return 0

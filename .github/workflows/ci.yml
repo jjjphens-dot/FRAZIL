@@ -26,6 +26,22 @@ jobs:
         shell: pwsh
         run: python tools/test_check_portability.py
 
+      - name: Check Markdown internal links
+        shell: pwsh
+        run: python tools/check_markdown_links.py
+
+      - name: Test Markdown internal-link scanner
+        shell: pwsh
+        run: python tools/test_check_markdown_links.py
+
+      - name: Check VS Code task references
+        shell: pwsh
+        run: python tools/check_vscode_tasks.py
+
+      - name: Test VS Code task reference checker
+        shell: pwsh
+        run: python tools/test_check_vscode_tasks.py
+
       - name: Test build safety wrapper
         shell: pwsh
         run: python tools/test_build_safe.py

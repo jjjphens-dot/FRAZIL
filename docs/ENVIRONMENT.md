@@ -5,7 +5,7 @@
 ## Project Requirements
 
 - Windows x64 开发环境。
-- CMake 3.22 或更高版本。
+- CMake 3.25 或更高版本。
 - Ninja；可以使用系统 PATH 中的 Ninja，也可以把本地副本放在 repository-local 的 tools/bin。
 - MSVC v143 和 Windows SDK，且 MSVC developer environment 已初始化，使 cl、rc 和 mt 可以被工具发现。
 - Python 用于 DSP 实验和跨平台工具；Python 依赖见 requirements-dsp.txt。
@@ -88,6 +88,8 @@ GitHub Actions 和其他已初始化 MSVC developer environment 的 Windows 机�
 
     .\tools\bootstrap_dependencies.ps1
     python tools/check_portability.py
+    python tools/check_markdown_links.py
+    python tools/check_vscode_tasks.py
     cmake --preset ci-windows-debug
     python tools/build_safe.py --preset ci-windows-debug
     ctest --preset ci-windows-debug

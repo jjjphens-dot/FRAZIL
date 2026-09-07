@@ -20,10 +20,10 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 - [当前实现与差距](docs/PROJECT_STATUS.md)
 - [参数与状态合同](docs/PARAMETERS.md)
 - [测试与发布门槛](docs/TESTING.md)
+- [核心实现指南](docs/CORE_IMPLEMENTATION_GUIDE.md)
 - [GitHub 协作流程](docs/GITHUB_WORKFLOW.md)
 - [双人协作分工](docs/COLLABORATION_ROLES.md)
 - [开发环境](docs/ENVIRONMENT.md)
-- [HOST-000 平台与 DAW 兼容性矩阵（产品目标已冻结，HOST-001 evidence pending）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
 - [贡献指南](CONTRIBUTING.md)
 
 ## 本地构建
@@ -33,6 +33,8 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 ```powershell
 .\tools\bootstrap_dependencies.ps1
 python tools/check_portability.py
+python tools/check_markdown_links.py
+python tools/check_vscode_tasks.py
 ```
 
 在已初始化 MSVC developer environment 的 Windows PowerShell 中构建：
