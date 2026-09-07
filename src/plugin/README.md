@@ -49,7 +49,7 @@ PluginProcessor 拥有 APVTS、AudioEngine 和 editor 生命周期；JUCE factor
 
 ## Implementation Overview
 
-M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing 的 gain/mix skeleton；wet path 仍为 pass-through。M1-C 已把 `processBlock` 之外的 state save/restore 接入 versioned `HostStateAdapter`/`StateModel` boundary；真实 Water/Ice、routing 和产品 UI 按 Coding Plan 后续实现；`EditHistoryManager` remains planned for M5 (HIST-001..004)。
+M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing 的 gain/mix skeleton；wet path 仍为 pass-through。M1-C 已把 `processBlock` 之外的 state save/restore 接入 versioned `HostStateAdapter`/`StateModel` boundary；plugin integration evidence 已覆盖连续 gain automation 进入 audio path，以及三种 routing mode 切换后的 inactive value retention/state reopen。真实 Water/Ice、routing DSP 和产品 UI 按 Coding Plan 后续实现；`EditHistoryManager` remains planned for M5 (HIST-001..004)。
 
 ## Tests
 

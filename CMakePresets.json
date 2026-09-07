@@ -91,7 +91,8 @@
       "targets": [
         "FRAZIL_All",
         "frazil_smoke",
-        "frazil_tests"
+        "frazil_tests",
+        "frazil_plugin_integration"
       ]
     },
     {
@@ -100,7 +101,8 @@
       "targets": [
         "FRAZIL_All",
         "frazil_smoke",
-        "frazil_tests"
+        "frazil_tests",
+        "frazil_plugin_integration"
       ]
     },
     {
@@ -109,7 +111,8 @@
       "targets": [
         "FRAZIL_All",
         "frazil_smoke",
-        "frazil_tests"
+        "frazil_tests",
+        "frazil_plugin_integration"
       ]
     },
     {
@@ -118,7 +121,8 @@
       "targets": [
         "FRAZIL_All",
         "frazil_smoke",
-        "frazil_tests"
+        "frazil_tests",
+        "frazil_plugin_integration"
       ]
     }
   ],
