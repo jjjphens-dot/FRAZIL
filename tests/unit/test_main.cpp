@@ -792,6 +792,6 @@ int main() {
     if (failures != 0)
         return 1;
 
-    std::cout << "FRAZIL unit tests passed (13 groups)\n";
+    std::cout << "FRAZIL unit tests passed (19 groups)\n";
     return 0;
 }
