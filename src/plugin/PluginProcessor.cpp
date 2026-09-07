@@ -2,6 +2,7 @@
 
 #include "ParameterLayout.h"
 #include "PluginEditor.h"
+#include "StateAdapter.h"
 
 FRAZILAudioProcessor::FRAZILAudioProcessor()
     : AudioProcessor(BusesProperties()
@@ -94,7 +95,7 @@ const juce::String FRAZILAudioProcessor::getProgramName(int) {
 void FRAZILAudioProcessor::changeProgramName(int, const juce::String&) {}
 
 void FRAZILAudioProcessor::getStateInformation(juce::MemoryBlock& destinationData) {
-    const auto state = parameters.copyState();
+    const auto state = frazil::plugin::HostStateAdapter::serialize(parameters);
     if (auto xml = state.createXml())
         copyXmlToBinary(*xml, destinationData);
 }
@@ -102,8 +103,9 @@ void FRAZILAudioProcessor::getStateInformation(juce::MemoryBlock& destinationDat
 void FRAZILAudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
     if (auto xml = getXmlFromBinary(data, sizeInBytes)) {
         const auto state = juce::ValueTree::fromXml(*xml);
-        if (state.isValid() && state.hasType(parameters.state.getType()))
-            parameters.replaceState(state);
+        frazil::plugin::HostStateAdapter::restore(parameters, state);
+    } else {
+        frazil::plugin::HostStateAdapter::restore(parameters, juce::ValueTree{});
     }
 }
 
