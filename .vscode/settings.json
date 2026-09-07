@@ -11,6 +11,16 @@
   },
   "C_Cpp.default.cppStandard": "c++20",
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "terminal.integrated.profiles.windows": {
+    "FRAZIL MSVC x64": {
+      "path": "${env:ComSpec}",
+      "args": [
+        "/k",
+        "${workspaceFolder}/tools/vscode_msvc_env.cmd"
+      ]
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "FRAZIL MSVC x64",
   "files.exclude": {
     "**/.git": true,
     "**/.venv": true,

@@ -13,7 +13,7 @@
 - JUCE 9.0.1 由仓库 bootstrap 脚本恢复；
 - pluginval 仅在执行插件验证时需要。
 
-Visual Studio IDE 不是必需品。可以从 Developer PowerShell for VS 或 x64 Native Tools command prompt 启动 VS Code 和 CMake，也可以使用开发者自己的环境发现配置。
+Visual Studio IDE 不是必需品。本项目推荐直接在 VS Code 中选择 FRAZIL MSVC x64 Terminal profile；workspace 会通过 vswhere 动态发现 Visual Studio 和 Windows SDK，不需要从 Developer PowerShell 重新启动 VS Code。
 
 ## 2. 打开仓库并确认根目录
 
@@ -87,7 +87,7 @@ pluginval 也应解压到 repository-local tools/bin 或安装到 PATH，版本�
 
 ## 7. MSVC tool discovery
 
-启动 Developer PowerShell for VS 或 x64 Native Tools command prompt 后验证：
+在 VS Code 中打开 FRAZIL MSVC x64 Terminal profile 后验证：
 
     Get-Command cl.exe
     Get-Command rc.exe
@@ -132,12 +132,13 @@ scanner 检查 tracked source/config/script/canonical documentation 中的 Windo
 
 在 <repo-root> 打开 VS Code：
 
-- Ctrl+Shift+B 执行 FRAZIL: build windows-debug (safe)；
+- 在 VS Code Terminal profile 中选择 FRAZIL MSVC x64；该 profile 通过 vswhere 动态发现 Visual Studio，并调用仓库内的 tools/vscode_msvc_env.cmd；
+- 首次 checkout 运行 Task: FRAZIL: configure windows-debug (MSVC)；
+- Ctrl+Shift+B 执行 FRAZIL: build windows-debug (safe)，F5 的 preLaunchTask 使用同一个受控入口；
 - Run and Debug 选择 FRAZIL Standalone (Debug)；
-- task 使用 workspaceFolder，并调用受控 build_safe wrapper；
-- 首次 checkout 先运行 windows-debug configure。
+- task 使用 workspaceFolder，不依赖开发者的 clone 位置或个人 Visual Studio 安装盘符。
 
-VS Code task 不负责猜测 Visual Studio 安装位置；工具链初始化由开发者环境完成。
+VS Code workspace profile 和 task 会自动加载 MSVC developer environment，不需要把 VS Code 从 Developer PowerShell 重新启动。
 
 ## 11. pluginval
 
@@ -150,7 +151,7 @@ VS Code task 不负责猜测 Visual Studio 安装位置；工具链初始化由�
 
 ## 12. 常见问题
 
-- configure 找不到 cl、rc 或 mt：重新从 Developer PowerShell for VS 或 x64 Native Tools command prompt 启动；
+- configure 找不到 cl、rc 或 mt：确认当前 VS Code terminal 使用 FRAZIL MSVC x64 profile，并重新运行 FRAZIL: configure windows-debug (MSVC)；
 - configure 找不到 Ninja：安装 Ninja，或把固定版本放入 tools/bin；
 - JUCE 缺失或 revision 不匹配：重新运行 tools/bootstrap_dependencies.ps1；
 - ASAN 测试找不到 runtime DLL：确认命令继承 VCToolsInstallDir，且使用 windows-asan test preset；

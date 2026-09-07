@@ -14,16 +14,18 @@ def main() -> int:
         root = Path(temporary_directory)
         (root / "docs").mkdir()
         (root / "docs" / "guide.md").write_text("# Guide\n", encoding="utf-8")
+        latex_open = chr(92) + "[\n"
+        latex_close = chr(92) + "]\n"
         (root / "README.md").write_text(
             "[valid](docs/guide.md#intro)\n"
             "[external](https://example.com/missing.md)\n"
             "[mail](mailto:test@example.com)\n"
-            "\\[\n"
-            "f[n]=h[n](1+mu)\n"
-            "\\]\n"
-            "```\n"
-            "[code](missing)\n"
-            "```\n",
+            + latex_open
+            + "f[n]=h[n](1+mu)\n"
+            + latex_close
+            + "```\n"
+            + "[code](missing)\n"
+            + "```\n",
             encoding="utf-8",
         )
         assert scan_markdown_file(root, Path("README.md")) == []
