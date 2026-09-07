@@ -25,7 +25,7 @@
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug；从下一条需要双人 review 的核心 PR 开始，必须留下 formal review 或满足治理规则的第二位开发者 comment evidence；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证；HOST-000 产品目标已由 Sound & Host Lead 冻结，矩阵见 [HOST-000_COMPATIBILITY_MATRIX.md](HOST-000_COMPATIBILITY_MATRIX.md)；Engineering Lead review pending，HOST-001 实际 DAW evidence pending，REAPER exact version pending。
+10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证；HOST-000 产品目标已由 Sound & Host Lead 冻结并推送至 `origin/experiment/music-dsp`，当前已知远端 SHA 为 `ceccc2d51598a7a794220b4d71009c359f25e007`，矩阵见 [HOST-000_COMPATIBILITY_MATRIX.md](HOST-000_COMPATIBILITY_MATRIX.md)；Engineering Lead review、PR/CI 和 merge pending，HOST-001 实际 DAW evidence pending，REAPER exact version pending。
 
 ## 2. 已有资产
 
@@ -41,7 +41,7 @@
 | Tests | `frazil_smoke` + `frazil_tests` CTest | M1 contract/gain/smoothing/priming/invariant unit 覆盖；state/DSP property/Host 测试未完成 |
 | Local validation | `feat/m1-parameter-engine-contract` merge-candidate 的 Debug、Release、ASAN 均 configure/build；三个 preset 的 CTest 均 2/2 PASS | 已验证 |
 | pluginval | M1-A/M1-B merge-candidate Debug VST3 strictness 5 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；HOST-000 audit observed `origin/main` HEAD 为 `b91f619`；PR #3 merge commit 为 `229ca19`；`feat/m1-state-contract` 为独立未合入分支 | PR #2 / PR #3 Hosted CI success；Issues/Milestones/Projects metadata 未建立 |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；HOST-000 audit observed `origin/main` HEAD 为 `b91f619`；`origin/experiment/music-dsp` 当前已知 SHA 为 `ceccc2d51598a7a794220b4d71009c359f25e007`；PR #3 merge commit 为 `229ca19`；`feat/m1-state-contract` 为独立未合入分支 | HOST-000 push 已完成；PR/CI/merge 尚未完成；Issues/Milestones/Projects metadata 未建立 |
 
 ## 3. 当前源码映射
 
@@ -111,7 +111,7 @@ PluginProcessor
 
 ## 5. 现状对应 milestone
 
-- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标已冻结，但 Engineering Lead review、push/merge、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
+- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标已冻结并推送至 `origin/experiment/music-dsp`，但 Engineering Lead review、PR/CI、merge、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
 - M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 已合入 `main`：ParameterLayout、Snapshot、Mapper、ProcessSpec、EngineParameters、Input/Output gain skeleton、Global DryWet primitive、continuous smoothing、RandomSource 和 Host -> Snapshot -> Mapper -> AudioEngine 路径已实现；仍缺版本化 state、automation integration、render/property/performance、DAW 验证和正式参数 freeze，下一入口为 M1-C。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
@@ -132,7 +132,7 @@ PluginProcessor
 ## 7. 下一步顺序
 
 ```text
-HOST-000 review/push/merge
+HOST-000 Engineering review / PR / merge
   -> TESTDATA-001 可并行启动
   -> M1-C State 独立 review/merge
   -> HOST-001 save/reopen/automation/DAW evidence
@@ -142,4 +142,4 @@ HOST-000 review/push/merge
   -> Water production only after experiment gate
 ```
 
-HOST-000 已完成产品目标冻结，但 Engineering Lead review 尚未完成；HOST-001 负责实际 DAW evidence。`feat/m1-state-contract` 未合入，不计为 `main` 已实现。Water/Ice/Routing 仍未开始 production。
+HOST-000 已完成产品目标冻结并推送至 `origin/experiment/music-dsp`；Engineering Lead review、PR 和 merge 尚未完成。HOST-001 负责实际 DAW evidence。`feat/m1-state-contract` 未合入，不计为 `main` 已实现。Water/Ice/Routing 仍未开始 production。

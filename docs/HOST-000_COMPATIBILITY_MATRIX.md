@@ -84,7 +84,7 @@ Support intent 与 evidence status 是两个独立维度，不得合并书写。
 ### 3.2 Frozen platform and format matrix
 
 | Dimension | Frozen decision | Evidence status |
-|---|---|---|---|
+|---|---|---|
 | Platform | Windows 11 x64 | Target frozen; release evidence pending |
 | Format | VST3 64-bit | Target frozen; format/DAW evidence pending |
 | Primary development DAW | Ableton Live 12 Suite `12.4.2` | Installed/discovered; DAW smoke `Not run` |
