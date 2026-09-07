@@ -45,7 +45,7 @@
 
 ## 2.1 Repository portability remediation evidence
 
-repository-portability remediation 与 bounded build-safety guard 已在 commit 7d5f9a8 对应版本完成静态和安全 preflight 验证：python tools/check_portability.py、python tools/test_check_portability.py、python tools/test_build_safe.py、cmake --list-presets、CMake/VS Code JSON 解析和 6/8 job preflight 均通过；9 job 与 CMAKE_BUILD_PARALLEL_LEVEL=32 的绕过尝试均被拒绝。事故前 519ede8 的 Debug/Release/ASAN 本地构建记录保持为历史证据；本轮安全 wrapper 应用后未重新启动 C++ 全量构建，以避免重复触发资源风险。Fresh clone、VS Code GUI task 和 Hosted GitHub Actions 尚未针对 7d5f9a8 验证。
+repository-portability remediation 与 bounded build-safety guard 已在 commit 7d5f9a8 对应版本完成静态和安全 preflight 验证：python tools/check_portability.py、python tools/test_check_portability.py、python tools/test_build_safe.py、cmake --list-presets、CMake/VS Code JSON 解析和 6/8 job preflight 均通过；9 job 与 CMAKE_BUILD_PARALLEL_LEVEL=32 的绕过尝试均被拒绝。事故前 519ede8 的 Debug/Release/ASAN 本地构建记录保持为历史证据；本轮安全 wrapper 应用后未重新启动 C++ 全量构建，以避免重复触发资源风险。Hosted GitHub Actions 已在 PR #7 的 run 34123361676（workflow_dispatch，Windows Debug / CMake / CTest，4m49s）通过；Fresh clone 与 VS Code GUI task 仍未在本机单独复验。
 
 Branch audit 仅报告未合并分支中的既有基线路径污染，不改写其它 branch；合并或 cherry-pick 本修复后应重新运行 portability scan。
 ## 3. 当前源码映射
