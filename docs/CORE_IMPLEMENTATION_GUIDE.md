@@ -588,6 +588,23 @@ non-parameter persistent UI state: only when required
 edit history: never serialized
 ```
 
+The schema above describes the current STATE-001 schemaVersion=1 representation and its current nine canonical Host parameters.
+
+It does not mean the final FRAZIL v1.0 public Host parameter set is permanently limited to nine parameters.
+
+If M2/M3 adopts new Host-visible Water/Ice product macros, the implementation must not silently expand the required
+parameter set of schemaVersion=1. Before any new persistent Host parameter is added, perform an explicit
+state-compatibility review and define the schema-evolution strategy.
+
+Possible strategies may include:
+
+- schemaVersion bump plus migration/default rules; or
+- another explicitly reviewed compatibility mechanism.
+
+The chosen strategy must be synchronized with `PARAMETERS.md`, state fixtures, migration tests, and any required ADR.
+A state that was valid under the current schemaVersion=1 contract must not silently become invalid merely because
+later product macros were added. This guard does not create schemaVersion=2 or choose the final evolution strategy.
+
 ### 7.2 Restore 算法
 
 ```text
