@@ -25,7 +25,7 @@
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug；从下一条需要双人 review 的核心 PR 开始，必须留下 formal review 或满足治理规则的第二位开发者 comment evidence；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证；HOST-000 产品目标已由 Sound & Host Lead 冻结并推送至 `origin/experiment/music-dsp`，当前已知远端 SHA 为 `ceccc2d51598a7a794220b4d71009c359f25e007`，矩阵见 [HOST-000_COMPATIBILITY_MATRIX.md](HOST-000_COMPATIBILITY_MATRIX.md)；Engineering Lead review、PR/CI 和 merge pending，HOST-001 实际 DAW evidence pending，REAPER exact version pending。
+10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch protection 未验证；HOST-000 产品目标已由 Sound & Host Lead 冻结并推送至 `origin/experiment/music-dsp`；首次 HOST-000 frozen-target push commit 为 `ceccc2d51598a7a794220b4d71009c359f25e007`，实时 branch HEAD 必须由 Git 命令确认；矩阵见 [HOST-000_COMPATIBILITY_MATRIX.md](HOST-000_COMPATIBILITY_MATRIX.md)；Engineering Lead review、PR/CI 和 merge pending，HOST-001 实际 DAW evidence pending，REAPER exact version pending。
 
 ## 2. 已有资产
 
@@ -41,7 +41,7 @@
 | Tests | `frazil_smoke` + `frazil_tests` CTest | M1 contract/gain/smoothing/priming/invariant unit 覆盖；state/DSP property/Host 测试未完成 |
 | Local validation | `feat/m1-parameter-engine-contract` merge-candidate 的 Debug、Release、ASAN 均 configure/build；三个 preset 的 CTest 均 2/2 PASS | 已验证 |
 | pluginval | M1-A/M1-B merge-candidate Debug VST3 strictness 5 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；HOST-000 audit observed `origin/main` HEAD 为 `b91f619`；`origin/experiment/music-dsp` 当前已知 SHA 为 `ceccc2d51598a7a794220b4d71009c359f25e007`；PR #3 merge commit 为 `229ca19`；`feat/m1-state-contract` 为独立未合入分支 | HOST-000 push 已完成；PR/CI/merge 尚未完成；Issues/Milestones/Projects metadata 未建立 |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；HOST-000 audit observed `origin/main` HEAD 为 `b91f619`；HOST-000 frozen-target 首次 push commit 为 `ceccc2d51598a7a794220b4d71009c359f25e007`；实时 `origin/experiment/music-dsp` HEAD 由 Git 命令验证；PR #3 merge commit 为 `229ca19`；`feat/m1-state-contract` 为独立未合入分支 | HOST-000 push 已完成；PR/CI/merge 尚未完成；Issues/Milestones/Projects metadata 未建立 |
 
 ## 3. 当前源码映射
 
