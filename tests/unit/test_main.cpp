@@ -81,6 +81,15 @@ float getParameterValue(const juce::AudioProcessorValueTreeState& state, const c
     return value != nullptr ? value->load() : 0.0f;
 }
 
+juce::ValueTree findParameterNode(const juce::ValueTree& state, const char* id) {
+    for (int index = 0; index < state.getNumChildren(); ++index) {
+        const auto parameter = state.getChild(index);
+        if (parameter.getProperty("id").toString() == id)
+            return parameter;
+    }
+    return {};
+}
+
 void testProcessSpecValidation() {
     expect(ProcessSpec{48000.0, 128, 2}.isValid(), "valid process spec is accepted");
     expect(!ProcessSpec{0.0, 128, 2}.isValid(), "zero sample rate is rejected");
@@ -433,6 +442,58 @@ void testHostStateAdapterLegacyIdsAndInvalidFallback() {
                1.0e-6f, "malformed root restores default Water enable");
 }
 
+void testHostStateAdapterParserRegressions() {
+    TestAudioProcessor sourceProcessor;
+    juce::AudioProcessorValueTreeState source(sourceProcessor, nullptr, "FRAZIL",
+                                              frazil::plugin::createParameterLayout());
+    setParameterValue(source, frazil::plugin::parameterIds::globalMix, 0.4f);
+    const auto valid = frazil::plugin::HostStateAdapter::serialize(source);
+
+    TestAudioProcessor restoredProcessor;
+    juce::AudioProcessorValueTreeState restored(restoredProcessor, nullptr, "FRAZIL",
+                                                 frazil::plugin::createParameterLayout());
+
+    auto duplicate = valid.createCopy();
+    auto globalMixNode = findParameterNode(valid, frazil::plugin::parameterIds::globalMix);
+    expect(globalMixNode.isValid(), "duplicate regression locates global mix parameter");
+    if (globalMixNode.isValid())
+        duplicate.appendChild(globalMixNode.createCopy(), nullptr);
+    expect(!frazil::plugin::HostStateAdapter::restore(restored, duplicate),
+           "duplicate known parameter reports safe fallback");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::globalMix), 1.0f,
+               1.0e-6f, "duplicate known parameter restores the global mix default");
+
+    auto nonnumericSchema = valid.createCopy();
+    nonnumericSchema.setProperty("schemaVersion", "abc", nullptr);
+    expect(!frazil::plugin::HostStateAdapter::restore(restored, nonnumericSchema),
+           "nonnumeric schemaVersion reports safe fallback");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::globalMix), 1.0f,
+               1.0e-6f, "nonnumeric schemaVersion restores the global mix default");
+
+    auto nonnumericParameter = valid.createCopy();
+    auto nonnumericParameterNode =
+        findParameterNode(nonnumericParameter, frazil::plugin::parameterIds::globalMix);
+    expect(nonnumericParameterNode.isValid(),
+           "nonnumeric regression locates global mix parameter");
+    if (nonnumericParameterNode.isValid())
+        nonnumericParameterNode.setProperty("value", "abc", nullptr);
+    expect(!frazil::plugin::HostStateAdapter::restore(restored, nonnumericParameter),
+           "nonnumeric parameter value reports safe fallback");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::globalMix), 1.0f,
+               1.0e-6f, "nonnumeric parameter value restores the global mix default");
+
+    auto malformedBool = valid.createCopy();
+    auto malformedBoolNode =
+        findParameterNode(malformedBool, frazil::plugin::parameterIds::waterEnabled);
+    expect(malformedBoolNode.isValid(), "malformed bool regression locates Water parameter");
+    if (malformedBoolNode.isValid())
+        malformedBoolNode.setProperty("value", 0.5f, nullptr);
+    expect(!frazil::plugin::HostStateAdapter::restore(restored, malformedBool),
+           "malformed bool value reports safe fallback");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::waterEnabled), 1.0f,
+               1.0e-6f, "malformed bool value restores the Water enable default");
+}
+
 void testLinearSmootherReachesTarget() {
     LinearSmoother smoother;
     smoother.prepare(1000.0, 0.010);
@@ -652,6 +713,7 @@ int main() {
     testStateModelMigrationAndFallback();
     testHostStateAdapterRoundTripAndInactiveRetention();
     testHostStateAdapterLegacyIdsAndInvalidFallback();
+    testHostStateAdapterParserRegressions();
     testLinearSmootherReachesTarget();
     testLinearSmootherIsBlockSizeStable();
     testLinearSmootherRetargetsFromCurrentValue();

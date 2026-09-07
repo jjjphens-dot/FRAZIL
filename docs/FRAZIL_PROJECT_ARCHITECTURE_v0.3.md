@@ -2930,10 +2930,12 @@ UI-009 Group continuous edits into one history transaction
 ## State / History
 
 ```text
-STATE-001 Implement bounded edit history
-STATE-002 Exclude Host automation from plugin history
-STATE-003 Clear history on Host state restore
-STATE-004 Add Undo / Redo acceptance tests
+STATE-001 Versioned StateModel/adapter and Host restore/history boundary
+STATE-002 Mode value retention
+M5 HIST-001 EditHistoryManager skeleton
+M5 HIST-002 Gesture transactions
+M5 HIST-003 Undo / Redo controls
+M5 HIST-004 Host automation/restore source isolation
 ```
 
 ---

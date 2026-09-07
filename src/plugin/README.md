@@ -37,7 +37,7 @@ PluginEditor -> plugin parameter interface
 
 ## Parameter / State Contract
 
-当前代码注册合同 ID `water.enabled`/`ice.enabled` 以及其余 7 个核心参数。state XML 现在由 `HostStateAdapter` 输出 `FRAZIL` root、`schemaVersion=1` 和全部 9 个 canonical 参数；schema-less/legacy `water.enable`、`ice.enable` 进入已知 pre-v1 migration，未知或损坏输入使用安全默认值。EditHistoryManager 尚未实现，Host restore 与 plugin history 的边界仍按合同保留。
+当前代码注册合同 ID `water.enabled`/`ice.enabled` 以及其余 7 个核心参数。state XML 现在由 `HostStateAdapter` 输出 `FRAZIL` root、`schemaVersion=1` 和全部 9 个 canonical 参数；schema-less/legacy `water.enable`、`ice.enable` 进入已知 pre-v1 migration，未知或损坏输入使用安全默认值。Host restore 与 plugin history 的边界由 STATE-001 定义；`EditHistoryManager` remains planned for M5 (HIST-001..004)。
 
 ## Ownership & Lifetime
 
@@ -49,11 +49,11 @@ PluginProcessor 拥有 APVTS、AudioEngine 和 editor 生命周期；JUCE factor
 
 ## Implementation Overview
 
-M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing 的 gain/mix skeleton；wet path 仍为 pass-through。M1-C 已把 `processBlock` 之外的 state save/restore 接入 versioned `HostStateAdapter`/`StateModel` boundary；真实 Water/Ice、routing、EditHistory 和产品 UI 按 Coding Plan 后续实现。
+M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing 的 gain/mix skeleton；wet path 仍为 pass-through。M1-C 已把 `processBlock` 之外的 state save/restore 接入 versioned `HostStateAdapter`/`StateModel` boundary；真实 Water/Ice、routing 和产品 UI 按 Coding Plan 后续实现；`EditHistoryManager` remains planned for M5 (HIST-001..004)。
 
 ## Tests
 
-当前证据为 CTest smoke/lifecycle、Debug/Release/ASAN build 和参数/mapper/engine/state unit tests，包含参数类型/名称/单位/choice、versioned state round-trip、legacy ID migration、invalid fallback、三种 routing、inactive retention、smoothing block regression、首 block priming、reset 和 runtime buffer invariant；本轮 Debug VST3 的 pluginval strictness 5 已通过，automation、render、完整 property、state DAW restore 和 DAW matrix 仍待执行。
+当前证据为 CTest smoke/lifecycle、Debug/Release/ASAN build 和参数/mapper/engine/state unit tests，包含参数类型/名称/单位/choice、versioned state round-trip、legacy ID migration、duplicate/nonnumeric/malformed invalid parser fallback、三种 routing、inactive retention、smoothing block regression、首 block priming、reset 和 runtime buffer invariant；本轮 Debug VST3 的 pluginval strictness 5 已通过，automation、render、完整 property、state DAW restore 和 DAW matrix 仍待执行。
 
 ## Related ADRs
 
