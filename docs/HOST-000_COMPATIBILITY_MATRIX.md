@@ -3,7 +3,7 @@
 > 状态：**Product targets frozen by Sound & Host Lead; Engineering Lead review pending; HOST-001 evidence pending**
 > Implementation DRI：Sound & Host Lead
 > Required reviewer：Engineering Lead
-> 审计基线：`origin/main` observed `b91f619`（2026-09-07）
+> Initial HOST-000 audit baseline：`origin/main` observed `b91f619`（历史事实，2026-09-07）；本次 integration audit observed `origin/main` `12d36a4`；live remote HEAD 必须由 Git 命令确认
 
 Sound & Host Lead 已冻结 v1 的平台、格式和宿主目标。本文档同时记录当前证据状态，因此“目标已冻结”不等于“兼容性已通过”。HOST-000 定义 HOST-001 的验收目标；HOST-001 负责实际 pluginval/DAW smoke evidence，不构成循环依赖，也不需要完成后 HOST-000 才能合入。
 
@@ -195,7 +195,7 @@ There is no sample-accurate Host automation promise. Test cases must cover:
 4. Confirm parameter values, routing choice and automation lanes are restored.
 5. Record whether the host reports any missing parameter, changed order or state warning.
 
-Formal versioned-state save/reopen acceptance is performed after the independent `feat/m1-state-contract` work is reviewed and merged; its current unmerged state is not evidence for `main`.
+STATE-001 的 versioned StateModel foundation 与 unit/XML transport restore evidence 已随 PR #5 合入 `main`。这不等于真实 DAW save/reopen 已验证；STATE-002 mode-value-retention integration 仍为 pending，Ableton、FL Studio 和 REAPER 的 save/reopen evidence 仍属于 HOST-001。不得把 `origin/feat/m1-state-contract` 的当前分支状态作为 `main` 的实现事实。
 
 ### 7.5 Offline render smoke
 
