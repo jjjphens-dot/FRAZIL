@@ -378,6 +378,59 @@ void testHostStateAdapterRoundTripAndInactiveRetention() {
                1.0e-6f, "restored output gain matches source");
 }
 
+void testHostStateAdapterXmlRoundTrip() {
+    TestAudioProcessor sourceProcessor;
+    juce::AudioProcessorValueTreeState source(sourceProcessor, nullptr, "FRAZIL",
+                                              frazil::plugin::createParameterLayout());
+    setParameterValue(source, frazil::plugin::parameterIds::waterEnabled, 0.0f);
+    setParameterValue(source, frazil::plugin::parameterIds::iceEnabled, 1.0f);
+    setParameterValue(source, frazil::plugin::parameterIds::routingMode, 2.0f);
+    setParameterValue(source, frazil::plugin::parameterIds::parallelBalance, 0.25f);
+    setParameterValue(source, frazil::plugin::parameterIds::waterAmount, 0.5f);
+    setParameterValue(source, frazil::plugin::parameterIds::iceAmount, 0.75f);
+    setParameterValue(source, frazil::plugin::parameterIds::inputGain, -6.0f);
+    setParameterValue(source, frazil::plugin::parameterIds::globalMix, 0.4f);
+    setParameterValue(source, frazil::plugin::parameterIds::outputGain, 3.0f);
+
+    const auto serialized = frazil::plugin::HostStateAdapter::serialize(source);
+    const auto xml = serialized.createXml();
+    expect(xml != nullptr, "host state creates XML for API round-trip");
+    if (xml == nullptr)
+        return;
+
+    const auto fromXml = juce::ValueTree::fromXml(*xml);
+    expect(fromXml.isValid(), "host state XML recreates a valid ValueTree");
+    expect(fromXml.getProperty("schemaVersion").isString(),
+           "ValueTree XML restore exposes schemaVersion as a string");
+    const auto xmlGlobalMix = findParameterNode(fromXml, frazil::plugin::parameterIds::globalMix);
+    expect(xmlGlobalMix.getProperty("value").isString(),
+           "ValueTree XML restore exposes parameter values as strings");
+
+    TestAudioProcessor restoredProcessor;
+    juce::AudioProcessorValueTreeState restored(restoredProcessor, nullptr, "FRAZIL",
+                                                 frazil::plugin::createParameterLayout());
+    expect(frazil::plugin::HostStateAdapter::restore(restored, fromXml),
+           "XML/API state round-trip restores without fallback");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::waterEnabled), 0.0f,
+               1.0e-6f, "XML/API round-trip restores inactive Water enable");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::iceEnabled), 1.0f,
+               1.0e-6f, "XML/API round-trip restores Ice enable");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::routingMode), 2.0f,
+               1.0e-6f, "XML/API round-trip restores routing mode");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::parallelBalance), 0.25f,
+               1.0e-6f, "XML/API round-trip restores parallel balance");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::waterAmount), 0.5f,
+               1.0e-6f, "XML/API round-trip restores inactive Water amount");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::iceAmount), 0.75f,
+               1.0e-6f, "XML/API round-trip restores inactive Ice amount");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::inputGain), -6.0f,
+               1.0e-6f, "XML/API round-trip restores input gain");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::globalMix), 0.4f,
+               1.0e-6f, "XML/API round-trip restores global mix");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::outputGain), 3.0f,
+               1.0e-6f, "XML/API round-trip restores output gain");
+}
+
 void testHostStateAdapterLegacyIdsAndInvalidFallback() {
     TestAudioProcessor sourceProcessor;
     juce::AudioProcessorValueTreeState source(sourceProcessor, nullptr, "FRAZIL",
@@ -481,6 +534,17 @@ void testHostStateAdapterParserRegressions() {
            "nonnumeric parameter value reports safe fallback");
     expectNear(getParameterValue(restored, frazil::plugin::parameterIds::globalMix), 1.0f,
                1.0e-6f, "nonnumeric parameter value restores the global mix default");
+
+    auto partialNumericParameter = valid.createCopy();
+    auto partialNumericNode =
+        findParameterNode(partialNumericParameter, frazil::plugin::parameterIds::globalMix);
+    expect(partialNumericNode.isValid(), "partial numeric regression locates global mix parameter");
+    if (partialNumericNode.isValid())
+        partialNumericNode.setProperty("value", "0.4trailing", nullptr);
+    expect(!frazil::plugin::HostStateAdapter::restore(restored, partialNumericParameter),
+           "partial numeric parameter value reports safe fallback");
+    expectNear(getParameterValue(restored, frazil::plugin::parameterIds::globalMix), 1.0f,
+               1.0e-6f, "partial numeric parameter value restores the global mix default");
 
     auto malformedBool = valid.createCopy();
     auto malformedBoolNode =
@@ -712,6 +776,7 @@ int main() {
     testStateModelRoundTrip();
     testStateModelMigrationAndFallback();
     testHostStateAdapterRoundTripAndInactiveRetention();
+    testHostStateAdapterXmlRoundTrip();
     testHostStateAdapterLegacyIdsAndInvalidFallback();
     testHostStateAdapterParserRegressions();
     testLinearSmootherReachesTarget();

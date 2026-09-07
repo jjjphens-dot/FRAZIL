@@ -20,8 +20,8 @@
 2. PR #4 的 [Hosted CI run 34046691706](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34046691706) 与合并后 main 的 [Hosted CI run 34049822657](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34049822657) 均已完成 Windows Debug configure/build/test 并通过；PR #3 的 [Hosted CI run 34044332388](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34044332388) 与 PR #2 的 [Hosted CI run 34022773758](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34022773758) 也已通过；workflow/API 的更细粒度权限与 branch protection 未验证；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；STATE-001 已建立已知 pre-v1 ID migration fixture，公开版本兼容性仍需后续 freeze/evidence；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
-5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；本次 STATE-001 Debug VST3 pluginval strictness 5 已通过，尚未覆盖 render 和 DAW automation；
-6. Water、Ice、Routing、EditHistoryManager、离线 render、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现；STATE-002 mode-value-retention integration、Host/DAW restore、M5 EditHistoryManager integration 和公开兼容性仍待执行。
+5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；本次 STATE-001 Debug VST3 pluginval strictness 5 已通过，尚未覆盖 render 和 DAW automation；
+6. Water、Ice、Routing、EditHistoryManager、离线 render、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现；STATE-002 mode-value-retention integration、真实 Host/DAW restore matrix、M5 EditHistoryManager integration 和公开兼容性仍待执行。
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug；从下一条需要双人 review 的核心 PR 开始，必须留下 formal review 或满足治理规则的第二位开发者 comment evidence；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
@@ -34,11 +34,11 @@
 | Build | CMake 3.22+、C++20、Ninja presets | 本机可用；portable preset 已由 Hosted CI 验证 |
 | Formats | JUCE target 声明 VST3 + Standalone | 已接入 |
 | Dependency | `external/JUCE` 为 9.0.1，本机文档记录两个兼容补丁 | 需确定仓库获取/补丁策略 |
-| Plugin shell | mono/stereo bus check、editor、versioned state XML adapter | M1-C state boundary 已接入；Host/DAW restore 证据仍待执行 |
+| Plugin shell | mono/stereo bus check、editor、versioned state XML adapter | M1-C state boundary 已接入；XML createXml/fromXml restore path 已验证；真实 Host/DAW restore 证据仍待执行 |
 | Parameters | 9 个集中式 APVTS 参数静态注册；enabled ID 已使用 `.enabled` | M1 参数路径已接入；合同仍待 freeze |
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration pending；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
 | UI | 640x360 M0 占位界面 | 非产品 UI |
-| Tests | `frazil_smoke` + `frazil_tests` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state unit 覆盖；DSP property/Host/DAW 测试未完成 |
+| Tests | `frazil_smoke` + `frazil_tests` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state/XML restore unit 覆盖；DSP property/Host/DAW 测试未完成 |
 | Local validation | `feat/m1-state-contract` STATE-001 Debug/Release/ASAN configure/build；三个 preset 的 CTest 均 2/2 PASS | 已验证 |
 | pluginval | STATE-001 Debug VST3 strictness 5 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
 | Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；snapshot observed `main` HEAD 为 `b91f619`，PR #4 governance merge commit 为 `b91f619` | PR #2 / PR #3 / PR #4 与 post-merge main Hosted CI success；Issues/Milestones/Projects metadata 未建立 |
@@ -123,7 +123,7 @@ PluginProcessor
 ## 6. 不应从现状推断的结论
 
 - 参数“能被 APVTS 注册”不等于 automation click-free 或 DSP 已消费参数；
-- STATE-001 versioned state 能 round-trip 不等于完整跨版本兼容、DAW restore 或 M5 EditHistoryManager integration 已建立；
+- STATE-001 versioned state 能通过当前 XML transport round-trip 不等于完整跨版本兼容、真实 DAW restore 或 M5 EditHistoryManager integration 已建立；
 - pluginval 历史通过不等于真实 DAW matrix 已通过；
 - pass-through 能构建不等于 routing/gain/dry-wet 的数学和增益结构正确；
 - 目录 README 存在不等于对应模块已经实现；

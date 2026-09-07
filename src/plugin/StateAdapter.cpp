@@ -3,7 +3,10 @@
 #include "ParameterLayout.h"
 
 #include <array>
+#include <cctype>
+#include <cerrno>
 #include <cmath>
+#include <cstdlib>
 #include <limits>
 
 namespace frazil::plugin {
@@ -28,12 +31,68 @@ enum class KnownParameter : std::uint8_t {
     outputGain,
 };
 
-bool isNumeric(const juce::var& value) noexcept {
+bool isNativeNumeric(const juce::var& value) noexcept {
     return value.isInt() || value.isInt64() || value.isDouble();
 }
 
-double numericValue(const juce::var& value) noexcept {
-    return static_cast<double>(value);
+// ValueTree::fromXml() recreates XML attributes as strings, so accept only the strict decimal
+// representation emitted by the state writer while rejecting partial or non-finite input.
+bool parseNumericString(const juce::String& text, double& result) {
+    const auto* cursor = text.toRawUTF8();
+    if (cursor == nullptr || *cursor == '\0')
+        return false;
+
+    if (*cursor == '+' || *cursor == '-')
+        ++cursor;
+
+    bool hasMantissaDigit = false;
+    while (std::isdigit(static_cast<unsigned char>(*cursor)) != 0) {
+        hasMantissaDigit = true;
+        ++cursor;
+    }
+
+    if (*cursor == '.') {
+        ++cursor;
+        while (std::isdigit(static_cast<unsigned char>(*cursor)) != 0) {
+            hasMantissaDigit = true;
+            ++cursor;
+        }
+    }
+
+    if (!hasMantissaDigit)
+        return false;
+
+    if (*cursor == 'e' || *cursor == 'E') {
+        ++cursor;
+        if (*cursor == '+' || *cursor == '-')
+            ++cursor;
+
+        bool hasExponentDigit = false;
+        while (std::isdigit(static_cast<unsigned char>(*cursor)) != 0) {
+            hasExponentDigit = true;
+            ++cursor;
+        }
+
+        if (!hasExponentDigit)
+            return false;
+    }
+
+    if (*cursor != '\0')
+        return false;
+
+    errno = 0;
+    char* end = nullptr;
+    result = std::strtod(text.toRawUTF8(), &end);
+    return end != nullptr && *end == '\0' && errno != ERANGE;
+}
+
+bool readNumericValue(const juce::var& value, double& result) {
+    if (isNativeNumeric(value)) {
+        result = static_cast<double>(value);
+        return true;
+    }
+
+    return value.isString() && parseNumericString(value.toString(), result);
 }
 
 KnownParameter identifyParameter(const juce::String& id) {
@@ -114,10 +173,10 @@ StateModel::DeserializeResult HostStateAdapter::deserialize(const juce::ValueTre
 
     if (tree.hasProperty(kSchemaVersionProperty)) {
         const auto schema = tree.getProperty(kSchemaVersionProperty);
-        if (!isNumeric(schema)) {
+        double value{};
+        if (!readNumericValue(schema, value)) {
             parseError = true;
         } else {
-            const auto value = numericValue(schema);
             constexpr auto kMaximumSchemaVersion =
                 static_cast<double>(std::numeric_limits<std::uint32_t>::max());
             if (!std::isfinite(value) || value < 0.0 || value > kMaximumSchemaVersion ||
@@ -148,12 +207,12 @@ StateModel::DeserializeResult HostStateAdapter::deserialize(const juce::ValueTre
         seen[knownIndex] = true;
 
         const auto rawValue = parameter.getProperty(kParameterValueProperty);
-        if (!isNumeric(rawValue)) {
+        double value{};
+        if (!readNumericValue(rawValue, value)) {
             parseError = true;
             continue;
         }
 
-        const auto value = numericValue(rawValue);
         if (!std::isfinite(value) ||
             value < static_cast<double>(std::numeric_limits<float>::lowest()) ||
             value > static_cast<double>(std::numeric_limits<float>::max())) {

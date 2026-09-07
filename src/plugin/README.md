@@ -53,7 +53,7 @@ M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing �
 
 ## Tests
 
-当前证据为 CTest smoke/lifecycle、Debug/Release/ASAN build 和参数/mapper/engine/state unit tests，包含参数类型/名称/单位/choice、versioned state round-trip、legacy ID migration、duplicate/nonnumeric/malformed invalid parser fallback、三种 routing、inactive retention、smoothing block regression、首 block priming、reset 和 runtime buffer invariant；本轮 Debug VST3 的 pluginval strictness 5 已通过，automation、render、完整 property、state DAW restore 和 DAW matrix 仍待执行。
+当前证据为 CTest smoke/lifecycle、Debug/Release/ASAN build 和参数/mapper/engine/state unit tests，包含参数类型/名称/单位/choice、versioned state round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、legacy ID migration、duplicate/nonnumeric/malformed invalid parser fallback、三种 routing、inactive retention、smoothing block regression、首 block priming、reset 和 runtime buffer invariant；本轮 Debug VST3 的 pluginval strictness 5 已通过，automation、render、完整 property、真实 state DAW restore 和 DAW matrix 仍待执行。
 
 ## Related ADRs
 
