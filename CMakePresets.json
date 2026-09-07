@@ -7,9 +7,9 @@
   },
   "configurePresets": [
     {
-      "name": "windows-base",
-      "displayName": "Windows / Ninja base",
-      "description": "Shared FRAZIL configuration. Build directories remain under the workspace.",
+      "name": "portable-windows-base",
+      "displayName": "Portable Windows / Ninja base",
+      "description": "Shared repository-relative Windows configuration. Run from an initialized MSVC developer environment.",
       "hidden": true,
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
@@ -17,7 +17,7 @@
         "PATH": "${sourceDir}/tools/bin;$penv{PATH}"
       },
       "cacheVariables": {
-        "CMAKE_MAKE_PROGRAM": "${sourceDir}/tools/bin/ninja.exe",
+        "CMAKE_MAKE_PROGRAM": "ninja",
         "CMAKE_C_COMPILER": "cl",
         "CMAKE_CXX_COMPILER": "cl",
         "CMAKE_RC_COMPILER": "rc",
@@ -31,7 +31,7 @@
     {
       "name": "windows-debug",
       "displayName": "Windows Debug",
-      "inherits": "windows-base",
+      "inherits": "portable-windows-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
@@ -39,7 +39,7 @@
     {
       "name": "windows-release",
       "displayName": "Windows Release",
-      "inherits": "windows-base",
+      "inherits": "portable-windows-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -47,32 +47,11 @@
     {
       "name": "windows-asan",
       "displayName": "Windows AddressSanitizer",
-      "inherits": "windows-base",
+      "inherits": "portable-windows-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_FLAGS": "/fsanitize=address /Zi",
         "CMAKE_CXX_FLAGS": "/fsanitize=address /Zi /EHsc"
-      }
-    },
-    {
-      "name": "portable-windows-base",
-      "displayName": "Portable Windows base",
-      "description": "CI configuration. Toolchain discovery is provided by the runner environment.",
-      "hidden": true,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "environment": {
-        "PATH": "$env{VCToolsInstallDir}/bin/Hostx64/x64;$env{WindowsSdkDir}bin/$env{WindowsSDKVersion}x64;$penv{PATH}"
-      },
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "$env{VCToolsInstallDir}/bin/Hostx64/x64/cl.exe",
-        "CMAKE_CXX_COMPILER": "$env{VCToolsInstallDir}/bin/Hostx64/x64/cl.exe",
-        "CMAKE_RC_COMPILER": "rc",
-        "CMAKE_MT": "mt",
-        "CMAKE_CXX_STANDARD": "20",
-        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
-        "CMAKE_CXX_EXTENSIONS": "OFF",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
@@ -145,7 +124,7 @@
       "name": "windows-asan",
       "configurePreset": "windows-asan",
       "environment": {
-        "PATH": "${sourceDir}/tools/bin;$penv{PATH}"
+        "PATH": "$env{VCToolsInstallDir}/bin/Hostx64/x64;${sourceDir}/tools/bin;$penv{PATH}"
       },
       "output": {
         "outputOnFailure": true

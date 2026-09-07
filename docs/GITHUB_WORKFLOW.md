@@ -15,7 +15,7 @@
 建议顺序：
 
 ```powershell
-# Run the following commands from the FRAZIL checkout root.
+在 cloned FRAZIL repository root 打开 PowerShell；后续命令均从该目录执行。
 git init -b main
 git remote add origin https://github.com/jjjphens-dot/FRAZIL.git
 git status --short
@@ -33,7 +33,7 @@ git push -u origin main
 
 1. `tools/bootstrap_dependencies.ps1` 拉取 JUCE 9.0.1 的固定 commit；
 2. 脚本幂等应用 `tools/patches/JUCE-9.0.1-msvc-toolchain.patch`；
-3. 本地固定工具链 preset 与 portable CI preset 分离。
+3. 所有共享 Windows preset 都使用 portable tool discovery；本地与 CI 只通过 preset 名称和运行环境区分。
 
 不允许“依赖开发者机器上恰好存在的 external/JUCE”。`tools/bin` 和下载包不入库，bootstrap 文档固定下载地址和 revision。
 
@@ -86,6 +86,7 @@ Backlog -> Ready -> In Progress -> Code Review -> Listening/DAW Test -> Done
 
 PR 必需检查：
 
+- Repository portability scan；
 - portable Windows configure/build/test；
 - formatting/lint（建立后）；
 - unit/DSP/integration tests；
@@ -138,7 +139,7 @@ Documentation Synchronization Gate 的 canonical 规则位于 [`DOCUMENT_GOVERNA
 - 目标 DAW matrix；
 - artifact hash、版本、changelog、license/notice。
 
-CI 不应使用本机绝对 compiler/SDK 路径。保留 `windows-debug` 等本地 presets，同时新增继承同一 cache contract 的 portable CI preset。
+CI 不应使用本机 F: 盘绝对 compiler/SDK 路径。保留 `windows-debug` 等本地 presets，同时新增继承同一 cache contract 的 portable CI preset。
 
 ## 8. Release 与版本
 

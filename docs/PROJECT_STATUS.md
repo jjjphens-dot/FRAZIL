@@ -43,6 +43,11 @@
 | pluginval | 本分支 `ci-windows-debug` Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 `SUCCESS`；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
 | Remote | `jjjphens-dot/FRAZIL` public repository；`origin` 已绑定；本次 integration audit 观察到 `origin/main` 为 `12d36a4`；HOST-000 frozen-target 首次 push commit 为 `ceccc2d51598a7a794220b4d71009c359f25e007`；实时 branch HEAD 由 Git 命令确认；PR #5 已将 STATE-001 合入 `main` | HOST-000 push 已完成；PR/CI/merge 尚未完成；Issues/Milestones/Projects metadata 未建立 |
 
+## 2.1 Repository portability remediation evidence
+
+本次 working tree 的 repository-portability 修复已完成静态扫描和本机验证：`python tools/check_portability.py`、`cmake --list-presets`、Debug/Release/ASAN configure/build/CTest 均通过；三套本机构建的 CTest 均为 3/3 PASS（含 plugin integration）。另在非 F: 的短路径 fresh clone 中确认无 `CMakeUserPresets.json`，并完成 scanner、`tools/bootstrap_dependencies.ps1`、Debug configure/build/CTest，均通过。VS Code GUI task 因 Windows UI automation helper 不可用而未执行；Hosted GitHub Actions 尚未针对这组未提交改动执行。
+
+Branch audit 仅报告未合并分支中的既有基线路径污染，不改写其它 branch；合并或 cherry-pick 本修复后应重新运行 portability scan。
 ## 3. 当前源码映射
 
 ```text

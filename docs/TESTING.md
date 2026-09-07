@@ -10,7 +10,7 @@
 
 | 层级 | 位置 | 主要问题 | 每次 PR |
 |---|---|---|---|
-| L0 Build/Smoke | CMake/CTest | target 能否配置、编译、启动 | 必需 |
+| L0 Build/Smoke | CMake/CTest/portability checker | repository 是否可配置、编译、启动且不含机器专属路径 | 必需 |
 | L1 Unit | `tests/unit/` | mapping、mix、gain、smoother、history 边界是否精确 | 相关变更必需 |
 | L2 DSP Property | `tests/dsp/` | 极值、随机输入、prepare/reset 下是否 finite/stable | DSP 变更必需 |
 | L3 Render Regression | `tests/render/` + `testdata/` | 固定输入/seed/参数下声音输出是否可复现 | 声音/routing 变更必需 |
@@ -238,6 +238,11 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 ## 8. 验证命令
 
 本机基础：
+
+仓库 portability：
+
+    python tools/check_portability.py
+
 
 ```powershell
 cmake --preset windows-debug

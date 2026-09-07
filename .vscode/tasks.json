@@ -5,11 +5,14 @@
       "label": "FRAZIL: build windows-debug",
       "type": "process",
       "command": "cmake",
-      "args": ["--build", "--preset", "windows-debug", "--parallel", "4"],
+      "args": [
+        "--build",
+        "--preset",
+        "windows-debug",
+        "--parallel"
+      ],
       "options": {
-        "env": {
-          "PATH": "${workspaceFolder}\\tools\\bin;${env:PATH}"
-        }
+        "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [
         "$msCompile"

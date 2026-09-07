@@ -15,6 +15,12 @@ JUCE 不随 FRAZIL 主仓库提交。全新 checkout 先执行：
 `tools/patches/JUCE-9.0.1-msvc-toolchain.patch`。构建输出和本地工具二进制不应
 提交；版本与来源记录在 `docs/ENVIRONMENT.md`。
 
+Portability check：
+
+    python tools/check_portability.py
+
+scanner 只允许带有 PORTABILITY_ALLOW 且明确标注为 reference-machine evidence、不会被 build/test/runtime logic 使用的例外。不要使用大范围 allowlist。
+
 建议工具：
 
 - `pluginval`

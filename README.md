@@ -32,9 +32,10 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 
 ```powershell
 .\tools\bootstrap_dependencies.ps1
+python tools/check_portability.py
 ```
 
-本机工具链构建：
+在已初始化 MSVC developer environment 的 Windows PowerShell 中构建：
 
 ```powershell
 cmake --preset windows-debug
@@ -43,9 +44,9 @@ ctest --preset windows-debug
 ```
 
 `windows-release` 与 `windows-asan` 使用同名 configure/build/test preset。CI 或其他 Windows
-机器在 MSVC developer environment 已初始化后使用 `ci-windows-debug`，它不包含本机绝对路径。
-Windows 工具链初始化、pluginval 和本机 ignored user preset 规则见 [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)。
-所有构建输出、Python 环境和工具缓存必须留在工作区且不得提交。
+机器在 MSVC developer environment 已初始化后使用 `ci-windows-debug`，所有共享 preset 都使用 portable tool discovery。
+Windows 工具链初始化、pluginval 和本地配置见 [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)。
+所有构建输出、Python 环境和工具缓存必须保持 repository-local 或由 ignored local configuration 指定，并且不得提交。
 
 ## 仓库
 

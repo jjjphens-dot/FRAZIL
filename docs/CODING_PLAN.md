@@ -140,10 +140,10 @@ M2 Water 与 M3 Ice 仍可并行开发。`PARAM-FREEZE-001` 必须在 M2/M3 完�
 | ENG-STD-001 | P0 | 建立 code quality 与 documentation governance | `docs/CODE_STANDARDS.md`、`docs/DOCUMENT_GOVERNANCE.md`、`docs/MODULE_INDEX.md`、AGENTS 和 module README 更新 | cohesion、coupling、ownership、realtime、comments、module docs、document protection 和 post-code documentation pass 形成强制合同 | DOC-001 |
 | LEGAL-001 | P0 | 由 owner 选择并加入开源许可证 | `LICENSE` + README 声明 | 许可证与第三方 notices 一致；提交音频许可可追溯 | owner 产品决定 |
 | DEP-001 | P0 | 决定 JUCE 固定与补丁策略 | Accepted ADR-0004 | fresh directory 获取精确 JUCE revision；补丁可审计；不依赖 C: 或临时文件 | REPO-001 |
-| BUILD-001 | P0 | 分离本地 F: preset 与 portable CI preset | presets/toolchain/CMake | 本地三 preset 不退化；GitHub runner 不引用 F: 绝对路径 | DEP-001 |
+| BUILD-001 | P0 | 建立 repository-portable Windows preset 与路径防回归检查 | presets/toolchain/CMake | 本地三 preset 与 CI preset 不引用开发者路径；scanner 在新增个人绝对路径时失败 | DEP-001 |
 | BUILD-002 | P0 | 建立依赖 bootstrap/checksum | script + docs | 空 `external/` 可按固定版本恢复；重复执行幂等；失败信息清晰 | DEP-001 |
 | TEST-001 | P0 | 接入可扩展单元测试框架 | `frazil_tests` target | CTest 能发现多个 case；失败返回非零；不依赖 plugin GUI | BUILD-001 |
-| CI-001 | P0 | Windows PR workflow | `.github/workflows/ci.yml` | clean checkout Debug configure/build/test PASS；最小权限；缓存失效规则正确 | BUILD-001/2, TEST-001 |
+| CI-001 | P0 | Windows PR workflow | `.github/workflows/ci.yml` | clean checkout 先通过 portability scan，再完成 Debug configure/build/test PASS；最小权限；缓存失效规则正确 | BUILD-001/2, TEST-001 |
 | CI-002 | P1 | Release/ASAN/pluginval scheduled jobs | workflow jobs | 可手动触发；artifact/log 可追踪 commit；失败可诊断 | CI-001 |
 | HOST-000 | P0 | Freeze initial platform and DAW compatibility matrix | 支持矩阵 ADR/文档 | 记录 v1 正式支持、开发验证、best-effort 的 OS/架构/格式/DAW/Standalone 角色；目标 DAW 可用于后续 M1 smoke | REPO-001 |
 | GH-001 | P0 | 创建 labels、M0-M7 milestones、Project board | GitHub metadata | issue 可按 type/area/priority/milestone 查询 | REPO-001 |
@@ -164,6 +164,7 @@ M2 Water 与 M3 Ice 仍可并行开发。`PARAM-FREEZE-001` 必须在 M2/M3 完�
 
 ```text
 fresh clone
+-> repository portability scan PASS
 -> obtain pinned dependencies
 -> configure portable Debug
 -> build FRAZIL_All + tests

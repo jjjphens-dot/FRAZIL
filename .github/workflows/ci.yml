@@ -18,6 +18,10 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Check repository portability
+        shell: pwsh
+        run: python tools/check_portability.py
+
       - name: Enable MSVC developer environment
         uses: ilammy/msvc-dev-cmd@v1
         with:

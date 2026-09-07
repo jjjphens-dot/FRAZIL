@@ -1,4 +1,4 @@
-# Build outputs stay on the project drive and are never committed.
+# Build outputs stay repository-local or in developer-configured build trees and are never committed.
 /build/
 /out/
 
