@@ -73,11 +73,14 @@ def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
     storage = manifest.get("storagePolicy")
     if (
         not isinstance(storage, dict)
+        or storage.get("location") != "testdata/input"
         or storage.get("repository") is not True
         or storage.get("artifact") is not False
         or storage.get("gitLfs") is not False
     ):
-        errors.append("storage policy must keep these small fixtures in Git without LFS")
+        errors.append(
+            "storage policy must use testdata/input and keep these fixtures in Git without LFS"
+        )
 
     generator = manifest.get("generator")
     if not isinstance(generator, dict):

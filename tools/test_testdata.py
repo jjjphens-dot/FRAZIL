@@ -119,6 +119,14 @@ def main() -> int:
         assert any("storage policy" in error for error in errors), errors
 
     invalid = load_manifest(root)
+    invalid["storagePolicy"]["location"] = "other/input"
+    with tempfile.TemporaryDirectory() as temporary:
+        manifest_path = Path(temporary) / "manifest.json"
+        manifest_path.write_text(json.dumps(invalid), encoding="utf-8")
+        errors = validate(manifest_path)
+        assert any("storage policy must use testdata/input" in error for error in errors), errors
+
+    invalid = load_manifest(root)
     invalid["storagePolicy"] = None
     invalid["generator"] = None
     with tempfile.TemporaryDirectory() as temporary:
