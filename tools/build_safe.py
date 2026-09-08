@@ -68,7 +68,11 @@ def required_memory_bytes(jobs: int) -> int:
 
 def validate_memory(available_bytes: int | None, jobs: int) -> None:
     required_memory = required_memory_bytes(jobs)
-    if available_bytes is None or available_bytes >= required_memory:
+    if available_bytes is None:
+        raise ValueError(
+            "physical memory availability could not be determined; refusing build"
+        )
+    if available_bytes >= required_memory:
         return
     available_gib = available_bytes / (1024**3)
     raise ValueError(

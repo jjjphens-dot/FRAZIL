@@ -20,13 +20,17 @@ Build safety:
     python tools/build_safe.py --preset windows-debug
 
 The wrapper is the only approved local build entry: it refuses more than eight
-jobs and defaults to six, refuses insufficient available physical memory, and writes full compiler
+jobs and defaults to six, refuses insufficient or unknown physical memory status, and writes full compiler
 output to ignored build/safe-build/<preset>.log. It prints only a bounded tail
 when the build fails. The shared configure preset also sets CMAKE_BUILD_PARALLEL_LEVEL=6 for JUCE nested builds. Do not replace it with a bare --parallel invocation, and do not run multiple heavy configure/build/test pipelines concurrently.
-Portability checks：
+Portability and documentation checks：
 
     python tools/check_portability.py
     python tools/test_check_portability.py
+    python tools/check_markdown_links.py
+    python tools/test_check_markdown_links.py
+    python tools/check_vscode_tasks.py
+    python tools/test_check_vscode_tasks.py
 
 scanner 对 tracked source/config/script/canonical documentation 中的机器相关绝对路径一律失败；当前仓库不提供 absolute-path allowlist。回归测试覆盖 Windows、Linux、macOS、UNC、绝对 Markdown link、正常 repo-relative/tool-discovery 路径，以及带 marker 的绕过尝试。
 

@@ -2,11 +2,22 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "FRAZIL: configure windows-debug (MSVC)",
+      "type": "process",
+      "command": "${workspaceFolder}/tools/vscode_cmake.cmd",
+      "args": [
+        "windows-debug"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "FRAZIL: build windows-debug (safe)",
       "type": "process",
-      "command": "python",
+      "command": "${workspaceFolder}/tools/vscode_build_safe.cmd",
       "args": [
-        "tools/build_safe.py",
         "--preset",
         "windows-debug"
       ],

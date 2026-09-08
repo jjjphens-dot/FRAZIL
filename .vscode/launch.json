@@ -7,7 +7,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/windows-debug/FRAZIL_artefacts/Debug/Standalone/FRAZIL.exe",
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "FRAZIL: build windows-debug",
+      "preLaunchTask": "FRAZIL: build windows-debug (safe)",
       "stopAtEntry": false,
       "console": "internalConsole"
     }
