@@ -80,10 +80,41 @@ target_link_libraries(FRAZIL
 juce_generate_juce_header(FRAZIL)
 
 enable_testing()
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 add_executable(frazil_smoke tests/smoke/smoke.cpp)
 target_compile_features(frazil_smoke PRIVATE cxx_std_20)
 add_test(NAME frazil_smoke COMMAND frazil_smoke)
+
+juce_add_console_app(frazil_render
+    PRODUCT_NAME "FRAZIL Offline Render"
+    NEEDS_WEB_BROWSER FALSE
+    NEEDS_CURL FALSE
+)
+target_sources(frazil_render
+    PRIVATE
+    tests/render/offline_render.cpp
+    src/app/AudioEngine.cpp
+    src/app/AudioEngine.h
+    src/app/EngineParameters.h
+    src/app/ProcessSpec.h
+    src/dsp/DryWetMixer.cpp
+    src/dsp/DryWetMixer.h
+    src/dsp/primitives/LinearSmoother.cpp
+    src/dsp/primitives/LinearSmoother.h
+)
+target_compile_features(frazil_render PRIVATE cxx_std_20)
+target_include_directories(frazil_render PRIVATE src)
+target_compile_definitions(frazil_render
+    PRIVATE
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+)
+target_link_libraries(frazil_render
+    PRIVATE
+        juce::juce_audio_formats
+        juce::juce_audio_basics
+)
 
 add_executable(frazil_tests
     tests/unit/test_main.cpp
@@ -161,6 +192,13 @@ target_link_libraries(frazil_plugin_integration
 )
 juce_generate_juce_header(frazil_plugin_integration)
 add_test(NAME frazil_plugin_integration COMMAND frazil_plugin_integration)
+add_test(
+    NAME frazil_render
+    COMMAND ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/render_testdata.py
+            --renderer $<TARGET_FILE:frazil_render>
+            --build-type ${CMAKE_BUILD_TYPE}
+)
 
 # MSVC ASAN uses a dynamic runtime DLL. Keep test execution independent from the
 # shell that launched CTest and make the test artifacts directly runnable.
@@ -170,11 +208,14 @@ if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
         "${frazil_msvc_tool_bin_dir}/clang_rt.asan_dynamic-x86_64.dll")
 
     set_property(
-        TEST frazil_smoke frazil_unit frazil_plugin_integration
+        TEST frazil_smoke frazil_unit frazil_plugin_integration frazil_render
         PROPERTY ENVIRONMENT_MODIFICATION
                  "PATH=path_list_prepend:${frazil_msvc_tool_bin_dir}"
     )
-    foreach(frazil_test_target IN ITEMS frazil_smoke frazil_tests frazil_plugin_integration)
+    foreach(
+        frazil_test_target
+        IN ITEMS frazil_smoke frazil_tests frazil_plugin_integration frazil_render
+    )
         if(EXISTS "${frazil_asan_runtime_dll}")
             add_custom_command(
                 TARGET ${frazil_test_target}

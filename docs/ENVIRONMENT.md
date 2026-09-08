@@ -59,6 +59,10 @@ tracked 的 CMakePresets.json、.vscode/tasks.json 和 CI workflow 不包含开�
     python tools/build_safe.py --preset windows-asan
     ctest --preset windows-asan
 
+CTest also runs the repository's RENDER-001 offline smoke. It writes generated
+WAV output and its audit manifest only under the ignored `testdata/rendered/`
+directory; no audio device or DAW is required.
+
 ASAN configure 会从 C++ 编译器位置发现 MSVC runtime directory；测试 target 会把 clang_rt.asan_dynamic-x86_64.dll 复制到可执行文件旁，并为 CTest 注入同一目录。因此构建仍需 VS Code/MSVC developer environment，但构建完成后可从普通 PowerShell、VS Code 测试面板或可执行文件目录运行 ASAN 测试。
 
 本地 build 必须通过 tools/build_safe.py；默认使用 6 个 job，硬上限 8 个 job，并按可用物理内存执行 preflight。wrapper 将完整编译输出写入 ignored 的 build/safe-build 日志，避免终端被 include trace 淹没。 共享 configure preset 将 CMAKE_BUILD_PARALLEL_LEVEL 固定为 6，用于约束 JUCE configure 阶段的 nested build；本机重型 pipeline 必须串行执行。

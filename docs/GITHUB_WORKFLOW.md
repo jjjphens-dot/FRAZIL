@@ -132,6 +132,7 @@ PR 描述和最终报告必须分别记录 `PR author`、实际 commit author/co
 ### PR required
 
 - Windows portable Debug configure/build/CTest；
+- CTest 中的 RENDER-001 offline render smoke；
 - 参数/状态/unit tests；
 - source format 检查；
 - 对改动路径触发相关 DSP/render smoke。

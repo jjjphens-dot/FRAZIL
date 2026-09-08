@@ -56,7 +56,7 @@ app 层不得自行宣称算法 tail 或 latency。v1 Host-reported processing l
 
 ## Tests
 
-当前以 CTest smoke、`frazil_tests` 的 ProcessSpec/ParameterLayout/Snapshot/Mapper/StateModel/Host State Adapter unit cases，以及 `frazil_plugin_integration` 的实际 PluginProcessor automation、三种 routing mode 切换、inactive retention、XML state reopen 和 restored gain path 为证据；render、property、真实 DAW restore 和完整 M1 gate 仍未完成。
+当前以 CTest smoke、`frazil_tests` 的 ProcessSpec/ParameterLayout/Snapshot/Mapper/StateModel/Host State Adapter unit cases、`frazil_render` 的 M1 pass-through offline smoke，以及 `frazil_plugin_integration` 的实际 PluginProcessor automation、三种 routing mode 切换、inactive retention、XML state reopen 和 restored gain path 为证据；完整 render matrix、property、真实 DAW restore 和完整 M1 gate 仍未完成。
 
 ## Related ADRs
 

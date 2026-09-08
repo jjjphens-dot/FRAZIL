@@ -12,9 +12,12 @@
 - `frazil_plugin_integration`：实际 `FRAZILAudioProcessor` 的参数写入到音频路径、连续
   gain automation smoothing、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore，以及全部 routing mode 切换后的 inactive amount/state reopen
   integration cases；
+- `frazil_render` + `tools/render_testdata.py`：RENDER-001 的离线 WAV smoke，固定 input/config/seed
+  通过当前 AudioEngine 处理，检查 finite output、重复运行字节一致性，并生成 input/output metadata
+  与 SHA-256 manifest；输出只写入 ignored `testdata/rendered/`；
 - `tools/verify_testdata.py` 与 `tools/test_testdata.py`：`TESTDATA-001` 的八类合成输入、
   manifest、机器可读 provenance、MIT 来源、WAV metadata、存储策略、SHA-256 完整性、
   完整 generator-to-temporary WAV + manifest 语义/字节级可复现性和 input/manifest 双向集合回归；
 
-后续按 `docs/TESTING.md` 增加 DSP property、离线渲染回归和真实 Host/DAW acceptance；
+后续按 `docs/TESTING.md` 增加 DSP property、完整 render regression 和真实 Host/DAW acceptance；
 测试 target 不依赖运行中的插件 editor。

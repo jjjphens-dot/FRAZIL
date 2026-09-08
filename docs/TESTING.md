@@ -117,6 +117,13 @@ Global: mix 0/50/100, gain min/unity/max, rapid automation fixture
 
 不要用严格逐样本相等替代声音判断。确定性算法可比较 hash；浮点/平台差异使用明确的 abs/relative tolerance、能量/频谱特征和人工听测。更新 reference 必须在 PR 中说明原因，禁止为“让 CI 绿”无解释覆盖。
 
+当前 RENDER-001 smoke 由 `frazil_render` 与 `tools/render_testdata.py` 提供：前者在
+非实时命令行进程中读取 WAV，以固定 block size 调用当前 `AudioEngine`，拒绝非有限输出并写出
+WAV；后者使用同一 input/config/seed 连续运行两次，要求输出逐字节一致，并写入包含输入/输出
+metadata、参数、seed、输入 hash 和输出 hash 的 manifest。CTest 在构建 target 后运行该 smoke；输出
+只写入 ignored 的 `testdata/rendered/`，不依赖音频设备或 DAW。当前证据是 M1 pass-through engine
+的 deterministic offline smoke，不等同于 Water/Ice render matrix、听测或 DAW acceptance。
+
 ## 4. Listening Review
 
 ### 固定素材（TESTDATA-001）
