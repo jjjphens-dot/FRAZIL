@@ -5,6 +5,46 @@ labels:
   - "type:experiment"
   - "needs:listening"
 body:
+  - type: input
+    id: work_item
+    attributes:
+      label: Stable ID / Milestone
+      description: Use an EXP-W-* or EXP-I-* Coding Plan ID and milestone.
+    validations:
+      required: true
+  - type: textarea
+    id: ownership
+    attributes:
+      label: Implementation / Acceptance ownership
+      description: Separate brief/input ownership, experiment implementation and acceptance responsibility.
+      placeholder: |
+        Implementation DRI:
+        Acceptance DRI:
+        Write ownership:
+    validations:
+      required: true
+  - type: textarea
+    id: path_scope
+    attributes:
+      label: Allowed / Forbidden paths
+      description: Experiments stay under explicit experiment/tool/evidence paths until the production Joint Gate.
+      placeholder: |
+        Allowed paths:
+        Forbidden paths:
+    validations:
+      required: true
+  - type: textarea
+    id: handoff
+    attributes:
+      label: Inputs, outputs, handoff and Joint Gate
+      placeholder: |
+        Inputs owned by Acceptance DRI:
+        Outputs owed to Acceptance DRI:
+        Handoff condition:
+        Joint-gate decisions:
+        Related contract / ADR:
+    validations:
+      required: true
   - type: textarea
     id: hypothesis
     attributes:

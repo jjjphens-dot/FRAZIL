@@ -7,6 +7,45 @@ body:
   - type: markdown
     attributes:
       value: "Use the stable ID from docs/CODING_PLAN.md. A Ready issue must be independently testable."
+  - type: input
+    id: work_item
+    attributes:
+      label: Stable ID / Milestone
+      description: Use the Coding Plan ID and milestone, for example M1 / TEST-002.
+    validations:
+      required: true
+  - type: textarea
+    id: ownership
+    attributes:
+      label: Implementation / Acceptance ownership
+      description: Record Implementation DRI, Acceptance DRI and write ownership. Roles do not imply GitHub account identity.
+      placeholder: |
+        Implementation DRI:
+        Acceptance DRI:
+        Write ownership:
+    validations:
+      required: true
+  - type: textarea
+    id: path_scope
+    attributes:
+      label: Allowed / Forbidden paths
+      description: List exact writable paths and explicit path exclusions.
+      placeholder: |
+        Allowed paths:
+        Forbidden paths:
+    validations:
+      required: true
+  - type: textarea
+    id: handoff
+    attributes:
+      label: Inputs, outputs, handoff and Joint Gate
+      placeholder: |
+        Inputs owned by Acceptance DRI:
+        Outputs owed to Acceptance DRI:
+        Handoff condition:
+        Joint-gate decisions:
+    validations:
+      required: true
   - type: textarea
     id: problem
     attributes:
@@ -60,4 +99,6 @@ body:
         - label: Parameter/automation/state impact has been considered.
           required: true
         - label: Listening or DAW validation need is explicit.
+          required: true
+        - label: Ownership, path scope and handoff fields are complete.
           required: true
