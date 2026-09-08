@@ -93,5 +93,9 @@ Closes #
 
 ### Human review evidence
 
+- [ ] PR author is the Implementation DRI and was verified with `gh api user --jq .login`
+- [ ] Intended reviewer is a different GitHub account from the PR author
+- [ ] PR author, commit author/committer, and reviewer account are recorded separately
+- [ ] This PR was not created from a collaborator-owned PR to simulate the other developer's review
 - [ ] Formal GitHub review submission recorded
 - [ ] If formal review is unavailable, a second developer comment records scope, reproduced evidence, limitations, and decision

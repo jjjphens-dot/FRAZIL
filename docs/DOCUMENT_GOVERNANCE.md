@@ -90,7 +90,7 @@ Read contract
 
 ### 5.3 Human Review Evidence
 
-Parameter contract、State contract、Routing、production Water/Ice DSP、latency/tail/random semantics、realtime architecture、performance budget 和 release PR 必须留下可验证的 reviewer evidence，优先使用 GitHub formal `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES` submission。若权限不允许 formal review，第二位开发者必须留下 comment，明确：
+Parameter contract、State contract、Routing、production Water/Ice DSP、latency/tail/random semantics、realtime architecture、performance budget 和 release PR 必须留下可验证的 reviewer evidence，优先使用 GitHub formal `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES` submission。PR author 必须在创建前确认是 Implementation DRI，且不能与预定 reviewer 使用同一个 GitHub account；`PR author`、commit author/committer 和 reviewer 需要分别记录，commit 的署名不能替代 formal review。若权限不允许 formal review，第二位开发者必须留下 comment，明确：
 
 ```text
 review scope
@@ -100,6 +100,8 @@ decision
 ```
 
 PR author 自己写“review passed”不能作为唯一 review evidence。该规则适用于下一条需要双人 review 的核心 PR；既有 PR 的 review evidence 缺口应记录为 process evidence gap，不通过回滚或历史重写补造。
+
+创建 PR 的 preflight 至少应核对 `gh api user --jq .login`、PR 的 `author`、head commits 的 authors/committers 和预定 reviewer account。若发现 PR 已由预定 reviewer 创建，不能继续把该 PR 当作另一位开发者的 formal-review 容器；应在不冒用账号、不重写历史的前提下关闭并由正确的 Implementation DRI account 创建新的 PR，或明确改由另一个独立 account 完成 review。Issue/PR comment 可以作为权限受限时的 fallback，但必须明确标记为 comment evidence，不得写成 GitHub formal review。
 
 ### 5.4 Final Report
 

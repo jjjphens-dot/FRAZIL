@@ -192,6 +192,18 @@ DRI 负责推动工作，不代表可以自行验收。具体姓名、状态、�
 - 参数、routing、state、核心 DSP、latency、random、performance budget 和 release PR 必须两人 review；
 - reviewer 至少说明复现了哪项证据或明确 review 边界，不能只写“LGTM”。
 
+### 9.1 PR author、commit author 与 reviewer 身份
+
+双人协作中的三类身份必须分开记录：
+
+- `PR author`：创建 GitHub PR 的账号，默认应是本次工作的 Implementation DRI；
+- `commit author/committer`：实际编写或提交各 commit 的账号，可以与 PR author 不同，但必须真实、可解释；
+- `formal reviewer`：Acceptance DRI 使用的另一个 GitHub account，负责提交 `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES`。
+
+创建 PR 前，Implementation DRI 必须核对当前登录账号和预定 reviewer account。不得使用协作者已经创建的 PR 来承载自己的实现并期待该协作者再提交 formal review；PR author 与预定 reviewer 相同会使独立 formal review 不可用。发现身份错误时，应由正确的 Implementation DRI account 新建 PR，或改由另一个独立 account review；不得冒用账号、伪造 review 或通过改写 commit author 假装解决 PR author 问题。权限受限时的第二位开发者 comment 只能作为明确标注的 fallback evidence，不能写成 formal review。
+
+创建后应在 PR 中记录：Implementation DRI、Acceptance DRI、PR author、commit author/committer、reviewer account、review type 和 review result。该记录用于防止“提交人看起来正确但 PR 创建人错误”的身份混淆。
+
 Sound & Host Lead 逐步掌握 test manifest、Python experiment/参数 sweep、C++ unit test、简单 mapping/UI attachment，以及独立运行 CTest/pluginval。Engineering Lead 必须在目标 DAW 复现 automation/state、独立记录听测，并维护无需修改核心 C++ 即可完成 A/B 的工具。
 
 推荐节奏：

@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-07<br>
+> 快照日期：2026-09-08<br>
 > 依据：本地源码/构建目录审计、当前 Debug/portable build/CTest、GitHub 仓库页面与 Actions 页面。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -23,7 +23,7 @@
 5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；本分支 Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；尚未覆盖 render 和真实 DAW automation；
 6. Water、Ice、Routing、EditHistoryManager、离线 render、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现；真实 Host/DAW restore matrix、M5 EditHistoryManager integration 和公开兼容性仍待执行。
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
-8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug；从下一条需要双人 review 的核心 PR 开始，必须留下 formal review 或满足治理规则的第二位开发者 comment evidence；
+8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug。PR #9 的人工 review 进一步暴露了身份流程缺口：创建 PR 的账号、实际 commit author 和预定 formal reviewer 没有在开 PR 前分离核对；后续必须由 Implementation DRI account 创建 PR，并由不同 GitHub account 提交 formal review，权限受限时才使用明确标注的 comment evidence；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
 10. GitHub Issues 全状态筛选无结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；HOST-000 产品目标已由 Sound & Host Lead 冻结并推送至 `origin/experiment/music-dsp`；Engineering Lead review、PR/CI 和 merge pending，HOST-001 实际 DAW evidence pending，REAPER exact version pending；不据此推断不存在其它规则集。
 
@@ -81,6 +81,17 @@ Branch audit 仅报告未合并分支中的既有基线路径污染，不改写�
 本审查分支在合入当前 `main` 基线后重新执行了 repository portability scan、scanner regression、build-safety regression、portable `ci-windows-debug` configure、6-job safe build 和 CTest。`frazil_smoke`、`frazil_unit` 与 `frazil_plugin_integration` 共 3/3 PASS。integration target 覆盖实际 PluginProcessor 参数写入进入 audio path、连续 gain automation smoothing、routing mode 切换后的 inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore，以及 XML state reopen。
 
 本机开发者工具链和构建目录只存在于 ignored local configuration/build output；tracked CMake preset 不包含个人安装路径。干净 clone 的依赖 bootstrap 仍需在 GitHub 网络可用时单独复验。
+
+## 2.4 PR #9 人工 review 与身份流程 evidence
+
+以下状态按 2026-09-08 的 GitHub live query 和协作者提供的人工 review 截图分别记录，不把截图中的批准文字改写成 GitHub formal review：
+
+- PR：`#9`，当前审查快照 head 为 `f016f13`，base 为 `main`；PR author 为 `jjjphens-dot`。
+- 当前 head 的最近实现/修复提交由 `Aspartameqwq` authored/committed；PR 历史同时包含 `jjjphens-dot` 与 `Aspartameqwq` 的 commit authors。commit 署名不改变 PR author，也不能替代 reviewer 身份。
+- 人工 review：协作者提供的 review 结论为 `APPROVE`，未发现 P0/P1 阻塞问题；复核范围包括 mode-retention、ASAN runtime discovery/copy、CTest PATH、VS Code/MSVC portability、Markdown/task/build-safety 和 `git diff --check`，截图明确未重新执行 pluginval、真实 DAW、render、performance benchmark。
+- GitHub formal review：当前 API `reviews=[]`、`reviewDecision` 为空；因此 PR #9 的协作者批准目前只能记录为人工 screenshot/comment evidence，不能记录为正式 GitHub `APPROVE` submission。
+- 流程状态：`Manual collaborator review = APPROVE (screenshot evidence)`；`Formal GitHub review = NOT RECORDED`；这不是生产代码回退理由，但在 PR #9 合并前仍需按权限和仓库治理决定是否补齐独立 formal review。
+- 纠正措施：本次同步更新 `AGENTS.md`、`docs/DOCUMENT_GOVERNANCE.md`、`docs/GITHUB_WORKFLOW.md`、`docs/COLLABORATION_ROLES.md` 和 PR template；后续开 PR 前必须核对当前登录账号、PR author、commit authors/committers 和预定 reviewer account，禁止复用协作者创建的 PR 来承载另一人的双人 review。
 ## 3. 当前源码映射
 
 ```text
