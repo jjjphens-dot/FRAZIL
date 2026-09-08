@@ -34,6 +34,23 @@ Portability and documentation checks：
 
 scanner 对 tracked source/config/script/canonical documentation 中的机器相关绝对路径一律失败；当前仓库不提供 absolute-path allowlist。回归测试覆盖 Windows、Linux、macOS、UNC、绝对 Markdown link、正常 repo-relative/tool-discovery 路径，以及带 marker 的绕过尝试。
 
+Reference input corpus:
+
+    python tools/generate_testdata.py
+    python tools/verify_testdata.py
+    python tools/test_testdata.py
+
+`generate_testdata.py` creates the eight deterministic, synthetic `TESTDATA-001`
+WAV fixtures and their manifest. Its `generate_corpus` API accepts the input
+directory, manifest path and manifest root explicitly, and the CLI exposes the
+same context through `--input-dir`, `--manifest` and `--manifest-root` so a
+complete corpus can be generated outside the repository. `verify_testdata.py` checks provenance, the
+repository MIT license, repository/no-LFS storage, WAV metadata and the
+manifest's SHA-256 values. The manifest records each input's id, filename,
+purpose, sourceType, source, author, redistribution terms, sample rate, bit depth,
+channels, duration and repository/artifact/LFS storage policy. These hashes are
+limited to the required reference inputs; rendered output remains ignored.
+
 建议工具：
 
 - `pluginval`

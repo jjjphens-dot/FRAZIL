@@ -34,6 +34,7 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 
 ```powershell
 .\tools\bootstrap_dependencies.ps1
+python tools/verify_testdata.py
 python tools/check_portability.py
 python tools/check_markdown_links.py
 python tools/check_vscode_tasks.py

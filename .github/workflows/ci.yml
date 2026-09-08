@@ -46,6 +46,14 @@ jobs:
         shell: pwsh
         run: python tools/test_build_safe.py
 
+      - name: Verify reference input corpus
+        shell: pwsh
+        run: python tools/verify_testdata.py
+
+      - name: Test reference input corpus verifier
+        shell: pwsh
+        run: python tools/test_testdata.py
+
       - name: Enable MSVC developer environment
         uses: ilammy/msvc-dev-cmd@v1
         with:
