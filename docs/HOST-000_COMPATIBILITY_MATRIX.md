@@ -1,9 +1,9 @@
 # [M0][HOST-000] 初始平台与 DAW 兼容性矩阵
 
-> 状态：**Product targets frozen by Sound & Host Lead; Engineering Lead review pending; HOST-001 evidence pending**
+> 状态：**Product targets frozen by Sound & Host Lead; Engineering Lead review required; HOST-001 evidence required**
 > Implementation DRI：Sound & Host Lead
 > Required reviewer：Engineering Lead
-> Initial HOST-000 and integration audits recorded historical origin/main snapshots only; those observations are not current repository truth. Live remote HEAD must be verified with Git when needed.
+> Initial HOST-000 and integration audits recorded historical `origin/main` snapshots only; those observations are not current repository truth. The pre-merge integration baseline for this review was `origin/main` `c065aad`（2026-09-08）；live remote HEAD 必须由 Git 命令确认
 
 Sound & Host Lead 已冻结 v1 的平台、格式和宿主目标。本文档同时记录当前证据状态，因此“目标已冻结”不等于“兼容性已通过”。HOST-000 定义 HOST-001 的验收目标；HOST-001 负责实际 pluginval/DAW smoke evidence，不构成循环依赖，也不需要完成后 HOST-000 才能合入。
 
@@ -99,10 +99,10 @@ Windows 11 x64 是当前 v1 support intent，不是对所有 Windows 11 机器�
 
 “Discovered” means an installed-app entry or executable was found. It does not mean the application was launched or that FRAZIL was loaded.
 
-| Host | Exact version discovered | Discovery evidence | Frozen role | Current status |
+| Host | Exact version discovered | Executable evidence | Frozen role | Current status |
 |---|---|---|---|---|
-| Ableton Live 12 Suite | `12.4.2` | Installed-app discovery; ProductVersion/FileVersion `12.4.2`; executable path intentionally omitted | Primary development DAW | Installed/discovered; launch, scan, enumeration, automation and save/reopen **Not run** |
-| FL Studio 2025 | `25.1.4.4951` | Installed-app discovery; ProductVersion/FileVersion `25.1.4.4951`; executable path intentionally omitted | Primary validation DAW | Installed/discovered; launch, scan, enumeration, automation and save/reopen **Not run** |
+| Ableton Live 12 Suite | `12.4.2` | Executable discovered locally; exact machine path intentionally omitted from tracked documentation; ProductVersion/FileVersion `12.4.2` | Primary development DAW | Installed/discovered; launch, scan, enumeration, automation and save/reopen **Not run** |
+| FL Studio 2025 | `25.1.4.4951` | Executable discovered locally; exact machine path intentionally omitted from tracked documentation; ProductVersion `25.1.4.4951` | Primary validation DAW | Installed/discovered; launch, scan, enumeration, automation and save/reopen **Not run** |
 | REAPER | Exact version not discovered | No matching installed-app entry or executable found in the audited locations | Secondary/lightweight validation candidate | **Unknown / not installed evidence**; cannot claim validation |
 | JUCE Standalone | Project target; runtime version not separately frozen | Role defined by JUCE/CMake target | Development/debug host | **Not a DAW**; no DAW compatibility claim |
 
@@ -135,7 +135,7 @@ The following layers answer different questions and must not be substituted for 
 | Layer | Tool / scope | Evidence boundary | Current status |
 |---|---|---|---|
 | Layer 1 — VST3 format conformance | Steinberg VST3 Validator | Checks VST3 API, component, bundle and format conformance; suitable for CI | Validator was not configured/run in this task; `Planned` |
-| Layer 2 — Cross-host stress validation | Tracktion `pluginval` | Generic plugin stability/compatibility checks; PR strictness 5, nightly 7, Beta/Release 10 | Historical strictness 5 evidence exists; current artifact not run; 7/10 `Planned` |
+| Layer 2 — Cross-host stress validation | Tracktion `pluginval` | Generic plugin stability/compatibility checks; HOST-001 strictness 5; higher-strictness nightly/Beta/Release runs are non-binding proposals and remain TBD until added to the canonical testing contract | Historical strictness 5 evidence exists; current artifact not run; higher-strictness runs are not current acceptance gates |
 | Layer 3 — Real DAW acceptance | Ableton `12.4.2`, FL Studio `25.1.4.4951`, REAPER exact version TBD | Scan/load, bus, parameter, automation, state, editor and offline render | HOST-001; current cases `Not run` |
 | Layer 4 — Release environment | Clean Windows 11 x64 machine | Install/uninstall, standard VST3 path, versioned artifact, multi-instance and long-running behavior | M6/M7 scope; not HOST-000 evidence |
 
@@ -143,7 +143,7 @@ Validator PASS or pluginval PASS does not equal real DAW PASS. Standalone PASS d
 
 ## 7. M1 Host smoke scenarios
 
-Each frozen host target must run the following HOST-001 cases: the primary development DAW, the primary validation DAW, and the secondary host once its exact REAPER version is locked. Each result is recorded as `Verified`, `Failed`, `Blocked` or `Not run`; “planned” is not evidence.
+Each frozen host target must run the following HOST-001 cases: the primary development DAW, the primary validation DAW, and the secondary host once its exact REAPER version is locked. Each result is recorded as `Passed`, `Failed`, `Blocked` or `Not run`; “planned” is not evidence.
 
 ### 7.1 Scan and load
 
@@ -258,7 +258,7 @@ Per the current working instruction, use version/commit identifiers and evidence
 
 ### Current local availability
 
-- A local pluginval installation was discovered with ProductVersion/FileVersion `1.0.4`; its machine-specific path is intentionally omitted.
+- A local pluginval executable was found with ProductVersion/FileVersion `1.0.4`; its exact machine path is intentionally omitted from tracked documentation.
 - The executable responded to `--help`; this proves tool availability only, not FRAZIL validation.
 - HOST-000 did not run pluginval against a current artifact.
 
@@ -286,7 +286,7 @@ The verification layers and host-format boundaries use the following primary ref
 - Ableton Live and FL Studio are installed candidates, not validated hosts.
 - REAPER was not discovered; the secondary host role is unresolved.
 - Windows 11 x64 is the frozen v1 platform target; the reference machine is not evidence that every Windows 11 machine is compatible.
-- Official v1 target intent is frozen by Sound & Host Lead; formal Engineering Lead review and HOST-001 evidence are pending. Do not call this `Done` or `Development Validated`.
+- Official v1 target intent is frozen by Sound & Host Lead; `Officially Supported` and `Development Validated` classifications require the review and HOST-001 evidence conditions above. Do not call this `Done` or `Development Validated` without those conditions.
 - No ADR is required because this records the existing Windows VST3 v1 boundary and does not change architecture or public parameter semantics. A new ADR is required only if a future decision changes a locked contract or product boundary.
 
 ## 13. Review checklist
@@ -294,6 +294,6 @@ The verification layers and host-format boundaries use the following primary ref
 - [x] Sound & Host Lead freezes primary development DAW.
 - [x] Sound & Host Lead freezes primary validation DAW.
 - [x] Sound & Host Lead selects REAPER as secondary/lightweight host; exact version remains `TBD`.
-- [ ] Engineering Lead reviews VST3/Standalone roles, automation wording, latency wording and evidence requirements.
+- HOST-000 support classification requires Engineering Lead review of VST3/Standalone roles, automation wording, latency wording and evidence requirements; the review evidence belongs in the PR/review record.
 - [ ] HOST-001 records actual scan/load, nine-parameter enumeration, automation, save/reopen and offline render results.
 - [ ] Evidence status is updated from `Not run`/`Planned` only after reproducible HOST-001 results exist.

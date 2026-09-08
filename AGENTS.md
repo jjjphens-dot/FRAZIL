@@ -18,11 +18,11 @@
 - Agent 不得在本机并发运行多个 configure/build/test pipeline；Debug、Release、ASAN 和其他重型 preset 必须串行执行。
 ## 1. 当前基线
 
-- 当前阶段：M1-C 前置；M1-A/M1-B Parameter/Engine foundation 已合入 `main`，M1 尚未完成。
+- 当前阶段：M1-C 进行中；M1-A/M1-B Parameter/Engine foundation 与 M1-C STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`，M1 尚未完成。
 - 已有：JUCE 9.0.1、CMake/Ninja presets、VST3/Standalone、pass-through wet path、APVTS 状态保存、集中式 ParameterLayout、ParameterSnapshot/Mapper、基础 gain/mix/smoothing、9 个 Host 参数和 smoke test。
-- 已有：可移植 CI preset 与 Hosted CI 验证；M1-A/M1-B 的首块 priming、retarget 和 runtime buffer invariant regression 已建立。
-- 尚缺：versioned StateModel、state migration/fallback、automation integration、TESTDATA、render/performance harness、Host validation、编辑历史、Water/Ice/Routing DSP 和正式 UI。
-- 当前参数合同已将历史 `water.enable` / `ice.enable` 迁移为 `water.enabled` / `ice.enabled`；公开兼容性基线前仍需 state migration 与 compatibility evidence。
+- 已有：可移植 CI preset 与 Hosted CI 验证；M1-A/M1-B 的首块 priming、retarget 和 runtime buffer invariant regression 已建立；STATE-001 的 schema migration/fallback、XML restore、STATE-002 mode-value-retention 和 AUTO-001 PluginProcessor integration evidence 已建立。
+- 尚缺：TESTDATA、render/performance harness、真实 Host/DAW validation、编辑历史、Water/Ice/Routing DSP 和正式 UI；公开参数 freeze 与完整兼容性 evidence 仍待完成。
+- 当前参数合同已将历史 `water.enable` / `ice.enable` 迁移为 `water.enabled` / `ice.enabled`；现有 state migration evidence 已建立，公开兼容性基线前仍需完整 compatibility evidence 与正式参数 freeze。
 - GitHub 远端为 `https://github.com/jjjphens-dot/FRAZIL`。开始产品代码前必须确认工作目录是该仓库的 Git 工作树，且 `origin` 指向该地址。
 
 不得把规划中的模块、历史验证结果或本地已有工具误写为“当前已实现”。完成状态必须由代码、测试或可复现验证记录支持。
