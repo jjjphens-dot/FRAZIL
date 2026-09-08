@@ -21,10 +21,11 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 - [产品命名与身份](docs/PRODUCT_IDENTITY.md)
 - [参数与状态合同](docs/PARAMETERS.md)
 - [测试与发布门槛](docs/TESTING.md)
+- [核心实现指南](docs/CORE_IMPLEMENTATION_GUIDE.md)
+- [HOST-000 平台与 DAW 兼容性矩阵（产品目标已冻结，HOST-001 evidence pending）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
 - [GitHub 协作流程](docs/GITHUB_WORKFLOW.md)
 - [双人协作分工](docs/COLLABORATION_ROLES.md)
 - [开发环境](docs/ENVIRONMENT.md)
-- [HOST-000 平台与 DAW 兼容性矩阵（产品目标已冻结，HOST-001 evidence pending）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
 - [贡献指南](CONTRIBUTING.md)
 
 ## 本地构建
@@ -34,9 +35,11 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 ```powershell
 .\tools\bootstrap_dependencies.ps1
 python tools/check_portability.py
+python tools/check_markdown_links.py
+python tools/check_vscode_tasks.py
 ```
 
-在已初始化 MSVC developer environment 的 Windows PowerShell 中构建：
+在 VS Code 中选择 FRAZIL MSVC x64 Terminal profile 后构建；该 profile 会自动加载 MSVC developer environment：
 
 本地构建入口使用 tools/build_safe.py，默认 6 个 job、硬上限 8 个 job。 共享 configure preset 同时注入 CMAKE_BUILD_PARALLEL_LEVEL=6，约束 JUCE configure 阶段的 nested build；本机 Debug、Release、ASAN 等重型 pipeline 必须串行执行。
 

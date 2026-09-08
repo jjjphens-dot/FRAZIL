@@ -5,7 +5,7 @@
 ## Project Requirements
 
 - Windows x64 开发环境。
-- CMake 3.22 或更高版本。
+- CMake 3.25 或更高版本。
 - Ninja；可以使用系统 PATH 中的 Ninja，也可以把本地副本放在 repository-local 的 tools/bin。
 - MSVC v143 和 Windows SDK，且 MSVC developer environment 已初始化，使 cl、rc 和 mt 可以被工具发现。
 - Python 用于 DSP 实验和跨平台工具；Python 依赖见 requirements-dsp.txt。
@@ -58,7 +58,7 @@ tracked 的 CMakePresets.json、.vscode/tasks.json 和 CI workflow 不包含开�
     python tools/build_safe.py --preset windows-asan
     ctest --preset windows-asan
 
-ASAN test preset 会从 VCToolsInstallDir 加入 MSVC runtime directory；如果从普通 PowerShell 运行，请先进入 Developer PowerShell 或对应的 x64 Native Tools 环境。
+ASAN configure 会从 C++ 编译器位置发现 MSVC runtime directory；测试 target 会把 clang_rt.asan_dynamic-x86_64.dll 复制到可执行文件旁，并为 CTest 注入同一目录。因此构建仍需 VS Code/MSVC developer environment，但构建完成后可从普通 PowerShell、VS Code 测试面板或可执行文件目录运行 ASAN 测试。
 
 本地 build 必须通过 tools/build_safe.py；默认使用 6 个 job，硬上限 8 个 job，并按可用物理内存执行 preflight。wrapper 将完整编译输出写入 ignored 的 build/safe-build 日志，避免终端被 include trace 淹没。 共享 configure preset 将 CMAKE_BUILD_PARALLEL_LEVEL 固定为 6，用于约束 JUCE configure 阶段的 nested build；本机重型 pipeline 必须串行执行。
 
@@ -66,10 +66,11 @@ ASAN test preset 会从 VCToolsInstallDir 加入 MSVC runtime directory；如果
 
 在仓库根目录打开 VS Code：
 
-- Ctrl+Shift+B 调用 FRAZIL: build windows-debug (safe)；
+- 在 Terminal profile 中选择 FRAZIL MSVC x64；该 profile 通过 vswhere 动态发现 Visual Studio，并调用仓库内的 tools/vscode_msvc_env.cmd；
+- 首次 checkout 运行 Task: FRAZIL: configure windows-debug (MSVC)；
+- Ctrl+Shift+B 调用 FRAZIL: build windows-debug (safe)，F5 的 preLaunchTask 使用同一个受控入口；
 - Run and Debug 中选择 FRAZIL Standalone (Debug)；
-- task 和 launch configuration 使用 workspaceFolder，不知道开发者的 clone 位置；build task 调用受控 wrapper；
-- 首次 checkout 先完成 configure，再使用 build task。
+- task 和 launch configuration 使用 workspaceFolder，不依赖开发者的 clone 位置或个人 Visual Studio 安装盘符。
 
 ## pluginval
 
@@ -88,6 +89,8 @@ GitHub Actions 和其他已初始化 MSVC developer environment 的 Windows 机�
 
     .\tools\bootstrap_dependencies.ps1
     python tools/check_portability.py
+    python tools/check_markdown_links.py
+    python tools/check_vscode_tasks.py
     cmake --preset ci-windows-debug
     python tools/build_safe.py --preset ci-windows-debug
     ctest --preset ci-windows-debug

@@ -56,7 +56,7 @@ app 层不得自行宣称算法 tail 或 latency。v1 Host-reported processing l
 
 ## Tests
 
-当前以 CTest smoke 和 `frazil_tests` 的 ProcessSpec、ParameterLayout、Snapshot、Mapper、StateModel/Host State Adapter round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、legacy ID migration、duplicate/nonnumeric/malformed invalid parser fallback、三种 routing、inactive retention、DryWetMixer、smoothing block/retarget、RandomSource、gain staging、first-block priming、reset 和 runtime buffer invariant 测试为证据；render、property、真实 DAW restore 和完整 M1 gate 仍未完成。
+当前以 CTest smoke、`frazil_tests` 的 ProcessSpec/ParameterLayout/Snapshot/Mapper/StateModel/Host State Adapter unit cases，以及 `frazil_plugin_integration` 的实际 PluginProcessor automation、三种 routing mode 切换、inactive retention、XML state reopen 和 restored gain path 为证据；render、property、真实 DAW restore 和完整 M1 gate 仍未完成。
 
 ## Related ADRs
 

@@ -186,6 +186,7 @@ ctest --preset windows-debug
 - PR 必须填写架构、参数/automation、实时安全、测试和音频评估影响。
 - PR 必须完成 Documentation Impact Review，并在模板中记录受影响文档和一致性检查结果。
 - 参数合同、routing、state、核心 DSP 或发布流程变更至少一名另一位开发者审批，相关讨论全部 resolve 后合并。
+- 创建 PR 或向已有 PR 分支 push 前必须核对 GitHub 身份：PR author 应为 Implementation DRI，且不得是预定的 Acceptance DRI/reviewer；`PR author`、实际 commit author 和 formal reviewer 是三个独立事实，不能用其中一个替代另一个。至少用 `gh api user --jq .login`、`git branch --show-current` 和 `gh pr list --head <branch> --state open --json number,author,url` 复核；如果已有 PR 的 author 是预定 reviewer，agent 必须停止 push，改由 Implementation DRI account 创建 PR 或明确更换独立 reviewer。不得冒用协作者账号或把 comment 写成 formal review。
 - 禁止提交 `build/`、`.venv/`、工具二进制、下载归档、生成 render、DAW cache 或个人路径配置。
 - 未经明确请求，agent 不执行 push、merge、release、branch protection 或删除远端内容。
 

@@ -33,7 +33,7 @@ git push -u origin main
 
 1. `tools/bootstrap_dependencies.ps1` 拉取 JUCE 9.0.1 的固定 commit；
 2. 脚本幂等应用 `tools/patches/JUCE-9.0.1-msvc-toolchain.patch`；
-3. 所有共享 Windows preset 使用 portable tool discovery；本地 toolchain 或 build directory 差异只写入 ignored `CMakeUserPresets.json`。
+3. 所有共享 Windows preset 使用 portable tool discovery；本地 toolchain 或 build directory 差异只写入 ignored `CMakeUserPresets.json`，本地与 CI 只通过 preset 名称和运行环境区分。
 
 不允许“依赖开发者机器上恰好存在的 external/JUCE”。`tools/bin` 和下载包不入库，bootstrap 文档固定下载地址和 revision。
 
@@ -86,6 +86,7 @@ Backlog -> Ready -> In Progress -> Code Review -> Listening/DAW Test -> Done
 
 PR 必需检查：
 
+- Repository portability scan；
 - portable Windows configure/build/test；
 - formatting/lint（建立后）；
 - unit/DSP/integration tests；
@@ -96,6 +97,18 @@ PR 必需检查：
 - module README、`docs/MODULE_INDEX.md` 和 PR 影响字段同步。
 
 Documentation Synchronization Gate 的 canonical 规则位于 [`DOCUMENT_GOVERNANCE.md`](DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate)。涉及 parameter/state、routing、realtime、核心 DSP、latency、random semantics、performance budget 或 release 的 PR，还必须留下可验证的 GitHub formal review；无法提交 formal review 时，第二位开发者必须在 PR comment 中写明 review scope、复现 evidence、limitations 和 decision。
+
+### 5.1 PR 身份与双人 review gate
+
+PR 创建身份必须与实现责任一致：
+
+1. 在 `gh pr create` 前用 `gh api user --jq .login` 确认当前登录账号是本次工作的 Implementation DRI；
+2. 由该账号创建 PR，并在创建后用 `gh pr view <number> --json author,headRefName,baseRefName,commits,reviews` 核对 PR author 和 head commit authors/committers；
+3. 预定的 Acceptance DRI/reviewer 必须使用不同的 GitHub account 提交 formal `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES`；PR author 自己的 comment、自己的“approve”文字或 commit 署名都不算独立 review；
+4. 在首次 push 和每次向已有 PR 分支 push 前，都要用 `git branch --show-current` 与 `gh pr list --head <branch> --state open --json number,author,url` 检查当前分支是否已有 PR。若已有 PR 的 author 正是预定 reviewer，必须停止 push；应由正确的 Implementation DRI account 新建 PR，或明确更换为另一个独立 reviewer。协作者可以作为 commit contributor，但不能同时是该 PR author 和预定 reviewer；不得冒用账号、伪造 review 或仅靠改 commit author 来修复 PR author；
+5. 权限受限时可以保留第二位开发者的 comment evidence，但必须标注其不是 formal review，并包含 review scope、reproduced evidence、limitations 和 decision。
+
+PR 描述和最终报告必须分别记录 `PR author`、实际 commit author/committer、formal reviewer account、review type 和 review time；这些字段不能合并成一个“reviewed by”结论。
 
 音频 render 和大型日志不要直接塞入 Git 历史；使用 GitHub Actions artifact 或 release asset，并在 PR 记录 manifest/hash。
 
