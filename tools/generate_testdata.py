@@ -217,7 +217,8 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def create_manifest(input_dir: Path, manifest_path: Path) -> None:
+def create_manifest(input_dir: Path, manifest_path: Path, manifest_root: Path) -> None:
+    manifest_root = manifest_root.resolve()
     entries = []
     for name, description in CORPUS:
         path = input_dir / f"{name}.wav"
@@ -225,7 +226,7 @@ def create_manifest(input_dir: Path, manifest_path: Path) -> None:
             {
                 "id": name,
                 "filename": path.name,
-                "path": path.relative_to(ROOT).as_posix(),
+                "path": path.resolve().relative_to(manifest_root).as_posix(),
                 "purpose": description,
                 "sourceType": SOURCE_TYPE,
                 "source": f"FRAZIL synthetic fixture: {description}; no third-party recording.",
@@ -278,19 +279,30 @@ def create_manifest(input_dir: Path, manifest_path: Path) -> None:
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
+def generate_corpus(input_dir: Path, manifest_path: Path, manifest_root: Path) -> None:
+    input_dir = input_dir.resolve()
+    manifest_path = manifest_path.resolve()
+    manifest_root = manifest_root.resolve()
+    input_dir.mkdir(parents=True, exist_ok=True)
+    rng = random.Random(SEED)
+    for name, _ in CORPUS:
+        write_wav(input_dir / f"{name}.wav", render(name, rng))
+    create_manifest(input_dir, manifest_path, manifest_root)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-dir", type=Path, default=DEFAULT_INPUT_DIR)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
+    parser.add_argument(
+        "--manifest-root",
+        type=Path,
+        default=ROOT,
+        help="Root used to write repository-relative paths into the manifest.",
+    )
     args = parser.parse_args()
 
-    args.input_dir = args.input_dir.resolve()
-    args.manifest = args.manifest.resolve()
-    args.input_dir.mkdir(parents=True, exist_ok=True)
-    rng = random.Random(SEED)
-    for name, _ in CORPUS:
-        write_wav(args.input_dir / f"{name}.wav", render(name, rng))
-    create_manifest(args.input_dir, args.manifest)
+    generate_corpus(args.input_dir, args.manifest, args.manifest_root)
     print(f"Generated {len(CORPUS)} deterministic WAV fixtures in {args.input_dir}")
     print(f"Wrote manifest to {args.manifest}")
     return 0

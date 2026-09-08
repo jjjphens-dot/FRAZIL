@@ -96,13 +96,14 @@ Branch audit 仅报告未合并分支中的既有基线路径污染，不改写�
 - 流程状态：`Manual collaborator review = APPROVE (screenshot evidence)`；`Formal GitHub review = NOT RECORDED`；这不是生产代码回退理由，但在 PR #9 合并前仍需按权限和仓库治理决定是否补齐独立 formal review。
 - 纠正措施：本次同步更新 `AGENTS.md`、`docs/DOCUMENT_GOVERNANCE.md`、`docs/GITHUB_WORKFLOW.md`、`docs/COLLABORATION_ROLES.md` 和 PR template；后续创建 PR、首次 push 以及向已有 PR 分支继续 push 前，都必须核对当前登录账号、当前 branch 的 open PR author、commit authors/committers 和预定 reviewer account。若协作者同时是 PR author 与预定 reviewer，必须停止 push 并改由正确的 Implementation DRI account 创建 PR，或更换独立 reviewer；若协作者只是 commit contributor，则不触发该阻断。
 
-## 2.4 TESTDATA-001 validation evidence
+## 2.5 TESTDATA-001 validation evidence
 
 本分支以 `tools/generate_testdata.py` 生成八个固定 seed 的双声道、48 kHz、16-bit PCM
 输入，并以 `tools/verify_testdata.py` 验证 manifest 中的 generated synthetic reference corpus、每项
 `sourceType=synthetic`、无第三方音频、author/redistribution、根目录 MIT license、repository/no-LFS
 策略、WAV metadata、SHA-256 内容完整性和 `testdata/input/*.wav` 反向集合；`tools/test_testdata.py`
-还会在临时目录重生成 corpus 并逐字节对比 committed fixtures，负例回归也通过。每个输入约 1 秒、
+还会调用完整 generator 在临时目录生成 WAV 与 manifest，按 JSON 语义比较 manifest，并逐字节及
+按 SHA-256 对比 committed fixtures，负例回归也通过。每个输入约 1 秒、
 约 192 KiB，直接存放于 `testdata/input/`；`testdata/rendered/` 继续保持 ignored。该 corpus 是工程
 测试基线，不等同于 RENDER-001、真实 DAW 或听测证据；本轮 `generate_testdata.py` 重复生成后无
 tracked diff，`check_portability.py`、`check_markdown_links.py` 和 `git diff --check` 也通过；未来

@@ -24,6 +24,12 @@ python tools/verify_testdata.py
 python tools/test_testdata.py
 ```
 
+The regression test invokes the generator's complete corpus path in a temporary
+directory, including both `input/*.wav` and `manifest.json`. It compares parsed
+manifest content semantically, then compares every generated WAV byte-for-byte
+and by SHA-256 against the committed corpus; tracked fixtures are never
+overwritten by the regression test.
+
 The manifest records `id`, `filename`, `purpose`, machine-readable
 `sourceType: synthetic`, descriptive `source`, `author`, license/redistribution
 terms, `sampleRate`, `bitDepth`, `channels`,

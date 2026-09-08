@@ -41,7 +41,10 @@ Reference input corpus:
     python tools/test_testdata.py
 
 `generate_testdata.py` creates the eight deterministic, synthetic `TESTDATA-001`
-WAV fixtures and their manifest. `verify_testdata.py` checks provenance, the
+WAV fixtures and their manifest. Its `generate_corpus` API accepts the input
+directory, manifest path and manifest root explicitly, and the CLI exposes the
+same context through `--input-dir`, `--manifest` and `--manifest-root` so a
+complete corpus can be generated outside the repository. `verify_testdata.py` checks provenance, the
 repository MIT license, repository/no-LFS storage, WAV metadata and the
 manifest's SHA-256 values. The manifest records each input's id, filename,
 purpose, sourceType, source, author, redistribution terms, sample rate, bit depth,

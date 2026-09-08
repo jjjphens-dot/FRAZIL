@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression tests for the TESTDATA-001 manifest verifier."""
+"""Regression tests for TESTDATA-001 generation and manifest verification."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from generate_testdata import CORPUS, SEED, render, write_wav
+from generate_testdata import CORPUS, SEED, generate_corpus as generate_reference_corpus, render
 from verify_testdata import file_sha256, validate
 
 
@@ -18,22 +18,28 @@ def load_manifest(root: Path) -> dict:
     return json.loads(manifest_path.read_text(encoding="utf-8"))
 
 
-def generate_corpus(input_dir: Path) -> None:
-    input_dir.mkdir(parents=True, exist_ok=True)
-    rng = random.Random(SEED)
-    for identifier, _ in CORPUS:
-        write_wav(input_dir / f"{identifier}.wav", render(identifier, rng))
-
-
-def compare_generated_corpus(
-    generated_input: Path, manifest: dict, root: Path
+def compare_manifest_semantics(
+    generated_manifest_path: Path, committed_manifest_path: Path
 ) -> list[str]:
-    errors = []
-    entries = {entry["id"]: entry for entry in manifest["files"]}
-    for identifier, _ in CORPUS:
-        entry = entries[identifier]
-        generated_path = generated_input / entry["filename"]
-        committed_path = root / Path(entry["path"])
+    generated_manifest = json.loads(generated_manifest_path.read_text(encoding="utf-8"))
+    committed_manifest = json.loads(committed_manifest_path.read_text(encoding="utf-8"))
+    if generated_manifest != committed_manifest:
+        return ["generated manifest differs from committed reference"]
+    return []
+
+
+def compare_generated_corpus(generated_root: Path, committed_root: Path) -> list[str]:
+    generated_manifest_path = generated_root / "testdata" / "manifest.json"
+    committed_manifest_path = committed_root / "testdata" / "manifest.json"
+    errors = compare_manifest_semantics(generated_manifest_path, committed_manifest_path)
+    if errors:
+        return errors
+
+    manifest = json.loads(committed_manifest_path.read_text(encoding="utf-8"))
+    for entry in manifest["files"]:
+        identifier = entry["id"]
+        generated_path = generated_root / Path(entry["path"])
+        committed_path = committed_root / Path(entry["path"])
         if generated_path.read_bytes() != committed_path.read_bytes():
             errors.append(f"{identifier}: generated output differs from committed reference")
         generated_hash = file_sha256(generated_path)
@@ -60,9 +66,20 @@ def main() -> int:
     manifest = load_manifest(root)
 
     with tempfile.TemporaryDirectory() as temporary:
-        generated_input = Path(temporary) / "input"
-        generate_corpus(generated_input)
-        errors = compare_generated_corpus(generated_input, manifest, root)
+        temporary_root = Path(temporary)
+        generated_input = temporary_root / "testdata" / "input"
+        generated_manifest_path = temporary_root / "testdata" / "manifest.json"
+        generate_reference_corpus(generated_input, generated_manifest_path, temporary_root)
+        errors = compare_generated_corpus(temporary_root, root)
+        assert not errors, errors
+
+        generated_manifest = json.loads(
+            generated_manifest_path.read_text(encoding="utf-8")
+        )
+        generated_manifest_path.write_text(
+            json.dumps(generated_manifest, indent=4) + "\n", encoding="utf-8"
+        )
+        errors = compare_generated_corpus(temporary_root, root)
         assert not errors, errors
 
         generated_path = generated_input / "impulse.wav"
@@ -70,8 +87,21 @@ def main() -> int:
         generated_path.write_bytes(
             generated_bytes[:-1] + bytes([generated_bytes[-1] ^ 1])
         )
-        errors = compare_generated_corpus(generated_input, manifest, root)
+        errors = compare_generated_corpus(temporary_root, root)
         assert any("differs from committed reference" in error for error in errors), errors
+
+        generate_reference_corpus(generated_input, generated_manifest_path, temporary_root)
+        generated_manifest = json.loads(
+            generated_manifest_path.read_text(encoding="utf-8")
+        )
+        generated_manifest["files"][0]["sourceType"] = "recording"
+        generated_manifest_path.write_text(
+            json.dumps(generated_manifest, indent=2) + "\n", encoding="utf-8"
+        )
+        errors = compare_manifest_semantics(
+            generated_manifest_path, root / "testdata" / "manifest.json"
+        )
+        assert errors == ["generated manifest differs from committed reference"], errors
 
     manifest["files"][0]["path"] = "testdata/input/does-not-exist.wav"
     with tempfile.TemporaryDirectory() as temporary:
