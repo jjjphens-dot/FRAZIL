@@ -105,7 +105,7 @@ PR 创建身份必须与实现责任一致：
 1. 在 `gh pr create` 前用 `gh api user --jq .login` 确认当前登录账号是本次工作的 Implementation DRI；
 2. 由该账号创建 PR，并在创建后用 `gh pr view <number> --json author,headRefName,baseRefName,commits,reviews` 核对 PR author 和 head commit authors/committers；
 3. 预定的 Acceptance DRI/reviewer 必须使用不同的 GitHub account 提交 formal `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES`；PR author 自己的 comment、自己的“approve”文字或 commit 署名都不算独立 review；
-4. 不得使用协作者已经创建的 PR 来承载另一位开发者的双人 review。若身份选错，应停止 review 流程，由正确的 Implementation DRI account 新建 PR，或明确更换为另一个独立 reviewer；不得冒用账号、伪造 review 或仅靠改 commit author 来修复 PR author；
+4. 在首次 push 和每次向已有 PR 分支 push 前，都要用 `git branch --show-current` 与 `gh pr list --head <branch> --state open --json number,author,url` 检查当前分支是否已有 PR。若已有 PR 的 author 正是预定 reviewer，必须停止 push；应由正确的 Implementation DRI account 新建 PR，或明确更换为另一个独立 reviewer。协作者可以作为 commit contributor，但不能同时是该 PR author 和预定 reviewer；不得冒用账号、伪造 review 或仅靠改 commit author 来修复 PR author；
 5. 权限受限时可以保留第二位开发者的 comment evidence，但必须标注其不是 formal review，并包含 review scope、reproduced evidence、limitations 和 decision。
 
 PR 描述和最终报告必须分别记录 `PR author`、实际 commit author/committer、formal reviewer account、review type 和 review time；这些字段不能合并成一个“reviewed by”结论。

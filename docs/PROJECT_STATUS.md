@@ -91,7 +91,7 @@ Branch audit 仅报告未合并分支中的既有基线路径污染，不改写�
 - 人工 review：协作者提供的 review 结论为 `APPROVE`，未发现 P0/P1 阻塞问题；复核范围包括 mode-retention、ASAN runtime discovery/copy、CTest PATH、VS Code/MSVC portability、Markdown/task/build-safety 和 `git diff --check`，截图明确未重新执行 pluginval、真实 DAW、render、performance benchmark。
 - GitHub formal review：当前 API `reviews=[]`、`reviewDecision` 为空；因此 PR #9 的协作者批准目前只能记录为人工 screenshot/comment evidence，不能记录为正式 GitHub `APPROVE` submission。
 - 流程状态：`Manual collaborator review = APPROVE (screenshot evidence)`；`Formal GitHub review = NOT RECORDED`；这不是生产代码回退理由，但在 PR #9 合并前仍需按权限和仓库治理决定是否补齐独立 formal review。
-- 纠正措施：本次同步更新 `AGENTS.md`、`docs/DOCUMENT_GOVERNANCE.md`、`docs/GITHUB_WORKFLOW.md`、`docs/COLLABORATION_ROLES.md` 和 PR template；后续开 PR 前必须核对当前登录账号、PR author、commit authors/committers 和预定 reviewer account，禁止复用协作者创建的 PR 来承载另一人的双人 review。
+- 纠正措施：本次同步更新 `AGENTS.md`、`docs/DOCUMENT_GOVERNANCE.md`、`docs/GITHUB_WORKFLOW.md`、`docs/COLLABORATION_ROLES.md` 和 PR template；后续创建 PR、首次 push 以及向已有 PR 分支继续 push 前，都必须核对当前登录账号、当前 branch 的 open PR author、commit authors/committers 和预定 reviewer account。若协作者同时是 PR author 与预定 reviewer，必须停止 push 并改由正确的 Implementation DRI account 创建 PR，或更换独立 reviewer；若协作者只是 commit contributor，则不触发该阻断。
 ## 3. 当前源码映射
 
 ```text

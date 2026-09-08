@@ -96,6 +96,7 @@ Closes #
 - [ ] PR author is the Implementation DRI and was verified with `gh api user --jq .login`
 - [ ] Intended reviewer is a different GitHub account from the PR author
 - [ ] PR author, commit author/committer, and reviewer account are recorded separately
-- [ ] This PR was not created from a collaborator-owned PR to simulate the other developer's review
+- [ ] Before the initial push and every later push, the current branch's open PR author was checked with `gh pr list --head <branch> --state open --json number,author,url`
+- [ ] If a collaborator is the intended reviewer, that collaborator is not the open PR author
 - [ ] Formal GitHub review submission recorded
 - [ ] If formal review is unavailable, a second developer comment records scope, reproduced evidence, limitations, and decision

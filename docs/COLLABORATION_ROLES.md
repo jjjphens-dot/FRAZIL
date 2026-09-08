@@ -200,7 +200,7 @@ DRI 负责推动工作，不代表可以自行验收。具体姓名、状态、�
 - `commit author/committer`：实际编写或提交各 commit 的账号，可以与 PR author 不同，但必须真实、可解释；
 - `formal reviewer`：Acceptance DRI 使用的另一个 GitHub account，负责提交 `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES`。
 
-创建 PR 前，Implementation DRI 必须核对当前登录账号和预定 reviewer account。不得使用协作者已经创建的 PR 来承载自己的实现并期待该协作者再提交 formal review；PR author 与预定 reviewer 相同会使独立 formal review 不可用。发现身份错误时，应由正确的 Implementation DRI account 新建 PR，或改由另一个独立 account review；不得冒用账号、伪造 review 或通过改写 commit author 假装解决 PR author 问题。权限受限时的第二位开发者 comment 只能作为明确标注的 fallback evidence，不能写成 formal review。
+创建 PR 或向已有 PR 分支 push 前，Implementation DRI 必须核对当前登录账号、当前 branch 的 open PR author 和预定 reviewer account。若协作者同时是已有 PR 的 author 和预定 reviewer，不得继续把该 PR 用作自己的实现 review 容器，也不得继续向该分支 push；应由正确的 Implementation DRI account 新建 PR，或改由另一个独立 account review。若协作者只是 commit contributor、不是 PR author 或预定 reviewer，则可以保留其真实 commit 署名。不得冒用账号、伪造 review 或通过改写 commit author 假装解决 PR author 问题。权限受限时的第二位开发者 comment 只能作为明确标注的 fallback evidence，不能写成 formal review。
 
 创建后应在 PR 中记录：Implementation DRI、Acceptance DRI、PR author、commit author/committer、reviewer account、review type 和 review result。该记录用于防止“提交人看起来正确但 PR 创建人错误”的身份混淆。
 
