@@ -10,7 +10,7 @@
 
 ## 1. 结论
 
-项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；M1 仍在进行中；Water/Ice、Routing、render 和正式 UI 仍未实现。
+项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；M1 仍在进行中；当前仓库已提供 RENDER-001 的 pass-through offline smoke，记录完整当前 EngineParameters 配置并隔离 CTest 产物，但 Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未实现。
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
@@ -22,8 +22,8 @@
 2. PR #5 合并后 main 的 [Hosted CI run 34091515810](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34091515810) 已完成 Windows Debug configure/build/test 并通过；PR #4、PR #3 和 PR #2 的既有 Hosted CI 证据也已通过；当前 GitHub branch listing 报告 `main` 为 `protected:false`；fine-grained repository ruleset / admin-level branch-protection configuration 尚未以充分的管理员证据独立验证；不据此推断不存在其它规则集；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；STATE-001 已建立已知 pre-v1 ID migration fixture，公开版本兼容性仍需后续 freeze/evidence；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
-5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；现有 Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；尚未覆盖 render 和真实 DAW automation；
-6. Water、Ice、Routing、EditHistoryManager、离线 render、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现；真实 Host/DAW restore matrix、M5 EditHistoryManager integration 和公开兼容性仍待执行。
+5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；`frazil_render` + `tools/render_testdata.py` 已提供 M1 pass-through offline smoke，固定 input/config/seed 两次运行并检查 finite output、输出字节一致和完整当前配置/input/output hash manifest；`frazil_render_cli` 覆盖 help 成功路径、enable/routing/balance/amount 非法值拒绝、非默认完整配置 manifest 转发，以及同一 output path 重复渲染覆盖而非追加 WAV；CTest render artifacts 已隔离到 preset build tree；现有 Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；完整 render matrix 和真实 DAW automation 仍待执行；
+6. Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现；真实 Host/DAW restore matrix、M5 EditHistoryManager integration 和公开兼容性仍待执行。
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug。PR #9 的人工 review 进一步暴露了身份流程缺口：创建 PR 的账号、实际 commit author 和预定 formal reviewer 没有在开 PR 前分离核对；后续必须由 Implementation DRI account 创建 PR，并由不同 GitHub account 提交 formal review，权限受限时才使用明确标注的 comment evidence；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
@@ -155,7 +155,7 @@ PluginProcessor
 
 - 正向事实：`src/plugin`、`src/app`、`src/dsp`、`src/ui` 目录边界已经存在；当前未发现 mutable global runtime state；AudioEngine 的运行状态由实例成员持有；`JuceHeader.h` 目前局限在插件适配层。
 - 已确认技术债：`PluginProcessor` 仍公开 APVTS，后续需要收窄 Host parameter interface；完整 Host/DAW state compatibility 与 history integration 尚未完成；wet path 仍为 pass-through，Water/Ice/Routing 尚未实现。
-- 有意保留的未实现项：Water、Ice、Routing、EditHistoryManager、正式 UI、render/property/performance harness 和离散 transition 均仍按 Coding Plan 处于计划阶段；本次 STATE-001 不提前创建声音算法或 history 生产依赖。
+- 有意保留的未实现项：Water、Ice、Routing、EditHistoryManager、完整 render regression/property/performance harness、正式 UI 和离散 transition 均仍按 Coding Plan 处于计划阶段；当前 RENDER-001 只覆盖 M1 pass-through offline smoke；本次状态工作不提前创建声音算法或 history 生产依赖。
 - 当前验证边界：CTest 仅提供当前列出的 unit/lifecycle/invariant 证据，不能据此宣称参数 automation、state compatibility、DSP property/render、DAW 或完整 realtime safety 已完成。
 
 ## 4. 参数差异审计
@@ -177,7 +177,7 @@ PluginProcessor
 ## 5. 现状对应 milestone
 
 - M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
-- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；本次新增并验证 STATE-002 mode-value-retention 与 AUTO-001 plugin integration；仍缺 render/property/performance、真实 DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
+- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration 和 RENDER-001 pass-through offline smoke 已建立；仍缺完整 render/property/performance、真实 DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
 - M4 Routing：**未开始**。

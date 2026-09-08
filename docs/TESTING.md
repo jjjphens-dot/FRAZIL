@@ -117,6 +117,19 @@ Global: mix 0/50/100, gain min/unity/max, rapid automation fixture
 
 不要用严格逐样本相等替代声音判断。确定性算法可比较 hash；浮点/平台差异使用明确的 abs/relative tolerance、能量/频谱特征和人工听测。更新 reference 必须在 PR 中说明原因，禁止为“让 CI 绿”无解释覆盖。
 
+当前 RENDER-001 smoke 由 `frazil_render` 与 `tools/render_testdata.py` 提供：前者在
+非实时命令行进程中读取 WAV，以固定 block size 调用当前 `AudioEngine`，拒绝非有限输出并写出
+WAV；后者使用同一 input/config/seed 连续运行两次，要求输出逐字节一致，并写入包含输入/输出
+metadata、完整当前 EngineParameters 配置、seed、输入 hash 和输出 hash 的 manifest。CTest 在构建
+target 后运行该 smoke，并将产物隔离到当前 preset 的 ignored build tree（例如
+`build/windows-debug/rendered/`）；手工运行的默认产物仍写入 ignored `testdata/rendered/`，不依赖
+音频设备或 DAW。`frazil_render_cli` 还回归检查 `--help` 成功返回以及 enable、routing、balance
+和 amount 的非法值拒绝。当前证据是 M1 pass-through engine 的 deterministic offline smoke，seed
+仅作为测试元数据记录，因为当前 AudioEngine 不含随机 DSP；同一 CLI 回归还用一组非默认完整
+配置检查 manifest 字段逐项保留请求值，但不据此宣称 Water/Ice/Routing DSP 已实现；不等同于
+Water/Ice render matrix、听测或 DAW acceptance。该 CLI 回归还验证同一 output path 连续 render
+时输出文件被覆盖而不是追加第二个 RIFF/WAV。
+
 ## 4. Listening Review
 
 ### 固定素材（TESTDATA-001）

@@ -51,6 +51,21 @@ purpose, sourceType, source, author, redistribution terms, sample rate, bit dept
 channels, duration and repository/artifact/LFS storage policy. These hashes are
 limited to the required reference inputs; rendered output remains ignored.
 
+Offline render smoke:
+
+    python tools/render_testdata.py --renderer build/windows-debug/frazil_render_artefacts/Debug/frazil_render.exe
+
+The CTest preset runs this smoke after building `frazil_render`. The C++ harness
+processes the selected input through the current `AudioEngine` without an audio
+device, while the Python wrapper runs it twice, compares output bytes, and
+writes an ignored WAV/metadata/hash manifest with the complete current render
+configuration. CTest passes output and manifest paths under the preset build
+tree (for example `build/windows-debug/rendered/`); manual runs default to
+`testdata/rendered/`. `tools/test_render_cli.py` separately checks help and
+invalid configuration handling, plus one non-default configuration's manifest
+forwarding and repeated rendering to one output path without appending a second
+WAV stream.
+
 建议工具：
 
 - `pluginval`
