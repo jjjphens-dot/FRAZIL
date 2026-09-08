@@ -272,7 +272,7 @@ Documentation impact:
 
 `PR creator == Implementation DRI`、`commit author == PR creator` 或 reviewer 与预设角色账号绑定都不是
 项目 gate。唯一严格的账号一致性规则是：向已有 PR 对应分支继续 push 时，当前 authenticated push
-account 必须等于该 PR creator；不一致则停止 push并检查是否登录了错误账号。完整流程见
+account 必须等于该 PR creator；不一致则停止 push 并检查是否登录了错误账号。完整流程见
 [GITHUB_WORKFLOW.md](GITHUB_WORKFLOW.md)。
 
 Reviewer 关注 independence、scope、evidence 和 decision。Formal review 记录 Reviewer、Review scope、

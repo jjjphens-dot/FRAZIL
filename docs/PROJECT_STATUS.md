@@ -1,7 +1,7 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-08<br>
-> 依据：合并最新 `origin/main` 后的仓库文档审计、当前 Git 状态、portable build/CTest 与 GitHub Actions 页面。<br>
+> 快照日期：2026-09-09<br>
+> 依据：最新 `origin/main` 的仓库文档/源码审计、GitHub PR/Issue live query，以及既有 portable build/CTest/Actions evidence；本次 governance 修改未重跑 C++ build。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
 ## Modification Policy
@@ -10,11 +10,11 @@
 
 ## 1. 结论
 
-项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；M1 仍在进行中；当前仓库已提供 RENDER-001 的 pass-through offline smoke，记录完整当前 EngineParameters 配置并隔离 CTest 产物，但 Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未实现。
+项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；`TESTDATA-001` 的 synthetic engineering corpus 已随 PR #12 合入，`RENDER-001` pass-through offline smoke 已随 PR #13 合入。M1 仍在进行中；Water/Ice、Routing、完整 render regression matrix、processor property/performance harness 和正式 UI 仍未实现。
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
-`CODING_PLAN.md` v1.0 / Approved Development Baseline 已作为 M0→M7 的正式工程执行基线；这不代表 FRAZIL plugin v1.0 release，也不改变 M0/M1、Water/Ice/Routing 的实际完成状态。
+`CODING_PLAN.md` v1.1 / Approved Development Baseline 已作为 M0→M7 的正式工程执行基线；这不代表 FRAZIL plugin v1.0 release，也不改变 M0/M1、Water/Ice/Routing 的实际完成状态。
 
 当前阻塞性差距：
 
@@ -25,7 +25,7 @@
 5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；`frazil_render` + `tools/render_testdata.py` 已提供 M1 pass-through offline smoke，固定 input/config/seed 两次运行并检查 finite output、输出字节一致和完整当前配置/input/output hash manifest；`frazil_render_cli` 覆盖 help 成功路径、enable/routing/balance/amount 非法值拒绝、非默认完整配置 manifest 转发，以及同一 output path 重复渲染覆盖而非追加 WAV；CTest render artifacts 已隔离到 preset build tree；现有 Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；完整 render matrix 和真实 DAW automation 仍待执行；
 6. Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现；真实 Host/DAW restore matrix、M5 EditHistoryManager integration 和公开兼容性仍待执行。
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
-8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug。PR #9 的人工 review 进一步暴露了身份流程缺口：创建 PR 的账号、实际 commit author 和预定 formal reviewer 没有在开 PR 前分离核对；后续必须由 Implementation DRI account 创建 PR，并由不同 GitHub account 提交 formal review，权限受限时才使用明确标注的 comment evidence；
+8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug。PR #9 的人工 review 进一步暴露了角色 ownership、PR creator、commit authorship 和 reviewer evidence 被混为同一账号 gate 的问题；当时提出的“必须由 Implementation DRI account 创建 PR/预绑定不同 reviewer account”属于历史纠正方案，现已由更简单的规则取代：身份分别真实记录，需要第二人 review 时保留独立 evidence；已有 PR 的后续 push account 必须等于 PR creator；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
 10. GitHub 当前已有治理 issue [#11](https://github.com/jjjphens-dot/FRAZIL/issues/11) 用于跟踪 portable GitHub workflow 文档同步；Issues 全状态筛选无其它结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；HOST-000 产品目标已由 Sound & Host Lead 冻结，HOST-001 实际 DAW evidence 和 REAPER exact version 仍未完成；当前 PR、review 和 merge 状态只以 GitHub 为准，不在本文件重复记录；不据此推断不存在其它规则集。
 
@@ -93,19 +93,19 @@ Branch audit 仅报告未合并分支中的既有基线路径污染，不改写�
 - 当前 head 的最近实现/修复提交由 `Aspartameqwq` authored/committed；PR 历史同时包含 `jjjphens-dot` 与 `Aspartameqwq` 的 commit authors。commit 署名不改变 PR author，也不能替代 reviewer 身份。
 - 人工 review：协作者提供的 review 结论为 `APPROVE`，未发现 P0/P1 阻塞问题；复核范围包括 mode-retention、ASAN runtime discovery/copy、CTest PATH、VS Code/MSVC portability、Markdown/task/build-safety 和 `git diff --check`，截图明确未重新执行 pluginval、真实 DAW、render、performance benchmark。
 - GitHub formal review：当前 API `reviews=[]`、`reviewDecision` 为空；因此 PR #9 的协作者批准目前只能记录为人工 screenshot/comment evidence，不能记录为正式 GitHub `APPROVE` submission。
-- 流程状态：`Manual collaborator review = APPROVE (screenshot evidence)`；`Formal GitHub review = NOT RECORDED`；这不是生产代码回退理由，但在 PR #9 合并前仍需按权限和仓库治理决定是否补齐独立 formal review。
-- 纠正措施：本次同步更新 `AGENTS.md`、`docs/DOCUMENT_GOVERNANCE.md`、`docs/GITHUB_WORKFLOW.md`、`docs/COLLABORATION_ROLES.md` 和 PR template；后续创建 PR、首次 push 以及向已有 PR 分支继续 push 前，都必须核对当前登录账号、当前 branch 的 open PR author、commit authors/committers 和预定 reviewer account。若协作者同时是 PR author 与预定 reviewer，必须停止 push 并改由正确的 Implementation DRI account 创建 PR，或更换独立 reviewer；若协作者只是 commit contributor，则不触发该阻断。
+- 流程状态：`Manual collaborator review = APPROVE (screenshot evidence)`；`Formal GitHub review = NOT RECORDED`。PR #9 后续已合入 `main`，该缺口保留为 historical process evidence gap，不通过回滚或历史重写补造。
+- 当前纠正规则：Implementation/Acceptance DRI、PR creator、push account、commit author/committer 和 reviewer 分别记录，不要求相同或预绑定；需要第二人 review 的工作仍保留真实独立 evidence。向已有 PR 分支继续 push 时，只有当前 authenticated account 与 PR creator 相同才允许；不一致则停止 push 并检查登录。该规则取代本节早期快照中的严格账号映射方案。
 
 ## 2.5 TESTDATA-001 validation evidence
 
-本分支以 `tools/generate_testdata.py` 生成八个固定 seed 的双声道、48 kHz、16-bit PCM
+PR #12 合入的基线以 `tools/generate_testdata.py` 生成八个固定 seed 的双声道、48 kHz、16-bit PCM
 输入，并以 `tools/verify_testdata.py` 验证 manifest 中的 generated synthetic reference corpus、每项
 `sourceType=synthetic`、无第三方音频、author/redistribution、根目录 MIT license、repository/no-LFS
 策略、WAV metadata、SHA-256 内容完整性和 `testdata/input/*.wav` 反向集合；`tools/test_testdata.py`
 还会调用完整 generator 在临时目录生成 WAV 与 manifest，按 JSON 语义比较 manifest，并逐字节及
 按 SHA-256 对比 committed fixtures，负例回归也通过。每个输入约 1 秒、
 约 192 KiB，直接存放于 `testdata/input/`；`testdata/rendered/` 继续保持 ignored。该 corpus 是工程
-测试基线，不等同于 RENDER-001、真实 DAW 或听测证据；本轮 `generate_testdata.py` 重复生成后无
+测试基线，不等同于 RENDER-001、真实 DAW 或听测证据；验收时 `generate_testdata.py` 重复生成后无
 tracked diff，`check_portability.py`、`check_markdown_links.py` 和 `git diff --check` 也通过；未来
 真实音乐素材应放入单独的 `testdata/listening/` corpus，不得混入 TESTDATA-001。
 ## 3. 当前源码映射
@@ -177,7 +177,7 @@ PluginProcessor
 ## 5. 现状对应 milestone
 
 - M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
-- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration 和 RENDER-001 pass-through offline smoke 已建立；仍缺完整 render/property/performance、真实 DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
+- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration、TESTDATA-001 corpus 和 RENDER-001 pass-through offline smoke 已建立；仍缺完整 render/property/performance/latency evidence、真实 DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
 - M4 Routing：**未开始**。
@@ -197,14 +197,23 @@ PluginProcessor
 ## 7. 下一步顺序
 
 ```text
-HOST-000 support classification and evidence gate
-  -> TESTDATA-001 可并行启动
-  -> TESTDATA-001 sync/review/merge
-  -> HOST-001 save/reopen/automation/DAW evidence
-  -> RENDER-001 / PERF-BASE-001
-  -> M1 Exit Gate
-  -> EXP-W-001/002/003
-  -> Water production only after experiment gate
+Engineering lane
+  -> RENDER-001 acceptance/finding follow-up
+  -> TEST-002
+  -> PERF-BASE-001 engineering harness
+  -> ARCH-LAT-001 technical evidence
+  -> fix findings handed back from HOST-001
+
+Sound / Host lane
+  -> HOST-001 Ableton -> FL Studio -> REAPER
+  -> parameter enumeration / automation / save-reopen / DAW render evidence
+  -> representative workload for PERF-BASE-001
+  -> EXP-W-001 perceptual brief only; no production DSP
+
+Both evidence lanes
+  -> M1 Joint Exit Review
+  -> EXP-W-002/003
+  -> Water production only after experiment and Joint Gate
 ```
 
-HOST-000 产品目标已冻结，support classification 仍需满足 Engineering Lead review 与 HOST-001 evidence 条件。STATE-001 已随 PR #5 合入 `main`，STATE-002 与 AUTO-001 integration 已在最新 main 验证；本分支继续收口 TESTDATA-001，之后进入 RENDER/PERF harness 和 HOST-001 evidence。Water/Ice/Routing 仍未开始 production。
+HOST-000 产品目标已冻结，support classification 仍需满足 Engineering Lead review 与 HOST-001 evidence 条件。STATE-001/002、AUTO-001 foundation、TESTDATA-001 和 RENDER-001 pass-through smoke 已进入最新 `main` 基线并转为 regression/finding ownership；不得建立平行实现。Water/Ice/Routing 仍未开始 production。
