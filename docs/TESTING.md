@@ -20,6 +20,19 @@
 | L7 Listening | review pack | 声音是否达到 Water/Ice 产品目标 | 声音变更必需 |
 | L8 Performance | benchmark | callback 时间、CPU、allocation、memory | DSP/beta/release |
 
+### 1.1 Evidence ownership 与验收交接
+
+- Engineering Lead 是 L0-L5 和 L8 工程 harness/measurement 的默认 Implementation DRI；Sound & Host
+  Lead 提供 representative workload、风险场景和产品可理解性 review。
+- Sound & Host Lead 是 L6 DAW acceptance 和 L7 listening evidence 的默认 Implementation DRI；Engineering
+  Lead 检查环境、步骤、产物和结论是否可复现，并修复由 finding 交回的 production 问题。
+- Acceptance DRI 默认只 read、run、reproduce、review 和 create finding，不直接修改对方 owner 的
+  production implementation；变更职责必须先记录 Implementation DRI Transfer。
+- M1 Exit Gate 必须同时具备 Engineering Evidence 与 Sound / Host Evidence。自动测试不替代真实 DAW
+  acceptance，DAW 中“听起来正常”也不替代 finite/property/state/performance evidence。
+
+具体 work-item DRI、路径边界与 handoff 见 [`COLLABORATION_ROLES.md`](COLLABORATION_ROLES.md)。
+
 ## 2. 自动化测试必须覆盖
 
 ### ParameterLayout

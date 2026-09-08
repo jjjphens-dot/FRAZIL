@@ -2487,19 +2487,16 @@ reviewed
 
 # 17. 两人职责
 
-可以设置 primary ownership：
+项目使用互补而不重叠的长期 ownership：Engineering Lead 负责 production software 的 C++/JUCE、
+架构、工具、测试、realtime safety 和 Water/Ice/Routing 工程实现；Sound & Host Lead 负责 perceptual
+brief、listening acceptance、macro 产品语义和真实 DAW behavior。每个工作项另外指定 Implementation DRI、
+Acceptance DRI、Allowed/Forbidden paths 和 handoff condition。
 
-```text
-Developer A
-DSP / sound research primary
-
-Developer B
-plugin / architecture / tooling primary
-```
-
-但接口、routing、参数 ID、声音方向必须双人理解。
-
-声音方向的重要 PR 两人共同听测。
+Acceptance DRI 默认 review/reproduce/create finding，不直接修改对方 production implementation；确需换人时
+记录 Implementation DRI Transfer。M2/M3 采用 pipeline-level parallelism：Water 与 Ice 可处于不同阶段，
+但不得按“Water 一人 / Ice 一人”形成孤立 production ownership。接口、routing、参数 ID、算法采纳、声音
+方向和 formal performance budget 必须双人理解并按 Joint Gate 决策。详细规则见
+[`COLLABORATION_ROLES.md`](COLLABORATION_ROLES.md)。
 
 ---
 
@@ -2534,6 +2531,11 @@ Issue 进入 Ready 前：
 
 - [ ] 问题明确；
 - [ ] 用户行为明确；
+- [ ] Stable ID / Milestone 明确；
+- [ ] Implementation DRI 与 Acceptance DRI 明确；
+- [ ] Write ownership、Allowed paths 与 Forbidden paths 明确；
+- [ ] 双方输入/输出和 handoff condition 明确；
+- [ ] Joint Gate 与相关 contract/ADR 明确；
 - [ ] Acceptance Criteria 明确；
 - [ ] 自动测试方法明确；
 - [ ] 是否需要 Listening Test 明确；
@@ -2562,7 +2564,7 @@ Issue 进入 Ready 前：
 - [ ] DAW check where relevant
 - [ ] listening test where relevant
 - [ ] documentation updated
-- [ ] other developer approved
+- [ ] required acceptance/reviewer evidence recorded
 - [ ] merged into main
 
 ---

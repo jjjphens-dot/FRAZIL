@@ -1,8 +1,8 @@
 # FRAZIL 分阶段 Coding Plan
 
-> 版本：1.0<br>
+> 版本：1.1<br>
 > 状态：Approved Development Baseline<br>
-> 日期：2026-09-06  
+> 日期：2026-09-09
 > 输入：`FRAZIL_PROJECT_ARCHITECTURE_v0.3.md` + 当前源码/构建/远端审计  
 > 目标：把产品语义转化为可排序、可分工、可验收、可在 GitHub 追踪的工程工作。
 
@@ -15,6 +15,11 @@
 ## 1. 计划使用方式
 
 本计划中的每一行工作项都应成为一个 GitHub issue，稳定 ID 写入 issue title、branch、PR 和 changelog。状态只允许：Backlog、Ready、In Progress、Review、Validation、Done、Blocked。
+
+Issue 进入 Ready 前必须填写 Implementation DRI、Acceptance DRI、write ownership、Allowed paths、
+Forbidden paths、双方输入/输出、handoff condition、Joint Gate、scope/non-goals 和验收证据。DRI 描述工作
+ownership，不等同于 PR creator、push account、commit author/committer 或 reviewer identity。完整字段见
+[`COLLABORATION_ROLES.md`](COLLABORATION_ROLES.md#8-issue--pr-task-contract)。
 
 一个工作项只有在代码/文档、自动测试、必要听测/DAW 证据和 review 全部满足后才是 Done。`[x]` 只表示本地审计确认，不表示已在 GitHub 关闭。
 
@@ -109,7 +114,11 @@ M7
 v1.0 Release
 ```
 
-M2 Water 与 M3 Ice 仍可并行开发。`PARAM-FREEZE-001` 必须在 M2/M3 完成后、M4 开始前完成；`ADR-R-001` 必须在任何 `ROUTE-006` 实现前 Accepted。任何 Water/Ice 生产实现都依赖 M1 的 ProcessSpec、EngineParameters、Snapshot、统一测试素材和性能 baseline。
+M2 Water 与 M3 Ice 使用 pipeline-level parallelism：两种材质可处于不同的 brief、experiment、selection、
+production 或 acceptance 阶段，但不按“Water 一人 / Ice 一人”建立孤立 production ownership。
+`PARAM-FREEZE-001` 必须在 M2/M3 完成后、M4 开始前完成；`ADR-R-001` 必须在任何 `ROUTE-006`
+实现前 Accepted。任何 Water/Ice 生产实现都依赖 M1 的 ProcessSpec、EngineParameters、Snapshot、统一测试
+素材和性能 baseline。
 
 ## 3. 跨模块完成合同
 
@@ -151,6 +160,14 @@ M2 Water 与 M3 Ice 仍可并行开发。`PARAM-FREEZE-001` 必须在 M2/M3 完�
 | GH-001 | P0 | 创建 labels、M0-M7 milestones、Project board | GitHub metadata | issue 可按 type/area/priority/milestone 查询 | REPO-001 |
 | GH-002 | P0 | 配置 main protection | ruleset | PR、1 approval、CI、resolved conversations、no force push | CI-001 稳定 |
 | TOOL-001 | P1 | 增加 formatting check | clang-format target/job | 与 `.clang-format` 一致；不自动改 vendor/generated | CI-001 |
+
+### M0 stable ownership
+
+| Work | Implementation DRI | Acceptance DRI | Write boundary |
+|---|---|---|---|
+| `GH-001/002`、CI、build、portability、dependency regression | Engineering Lead | Sound & Host Lead | repository/build/workflow paths；不重做 Accepted JUCE dependency strategy |
+| `HOST-000` compatibility content/support classification | Sound & Host Lead | Engineering Lead | compatibility/evidence docs；不得把未执行 Host evidence 写成事实 |
+| audio/reference licensing product review | Sound & Host Lead | Engineering Lead | license/evidence；frozen engineering corpus 变更需显式 Issue |
 
 ### 实施顺序
 
@@ -227,6 +244,24 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 | TEST-002 | P0 | processor property harness | finite/random/extreme/prepare-reset；矩阵参数化 | 44.1/48/96 + block subset |
 | HOST-001 | P0 | pluginval + Host smoke protocol | 枚举/state/editor/bus/automation；结果可追踪 SHA；DAW 目标来自 HOST-000 | strictness 5 PASS |
 
+### M1 ownership and handoff
+
+任一工作项的实现与验收进入 `main` 后，只做 regression/finding follow-up，不得创建平行实现；实际
+完成状态以 GitHub 和 `PROJECT_STATUS.md` 为准。`RENDER-001` 的后续验收或 matrix 必须复用既有 harness，
+不能另建平行 render architecture。
+
+| Work item | Implementation DRI | Acceptance DRI / input owner | Allowed scope | Explicit non-goals |
+|---|---|---|---|---|
+| `RENDER-001` acceptance/follow-up | Engineering Lead | Sound & Host Lead | existing render target/tools/tests/docs | Water/Ice/Routing、listening choice、DAW acceptance |
+| `TEST-002` | Engineering Lead | Sound & Host Lead 提供风险场景 | processor property/unit/integration tests | 新声音算法、routing/UI production |
+| `PERF-BASE-001` | Engineering Lead | Sound & Host Lead 提供 workload/material/block size | performance harness/report/build-test wiring | formal budget、Water/Ice/Routing/UI |
+| `ARCH-LAT-001` | Engineering Lead | Sound & Host Lead 验收 intentional delay/tail | latency metadata、impulse evidence、ADR/docs | lookahead/FFT/convolution、routing implementation |
+| `HOST-001` | Sound & Host Lead | Engineering Lead 提供 build/plugin 并修复 handed-back findings | DAW evidence、matrix/result、findings | 直接修改 StateModel/Mapper/Snapshot/AudioEngine/PluginProcessor |
+| M1 Joint Exit Review | 双方各自维护所属 evidence | Joint Gate | Engineering Evidence + Sound/Host Evidence | 任一证据链替代另一条 |
+
+Acceptance DRI 发现 production 问题时先创建可复现 finding，再交回 Implementation DRI；除非记录
+Implementation DRI Transfer，否则不得直接修改对方 owner 路径。
+
 ### M1 Exit gate
 
 - Parameter registry 与 `docs/PARAMETERS.md` 完全一致；
@@ -272,6 +307,17 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 | WATER-006 | P0 | listening pack | 使用 `TESTDATA-001` 的多类素材 dry/baseline/candidate + manifest；按 Water rubric 记录 | rubric accepted；未触发 Reject Criteria |
 | WATER-007 | P0 | integration | AudioEngine 的 Water-only 临时路径，不引入 routing 语义 | pluginval + DAW automation |
 
+### M2 pipeline ownership
+
+| Work | Implementation DRI | Acceptance / decision |
+|---|---|---|
+| `EXP-W-001` | Sound & Host Lead | Engineering Lead feasibility review |
+| `EXP-W-002` candidate implementation/render/measurement | Engineering Lead | Sound & Host Lead owns experiment question、fixtures、A/B 和 rubric inputs |
+| `EXP-W-003` selection record | Sound & Host Lead | Engineering feasibility gate；algorithm adoption = Joint Gate |
+| `ADR-W-001` technical record | Engineering Lead | Joint Gate |
+| `WATER-001/002/003/004/005/007` | Engineering Lead | Sound & Host Lead |
+| `WATER-006` | Sound & Host Lead | Engineering Lead evidence review；final acceptance = Joint Gate |
+
 ### M2 Exit gate
 
 Water-only 在 `TESTDATA-001` 固定素材上具有一致可辨识的材质变化，输入仍可辨识；所有宏符合 `AUTO-001` 且无明显 zipper；通过 Water listening rubric 和 Reject Criteria；bypass/state/seed/render/property/performance/pluginval 通过；WaterProcessor 未依赖 Host、UI 或 RoutingMode。
@@ -297,6 +343,17 @@ Water-only 在 `TESTDATA-001` 固定素材上具有一致可辨识的材质变�
 | ICE-005 | P0 | performance/tail | 相对 `PERF-BASE-001` 的 Reference baseline 报告 mean/P95/P99/worst；不引入非零 Host-reported processing latency；intentional effect delay/tail 由 Ice ADR/tests 描述 |
 | ICE-006 | P0 | listening pack | 使用 `TESTDATA-001`，跨素材且与 Water 可区分；按 Ice rubric 记录 |
 | ICE-007 | P0 | integration | Ice-only AudioEngine 路径 + pluginval/DAW smoke |
+
+### M3 pipeline ownership
+
+| Work | Implementation DRI | Acceptance / decision |
+|---|---|---|
+| `EXP-I-001` | Sound & Host Lead | Engineering Lead feasibility review |
+| `EXP-I-002` candidate implementation/render/measurement | Engineering Lead | Sound & Host Lead owns experiment question、fixtures、A/B 和 rubric inputs |
+| `EXP-I-003` selection record | Sound & Host Lead | Engineering feasibility gate；algorithm adoption = Joint Gate |
+| `ADR-I-001` technical record | Engineering Lead | Joint Gate |
+| `ICE-001/002/003/004/005/007` | Engineering Lead | Sound & Host Lead |
+| `ICE-006` | Sound & Host Lead | Engineering Lead evidence review；final acceptance = Joint Gate |
 
 候选可探索 FrictionTexture、CrackTransientGenerator、ModalResonator、CrystalExciter 或 SpectralShaper。随机裂纹事件必须有可控密度/幅度上界，不得造成不可预测爆峰。
 
@@ -423,18 +480,23 @@ Release gate：`CI PASS && validators PASS && DAW matrix acceptable && state com
 
 详细的角色职责、决策权、Issue 交接字段和 milestone 协作方式见 [COLLABORATION_ROLES.md](COLLABORATION_ROLES.md)。本节只保留稳定的阶段级分工；具体成员和实时任务状态由 GitHub Issues/Project 管理。
 
-只在接口冻结后并行，团队 WIP <= 2：
+只在接口冻结后并行，团队 WIP <= 2；同一时间最多一个高风险 production DSP implementation：
 
-| 波次 | Developer A（声音/DSP primary） | Developer B（plugin/architecture/tooling primary） | 合流点 |
+| 阶段/波次 | Engineering Lead | Sound & Host Lead | 合流点 |
 |---|---|---|---|
-| M0 | reference/listening protocol | Git/CI/dependency/test framework | fresh clone gate |
-| M1 | DSP primitive/gain/property cases | Parameter/Snapshot/state/render harness | Engine contract gate |
-| M2/M3 | Water vertical slice | Ice vertical slice（或反之） | 双人交叉 review，各自接口一致 |
-| M4 | routing sound/loudness A/B | RoutingEngine/state/automation integration | full matrix gate |
-| M5 | material control UX/audio feedback | attachments/history/layout | UI acceptance |
-| M6 | listening regression/perf tuning | validators/DAW/state/fuzz | beta sign-off |
+| M0 | Git/CI/dependency/test framework、GH-001/002 | compatibility/support/licensing/workflow usability | fresh clone + governance gate |
+| M1 Engineering lane | RENDER/TEST/PERF/latency infrastructure | workload、risk scenarios、product latency/tail input | Engineering Evidence |
+| M1 Host lane | handed-back engineering findings | HOST-001 Ableton -> FL Studio -> REAPER | Sound / Host Evidence |
+| M2/M3 Wave A | Water candidate engineering | Water rubric + Ice perceptual brief | Water experiment review |
+| M2/M3 Wave B | Water fixes + Ice experiment prototype | Water listening/DAW acceptance + Ice selection inputs | Water gate + Ice experiment review |
+| M2/M3 Wave C | Ice production implementation | Water final acceptance + Ice listening preparation | Ice gate |
+| M4 | RoutingEngine/state/automation integration | routing sound/loudness/DAW acceptance | full matrix gate |
+| M5 | attachments/history/layout | material-control UX/audio feedback | UI acceptance |
+| M6 | validators/state/fuzz/performance measurement | DAW/listening regression/product workload | beta sign-off |
 
-每个 primary 的 PR 由另一人 review。参数 ID、routing、声音方向与 performance budget 不属于单人私有知识。
+M2/M3 的并行单位是 pipeline stage，不是“Developer A owns Water / Developer B owns Ice”。生产 Water/Ice DSP
+均由 Engineering Lead 实现，Sound & Host Lead 保持独立声音和 Host acceptance。参数 ID、routing、算法采纳、
+声音方向与 formal performance budget 均为 Joint Gate。
 
 ## 13. 明确推迟到 P2
 
