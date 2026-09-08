@@ -125,9 +125,11 @@ Global: mix 0/50/100, gain min/unity/max, rapid automation fixture
 
 当前仓库提供八个由 `tools/generate_testdata.py` 固定 seed 生成的双声道
 `PCM_S16LE` 输入，并将小型合成 fixture 直接存放在 `testdata/input/`；manifest 明确标记为
-generated synthetic reference corpus、无第三方音频，并记录每项的 provenance、redistribution、
-WAV metadata 和 SHA-256。`tools/verify_testdata.py` 是 manifest review 的自动化入口；未来加入
-外部音乐素材时，必须先替换或扩展 manifest，并重新完成许可审计，不得把未授权素材直接作为 reference。
+generated synthetic reference corpus、每项 `sourceType=synthetic`、无第三方音频，并记录每项的
+provenance、redistribution、WAV metadata 和 SHA-256。`tools/test_testdata.py` 还会在临时目录中
+重生成 corpus 并逐字节对比 committed fixtures；`tools/verify_testdata.py` 会检查 manifest 与
+`testdata/input/*.wav` 的双向集合一致性。未来真实音乐素材应放入单独的 `testdata/listening/`
+corpus，不得混入 TESTDATA-001 engineering corpus。
 
 ### Review pack
 

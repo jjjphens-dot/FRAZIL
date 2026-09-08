@@ -99,13 +99,14 @@ Branch audit 仅报告未合并分支中的既有基线路径污染，不改写�
 ## 2.4 TESTDATA-001 validation evidence
 
 本分支以 `tools/generate_testdata.py` 生成八个固定 seed 的双声道、48 kHz、16-bit PCM
-输入，并以 `tools/verify_testdata.py` 验证 manifest 中的 generated synthetic reference corpus
-provenance、无第三方音频、author/redistribution、根目录 MIT license、repository/no-LFS 策略、
-WAV metadata 和 SHA-256 内容完整性；`tools/test_testdata.py` 的负例回归也通过。每个输入约
-1 秒、约 192 KiB，直接存放于 `testdata/input/`；`testdata/rendered/` 继续保持 ignored。该 corpus
-是工程测试基线，不等同于真实 DAW 或听测证据；本轮 `generate_testdata.py` 重复生成后无 tracked
-diff，`check_portability.py`、`check_markdown_links.py` 和 `git diff --check` 也通过；后续若引入
-外部音乐录音，必须重新完成许可和 manifest 审计。
+输入，并以 `tools/verify_testdata.py` 验证 manifest 中的 generated synthetic reference corpus、每项
+`sourceType=synthetic`、无第三方音频、author/redistribution、根目录 MIT license、repository/no-LFS
+策略、WAV metadata、SHA-256 内容完整性和 `testdata/input/*.wav` 反向集合；`tools/test_testdata.py`
+还会在临时目录重生成 corpus 并逐字节对比 committed fixtures，负例回归也通过。每个输入约 1 秒、
+约 192 KiB，直接存放于 `testdata/input/`；`testdata/rendered/` 继续保持 ignored。该 corpus 是工程
+测试基线，不等同于 RENDER-001、真实 DAW 或听测证据；本轮 `generate_testdata.py` 重复生成后无
+tracked diff，`check_portability.py`、`check_markdown_links.py` 和 `git diff --check` 也通过；未来
+真实音乐素材应放入单独的 `testdata/listening/` corpus，不得混入 TESTDATA-001。
 ## 3. 当前源码映射
 
 ```text

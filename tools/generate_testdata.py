@@ -22,12 +22,13 @@ SEED = 20260908
 GENERATOR_VERSION = 1
 LICENSE = "MIT"
 LICENSE_PATH = "LICENSE"
+SOURCE_TYPE = "synthetic"
 CORPUS_PURPOSE = "Shared deterministic test inputs for Water, Ice, render, and property work."
 AUTHOR = "FRAZIL project contributors"
 REDISTRIBUTION = "Permitted under the repository MIT license."
 
 CORPUS = (
-    ("impulse", "short full-scale impulse with a quiet stereo echo"),
+    ("impulse", "single-sample near-full-scale stereo impulse"),
     ("noise", "band-limited-shaped deterministic noise"),
     ("drums", "four synthetic kick/snare transient groups"),
     ("vocal", "steady harmonic tone with vibrato and a voiced envelope"),
@@ -62,13 +63,8 @@ def stereo(mono: float, width: float, time: float) -> tuple[float, float]:
 def render_impulse() -> list[tuple[float, float]]:
     frames = []
     for index in range(FRAME_COUNT):
-        time = index / SAMPLE_RATE
-        left = 1.0 if index == 0 else 0.0
-        right = 0.85 if index == 0 else 0.0
-        if index > 0:
-            left += 0.35 * math.exp(-18.0 * time) * sine(1_100.0, time)
-            right += 0.28 * math.exp(-19.0 * time) * sine(1_103.0, time, 0.3)
-        frames.append((left, right))
+        value = 0.98 if index == 0 else 0.0
+        frames.append((value, value))
     return frames
 
 
@@ -231,6 +227,7 @@ def create_manifest(input_dir: Path, manifest_path: Path) -> None:
                 "filename": path.name,
                 "path": path.relative_to(ROOT).as_posix(),
                 "purpose": description,
+                "sourceType": SOURCE_TYPE,
                 "source": f"FRAZIL synthetic fixture: {description}; no third-party recording.",
                 "author": AUTHOR,
                 "license": LICENSE,

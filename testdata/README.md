@@ -24,9 +24,16 @@ python tools/verify_testdata.py
 python tools/test_testdata.py
 ```
 
-The manifest records `id`, `filename`, `purpose`, synthetic `source`, `author`,
-license/redistribution terms, `sampleRate`, `bitDepth`, `channels`,
+The manifest records `id`, `filename`, `purpose`, machine-readable
+`sourceType: synthetic`, descriptive `source`, `author`, license/redistribution
+terms, `sampleRate`, `bitDepth`, `channels`,
 `durationSeconds`, `sha256`, and repository/artifact/LFS storage policy for each
 input. It explicitly identifies a generated synthetic reference corpus with no
 third-party audio. Hashes are for the eight required input WAV files only;
 rendered outputs are not reference inputs and are never committed.
+
+This engineering corpus intentionally contains only the canonical 48 kHz,
+stereo, one-second PCM inputs. Future property/render tests may derive mono,
+44.1 kHz, 96 kHz or other supported configurations into temporary/generated
+output. Real-world listening material belongs in a separate future
+`testdata/listening/` corpus and must not be added here.

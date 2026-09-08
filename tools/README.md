@@ -44,7 +44,7 @@ Reference input corpus:
 WAV fixtures and their manifest. `verify_testdata.py` checks provenance, the
 repository MIT license, repository/no-LFS storage, WAV metadata and the
 manifest's SHA-256 values. The manifest records each input's id, filename,
-purpose, source, author, redistribution terms, sample rate, bit depth,
+purpose, sourceType, source, author, redistribution terms, sample rate, bit depth,
 channels, duration and repository/artifact/LFS storage policy. These hashes are
 limited to the required reference inputs; rendered output remains ignored.
 

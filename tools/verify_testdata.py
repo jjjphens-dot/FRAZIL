@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import hashlib
 import json
 import string
@@ -14,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "testdata" / "manifest.json"
 REQUIRED_IDS = {"impulse", "noise", "drums", "vocal", "piano", "guitar", "pad", "bass"}
 EXPECTED_PURPOSE = "Shared deterministic test inputs for Water, Ice, render, and property work."
+EXPECTED_SOURCE_TYPE = "synthetic"
 EXPECTED_AUTHOR = "FRAZIL project contributors"
 EXPECTED_REDISTRIBUTION = "Permitted under the repository MIT license."
 
@@ -26,7 +28,19 @@ def file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def validate(manifest_path: Path) -> list[str]:
+def actual_input_wav_paths(repository_root: Path) -> set[str]:
+    input_root = repository_root / "testdata" / "input"
+    if not input_root.is_dir():
+        return set()
+    return {
+        path.relative_to(repository_root).as_posix()
+        for path in input_root.rglob("*")
+        if path.is_file() and path.suffix.lower() == ".wav"
+    }
+
+
+def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
+    repository_root = repository_root.resolve()
     errors: list[str] = []
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -81,10 +95,18 @@ def validate(manifest_path: Path) -> list[str]:
 
     ids = [entry.get("id") for entry in files if isinstance(entry, dict)]
     string_ids = [identifier for identifier in ids if isinstance(identifier, str)]
+    duplicate_ids = sorted(
+        identifier
+        for identifier, count in Counter(string_ids).items()
+        if count > 1
+    )
+    for identifier in duplicate_ids:
+        errors.append(f"duplicate id: {identifier}")
     if set(string_ids) != REQUIRED_IDS or len(ids) != len(REQUIRED_IDS):
         errors.append(f"manifest must contain exactly {sorted(REQUIRED_IDS)}")
 
     seen_paths: set[str] = set()
+    declared_wav_paths: set[str] = set()
     for entry in files:
         if not isinstance(entry, dict):
             errors.append("manifest file entries must be objects")
@@ -102,19 +124,24 @@ def validate(manifest_path: Path) -> list[str]:
         ):
             errors.append(f"{identifier}: path escapes testdata/input")
             continue
+        if manifest_path.suffix.lower() != ".wav":
+            errors.append(f"{identifier}: declared path is not a WAV file")
+        else:
+            declared_wav_paths.add(relative_path)
         if relative_path in seen_paths:
             errors.append(f"{identifier}: duplicate path {relative_path}")
         seen_paths.add(relative_path)
 
-        path = ROOT.joinpath(*manifest_path.parts)
+        path = repository_root.joinpath(*manifest_path.parts)
         if not path.is_file():
-            errors.append(f"{identifier}: missing file {relative_path}")
             continue
 
         if entry.get("filename") != path.name:
             errors.append(f"{identifier}: filename does not match the referenced file")
         if not isinstance(entry.get("purpose"), str) or not entry["purpose"]:
             errors.append(f"{identifier}: purpose must be recorded")
+        if entry.get("sourceType") != EXPECTED_SOURCE_TYPE:
+            errors.append(f"{identifier}: sourceType must be synthetic")
         if entry.get("author") != EXPECTED_AUTHOR:
             errors.append(f"{identifier}: author must identify the FRAZIL contributors")
         if entry.get("license") != "MIT" or entry.get("licensePath") != "LICENSE":
@@ -122,8 +149,8 @@ def validate(manifest_path: Path) -> list[str]:
         if entry.get("redistribution") != EXPECTED_REDISTRIBUTION:
             errors.append(f"{identifier}: redistribution terms must be recorded")
         source = entry.get("source")
-        if not isinstance(source, str) or "third-party recording" not in source:
-            errors.append(f"{identifier}: source must identify the synthetic provenance")
+        if not isinstance(source, str) or not source.strip():
+            errors.append(f"{identifier}: source description must be recorded")
         if (
             entry.get("storage") != "repository"
             or entry.get("artifact") is not False
@@ -168,7 +195,13 @@ def validate(manifest_path: Path) -> list[str]:
         if metadata["compressed"]:
             errors.append(f"{identifier}: compressed WAV is not allowed")
 
-    license_path = ROOT / "LICENSE"
+    actual_wav_paths = actual_input_wav_paths(repository_root)
+    for relative_path in sorted(declared_wav_paths - actual_wav_paths):
+        errors.append(f"manifest declares missing WAV file: {relative_path}")
+    for relative_path in sorted(actual_wav_paths - declared_wav_paths):
+        errors.append(f"unmanifested WAV file: {relative_path}")
+
+    license_path = repository_root / "LICENSE"
     if not license_path.is_file():
         errors.append("repository MIT LICENSE is missing")
     else:
