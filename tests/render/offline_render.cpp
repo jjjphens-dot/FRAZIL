@@ -294,11 +294,17 @@ int runRender(const RenderOptions& options) {
     parameters.globalMix = options.globalMix;
     parameters.outputGainLinear = outputGainLinear;
 
-    auto outputStream = std::unique_ptr<juce::OutputStream>(outputFile.createOutputStream());
-    if (outputStream == nullptr) {
+    auto fileOutputStream = outputFile.createOutputStream();
+    if (fileOutputStream == nullptr) {
         std::cerr << "Cannot open output WAV: " << outputFile.getFullPathName() << "\n";
         return 1;
     }
+    // FileOutputStream opens existing files at EOF; reset and truncate before handing it to JUCE.
+    if (!fileOutputStream->setPosition(0) || fileOutputStream->truncate().failed()) {
+        std::cerr << "Cannot truncate output WAV: " << outputFile.getFullPathName() << "\n";
+        return 1;
+    }
+    std::unique_ptr<juce::OutputStream> outputStream = std::move(fileOutputStream);
     juce::WavAudioFormat wavFormat;
     const auto writerOptions = juce::AudioFormatWriterOptions{}
                                    .withSampleRate(reader->sampleRate)

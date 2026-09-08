@@ -63,7 +63,8 @@ configuration. CTest passes output and manifest paths under the preset build
 tree (for example `build/windows-debug/rendered/`); manual runs default to
 `testdata/rendered/`. `tools/test_render_cli.py` separately checks help and
 invalid configuration handling, plus one non-default configuration's manifest
-forwarding.
+forwarding and repeated rendering to one output path without appending a second
+WAV stream.
 
 建议工具：
 

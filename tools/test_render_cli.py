@@ -90,6 +90,54 @@ def check_non_default_manifest(renderer: Path) -> None:
             )
 
 
+def check_repeated_output_path(renderer: Path) -> None:
+    input_path = ROOT / "testdata" / "input" / "impulse.wav"
+    with tempfile.TemporaryDirectory() as temporary:
+        output_path = Path(temporary) / "repeated.wav"
+        command = [
+            str(renderer),
+            "--input",
+            str(input_path),
+            "--output",
+            str(output_path),
+            "--block-size",
+            "128",
+            "--seed",
+            "20260908",
+            "--water-enabled",
+            "1",
+            "--ice-enabled",
+            "1",
+            "--routing",
+            "parallel",
+            "--parallel-balance",
+            "0.5",
+            "--water-amount",
+            "1.0",
+            "--ice-amount",
+            "1.0",
+            "--input-gain-db",
+            "0.0",
+            "--global-mix",
+            "1.0",
+            "--output-gain-db",
+            "0.0",
+        ]
+        first_result = subprocess.run(command, capture_output=True, text=True)
+        if first_result.returncode != 0:
+            raise RuntimeError(
+                f"first render to shared output path failed: {first_result.stderr.strip()}"
+            )
+        first_bytes = output_path.read_bytes()
+        second_result = subprocess.run(command, capture_output=True, text=True)
+        if second_result.returncode != 0:
+            raise RuntimeError(
+                f"second render to shared output path failed: {second_result.stderr.strip()}"
+            )
+        if first_bytes != output_path.read_bytes():
+            raise RuntimeError("same output path produced different bytes on repeated render")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--renderer", type=Path, required=True)
@@ -116,10 +164,12 @@ def main() -> int:
     for arguments, expected_error in invalid_cases:
         run_case(renderer, arguments, expected_error)
     check_non_default_manifest(renderer)
+    check_repeated_output_path(renderer)
 
     print(
         "frazil_render CLI validation: PASS "
-        f"({len(invalid_cases)} invalid cases, --help, and non-default manifest)"
+        f"({len(invalid_cases)} invalid cases, --help, non-default manifest, "
+        "and repeated output path)"
     )
     return 0
 

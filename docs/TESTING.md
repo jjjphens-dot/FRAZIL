@@ -127,7 +127,8 @@ target 后运行该 smoke，并将产物隔离到当前 preset 的 ignored build
 和 amount 的非法值拒绝。当前证据是 M1 pass-through engine 的 deterministic offline smoke，seed
 仅作为测试元数据记录，因为当前 AudioEngine 不含随机 DSP；同一 CLI 回归还用一组非默认完整
 配置检查 manifest 字段逐项保留请求值，但不据此宣称 Water/Ice/Routing DSP 已实现；不等同于
-Water/Ice render matrix、听测或 DAW acceptance。
+Water/Ice render matrix、听测或 DAW acceptance。该 CLI 回归还验证同一 output path 连续 render
+时输出文件被覆盖而不是追加第二个 RIFF/WAV。
 
 ## 4. Listening Review
 

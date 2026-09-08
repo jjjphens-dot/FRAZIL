@@ -17,7 +17,8 @@
   input/output metadata 与 SHA-256 manifest；CTest 产物写入 preset build tree 下的 ignored
   `rendered/`，手工运行默认写入 ignored `testdata/rendered/`；
 - `tools/test_render_cli.py`：回归 `frazil_render` 的 `--help` 成功路径、enable/routing/balance/
-  amount 非法值拒绝，以及一组非默认完整配置在 manifest 中的逐字段保留；
+  amount 非法值拒绝、一组非默认完整配置在 manifest 中的逐字段保留，以及同一 output path
+  重复渲染时覆盖而非追加 WAV；
 - `tools/verify_testdata.py` 与 `tools/test_testdata.py`：`TESTDATA-001` 的八类合成输入、
   manifest、机器可读 provenance、MIT 来源、WAV metadata、存储策略、SHA-256 完整性、
   完整 generator-to-temporary WAV + manifest 语义/字节级可复现性和 input/manifest 双向集合回归；

@@ -31,4 +31,6 @@ validation or performance coverage. CTest passes explicit output and manifest
 paths under the preset build tree to avoid polluting `testdata/rendered/`.
 The `frazil_render_cli` regression also checks one non-default complete
 configuration in the manifest; this verifies configuration forwarding only and
-does not claim Water/Ice/Routing DSP behavior.
+does not claim Water/Ice/Routing DSP behavior. It also renders twice to the same
+output path and verifies that the second run overwrites the WAV rather than
+appending another RIFF stream.
