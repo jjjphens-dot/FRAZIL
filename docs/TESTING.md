@@ -125,8 +125,9 @@ target 后运行该 smoke，并将产物隔离到当前 preset 的 ignored build
 `build/windows-debug/rendered/`）；手工运行的默认产物仍写入 ignored `testdata/rendered/`，不依赖
 音频设备或 DAW。`frazil_render_cli` 还回归检查 `--help` 成功返回以及 enable、routing、balance
 和 amount 的非法值拒绝。当前证据是 M1 pass-through engine 的 deterministic offline smoke，seed
-仅作为测试元数据记录，因为当前 AudioEngine 不含随机 DSP；不等同于 Water/Ice render matrix、
-听测或 DAW acceptance。
+仅作为测试元数据记录，因为当前 AudioEngine 不含随机 DSP；同一 CLI 回归还用一组非默认完整
+配置检查 manifest 字段逐项保留请求值，但不据此宣称 Water/Ice/Routing DSP 已实现；不等同于
+Water/Ice render matrix、听测或 DAW acceptance。
 
 ## 4. Listening Review
 

@@ -29,3 +29,6 @@ This is an offline determinism smoke for the current M1 pass-through engine. It
 does not claim Water/Ice DSP, full render matrices, listening acceptance, DAW
 validation or performance coverage. CTest passes explicit output and manifest
 paths under the preset build tree to avoid polluting `testdata/rendered/`.
+The `frazil_render_cli` regression also checks one non-default complete
+configuration in the manifest; this verifies configuration forwarding only and
+does not claim Water/Ice/Routing DSP behavior.

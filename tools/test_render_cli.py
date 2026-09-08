@@ -4,8 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
+import sys
+import tempfile
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def run_case(renderer: Path, arguments: list[str], expected_error: str) -> None:
@@ -21,6 +26,68 @@ def run_case(renderer: Path, arguments: list[str], expected_error: str) -> None:
             f"missing {expected_error!r} in stderr for {' '.join(arguments)}: "
             f"{result.stderr.strip()}"
         )
+
+
+def check_non_default_manifest(renderer: Path) -> None:
+    expected_parameters = {
+        "waterEnabled": False,
+        "iceEnabled": True,
+        "routing": "ice-into-water",
+        "parallelBalance": 0.23,
+        "waterAmount": 0.37,
+        "iceAmount": 0.81,
+        "inputGainDb": -3.0,
+        "globalMix": 0.64,
+        "outputGainDb": 2.0,
+    }
+    with tempfile.TemporaryDirectory() as temporary:
+        temporary_root = Path(temporary)
+        output_path = temporary_root / "non-default.wav"
+        manifest_path = temporary_root / "non-default.manifest.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "tools" / "render_testdata.py"),
+                "--renderer",
+                str(renderer),
+                "--output",
+                str(output_path),
+                "--manifest",
+                str(manifest_path),
+                "--water-enabled",
+                "0",
+                "--ice-enabled",
+                "1",
+                "--routing",
+                "ice-into-water",
+                "--parallel-balance",
+                "0.23",
+                "--water-amount",
+                "0.37",
+                "--ice-amount",
+                "0.81",
+                "--input-gain-db",
+                "-3.0",
+                "--global-mix",
+                "0.64",
+                "--output-gain-db",
+                "2.0",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                "non-default render configuration failed: "
+                f"{result.stderr.strip()}"
+            )
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        actual_parameters = manifest["render"]["parameters"]
+        if actual_parameters != expected_parameters:
+            raise RuntimeError(
+                f"non-default render configuration was not preserved: {actual_parameters}"
+            )
 
 
 def main() -> int:
@@ -48,8 +115,12 @@ def main() -> int:
     )
     for arguments, expected_error in invalid_cases:
         run_case(renderer, arguments, expected_error)
+    check_non_default_manifest(renderer)
 
-    print(f"frazil_render CLI validation: PASS ({len(invalid_cases)} invalid cases plus --help)")
+    print(
+        "frazil_render CLI validation: PASS "
+        f"({len(invalid_cases)} invalid cases, --help, and non-default manifest)"
+    )
     return 0
 
 
