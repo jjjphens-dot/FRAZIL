@@ -67,6 +67,32 @@ Milestone 使用 `M0` 至 `M7`，issue title 使用 Coding Plan 的稳定 ID，�
 [M4][ROUTE-004] Implement Water -> Ice serial processing
 ```
 
+### 3.1 Work item ownership contract
+
+Issue 进入 Ready 前必须记录：
+
+```text
+Stable ID / Milestone:
+Implementation DRI:
+Acceptance DRI:
+Write ownership:
+Allowed paths:
+Forbidden paths:
+Inputs owned by Acceptance DRI:
+Outputs owed to Acceptance DRI:
+Handoff condition:
+Joint-gate decisions:
+Related contract / ADR:
+Scope / Non-goals:
+Engineering acceptance:
+Sound / Host acceptance:
+Documentation impact:
+```
+
+Acceptance DRI 发现 implementation finding 后交回 Implementation DRI 修复；默认不直接进入对方的
+production paths。确需换人时，在 Issue/PR 记录 Previous/New DRI、reason、transferred scope、effective
+point、paths 和 open evidence。DRI transfer 不自动改变已有 PR creator 或后续 push-account rule。
+
 ## 4. Board 与 WIP
 
 ```text
@@ -98,17 +124,63 @@ PR 必需检查：
 
 Documentation Synchronization Gate 的 canonical 规则位于 [`DOCUMENT_GOVERNANCE.md`](DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate)。涉及 parameter/state、routing、realtime、核心 DSP、latency、random semantics、performance budget 或 release 的 PR，还必须留下可验证的 GitHub formal review；无法提交 formal review 时，第二位开发者必须在 PR comment 中写明 review scope、复现 evidence、limitations 和 decision。
 
-### 5.1 PR 身份与双人 review gate
+### 5.1 GitHub identity 与 push-account gate
 
-PR 创建身份必须与实现责任一致：
+以下身份相关但不要求相同：
 
-1. 在 `gh pr create` 前用 `gh api user --jq .login` 确认当前登录账号是本次工作的 Implementation DRI；
-2. 由该账号创建 PR，并在创建后用 `gh pr view <number> --json author,headRefName,baseRefName,commits,reviews` 核对 PR author 和 head commit authors/committers；
-3. 预定的 Acceptance DRI/reviewer 必须使用不同的 GitHub account 提交 formal `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES`；PR author 自己的 comment、自己的“approve”文字或 commit 署名都不算独立 review；
-4. 在首次 push 和每次向已有 PR 分支 push 前，都要用 `git branch --show-current` 与 `gh pr list --head <branch> --state open --json number,author,url` 检查当前分支是否已有 PR。若已有 PR 的 author 正是预定 reviewer，必须停止 push；应由正确的 Implementation DRI account 新建 PR，或明确更换为另一个独立 reviewer。协作者可以作为 commit contributor，但不能同时是该 PR author 和预定 reviewer；不得冒用账号、伪造 review 或仅靠改 commit author 来修复 PR author；
-5. 权限受限时可以保留第二位开发者的 comment evidence，但必须标注其不是 formal review，并包含 review scope、reproduced evidence、limitations 和 decision。
+- Implementation DRI / Acceptance DRI：工作 ownership；
+- PR creator / author：创建 GitHub PR 的账号；
+- push account：执行当前 push 的 authenticated GitHub account；
+- commit author / committer：commit 的真实 authorship/commit metadata；
+- reviewer：承担并记录 review responsibility 的人/账号。
 
-PR 描述和最终报告必须分别记录 `PR author`、实际 commit author/committer、formal reviewer account、review type 和 review time；这些字段不能合并成一个“reviewed by”结论。
+`PR creator != Implementation DRI`、`commit author/committer != PR creator` 或 reviewer 没有预绑定角色账号，
+本身都不是违规，也不要求重建 PR、伪造 author 或 rewrite history。
+
+push/PR preflight：
+
+```powershell
+$branch = git branch --show-current
+gh pr list --head $branch --state open --json number,author,url
+gh api user --jq .login
+```
+
+1. 如果该 branch 没有 open PR，当前准备负责该 PR GitHub lifecycle 的账号可以创建 PR；该账号成为
+   PR creator，无需等于 Implementation DRI。
+2. 如果已存在 open PR，读取其 creator/author 和当前 authenticated account。
+3. 只有 `current push account == existing PR creator` 才可向该 PR branch 继续 push。
+4. 不一致时停止 push，报告 `Existing PR creator`、`Current authenticated account` 和“可能登录了错误
+   GitHub account”；先检查/切换登录，不得跨账号继续 push。
+5. 不得用改写 commit author、force push、rewrite history 或创建不必要的新 PR 规避账号不一致。
+
+该规则同样适用于 `docs/**`、`AGENTS.md`、`README.md`、`.github/**` 和 production code。首次 push 后如果
+尚未创建 PR，创建者应确认自己愿意管理该 PR lifecycle；PR 一旦存在，后续 push 使用其 creator account。
+
+### 5.2 Reviewer 与证据
+
+Reviewer 不需要在 PR 创建前与某个角色账号预绑定，也不因曾为相关领域提交过其它 commit、PR creator
+与 Implementation DRI 不同，或 commit authorship 混合而自动失去资格。真正的 gate 是 review
+independence、review scope、evidence 和 decision。
+
+review record 至少包含：
+
+```text
+Reviewer:
+Review scope:
+Evidence reproduced:
+Evidence not reproduced:
+Findings:
+Decision:
+Formal GitHub review: APPROVE / COMMENT / REQUEST_CHANGES / NOT AVAILABLE / NOT RECORDED
+Fallback review evidence: COMMENT / MANUAL REVIEW / N/A
+```
+
+GitHub 平台自身不允许 formal approval 时，可以保留明确标注的 comment/manual evidence；不得把普通
+comment 写成 formal `APPROVE`。需要另一位开发者 review 的核心 PR 仍必须有真实的第二人证据；自审不能
+冒充独立 review，但项目不再为此建立额外的账号身份矩阵或强制重建 PR。
+
+PR 描述和最终报告分别记录 Implementation/Acceptance DRI、PR creator、current push account、相关
+commit authors/committers、reviewer、review type 和时间，不合并成一个模糊的“reviewed by”结论。
 
 音频 render 和大型日志不要直接塞入 Git 历史；使用 GitHub Actions artifact 或 release asset，并在 PR 记录 manifest/hash。
 

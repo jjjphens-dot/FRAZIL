@@ -90,18 +90,36 @@ Read contract
 
 ### 5.3 Human Review Evidence
 
-Parameter contract、State contract、Routing、production Water/Ice DSP、latency/tail/random semantics、realtime architecture、performance budget 和 release PR 必须留下可验证的 reviewer evidence，优先使用 GitHub formal `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES` submission。PR author 必须在创建前确认是 Implementation DRI，且不能与预定 reviewer 使用同一个 GitHub account；`PR author`、commit author/committer 和 reviewer 需要分别记录，commit 的署名不能替代 formal review。若权限不允许 formal review，第二位开发者必须留下 comment，明确：
+Parameter contract、State contract、Routing、production Water/Ice DSP、latency/tail/random semantics、
+realtime architecture、performance budget 和 release PR 必须留下可验证的 reviewer evidence，优先使用
+GitHub formal `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES` submission。需要另一位开发者 review 的工作仍需
+真实的第二人 evidence；PR creator 自审不能冒充独立 review。
+
+Implementation DRI、Acceptance DRI、PR creator、push account、commit author/committer 和 reviewer 必须
+分别、真实记录，但不要求相同或预先映射到固定账号。`PR creator != Implementation DRI`、commit authorship
+混合或 reviewer 曾参与其它相关 commit，本身不触发 PR recreation。reviewer evidence 明确：
 
 ```text
-review scope
-evidence reproduced
-limitations
-decision
+Reviewer
+Review scope
+Evidence reproduced
+Evidence not reproduced
+Findings
+Decision
+Formal GitHub review type or NOT AVAILABLE / NOT RECORDED
+Fallback comment/manual evidence or N/A
 ```
 
-PR author 自己写“review passed”不能作为唯一 review evidence。该规则适用于下一条需要双人 review 的核心 PR；既有 PR 的 review evidence 缺口应记录为 process evidence gap，不通过回滚或历史重写补造。
+平台权限不允许 formal review 时，第二位开发者可以留下明确标注的 comment/manual evidence；不得把普通
+comment 写成 formal `APPROVE`。既有 PR 的 evidence 缺口记录为 historical process gap，不通过回滚、伪造
+author 或 history rewrite 补造。
 
-创建 PR 或向已有 PR 分支 push 的 preflight 至少应核对 `gh api user --jq .login`、`git branch --show-current`、该 branch 的 open PR `author`、head commits 的 authors/committers 和预定 reviewer account。若发现已有 PR 的 author 正是预定 reviewer，不能继续把该 PR 当作另一位开发者的 formal-review 容器，也不能继续向其分支 push；应在不冒用账号、不重写历史的前提下，由正确的 Implementation DRI account 创建新的 PR，或明确改由另一个独立 account 完成 review。若协作者只是 commit contributor、不是 PR author 或预定 reviewer，则不触发这条阻断，但仍需分别记录三类身份。Issue/PR comment 可以作为权限受限时的 fallback，但必须明确标记为 comment evidence，不得写成 GitHub formal review。
+创建 PR、首次向 branch push 或向已有 PR 分支继续 push 前，preflight 至少核对
+`git branch --show-current`、`gh pr list --head <branch> --state open --json number,author,url` 和
+`gh api user --jq .login`。如果 branch 没有 open PR，当前准备管理该 PR lifecycle 的账号可以创建 PR，
+无需等于 Implementation DRI。若已有 PR，唯一严格的账号一致性规则是：执行后续 push 的 authenticated
+account 必须等于 existing PR creator。不同则停止 push 并优先检查错误登录；不得跨账号 push、改写
+commit author、force push、rewrite history 或新建不必要的 PR 规避。文档 PR 与 code PR 使用同一规则。
 
 ### 5.4 Final Report
 

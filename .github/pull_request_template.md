@@ -4,6 +4,30 @@
 
 Closes #
 
+## Ownership and handoff
+
+Stable ID / Milestone:
+
+Implementation DRI:
+
+Acceptance DRI:
+
+Write ownership:
+
+Allowed paths:
+
+Forbidden paths:
+
+Inputs owned by Acceptance DRI:
+
+Outputs owed to Acceptance DRI:
+
+Handoff condition:
+
+Joint-gate decisions:
+
+Related contract / ADR:
+
 ## Solution and scope
 
 <!-- Summarize the implementation. State important non-goals. -->
@@ -93,10 +117,21 @@ Closes #
 
 ### Human review evidence
 
-- [ ] PR author is the Implementation DRI and was verified with `gh api user --jq .login`
-- [ ] Intended reviewer is a different GitHub account from the PR author
-- [ ] PR author, commit author/committer, and reviewer account are recorded separately
-- [ ] Before the initial push and every later push, the current branch's open PR author was checked with `gh pr list --head <branch> --state open --json number,author,url`
-- [ ] If a collaborator is the intended reviewer, that collaborator is not the open PR author
-- [ ] Formal GitHub review submission recorded
-- [ ] If formal review is unavailable, a second developer comment records scope, reproduced evidence, limitations, and decision
+PR creator:
+
+Current push account:
+
+Relevant commit authors/committers:
+
+Reviewer:
+
+Review type:
+
+- [ ] Implementation/Acceptance DRI and GitHub identities are recorded separately; no equality is assumed
+- [ ] Current branch and open PR creator were checked with `gh pr list --head <branch> --state open --json number,author,url`
+- [ ] Current authenticated account was checked with `gh api user --jq .login`
+- [ ] No open PR existed before this push, or existing PR creator matches current push account
+- [ ] Any mismatch stopped the push and triggered a GitHub login check, or N/A
+- [ ] Review scope, reproduced/not-reproduced evidence, findings, and decision are recorded
+- [ ] Formal GitHub review type is recorded
+- [ ] If formal review is unavailable, fallback comment/manual evidence is explicitly labeled and does not claim formal `APPROVE`

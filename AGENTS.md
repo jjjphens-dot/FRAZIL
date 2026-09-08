@@ -21,7 +21,8 @@
 - 当前阶段：M1-C 进行中；M1-A/M1-B Parameter/Engine foundation 与 M1-C STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`，M1 尚未完成。
 - 已有：JUCE 9.0.1、CMake/Ninja presets、VST3/Standalone、pass-through wet path、APVTS 状态保存、集中式 ParameterLayout、ParameterSnapshot/Mapper、基础 gain/mix/smoothing、9 个 Host 参数和 smoke test。
 - 已有：可移植 CI preset 与 Hosted CI 验证；M1-A/M1-B 的首块 priming、retarget 和 runtime buffer invariant regression 已建立；STATE-001 的 schema migration/fallback、XML restore、STATE-002 mode-value-retention 和 AUTO-001 PluginProcessor integration evidence 已建立。
-- 尚缺：TESTDATA、render/performance harness、真实 Host/DAW validation、编辑历史、Water/Ice/Routing DSP 和正式 UI；公开参数 freeze 与完整兼容性 evidence 仍待完成。
+- 已有：`TESTDATA-001` 可复现 engineering corpus 与 `RENDER-001` pass-through offline smoke 已进入 `main`；这些能力只按 regression/finding 维护，不另建平行实现。
+- 尚缺：`TEST-002` processor property、`PERF-BASE-001`、`ARCH-LAT-001` 完整证据、真实 Host/DAW validation、编辑历史、Water/Ice/Routing DSP 和正式 UI；公开参数 freeze 与完整兼容性 evidence 仍待完成。
 - 当前参数合同已将历史 `water.enable` / `ice.enable` 迁移为 `water.enabled` / `ice.enabled`；现有 state migration evidence 已建立，公开兼容性基线前仍需完整 compatibility evidence 与正式参数 freeze。
 - GitHub 远端为 `https://github.com/jjjphens-dot/FRAZIL`。开始产品代码前必须确认工作目录是该仓库的 Git 工作树，且 `origin` 指向该地址。
 
@@ -34,6 +35,29 @@
 3. 用 `rg` 定位现有实现和测试，避免创建平行架构。
 4. 将任务映射到 `docs/CODING_PLAN.md` 的 milestone、issue ID、依赖和 exit gate。
 5. 若任务触及参数 ID、范围、state schema、routing 语义或实时路径，先检查现有合同。实现已接受合同不自动创建 ADR；只有需要改变架构决策、依赖边界、公共模块职责、参数/状态兼容性、routing、realtime、latency、random-state 或正式性能合同时，才先更新/新增 ADR，再改实现。
+
+### Agent execution 与 write gate
+
+进入实现前必须从 Issue/PR 明确记录或补齐：
+
+1. Stable Work Item / Milestone；
+2. Scope 与 Non-goals；
+3. Implementation DRI；
+4. Acceptance DRI；
+5. Write ownership；
+6. Allowed paths；
+7. Forbidden paths；
+8. Acceptance DRI 拥有的 inputs 和应收到的 outputs；
+9. Handoff condition；
+10. Related contracts / ADR；
+11. Joint Gate；
+12. Current branch 与该 branch 是否存在 open PR；
+13. push/PR 操作前的 existing PR creator 与 current authenticated GitHub account。
+
+默认 path ownership 见 `docs/COLLABORATION_ROLES.md`。Agent 只能修改 Allowed paths；Acceptance DRI
+默认 review/reproduce/create finding，不直接修改对方 production implementation。确需换人时必须先记录
+Implementation DRI Transfer（previous/new DRI、reason、transferred scope、paths、effective point 和 evidence
+state）。字段不足以安全界定写入范围时，先补 task contract，不得自行扩成跨模块重构。
 
 ### Required reading
 
@@ -186,7 +210,10 @@ ctest --preset windows-debug
 - PR 必须填写架构、参数/automation、实时安全、测试和音频评估影响。
 - PR 必须完成 Documentation Impact Review，并在模板中记录受影响文档和一致性检查结果。
 - 参数合同、routing、state、核心 DSP 或发布流程变更至少一名另一位开发者审批，相关讨论全部 resolve 后合并。
-- 创建 PR 或向已有 PR 分支 push 前必须核对 GitHub 身份：PR author 应为 Implementation DRI，且不得是预定的 Acceptance DRI/reviewer；`PR author`、实际 commit author 和 formal reviewer 是三个独立事实，不能用其中一个替代另一个。至少用 `gh api user --jq .login`、`git branch --show-current` 和 `gh pr list --head <branch> --state open --json number,author,url` 复核；如果已有 PR 的 author 是预定 reviewer，agent 必须停止 push，改由 Implementation DRI account 创建 PR 或明确更换独立 reviewer。不得冒用协作者账号或把 comment 写成 formal review。
+- Implementation DRI、Acceptance DRI、PR creator、push account、commit author/committer 和 reviewer 是不同事实，必须真实记录，但不要求彼此相同。不得以 `PR creator != Implementation DRI`、`commit author != PR creator` 或 reviewer 未预绑定角色账号为由重建 PR 或改写历史。
+- 创建 PR、首次向 branch push 或向已有 PR 分支继续 push 前，至少执行 `git branch --show-current`、`gh pr list --head <branch> --state open --json number,author,url` 和 `gh api user --jq .login`。若没有 open PR，当前准备管理该 PR 生命周期的账号可以创建 PR；无需等于 Implementation DRI。
+- 向已有 PR 对应分支继续 push 时，唯一严格的账号一致性规则是 `current authenticated push account == existing PR creator`。不一致时必须停止 push，报告两个账号并优先检查是否登录错误；不得跨账号继续 push、伪造 commit author、rewrite history、force push 或建立不必要的新 PR 来掩盖登录错误。documentation PR 与 code PR 使用同一规则。
+- Reviewer 按 review independence、scope、evidence 和 decision 选择，不预绑定某个角色账号。平台无法记录 formal review 时可以使用明确标注的 comment/manual evidence，但不得写成 formal `APPROVE`；需要另一位开发者 review 的工作仍需真实的第二人 evidence。
 - 禁止提交 `build/`、`.venv/`、工具二进制、下载归档、生成 render、DAW cache 或个人路径配置。
 - 未经明确请求，agent 不执行 push、merge、release、branch protection 或删除远端内容。
 
@@ -194,7 +221,9 @@ ctest --preset windows-debug
 
 ## 9. Definition of Ready / Done
 
-Issue 进入 Ready 前必须有：用户/声音问题、范围与非目标、acceptance criteria、测试方式、听测需求、参数/automation/state 影响、依赖和 owner。
+Issue 进入 Ready 前必须有：Stable ID/Milestone、用户/声音问题、范围与非目标、Implementation DRI、
+Acceptance DRI、write ownership、Allowed/Forbidden paths、双方 inputs/outputs、handoff condition、Joint Gate、
+acceptance criteria、测试方式、听测需求、参数/automation/state 影响和依赖。
 
 完成至少意味着：
 
