@@ -123,6 +123,12 @@ Global: mix 0/50/100, gain min/unity/max, rapid automation fixture
 
 `TESTDATA-001` 必须建立并维护同一套 Water/Ice 共用的 reference corpus：impulse、noise、drums、vocal、piano、guitar、pad、bass。每个素材的 manifest 至少记录 source、license、content hash、sample rate、channel count、storage location，以及 repository/artifact/LFS 策略。未完成许可和 hash 审计的素材不能成为 regression reference。
 
+当前仓库提供八个由 `tools/generate_testdata.py` 固定 seed 生成的双声道
+`PCM_S16LE` 输入，并将小型合成 fixture 直接存放在 `testdata/input/`；它们不依赖第三方录音，
+由根目录 MIT license 覆盖。`tools/verify_testdata.py` 是 manifest review 的自动化入口，
+会检查来源、许可、存储策略、WAV metadata 和每个输入的 SHA-256；未来加入外部音乐素材时，
+必须先替换或扩展 manifest，并重新完成许可审计，不得把未授权素材直接作为 reference。
+
 ### Review pack
 
 每个核心声音 PR 提供：

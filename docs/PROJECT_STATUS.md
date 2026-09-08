@@ -95,6 +95,13 @@ Branch audit 仅报告未合并分支中的既有基线路径污染，不改写�
 - GitHub formal review：当前 API `reviews=[]`、`reviewDecision` 为空；因此 PR #9 的协作者批准目前只能记录为人工 screenshot/comment evidence，不能记录为正式 GitHub `APPROVE` submission。
 - 流程状态：`Manual collaborator review = APPROVE (screenshot evidence)`；`Formal GitHub review = NOT RECORDED`；这不是生产代码回退理由，但在 PR #9 合并前仍需按权限和仓库治理决定是否补齐独立 formal review。
 - 纠正措施：本次同步更新 `AGENTS.md`、`docs/DOCUMENT_GOVERNANCE.md`、`docs/GITHUB_WORKFLOW.md`、`docs/COLLABORATION_ROLES.md` 和 PR template；后续创建 PR、首次 push 以及向已有 PR 分支继续 push 前，都必须核对当前登录账号、当前 branch 的 open PR author、commit authors/committers 和预定 reviewer account。若协作者同时是 PR author 与预定 reviewer，必须停止 push 并改由正确的 Implementation DRI account 创建 PR，或更换独立 reviewer；若协作者只是 commit contributor，则不触发该阻断。
+## 2.4 TESTDATA-001 validation evidence
+
+本分支以 `tools/generate_testdata.py` 生成八个固定 seed 的双声道、48 kHz、16-bit PCM
+输入，并以 `tools/verify_testdata.py` 验证 manifest 中的来源、根目录 MIT license、repository/no-LFS
+策略、WAV metadata 和 SHA-256 内容完整性；`tools/test_testdata.py` 的负例回归也通过。每个输入约
+1 秒、约 192 KiB，直接存放于 `testdata/input/`；`testdata/rendered/` 继续保持 ignored。该 corpus
+是工程测试基线，不等同于真实 DAW 或听测证据；后续若引入外部音乐录音，必须重新完成许可和 manifest 审计。
 ## 3. 当前源码映射
 
 ```text
@@ -186,6 +193,7 @@ PluginProcessor
 ```text
 HOST-000 support classification and evidence gate
   -> TESTDATA-001 可并行启动
+  -> TESTDATA-001 sync/review/merge
   -> HOST-001 save/reopen/automation/DAW evidence
   -> RENDER-001 / PERF-BASE-001
   -> M1 Exit Gate
@@ -193,4 +201,4 @@ HOST-000 support classification and evidence gate
   -> Water production only after experiment gate
 ```
 
-HOST-000 产品目标已冻结，support classification 仍需满足 Engineering Lead review 与 HOST-001 evidence 条件。STATE-001 已随 PR #5 合入 `main`，STATE-002 与 AUTO-001 integration 已在最新 main 验证；后续继续收口 TESTDATA/RENDER/PERF harness 和 HOST-001 evidence。Water/Ice/Routing 仍未开始 production。
+HOST-000 产品目标已冻结，support classification 仍需满足 Engineering Lead review 与 HOST-001 evidence 条件。STATE-001 已随 PR #5 合入 `main`，STATE-002 与 AUTO-001 integration 已在最新 main 验证；本分支继续收口 TESTDATA-001，之后进入 RENDER/PERF harness 和 HOST-001 evidence。Water/Ice/Routing 仍未开始 production。

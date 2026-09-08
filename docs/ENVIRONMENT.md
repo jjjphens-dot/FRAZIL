@@ -43,6 +43,7 @@ tracked 的 CMakePresets.json、.vscode/tasks.json 和 CI workflow 不包含开�
 在已初始化 MSVC developer environment 的 PowerShell 中，并从 cloned FRAZIL repository root 执行：
 
     .\tools\bootstrap_dependencies.ps1
+    python tools/verify_testdata.py
     cmake --list-presets
     cmake --preset windows-debug
     python tools/build_safe.py --preset windows-debug
