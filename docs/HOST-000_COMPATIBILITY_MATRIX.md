@@ -3,7 +3,7 @@
 > 状态：**Product targets frozen by Sound & Host Lead; Engineering Lead review required; HOST-001 evidence required**
 > Implementation DRI：Sound & Host Lead
 > Required reviewer：Engineering Lead
-> Initial HOST-000 audit baseline：`origin/main` observed `b91f619`（历史事实，2026-09-07）；本次 integration audit observed `origin/main` `12d36a4`；live remote HEAD 必须由 Git 命令确认
+> Initial HOST-000 and integration audits recorded historical `origin/main` snapshots only; those observations are not current repository truth. The pre-merge integration baseline for this review was `origin/main` `c065aad`（2026-09-08）；live remote HEAD 必须由 Git 命令确认
 
 Sound & Host Lead 已冻结 v1 的平台、格式和宿主目标。本文档同时记录当前证据状态，因此“目标已冻结”不等于“兼容性已通过”。HOST-000 定义 HOST-001 的验收目标；HOST-001 负责实际 pluginval/DAW smoke evidence，不构成循环依赖，也不需要完成后 HOST-000 才能合入。
 
@@ -294,6 +294,6 @@ The verification layers and host-format boundaries use the following primary ref
 - [x] Sound & Host Lead freezes primary development DAW.
 - [x] Sound & Host Lead freezes primary validation DAW.
 - [x] Sound & Host Lead selects REAPER as secondary/lightweight host; exact version remains `TBD`.
-- [ ] Engineering Lead reviews VST3/Standalone roles, automation wording, latency wording and evidence requirements.
+- HOST-000 support classification requires Engineering Lead review of VST3/Standalone roles, automation wording, latency wording and evidence requirements; the review evidence belongs in the PR/review record.
 - [ ] HOST-001 records actual scan/load, nine-parameter enumeration, automation, save/reopen and offline render results.
 - [ ] Evidence status is updated from `Not run`/`Planned` only after reproducible HOST-001 results exist.

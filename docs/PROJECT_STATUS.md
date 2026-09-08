@@ -10,7 +10,7 @@
 
 ## 1. 结论
 
-项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；本分支新增实际 PluginProcessor automation/state integration evidence；M1 仍在进行中；Water/Ice、Routing、render 和正式 UI 仍未实现。
+项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；M1 仍在进行中；Water/Ice、Routing、render 和正式 UI 仍未实现。
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
@@ -22,12 +22,12 @@
 2. PR #5 合并后 main 的 [Hosted CI run 34091515810](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34091515810) 已完成 Windows Debug configure/build/test 并通过；PR #4、PR #3 和 PR #2 的既有 Hosted CI 证据也已通过；当前 GitHub branch listing 报告 `main` 为 `protected:false`；fine-grained repository ruleset / admin-level branch-protection configuration 尚未以充分的管理员证据独立验证；不据此推断不存在其它规则集；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；STATE-001 已建立已知 pre-v1 ID migration fixture，公开版本兼容性仍需后续 freeze/evidence；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
-5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；本分支 Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；尚未覆盖 render 和真实 DAW automation；
+5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；现有 Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；尚未覆盖 render 和真实 DAW automation；
 6. Water、Ice、Routing、EditHistoryManager、离线 render、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现；真实 Host/DAW restore matrix、M5 EditHistoryManager integration 和公开兼容性仍待执行。
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug。PR #9 的人工 review 进一步暴露了身份流程缺口：创建 PR 的账号、实际 commit author 和预定 formal reviewer 没有在开 PR 前分离核对；后续必须由 Implementation DRI account 创建 PR，并由不同 GitHub account 提交 formal review，权限受限时才使用明确标注的 comment evidence；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-10. GitHub 当前已有治理 issue [#11](https://github.com/jjjphens-dot/FRAZIL/issues/11) 用于跟踪 portable GitHub workflow 文档同步；Issues 全状态筛选无其它结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；HOST-000 产品目标已由 Sound & Host Lead 冻结并推送至 `origin/experiment/music-dsp`，Engineering Lead review、PR/CI、merge、HOST-001 实际 DAW evidence 和 REAPER exact version 仍 pending；不据此推断不存在其它规则集。
+10. GitHub 当前已有治理 issue [#11](https://github.com/jjjphens-dot/FRAZIL/issues/11) 用于跟踪 portable GitHub workflow 文档同步；Issues 全状态筛选无其它结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；HOST-000 产品目标已由 Sound & Host Lead 冻结，HOST-001 实际 DAW evidence 和 REAPER exact version 仍未完成；当前 PR、review 和 merge 状态只以 GitHub 为准，不在本文件重复记录；不据此推断不存在其它规则集。
 
 ## 2. 已有资产
 
@@ -43,8 +43,8 @@
 | Product identity | `docs/PRODUCT_IDENTITY.md` | FRAZIL adopted working/product name；命名词汇不改变参数合同；法律/商标 clearance 不属于当前工程范围 |
 | Tests | `frazil_smoke` + `frazil_tests` + `frazil_plugin_integration` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state/XML restore + PluginProcessor automation/state integration 覆盖；DSP property/真实 DAW 测试未完成 |
 | Local validation | 本轮 `ci-windows-debug` configure、6-job safe build 和 CTest 均通过；smoke、unit、plugin integration 共 3/3 PASS | 已验证；本机绝对路径仅在 ignored `CMakeUserPresets.json`，仓库 preset 保持可移植 |
-| pluginval | 本分支已有 Debug VST3 artifact 的 pluginval 1.0.4、strictness 5、seed 12345 `SUCCESS` 记录；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`main` 和审查分支的当前 SHA、mergeability 与 CI 状态以 GitHub live query 为准；`9955cdb` 仅为历史 safety follow-up baseline，不是当前审查分支 head；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main | 本分支等待当前 PR/CI/review；Issues/Milestones/Projects metadata 未建立 |
+| pluginval | 现有 Debug VST3 artifact 的 pluginval 1.0.4、strictness 5、seed 12345 `SUCCESS` 记录；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`main` 和审查分支的当前 SHA、mergeability 与 CI 状态以 GitHub live query 为准；`9955cdb` 仅为历史 safety follow-up baseline，不是当前审查分支 head；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main | GitHub live state；Issues/Milestones/Projects metadata 未建立 |
 
 ## 2.1 Clean portability/build-safety PR evidence
 
@@ -163,7 +163,7 @@ PluginProcessor
 
 ## 5. 现状对应 milestone
 
-- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标已冻结并推送至 `origin/experiment/music-dsp`，但 Engineering Lead review、PR/CI、merge、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
+- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
 - M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；本次新增并验证 STATE-002 mode-value-retention 与 AUTO-001 plugin integration；仍缺 render/property/performance、真实 DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
@@ -184,7 +184,7 @@ PluginProcessor
 ## 7. 下一步顺序
 
 ```text
-HOST-000 Engineering review / PR / merge
+HOST-000 support classification and evidence gate
   -> TESTDATA-001 可并行启动
   -> HOST-001 save/reopen/automation/DAW evidence
   -> RENDER-001 / PERF-BASE-001
@@ -193,4 +193,4 @@ HOST-000 Engineering review / PR / merge
   -> Water production only after experiment gate
 ```
 
-HOST-000 已完成产品目标冻结并推送至 `origin/experiment/music-dsp`；Engineering Lead review、PR 和 merge 尚未完成。STATE-001 已随 PR #5 合入 `main`，STATE-002 与 AUTO-001 integration 已在最新 main 验证；后续继续收口 TESTDATA/RENDER/PERF harness 和 HOST-001 evidence。Water/Ice/Routing 仍未开始 production。
+HOST-000 产品目标已冻结，support classification 仍需满足 Engineering Lead review 与 HOST-001 evidence 条件。STATE-001 已随 PR #5 合入 `main`，STATE-002 与 AUTO-001 integration 已在最新 main 验证；后续继续收口 TESTDATA/RENDER/PERF harness 和 HOST-001 evidence。Water/Ice/Routing 仍未开始 production。
