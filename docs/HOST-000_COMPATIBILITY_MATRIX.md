@@ -195,10 +195,7 @@ There is no sample-accurate Host automation promise. Test cases must cover:
 4. Confirm parameter values, routing choice and automation lanes are restored.
 5. Record whether the host reports any missing parameter, changed order or state warning.
 
-`origin/main` 已包含 STATE-001 的 versioned StateModel foundation 与 unit/XML transport restore evidence；当前
-工作分支另有实际 PluginProcessor integration test 覆盖 STATE-002 mode-value-retention 和 XML state reopen。
-这两者都不等于真实 DAW save/reopen 已验证；Ableton、FL Studio 和 REAPER 的 save/reopen evidence 仍属于
-HOST-001。不得把未合入分支的测试结果写成 `main` 的实现事实。
+STATE-001 的 versioned StateModel foundation 与 unit/XML transport restore evidence 已随 PR #5 合入 `main`。这不等于真实 DAW save/reopen 已验证；STATE-002 mode-value-retention integration 仍为 pending，Ableton、FL Studio 和 REAPER 的 save/reopen evidence 仍属于 HOST-001。不得把 `origin/feat/m1-state-contract` 的当前分支状态作为 `main` 的实现事实。
 
 ### 7.5 Offline render smoke
 

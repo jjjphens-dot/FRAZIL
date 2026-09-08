@@ -220,7 +220,7 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 |---|---:|---|---|---|
 | STATE-001 | P0 | versioned StateModel/adapter and history boundary | `schemaVersion`、全部参数、invalid input fallback；非音频线程迁移；明确 Host automation/restore 不进入 plugin history 的边界 | fixtures + round-trip + boundary review |
 | STATE-002 | P0 | mode value retention | 切换三种 mode、保存、恢复，不重置 inactive values | integration scenario |
-| TESTDATA-001 | P0 | Establish licensed reference audio corpus | impulse、noise、drums、vocal、piano、guitar、pad、bass；每项记录 source/license/hash/sample rate/channels/storage/repository-artifact-LFS 策略；Water/Ice 共用 corpus | manifest review + hash/licence audit |
+| TESTDATA-001 | P0 | Establish licensed reference audio corpus | impulse、noise、drums、vocal、piano、guitar、pad、bass；machine-readable manifest 至少记录 id/filename/purpose/source/author/license/redistribution/sample rate/bit depth/channels/duration/hash，以及 repository/artifact/LFS storage policy；Water/Ice 共用 corpus | manifest review + hash/licence audit |
 | PERF-BASE-001 | P0 | Establish realtime performance baseline | Reference Machine、OS、compiler、build type、48 kHz/128、测量方法；记录 mean/P95/P99/worst callback、deadline、memory、allocation observation | reproducible baseline report；不预设百分比阈值 |
 | ARCH-LAT-001 | P0 | Define v1 processing latency and intentional delay/tail policy | v1 Host-reported processing latency 为 0 samples；不依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC；Water/Ice 允许属于声音设计的 intentional effect delay/tail，但不得依赖 Host latency compensation | ADR + latency metadata/infrastructure acceptance |
 | RENDER-001 | P0 | offline WAV harness | 固定 `TESTDATA-001` input/config/seed -> WAV + manifest；不依赖实时设备；candidate A/B 可复现 | deterministic smoke render |

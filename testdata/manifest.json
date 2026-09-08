@@ -18,6 +18,7 @@
   "storagePolicy": {
     "location": "testdata/input",
     "repository": true,
+    "artifact": false,
     "gitLfs": false,
     "reason": "Small synthetic fixtures are kept directly in Git; rendered output is ignored."
   },
@@ -40,6 +41,7 @@
       "durationSeconds": 1.0,
       "format": "PCM_S16LE",
       "storage": "repository",
+      "artifact": false,
       "gitLfs": false
     },
     {
@@ -60,6 +62,7 @@
       "durationSeconds": 1.0,
       "format": "PCM_S16LE",
       "storage": "repository",
+      "artifact": false,
       "gitLfs": false
     },
     {
@@ -80,6 +83,7 @@
       "durationSeconds": 1.0,
       "format": "PCM_S16LE",
       "storage": "repository",
+      "artifact": false,
       "gitLfs": false
     },
     {
@@ -100,6 +104,7 @@
       "durationSeconds": 1.0,
       "format": "PCM_S16LE",
       "storage": "repository",
+      "artifact": false,
       "gitLfs": false
     },
     {
@@ -120,6 +125,7 @@
       "durationSeconds": 1.0,
       "format": "PCM_S16LE",
       "storage": "repository",
+      "artifact": false,
       "gitLfs": false
     },
     {
@@ -140,6 +146,7 @@
       "durationSeconds": 1.0,
       "format": "PCM_S16LE",
       "storage": "repository",
+      "artifact": false,
       "gitLfs": false
     },
     {
@@ -160,6 +167,7 @@
       "durationSeconds": 1.0,
       "format": "PCM_S16LE",
       "storage": "repository",
+      "artifact": false,
       "gitLfs": false
     },
     {
@@ -180,6 +188,7 @@
       "durationSeconds": 1.0,
       "format": "PCM_S16LE",
       "storage": "repository",
+      "artifact": false,
       "gitLfs": false
     }
   ]

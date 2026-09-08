@@ -244,6 +244,7 @@ def create_manifest(input_dir: Path, manifest_path: Path) -> None:
                 "durationSeconds": FRAME_COUNT / SAMPLE_RATE,
                 "format": "PCM_S16LE",
                 "storage": "repository",
+                "artifact": False,
                 "gitLfs": False,
             }
         )
@@ -268,6 +269,7 @@ def create_manifest(input_dir: Path, manifest_path: Path) -> None:
         "storagePolicy": {
             "location": "testdata/input",
             "repository": True,
+            "artifact": False,
             "gitLfs": False,
             "reason": (
                 "Small synthetic fixtures are kept directly in Git; rendered output is ignored."

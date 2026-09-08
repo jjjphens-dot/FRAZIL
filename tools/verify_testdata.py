@@ -60,6 +60,7 @@ def validate(manifest_path: Path) -> list[str]:
     if (
         not isinstance(storage, dict)
         or storage.get("repository") is not True
+        or storage.get("artifact") is not False
         or storage.get("gitLfs") is not False
     ):
         errors.append("storage policy must keep these small fixtures in Git without LFS")
@@ -123,7 +124,11 @@ def validate(manifest_path: Path) -> list[str]:
         source = entry.get("source")
         if not isinstance(source, str) or "third-party recording" not in source:
             errors.append(f"{identifier}: source must identify the synthetic provenance")
-        if entry.get("storage") != "repository" or entry.get("gitLfs") is not False:
+        if (
+            entry.get("storage") != "repository"
+            or entry.get("artifact") is not False
+            or entry.get("gitLfs") is not False
+        ):
             errors.append(f"{identifier}: storage must be repository without Git LFS")
         if (
             not isinstance(entry.get("sha256"), str)
@@ -149,7 +154,15 @@ def validate(manifest_path: Path) -> list[str]:
             errors.append(f"{identifier}: invalid WAV: {error}")
             continue
 
-        for key in ("sampleRate", "bitDepth", "channels", "frames", "durationSeconds", "format"):
+        metadata_keys = (
+            "sampleRate",
+            "bitDepth",
+            "channels",
+            "frames",
+            "durationSeconds",
+            "format",
+        )
+        for key in metadata_keys:
             if entry.get(key) != metadata[key]:
                 errors.append(f"{identifier}: {key} metadata does not match the WAV")
         if metadata["compressed"]:

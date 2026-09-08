@@ -16,14 +16,17 @@ Regenerate the fixtures and manifest from the repository root:
 python tools/generate_testdata.py
 ```
 
-Verify WAV metadata, provenance fields, license references, storage policy and
-the required SHA-256 content hashes:
+Verify the machine-readable provenance, purpose, author, redistribution terms,
+license, storage policy, WAV metadata and required SHA-256 content hashes:
 
 ```powershell
 python tools/verify_testdata.py
 python tools/test_testdata.py
 ```
 
-The manifest is the machine-readable source for the input paths and their
-integrity evidence. Hashes are for the eight required input WAV files only;
+The manifest records `id`, `filename`, `purpose`, synthetic `source`, `author`,
+license/redistribution terms, `sampleRate`, `bitDepth`, `channels`,
+`durationSeconds`, `sha256`, and repository/artifact/LFS storage policy for each
+input. It explicitly identifies a generated synthetic reference corpus with no
+third-party audio. Hashes are for the eight required input WAV files only;
 rendered outputs are not reference inputs and are never committed.
