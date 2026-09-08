@@ -13,8 +13,11 @@
   gain automation smoothing、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore，以及全部 routing mode 切换后的 inactive amount/state reopen
   integration cases；
 - `frazil_render` + `tools/render_testdata.py`：RENDER-001 的离线 WAV smoke，固定 input/config/seed
-  通过当前 AudioEngine 处理，检查 finite output、重复运行字节一致性，并生成 input/output metadata
-  与 SHA-256 manifest；输出只写入 ignored `testdata/rendered/`；
+  通过当前 AudioEngine 处理，检查 finite output、重复运行字节一致性，并生成完整当前配置、
+  input/output metadata 与 SHA-256 manifest；CTest 产物写入 preset build tree 下的 ignored
+  `rendered/`，手工运行默认写入 ignored `testdata/rendered/`；
+- `tools/test_render_cli.py`：回归 `frazil_render` 的 `--help` 成功路径，以及 enable、routing、
+  balance 和 amount 的非法值拒绝；
 - `tools/verify_testdata.py` 与 `tools/test_testdata.py`：`TESTDATA-001` 的八类合成输入、
   manifest、机器可读 provenance、MIT 来源、WAV metadata、存储策略、SHA-256 完整性、
   完整 generator-to-temporary WAV + manifest 语义/字节级可复现性和 input/manifest 双向集合回归；

@@ -197,7 +197,15 @@ add_test(
     COMMAND ${Python3_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/render_testdata.py
             --renderer $<TARGET_FILE:frazil_render>
+            --output "${CMAKE_CURRENT_BINARY_DIR}/rendered/impulse.wav"
+            --manifest "${CMAKE_CURRENT_BINARY_DIR}/rendered/impulse.manifest.json"
             --build-type ${CMAKE_BUILD_TYPE}
+)
+add_test(
+    NAME frazil_render_cli
+    COMMAND ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/test_render_cli.py
+            --renderer $<TARGET_FILE:frazil_render>
 )
 
 # MSVC ASAN uses a dynamic runtime DLL. Keep test execution independent from the
@@ -208,7 +216,7 @@ if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
         "${frazil_msvc_tool_bin_dir}/clang_rt.asan_dynamic-x86_64.dll")
 
     set_property(
-        TEST frazil_smoke frazil_unit frazil_plugin_integration frazil_render
+        TEST frazil_smoke frazil_unit frazil_plugin_integration frazil_render frazil_render_cli
         PROPERTY ENVIRONMENT_MODIFICATION
                  "PATH=path_list_prepend:${frazil_msvc_tool_bin_dir}"
     )

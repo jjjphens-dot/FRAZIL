@@ -120,9 +120,13 @@ Global: mix 0/50/100, gain min/unity/max, rapid automation fixture
 当前 RENDER-001 smoke 由 `frazil_render` 与 `tools/render_testdata.py` 提供：前者在
 非实时命令行进程中读取 WAV，以固定 block size 调用当前 `AudioEngine`，拒绝非有限输出并写出
 WAV；后者使用同一 input/config/seed 连续运行两次，要求输出逐字节一致，并写入包含输入/输出
-metadata、参数、seed、输入 hash 和输出 hash 的 manifest。CTest 在构建 target 后运行该 smoke；输出
-只写入 ignored 的 `testdata/rendered/`，不依赖音频设备或 DAW。当前证据是 M1 pass-through engine
-的 deterministic offline smoke，不等同于 Water/Ice render matrix、听测或 DAW acceptance。
+metadata、完整当前 EngineParameters 配置、seed、输入 hash 和输出 hash 的 manifest。CTest 在构建
+target 后运行该 smoke，并将产物隔离到当前 preset 的 ignored build tree（例如
+`build/windows-debug/rendered/`）；手工运行的默认产物仍写入 ignored `testdata/rendered/`，不依赖
+音频设备或 DAW。`frazil_render_cli` 还回归检查 `--help` 成功返回以及 enable、routing、balance
+和 amount 的非法值拒绝。当前证据是 M1 pass-through engine 的 deterministic offline smoke，seed
+仅作为测试元数据记录，因为当前 AudioEngine 不含随机 DSP；不等同于 Water/Ice render matrix、
+听测或 DAW acceptance。
 
 ## 4. Listening Review
 

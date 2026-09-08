@@ -18,6 +18,13 @@ DEFAULT_OUTPUT = ROOT / "testdata" / "rendered" / "impulse.wav"
 DEFAULT_MANIFEST = ROOT / "testdata" / "rendered" / "impulse.manifest.json"
 DEFAULT_SEED = 20260908
 DEFAULT_BUILD_TYPE = "Debug"
+ROUTING_MODES = ("parallel", "water-into-ice", "ice-into-water")
+
+
+def parse_bool(value: str) -> bool:
+    if value not in {"0", "1"}:
+        raise argparse.ArgumentTypeError("expected 0 or 1")
+    return value == "1"
 
 
 def file_sha256(path: Path) -> str:
@@ -117,6 +124,12 @@ def run_renderer(
     output_path: Path,
     block_size: int,
     seed: int,
+    water_enabled: bool,
+    ice_enabled: bool,
+    routing: str,
+    parallel_balance: float,
+    water_amount: float,
+    ice_amount: float,
     input_gain_db: float,
     global_mix: float,
     output_gain_db: float,
@@ -131,6 +144,18 @@ def run_renderer(
         str(block_size),
         "--seed",
         str(seed),
+        "--water-enabled",
+        str(int(water_enabled)),
+        "--ice-enabled",
+        str(int(ice_enabled)),
+        "--routing",
+        routing,
+        "--parallel-balance",
+        str(parallel_balance),
+        "--water-amount",
+        str(water_amount),
+        "--ice-amount",
+        str(ice_amount),
         "--input-gain-db",
         str(input_gain_db),
         "--global-mix",
@@ -148,6 +173,12 @@ def create_manifest(
     seed: int,
     commit_sha: str,
     build_type: str,
+    water_enabled: bool,
+    ice_enabled: bool,
+    routing: str,
+    parallel_balance: float,
+    water_amount: float,
+    ice_amount: float,
     input_gain_db: float,
     global_mix: float,
     output_gain_db: float,
@@ -168,8 +199,19 @@ def create_manifest(
             "buildType": build_type,
             "algorithm": "M1 AudioEngine pass-through",
             "seed": seed,
+            "random": {
+                "testSeed": seed,
+                "appliedToEngine": False,
+                "reason": "M1 pass-through AudioEngine currently contains no stochastic DSP.",
+            },
             "blockSize": block_size,
             "parameters": {
+                "waterEnabled": water_enabled,
+                "iceEnabled": ice_enabled,
+                "routing": routing,
+                "parallelBalance": parallel_balance,
+                "waterAmount": water_amount,
+                "iceAmount": ice_amount,
                 "inputGainDb": input_gain_db,
                 "globalMix": global_mix,
                 "outputGainDb": output_gain_db,
@@ -201,6 +243,12 @@ def run(options: argparse.Namespace) -> None:
         renderer_arguments = {
             "block_size": options.block_size,
             "seed": options.seed,
+            "water_enabled": options.water_enabled,
+            "ice_enabled": options.ice_enabled,
+            "routing": options.routing,
+            "parallel_balance": options.parallel_balance,
+            "water_amount": options.water_amount,
+            "ice_amount": options.ice_amount,
             "input_gain_db": options.input_gain_db,
             "global_mix": options.global_mix,
             "output_gain_db": options.output_gain_db,
@@ -247,12 +295,26 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument("--commit", type=str, default=None)
     parser.add_argument("--build-type", type=str, default=DEFAULT_BUILD_TYPE)
+    parser.add_argument("--water-enabled", type=parse_bool, default=True)
+    parser.add_argument("--ice-enabled", type=parse_bool, default=True)
+    parser.add_argument("--routing", choices=ROUTING_MODES, default="parallel")
+    parser.add_argument("--parallel-balance", type=float, default=0.5)
+    parser.add_argument("--water-amount", type=float, default=1.0)
+    parser.add_argument("--ice-amount", type=float, default=1.0)
     parser.add_argument("--input-gain-db", type=float, default=0.0)
     parser.add_argument("--global-mix", type=float, default=1.0)
     parser.add_argument("--output-gain-db", type=float, default=0.0)
     options = parser.parse_args()
     if not 1 <= options.block_size <= 8192:
         parser.error("--block-size must be between 1 and 8192")
+    if not 0 <= options.seed <= 0xFFFFFFFF:
+        parser.error("--seed must be between 0 and 4294967295")
+    if not 0.0 <= options.parallel_balance <= 1.0:
+        parser.error("--parallel-balance must be between 0 and 1")
+    if not 0.0 <= options.water_amount <= 1.0:
+        parser.error("--water-amount must be between 0 and 1")
+    if not 0.0 <= options.ice_amount <= 1.0:
+        parser.error("--ice-amount must be between 0 and 1")
     if not -24.0 <= options.input_gain_db <= 24.0:
         parser.error("--input-gain-db must be between -24 and 24")
     if not 0.0 <= options.global_mix <= 1.0:

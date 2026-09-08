@@ -58,7 +58,11 @@ Offline render smoke:
 The CTest preset runs this smoke after building `frazil_render`. The C++ harness
 processes the selected input through the current `AudioEngine` without an audio
 device, while the Python wrapper runs it twice, compares output bytes, and
-writes an ignored WAV/metadata/hash manifest under `testdata/rendered/`.
+writes an ignored WAV/metadata/hash manifest with the complete current render
+configuration. CTest passes output and manifest paths under the preset build
+tree (for example `build/windows-debug/rendered/`); manual runs default to
+`testdata/rendered/`. `tools/test_render_cli.py` separately checks help and
+invalid configuration handling.
 
 建议工具：
 

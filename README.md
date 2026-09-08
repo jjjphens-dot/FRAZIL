@@ -51,8 +51,10 @@ ctest --preset windows-debug
 ```
 
 The CTest preset also runs the RENDER-001 offline smoke through `frazil_render`;
-it writes only ignored output under `testdata/rendered/` and records the render
-manifest with input/output metadata and hashes.
+CTest writes its WAV and manifest artifacts under the ignored preset build tree
+(`build/<preset>/rendered/`). Manual `tools/render_testdata.py` runs keep their
+default artifacts under ignored `testdata/rendered/`; both paths record the
+complete current engine configuration plus input/output metadata and hashes.
 
 `windows-release` 与 `windows-asan` 使用同名 configure/build/test preset。CI 或其他 Windows
 机器在 MSVC developer environment 已初始化后使用 `ci-windows-debug`，所有共享 preset 都使用 portable tool discovery。

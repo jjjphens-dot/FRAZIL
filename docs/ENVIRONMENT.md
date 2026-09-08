@@ -60,8 +60,10 @@ tracked 的 CMakePresets.json、.vscode/tasks.json 和 CI workflow 不包含开�
     ctest --preset windows-asan
 
 CTest also runs the repository's RENDER-001 offline smoke. It writes generated
-WAV output and its audit manifest only under the ignored `testdata/rendered/`
-directory; no audio device or DAW is required.
+WAV output and its audit manifest only under the ignored preset build tree,
+such as `build/windows-debug/rendered/`; no audio device or DAW is required.
+Manual `tools/render_testdata.py` runs default to the separate ignored
+`testdata/rendered/` directory.
 
 ASAN configure 会从 C++ 编译器位置发现 MSVC runtime directory；测试 target 会把 clang_rt.asan_dynamic-x86_64.dll 复制到可执行文件旁，并为 CTest 注入同一目录。因此构建仍需 VS Code/MSVC developer environment，但构建完成后可从普通 PowerShell、VS Code 测试面板或可执行文件目录运行 ASAN 测试。
 
