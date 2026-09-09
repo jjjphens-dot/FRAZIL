@@ -61,6 +61,7 @@ constexpr std::array<ParameterCase, 10> parameterCases{{
 }};
 
 constexpr float kSilenceOutputTolerance = 1.0e-6f;
+constexpr float kParameterValueTolerance = 1.0e-5f;
 constexpr int kRepresentativeNominalBlockUpperBound = 1024;
 constexpr std::array<double, 3> sampleRates{44100.0, 48000.0, 96000.0};
 constexpr std::array<int, 6> representativeNominalBlockSizes{32, 64, 128, 256, 512,
@@ -106,7 +107,7 @@ const char* lifecycleName(LifecycleCase lifecycle) noexcept {
     return "unknown-lifecycle";
 }
 
-void setParameterValue(TestContext& context,
+bool setParameterValue(TestContext& context,
                        FRAZILAudioProcessor& processor,
                        const char* id,
                        float value,
@@ -115,26 +116,54 @@ void setParameterValue(TestContext& context,
     expect(context, parameter != nullptr,
            caseName + ": parameter exists: " + id);
     if (parameter == nullptr)
-        return;
+        return false;
 
-    parameter->setValueNotifyingHost(
-        processor.parameters.getParameterRange(id).convertTo0to1(value));
+    const auto normalizedValue =
+        processor.parameters.getParameterRange(id).convertTo0to1(value);
+    parameter->setValueNotifyingHost(normalizedValue);
+    const auto applied = std::abs(parameter->getValue() - normalizedValue) <=
+                         kParameterValueTolerance;
+    expect(context, applied, caseName + ": parameter applied: " + id);
+    return applied;
 }
 
-void applyParameters(TestContext& context,
+bool applyParameters(TestContext& context,
                      FRAZILAudioProcessor& processor,
                      const ParameterCase& values,
                      const std::string& caseName) {
     using namespace frazil::plugin::parameterIds;
-    setParameterValue(context, processor, waterEnabled, values.waterEnabled, caseName);
-    setParameterValue(context, processor, iceEnabled, values.iceEnabled, caseName);
-    setParameterValue(context, processor, routingMode, values.routingMode, caseName);
-    setParameterValue(context, processor, parallelBalance, values.parallelBalance, caseName);
-    setParameterValue(context, processor, waterAmount, values.waterAmount, caseName);
-    setParameterValue(context, processor, iceAmount, values.iceAmount, caseName);
-    setParameterValue(context, processor, inputGain, values.inputGainDb, caseName);
-    setParameterValue(context, processor, globalMix, values.globalMix, caseName);
-    setParameterValue(context, processor, outputGain, values.outputGainDb, caseName);
+    bool allApplied = true;
+    allApplied = setParameterValue(context, processor, waterEnabled, values.waterEnabled,
+                                   caseName) && allApplied;
+    allApplied = setParameterValue(context, processor, iceEnabled, values.iceEnabled, caseName) &&
+                 allApplied;
+    allApplied = setParameterValue(context, processor, routingMode, values.routingMode,
+                                   caseName) && allApplied;
+    allApplied = setParameterValue(context, processor, parallelBalance, values.parallelBalance,
+                                   caseName) && allApplied;
+    allApplied = setParameterValue(context, processor, waterAmount, values.waterAmount, caseName) &&
+                 allApplied;
+    allApplied = setParameterValue(context, processor, iceAmount, values.iceAmount, caseName) &&
+                 allApplied;
+    allApplied = setParameterValue(context, processor, inputGain, values.inputGainDb, caseName) &&
+                 allApplied;
+    allApplied = setParameterValue(context, processor, globalMix, values.globalMix, caseName) &&
+                 allApplied;
+    allApplied = setParameterValue(context, processor, outputGain, values.outputGainDb, caseName) &&
+                 allApplied;
+    return allApplied;
+}
+
+bool applyNeutralDryFixture(TestContext& context,
+                            FRAZILAudioProcessor& processor,
+                            const std::string& caseName) {
+    // ADR-0005 neutral/dry fixture: unity input/output gain and global.mix=0.
+    using namespace frazil::plugin::parameterIds;
+    bool allApplied = true;
+    allApplied = setParameterValue(context, processor, inputGain, 0.0f, caseName) && allApplied;
+    allApplied = setParameterValue(context, processor, outputGain, 0.0f, caseName) && allApplied;
+    allApplied = setParameterValue(context, processor, globalMix, 0.0f, caseName) && allApplied;
+    return allApplied;
 }
 
 void fillInput(juce::AudioBuffer<float>& buffer, InputCase input) {
@@ -235,8 +264,10 @@ void runPropertyCase(TestContext& context,
                      InputCase input,
                      LifecycleCase lifecycle) {
     std::ostringstream caseName;
+    const auto exactRepeatability = lifecycle == LifecycleCase::prepareProcessReprepareProcess;
     caseName << "rate=" << sampleRate << ", block=" << blockSize
-             << ", channels=" << channelCount << ", parameters=" << parameterValues.name
+             << ", channels=" << channelCount << ", parameters="
+             << (exactRepeatability ? "neutral/dry" : parameterValues.name)
              << ", input=" << inputName(input) << ", lifecycle=" << lifecycleName(lifecycle);
     const auto name = caseName.str();
     ++context.cases;
@@ -244,7 +275,10 @@ void runPropertyCase(TestContext& context,
     FRAZILAudioProcessor processor;
     if (!configureBusLayout(context, processor, channelCount, name))
         return;
-    applyParameters(context, processor, parameterValues, name);
+    if (!applyParameters(context, processor, parameterValues, name))
+        return;
+    if (exactRepeatability && !applyNeutralDryFixture(context, processor, name))
+        return;
     processor.prepareToPlay(sampleRate, blockSize);
 
     const auto processOnce = [&](const char* phase) {
@@ -275,7 +309,8 @@ void runPropertyCase(TestContext& context,
         processor.prepareToPlay(sampleRate, blockSize);
         const auto secondOutput = processOnce("reprepared process");
         expect(context, firstOutput == secondOutput,
-               name + ": deterministic output repeats after release and reprepare");
+               name + ": neutral/dry exact output repeats after release and reprepare; "
+                       "this is not a production-randomness contract");
         break;
     }
     case LifecycleCase::repeatedPrepare:
@@ -314,7 +349,8 @@ void runShortAndOddCallbackCases(TestContext& context) {
         FRAZILAudioProcessor processor;
         if (!configureBusLayout(context, processor, 2, name))
             continue;
-        applyParameters(context, processor, parameters, name);
+        if (!applyParameters(context, processor, parameters, name))
+            continue;
         processor.prepareToPlay(48000.0, kRepresentativeNominalBlockUpperBound);
 
         juce::AudioBuffer<float> buffer(2, actualBlockSize);
@@ -328,12 +364,21 @@ void runShortAndOddCallbackCases(TestContext& context) {
     }
 }
 
-std::vector<float> runDeterministicCase(int channelCount, int blockSize) {
+std::vector<float> runDeterministicCase(TestContext& context,
+                                        int channelCount,
+                                        int blockSize,
+                                        const char* instanceName) {
     FRAZILAudioProcessor processor;
     juce::AudioProcessor::BusesLayout layout;
     layout.inputBuses.add(juce::AudioChannelSet::stereo());
     layout.outputBuses.add(juce::AudioChannelSet::stereo());
-    processor.setBusesLayout(layout);
+    const auto caseName = std::string("M1 neutral/deterministic path, ") + instanceName;
+    if (!processor.setBusesLayout(layout)) {
+        expect(context, false, caseName + ": stereo bus layout accepted");
+        return {};
+    }
+    if (!applyNeutralDryFixture(context, processor, caseName))
+        return {};
     processor.prepareToPlay(48000.0, blockSize);
 
     juce::AudioBuffer<float> buffer(channelCount, blockSize);
@@ -350,8 +395,11 @@ std::vector<float> runDeterministicCase(int channelCount, int blockSize) {
 }
 
 void testM1NeutralDeterministicOutput(TestContext& context) {
-    const auto first = runDeterministicCase(2, 128);
-    const auto second = runDeterministicCase(2, 128);
+    const auto first = runDeterministicCase(context, 2, 128, "first fresh processor");
+    const auto second = runDeterministicCase(context, 2, 128, "second fresh processor");
+    const auto expectedSize = static_cast<std::size_t>(2 * 128);
+    expect(context, first.size() == expectedSize && second.size() == expectedSize,
+           "M1 neutral/deterministic path produced expected fixture output sizes");
     expect(context, first == second,
            "M1 neutral/deterministic path repeats for fresh processors and deterministic input; "
            "this is not a production-randomness contract");

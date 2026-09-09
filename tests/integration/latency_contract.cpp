@@ -10,6 +10,7 @@
 namespace {
 constexpr int kBlockSize = 128;
 constexpr float kComparisonTolerance = 1.0e-6f;
+constexpr float kParameterValueTolerance = 1.0e-5f;
 
 void printFailure(const std::string& message) {
     std::cerr << "ARCH-LAT-001 FAIL: " << message << '\n';
@@ -20,9 +21,18 @@ bool setParameterValue(FRAZILAudioProcessor& processor, const char* id, float va
     if (parameter == nullptr)
         return false;
 
-    parameter->setValueNotifyingHost(
-        processor.parameters.getParameterRange(id).convertTo0to1(value));
-    return true;
+    const auto normalizedValue =
+        processor.parameters.getParameterRange(id).convertTo0to1(value);
+    parameter->setValueNotifyingHost(normalizedValue);
+    return std::abs(parameter->getValue() - normalizedValue) <= kParameterValueTolerance;
+}
+
+bool applyNeutralDryFixture(FRAZILAudioProcessor& processor) {
+    // Match ADR-0005: unity input/output gain and global.mix=0 define neutral/dry.
+    using namespace frazil::plugin::parameterIds;
+    return setParameterValue(processor, inputGain, 0.0f) &&
+           setParameterValue(processor, outputGain, 0.0f) &&
+           setParameterValue(processor, globalMix, 0.0f);
 }
 
 bool loadInput(const juce::File& inputFile, juce::AudioBuffer<float>& buffer, double& sampleRate) {
@@ -81,10 +91,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    using namespace frazil::plugin::parameterIds;
-    if (!setParameterValue(processor, inputGain, 0.0f) ||
-        !setParameterValue(processor, outputGain, 0.0f) ||
-        !setParameterValue(processor, globalMix, 0.0f)) {
+    if (!applyNeutralDryFixture(processor)) {
         printFailure("neutral/dry latency fixture could not set unity gain and global.mix=0");
         return 1;
     }

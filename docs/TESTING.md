@@ -101,14 +101,20 @@ Serial：
 
 ### Processor property
 
-对所有支持的 sample rate/block size、参数极值及固定 seed 随机输入：
+对工作项定义的 representative sample-rate / nominal-block matrix、参数极值及固定 seed
+输入：
 
 ```text
 finite input -> finite output
 silence -> no unexplained DC/NaN/Inf
-prepare -> process -> reset -> prepare 可重复
-zero/short/maximum supported block 不越界
+prepare -> process -> release/reprepare 可恢复
+prepared nominal matrix 内的 zero/short/odd actual callbacks 不越界
 ```
+
+`nominal/prepared block size` 与实际 callback 的 sample count 是两个不同维度；当前 `1024`
+只是 representative nominal upper test value，不是 FRAZIL 已定义的 public maximum support
+limit。需要 byte-exact repeatability 的 lifecycle 或 fresh-processor case 只适用于 ADR-0005
+一致的 M1 neutral/dry fixture，不冻结未来 Water/Ice production randomness。
 
 若算法有合理 tail，测试 tail reporting 与衰减；无 tail 时验证清零/旁路行为。
 
