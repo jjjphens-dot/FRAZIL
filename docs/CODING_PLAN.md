@@ -239,7 +239,8 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 |---|---:|---|---|---|
 | STATE-001 | P0 | versioned StateModel/adapter and history boundary | `schemaVersion`、全部参数、invalid input fallback；非音频线程迁移；明确 Host automation/restore 不进入 plugin history 的边界 | fixtures + round-trip + boundary review |
 | STATE-002 | P0 | mode value retention | 切换三种 mode、保存、恢复，不重置 inactive values | integration scenario |
-| TESTDATA-001 | P0 | Establish FRAZIL Canonical Engineering Signal Corpus | Layer B canonical `silence`、`impulse`、`stationary_noise`、`single_tone`、`frequency_sweep`、`short_burst`；manifest schema/definition/generation parameters/provenance/hash/storage；generic Layer C probes；与 Layer D listening corpus 解耦 | deterministic regeneration + semantic signal checks + manifest/provenance/hash audit |
+| TESTDATA-001 | P0 | Establish deterministic DSP diagnostic corpus | Layer B canonical ten-signal diagnostic corpus；SignalSpec mathematical definitions；manifest schema v2；PCM24/provenance/hash/storage；standard-library semantic regression；temporary 44.1/48/96 kHz generation；与 Layer D listening corpus 解耦 | deterministic regeneration + byte/hash equality + per-signal semantic checks + RENDER-001 shared-input regression |
+| LISTENING-001 | P0 | Shared Representative Listening Corpus | Layer D licensed musical material for Water/Ice perceptual review；独立 source/license/redistribution/metadata；不把 synthetic diagnostic WAV 当作 musical acceptance material；本任务只建立合同边界，不提交素材 | Sound & Host Lead implementation + Engineering Lead evidence review + rubric/DAW acceptance |
 | PERF-BASE-001 | P0 | Establish realtime performance baseline | Reference Machine、OS、compiler、build type、48 kHz/128、测量方法；记录 mean/P95/P99/worst callback、deadline、memory、allocation observation | reproducible baseline report；不预设百分比阈值 |
 | ARCH-LAT-001 | P0 | Define v1 processing latency and intentional delay/tail policy | v1 Host-reported processing latency 为 0 samples；不依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC；Water/Ice 允许属于声音设计的 intentional effect delay/tail，但不得依赖 Host latency compensation | ADR + latency metadata/infrastructure acceptance |
 | RENDER-001 | P0 | offline WAV harness | 固定 `TESTDATA-001` input/config/seed -> WAV + manifest；不依赖实时设备；candidate A/B 可复现 | deterministic smoke render |
@@ -267,10 +268,12 @@ implementation responsibility 换人时才记录 Implementation DRI Transfer。
 
 ### M1 Exit gate
 
-`TESTDATA-001` 的独立 exit criteria 是：canonical engineering signal corpus 存在；manifest 的
-schema、signal definition、provenance、license、redistribution、hash 和 storage audit 完整；
-generator 支持 per-signal duration 且 deterministic；每个 canonical signal 有 semantic
-verification；FFT/PSD/STFT 等分析基础和 generic algorithm probe generator 已记录。M1 不要求
+`TESTDATA-001` 的独立 exit criteria 是：十个 diagnostic signal 存在且 filename/ID 直接表达
+测试目标；manifest schema v2 的 signal definition、provenance、license、redistribution、hash
+和 storage audit 完整；generator 支持 per-signal duration、PCM24、stable per-signal seed 和
+44.1/48/96 kHz temporary generation；每个 canonical signal 有 standard-library semantic
+verification；analysisMethods 已为未来 measurement tooling 记录。FFT/PSD/STFT 等大型分析基础
+仍不是本 follow-up 的实现目标。M1 不要求
 final Water/Ice probes、algorithm-specific acceptance thresholds 或真实 listening corpus；这些
 随 `EXP-W-*`、`EXP-I-*`、`ADR-W-001` 和 `ADR-I-001` 推进。
 
@@ -299,8 +302,8 @@ final Water/Ice probes、algorithm-specific acceptance thresholds 或真实 list
 | ID | P | 工作 | 交付/验收 |
 |---|---:|---|---|
 | EXP-W-001 | P0 | Water perceptual brief | 3-5 个可听属性（流动、液体扰动/水滴、共振、平滑度等）、反例、参考素材与评价表 |
-| EXP-W-002 | P0 | 候选机制实验 | 使用 `TESTDATA-001`；至少两种低耦合候选；固定测试 seed；baseline/A/B；参数空间与 CPU 初测 |
-| EXP-W-003 | P0 | 选择 vertical slice | 使用统一 listening rubric 做双人 loudness-matched review；选择理由、放弃理由、风险；确定最多 2 个首批 macro |
+| EXP-W-002 | P0 | 候选机制实验 | 工程 measurement/regression 使用 `TESTDATA-001` diagnostic corpus；至少两种低耦合候选；固定测试 seed；参数空间与 CPU 初测；不把 diagnostic WAV 当作 musical acceptance |
+| EXP-W-003 | P0 | 选择 vertical slice | 使用 `LISTENING-001` representative listening corpus 与统一 listening rubric 做双人 loudness-matched review；选择理由、放弃理由、风险；确定最多 2 个首批 macro |
 | ADR-W-001 | P0 | Water 算法 ADR | 信号结构、latency/tail、随机性、参数 mapping、性能与失败模式 |
 
 候选可探索 FlowModulator、DropletExciter、LiquidResonator、SpectralShaper 或 MicroDelayNetwork，但名称不是实现要求；以听感、稳定性和预算决定。
@@ -314,7 +317,7 @@ final Water/Ice probes、algorithm-specific acceptance thresholds 或真实 list
 | WATER-003 | P0 | product macros | 名称体现用户听感；mapping 集中；自动化平滑；文档/parameter registry | mapping/automation tests |
 | WATER-004 | P0 | click-free enable | disabled=pass-through；重新开启保留 macro；过渡无异常峰值 | transient automation render |
 | WATER-005 | P0 | performance/tail | 相对 `PERF-BASE-001` 的 48k/128 baseline 报告 mean/P95/P99/worst；不引入非零 Host-reported processing latency；intentional effect delay/tail 由 Water ADR/tests 描述 | benchmark + plugin metadata |
-| WATER-006 | P0 | listening pack | 使用 `TESTDATA-001` 的多类素材 dry/baseline/candidate + manifest；按 Water rubric 记录 | rubric accepted；未触发 Reject Criteria |
+| WATER-006 | P0 | listening pack | 使用 `LISTENING-001` 的多类代表性素材进行 dry/baseline/candidate + rubric review；工程诊断另由 `TESTDATA-001` 提供 measurement/regression evidence | rubric accepted；未触发 Reject Criteria |
 | WATER-007 | P0 | integration | AudioEngine 的 Water-only 临时路径，不引入 routing 语义 | pluginval + DAW automation |
 
 ### M2 pipeline ownership
@@ -330,7 +333,10 @@ final Water/Ice probes、algorithm-specific acceptance thresholds 或真实 list
 
 ### M2 Exit gate
 
-Water-only 在 `TESTDATA-001` 固定素材上具有一致可辨识的材质变化，输入仍可辨识；所有宏符合 `AUTO-001` 且无明显 zipper；通过 Water listening rubric 和 Reject Criteria；bypass/state/seed/render/property/performance/pluginval 通过；WaterProcessor 未依赖 Host、UI 或 RoutingMode。
+Water-only 在 `LISTENING-001` 代表性素材上具有一致可辨识的材质变化，输入仍可辨识；工程
+诊断在 `TESTDATA-001` 上通过；所有宏符合 `AUTO-001` 且无明显 zipper；通过 Water listening
+rubric 和 Reject Criteria；bypass/state/seed/render/property/performance/pluginval 通过；
+WaterProcessor 未依赖 Host、UI 或 RoutingMode。
 
 ## 7. M3 — Ice Vertical Slice
 
@@ -343,15 +349,15 @@ Water-only 在 `TESTDATA-001` 固定素材上具有一致可辨识的材质变�
 | ID | P | 工作 | 具体要求/验收 |
 |---|---:|---|---|
 | EXP-I-001 | P0 | Ice perceptual brief | 冰晶/摩擦/脆裂/硬度等属性、反例、参考与评价表 |
-| EXP-I-002 | P0 | 候选机制实验 | 使用 `TESTDATA-001`；至少两候选；固定测试 seed；A/B；CPU 和极端参数 |
-| EXP-I-003 | P0 | vertical slice selection | 按 Ice listening rubric 双人听测；最多 2 个首批 macro；风险和弃选记录 |
+| EXP-I-002 | P0 | 候选机制实验 | 工程 measurement/regression 使用 `TESTDATA-001` diagnostic corpus；至少两候选；固定测试 seed；A/B；CPU 和极端参数；不把 diagnostic WAV 当作 musical acceptance |
+| EXP-I-003 | P0 | vertical slice selection | 使用 `LISTENING-001` representative listening corpus，按 Ice listening rubric 双人听测；最多 2 个首批 macro；风险和弃选记录 |
 | ADR-I-001 | P0 | Ice 算法 ADR | 结构、transient/random、latency/tail、mapping、预算 |
 | ICE-001 | P0 | `IceProcessor` lifecycle | 与 Water 接口习惯一致但不强求内部对称；无 routing/APVTS |
 | ICE-002 | P0 | Ice core | 选定的摩擦/晶体/裂纹机制最小组合；finite/repeatable |
 | ICE-003 | P0 | product macros | 用户语义、mapping、smoothing、automation/state |
 | ICE-004 | P0 | enable transition | pass-through、value retention、click-free |
 | ICE-005 | P0 | performance/tail | 相对 `PERF-BASE-001` 的 Reference baseline 报告 mean/P95/P99/worst；不引入非零 Host-reported processing latency；intentional effect delay/tail 由 Ice ADR/tests 描述 |
-| ICE-006 | P0 | listening pack | 使用 `TESTDATA-001`，跨素材且与 Water 可区分；按 Ice rubric 记录 |
+| ICE-006 | P0 | listening pack | 使用 `LISTENING-001`，跨代表性素材且与 Water 可区分；工程诊断另由 `TESTDATA-001` 提供 measurement/regression evidence；按 Ice rubric 记录 |
 | ICE-007 | P0 | integration | Ice-only AudioEngine 路径 + pluginval/DAW smoke |
 
 ### M3 pipeline ownership

@@ -13,9 +13,9 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_INPUT = ROOT / "testdata" / "input" / "impulse.wav"
-DEFAULT_OUTPUT = ROOT / "testdata" / "rendered" / "impulse.wav"
-DEFAULT_MANIFEST = ROOT / "testdata" / "rendered" / "impulse.manifest.json"
+DEFAULT_INPUT = ROOT / "testdata" / "input" / "zero_state_response__impulse.wav"
+DEFAULT_OUTPUT = ROOT / "testdata" / "rendered" / "zero_state_response__impulse.wav"
+DEFAULT_MANIFEST = ROOT / "testdata" / "rendered" / "zero_state_response__impulse.manifest.json"
 DEFAULT_SEED = 20260908
 DEFAULT_BUILD_TYPE = "Debug"
 ROUTING_MODES = ("parallel", "water-into-ice", "ice-into-water")

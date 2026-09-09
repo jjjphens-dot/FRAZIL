@@ -91,7 +91,7 @@ def check_non_default_manifest(renderer: Path) -> None:
 
 
 def check_repeated_output_path(renderer: Path) -> None:
-    input_path = ROOT / "testdata" / "input" / "impulse.wav"
+    input_path = ROOT / "testdata" / "input" / "zero_state_response__impulse.wav"
     with tempfile.TemporaryDirectory() as temporary:
         output_path = Path(temporary) / "repeated.wav"
         command = [

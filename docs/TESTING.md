@@ -151,21 +151,59 @@ Water/Ice render matrix、听测或 DAW acceptance。该 CLI 回归还验证同�
 
 ## 4. Listening Review
 
-### TESTDATA-001 canonical engineering corpus
+### TESTDATA-001 engineering diagnostic corpus
 
-`TESTDATA-001` 现在正式定义为 **FRAZIL Canonical Engineering Signal Corpus**，只承担
-Layer B 的稳定工程输入：`silence`、`impulse`、`stationary_noise`、`single_tone`、
-`frequency_sweep` 和 `short_burst`。这些信号按照暴露的数学/DSP 性质命名，不模拟真实
-乐器，也不替代听测素材。manifest schemaVersion=2 记录每项的 role、signalType、definition、
-generationParameters、expectedUses、analysisHints、channelRelation，以及既有的 provenance、
-license、redistribution、WAV metadata、storage policy 和 SHA-256。
+`TESTDATA-001` 现在正式定义为 **Engineering Diagnostic Corpus**。它只承担客观
+property、render、algorithm 和 measurement 输入；它不模拟真实乐器，也不替代听测素材。
+提交到 `testdata/input/` 的固定集合是以下十个以 DSP 目标命名的 48 kHz、stereo、PCM24
+signals：
 
-`testdata/input/` 只保存这些 canonical fixed references。`tools/test_testdata.py` 在临时目录
-完整再生 manifest/WAV，比较 manifest 语义、WAV 字节和 SHA-256，并执行逐信号 semantic checks；
-`tools/verify_testdata.py` 执行 schema/contract、provenance/license/hash、WAV metadata 和
-manifest/`input/*.wav` 双向集合检查。`tools/signal_generators.py` 的 Layer C probes 默认
-在内存中生成，由 Water/Ice 实验自行固定 sample rate、seed 和参数；它们不改变 canonical
-fixture。
+| Diagnostic signal | Primary purpose | Required semantic evidence |
+|---|---|---|
+| `zero_input__silence.wav` | zero-input stability、DC、finite output、tail | every sample exactly zero |
+| `zero_state_response__impulse.wav` | zero-state/latency/modal/tail response | declared pre-silence、single -6 dBFS impulse、post-silence |
+| `frequency_response__log_sweep.wav` | frequency response and spectral shaping | upward log sweep, start/end frequency regions, finite output |
+| `harmonic_response__stepped_sine_1khz.wav` | level-dependent harmonic response | 1 kHz windows at -36/-24/-12/-6 dBFS and exact gaps |
+| `intermodulation_response__two_tone.wav` | nonlinear mixing and IMD | 997/1499 Hz components, level, active window |
+| `broadband_response__white_noise.wav` | broadband energy/spectral response | deterministic per-signal seed, near-zero DC, RMS, no LFO |
+| `envelope_response__gated_sine.wav` | attack/release and threshold behavior | gate boundaries, exact silence, frequency and levels |
+| `transient_response__pitch_decay.wav` | transient detection and pitch-decay preservation | event positions/levels, decreasing frequency, decaying amplitude |
+| `aliasing_response__high_frequency_sine.wav` | high-frequency/aliasing response | frequency equals `0.22 * sampleRate` at 44.1/48/96 kHz |
+| `stereo_isolation__channel_probe.wav` | channel isolation and crossfeed | inactive channel exactly zero in both windows |
+
+The delayed impulse has approximately 250 ms pre-silence and at least 3 s of
+post-silence. The pitch-decay signal replaces the old drum-oriented concept;
+it uses phase accumulation for `f(t) = f_end + (f_start - f_end) exp(-t/tau_f)`
+and `A(t) = A0 exp(-t/tau_a)`, so its frequency trajectory is measurable rather
+than a synthetic instrument approximation. Parameter timelines, smoother
+retargets, routing transitions, block-size variation, prepare/reset, and extreme
+matrices remain unit/property/integration concerns and are not encoded as WAVs.
+
+Manifest schemaVersion 2 records `testObjective`, `signalClass`,
+`signalParameters`, `expectedProperties`, `analysisMethods`,
+`analysisWindows`, and `targetTests`, in addition to provenance, license,
+redistribution, WAV metadata, storage policy, and SHA-256. The generator uses
+stable per-signal seeds derived from `BASE_SEED + signal ID`; adding or reordering
+an unrelated signal cannot alter an existing randomized fixture. The committed
+sample rate is 48 kHz; the same generator validates temporary 44.1 kHz and
+96 kHz corpora.
+
+`tools/test_testdata.py` regenerates the complete corpus in a temporary
+directory, compares manifest semantics, WAV bytes and SHA-256, and runs the
+standard-library semantic checks above. `tools/verify_testdata.py` is limited to
+metadata, contract, provenance, file-integrity, PCM24, and manifest/input set
+checks. `tools/signal_generators.py` remains an in-memory Layer C probe utility;
+it does not create a parallel canonical corpus or render harness.
+
+### Diagnostic and listening responsibilities
+
+`testdata/input/**` is for objective engineering evidence. The separate
+`testdata/listening/**` boundary is for the future **Representative Listening
+Corpus** (`LISTENING-001`): licensed musical material, Water/Ice musical
+usefulness, A/B review, and DAW/product acceptance. No real listening material
+is introduced by this TESTDATA follow-up. Water/Ice engineering measurement
+must use the diagnostic signals above; product sound acceptance must not rely
+on impulse, sweep, or synthetic diagnostic tones alone.
 
 ### 四层测试分工
 

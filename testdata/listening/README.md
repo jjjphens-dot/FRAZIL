@@ -1,8 +1,8 @@
-# FRAZIL listening corpus
+# FRAZIL representative listening corpus
 
-This directory is reserved for future **Layer D listening material**. It is
-not part of `TESTDATA-001` and is not a byte-exact engineering regression
-fixture.
+This directory is reserved for future **LISTENING-001 / Layer D
+Representative Listening Corpus** material. It is not part of `TESTDATA-001`
+and is not a byte-exact engineering regression fixture.
 
 Future material may cover drums, vocal, piano, guitar, bass, pad, and full-mix
 examples when it has a real musical listening purpose. It must not be added

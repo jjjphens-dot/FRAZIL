@@ -18,6 +18,10 @@ addition to the existing block, seed, gain, and global mix options. The seed is
 recorded as test metadata only: the current M1 pass-through `AudioEngine` has
 no stochastic DSP and therefore does not consume it.
 
+The canonical default input is `testdata/input/zero_state_response__impulse.wav`;
+this reuses the existing TESTDATA-001 diagnostic corpus and does not create a
+second render harness.
+
 Build and run the harness through the repository presets:
 
 ```powershell

@@ -197,8 +197,8 @@ add_test(
     COMMAND ${Python3_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/render_testdata.py
             --renderer $<TARGET_FILE:frazil_render>
-            --output "${CMAKE_CURRENT_BINARY_DIR}/rendered/impulse.wav"
-            --manifest "${CMAKE_CURRENT_BINARY_DIR}/rendered/impulse.manifest.json"
+            --output "${CMAKE_CURRENT_BINARY_DIR}/rendered/zero_state_response__impulse.wav"
+            --manifest "${CMAKE_CURRENT_BINARY_DIR}/rendered/zero_state_response__impulse.manifest.json"
             --build-type ${CMAKE_BUILD_TYPE}
 )
 add_test(

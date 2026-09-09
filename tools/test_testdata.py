@@ -1,103 +1,92 @@
 #!/usr/bin/env python3
-"""Regression and semantic tests for TESTDATA-001."""
+"""Deterministic and semantic regression tests for TESTDATA-001."""
 
 from __future__ import annotations
 
 import json
 import math
-import random
 import shutil
-import struct
 import tempfile
 import wave
 from pathlib import Path
 
 from generate_testdata import (
-    BURST_DURATION_SECONDS,
-    BURST_FREQUENCY_HZ,
-    BURST_LEVEL_DBFS,
-    BURST_RELEASE_MS,
-    BURST_START_SECONDS,
+    BASE_SEED,
     CORPUS,
-    IMPULSE_AMPLITUDE,
-    IMPULSE_SAMPLE_INDEX,
+    HF_FREQUENCY_SAMPLE_RATE_RATIO,
+    IMPULSE_LEVEL_DBFS,
+    NOISE_TARGET_RMS_DBFS,
     SAMPLE_RATE,
-    SEED,
-    SWEEP_DURATION_SECONDS,
-    SWEEP_END_HZ,
-    SWEEP_START_HZ,
-    TONE_FREQUENCY_HZ,
-    TONE_LEVEL_DBFS,
+    SUPPORTED_SAMPLE_RATES,
     dbfs_to_linear,
+    frames_for_duration,
     generate_corpus as generate_reference_corpus,
     render,
-)
-from signal_generators import (
-    amplitude_staircase,
-    attack_rate_sweep,
-    near_nyquist_tone,
-    relative_hf_multitone,
-    threshold_burst_train,
-    transient_train,
+    stable_seed,
 )
 from verify_testdata import file_sha256, validate
 
 
+ROOT = Path(__file__).resolve().parents[1]
+IDS = [spec.id for spec in CORPUS]
+
+
 def load_manifest(root: Path) -> dict:
-    manifest_path = root / "testdata" / "manifest.json"
-    return json.loads(manifest_path.read_text(encoding="utf-8"))
-
-
-def compare_manifest_semantics(
-    generated_manifest_path: Path, committed_manifest_path: Path
-) -> list[str]:
-    generated_manifest = json.loads(generated_manifest_path.read_text(encoding="utf-8"))
-    committed_manifest = json.loads(committed_manifest_path.read_text(encoding="utf-8"))
-    if generated_manifest != committed_manifest:
-        return ["generated manifest differs from committed reference"]
-    return []
+    return json.loads(
+        (root / "testdata" / "manifest.json").read_text(encoding="utf-8")
+    )
 
 
 def compare_generated_corpus(generated_root: Path, committed_root: Path) -> list[str]:
     generated_manifest_path = generated_root / "testdata" / "manifest.json"
     committed_manifest_path = committed_root / "testdata" / "manifest.json"
-    errors = compare_manifest_semantics(generated_manifest_path, committed_manifest_path)
-    if errors:
-        return errors
+    generated_manifest = json.loads(generated_manifest_path.read_text(encoding="utf-8"))
+    committed_manifest = json.loads(committed_manifest_path.read_text(encoding="utf-8"))
+    if generated_manifest != committed_manifest:
+        return ["generated manifest differs from committed reference"]
 
-    manifest = json.loads(committed_manifest_path.read_text(encoding="utf-8"))
-    for entry in manifest["files"]:
+    errors: list[str] = []
+    for entry in committed_manifest["files"]:
         identifier = entry["id"]
         generated_path = generated_root / Path(entry["path"])
         committed_path = committed_root / Path(entry["path"])
         if generated_path.read_bytes() != committed_path.read_bytes():
             errors.append(f"{identifier}: generated output differs from committed reference")
-        generated_hash = file_sha256(generated_path)
-        committed_hash = file_sha256(committed_path)
-        if generated_hash != entry["sha256"]:
+        if file_sha256(generated_path) != entry["sha256"]:
             errors.append(f"{identifier}: generated hash does not match manifest")
-        if committed_hash != entry["sha256"]:
+        if file_sha256(committed_path) != entry["sha256"]:
             errors.append(f"{identifier}: committed hash does not match manifest")
     return errors
 
 
 def read_pcm(path: Path) -> tuple[int, list[list[float]]]:
     with wave.open(str(path), "rb") as audio:
-        assert audio.getsampwidth() == 2
+        assert audio.getsampwidth() == 3
         channels = audio.getnchannels()
         sample_rate = audio.getframerate()
         frame_count = audio.getnframes()
         raw = audio.readframes(frame_count)
-    values = struct.unpack("<" + "h" * (len(raw) // 2), raw)
-    channel_data = [
-        [values[index] / 32767.0 for index in range(channel, len(values), channels)]
-        for channel in range(channels)
-    ]
+    bytes_per_frame = channels * 3
+    assert len(raw) == frame_count * bytes_per_frame
+    channel_data = [[] for _ in range(channels)]
+    for frame in range(frame_count):
+        for channel in range(channels):
+            offset = (frame * channels + channel) * 3
+            value = int.from_bytes(raw[offset : offset + 3], "little", signed=False)
+            if value >= 0x800000:
+                value -= 0x1000000
+            channel_data[channel].append(value / 8_388_608.0)
     return sample_rate, channel_data
 
 
 def rms(samples: list[float]) -> float:
+    if not samples:
+        return 0.0
     return math.sqrt(sum(value * value for value in samples) / len(samples))
+
+
+def dbfs_from_linear(value: float) -> float:
+    return -200.0 if value <= 0.0 else 20.0 * math.log10(value)
 
 
 def positive_zero_crossings(samples: list[float]) -> list[int]:
@@ -110,284 +99,284 @@ def positive_zero_crossings(samples: list[float]) -> list[int]:
 
 def estimate_frequency(samples: list[float], sample_rate: int) -> float:
     crossings = positive_zero_crossings(samples)
-    assert len(crossings) >= 2, "not enough zero crossings for a frequency estimate"
+    if len(crossings) < 2:
+        raise AssertionError("not enough zero crossings for a frequency estimate")
     return (len(crossings) - 1) * sample_rate / (crossings[-1] - crossings[0])
 
 
-def rolling_rms(samples: list[float], window_frames: int) -> list[float]:
-    return [
-        rms(samples[start : start + window_frames])
-        for start in range(0, len(samples) - window_frames + 1, window_frames)
-    ]
+def projection_amplitude(samples: list[float], frequency_hz: float, sample_rate: int) -> float:
+    if not samples:
+        return 0.0
+    cosine = sum(
+        value * math.cos(2.0 * math.pi * frequency_hz * index / sample_rate)
+        for index, value in enumerate(samples)
+    )
+    sine = sum(
+        value * math.sin(2.0 * math.pi * frequency_hz * index / sample_rate)
+        for index, value in enumerate(samples)
+    )
+    return 2.0 * math.hypot(cosine, sine) / len(samples)
 
 
-def test_semantic_signals(root: Path, manifest: dict) -> None:
+def assert_frequency_near(samples: list[float], sample_rate: int, expected: float, tolerance: float) -> None:
+    measured = estimate_frequency(samples, sample_rate)
+    assert abs(measured - expected) <= tolerance, (measured, expected)
+
+
+def assert_exact_zero(samples: list[float]) -> None:
+    assert all(value == 0.0 for value in samples)
+
+
+def _window_samples(samples: list[float], window: dict[str, object]) -> list[float]:
+    return samples[int(window["startFrame"]) : int(window["endFrame"])]
+
+
+def _all_channel_data(root: Path, manifest: dict) -> tuple[dict[str, dict[str, object]], dict[str, list[list[float]]], int]:
     entries = {entry["id"]: entry for entry in manifest["files"]}
-    expected_ids = {identifier for identifier, _ in CORPUS}
-    assert set(entries) == expected_ids
-
-    sample_rates: dict[str, int] = {}
     channels_by_id: dict[str, list[list[float]]] = {}
+    sample_rate: int | None = None
     for identifier, entry in entries.items():
-        sample_rate, channel_data = read_pcm(root / entry["path"])
-        sample_rates[identifier] = sample_rate
-        channels_by_id[identifier] = channel_data
-        assert sample_rate == SAMPLE_RATE
+        current_rate, channel_data = read_pcm(root / entry["path"])
+        if sample_rate is None:
+            sample_rate = current_rate
+        assert current_rate == sample_rate
         assert len(channel_data) == 2
-        assert channel_data[0] == channel_data[1], f"{identifier} must be dual-mono"
-        assert all(math.isfinite(value) for value in channel_data[0])
-        assert max(abs(value) for value in channel_data[0]) <= 0.98 + 1.0 / 32767.0
+        assert all(math.isfinite(value) for channel in channel_data for value in channel)
+        assert max(abs(value) for channel in channel_data for value in channel) <= 1.0
+        channels_by_id[identifier] = channel_data
+    assert sample_rate is not None
+    return entries, channels_by_id, sample_rate
 
-    silence = channels_by_id["silence"][0]
-    assert all(value == 0.0 for value in silence)
-    assert max(abs(value) for value in silence) == 0.0
+
+def semantic_validate(root: Path, manifest: dict, expected_rate: int | None = None) -> None:
+    entries, channels_by_id, sample_rate = _all_channel_data(root, manifest)
+    assert set(entries) == set(IDS)
+    if expected_rate is not None:
+        assert sample_rate == expected_rate
+
+    silence = channels_by_id["zero_input__silence"][0]
+    assert_exact_zero(silence)
     assert rms(silence) == 0.0
-    assert sum(silence) == 0.0
 
-    impulse_entry = entries["impulse"]
-    impulse = channels_by_id["impulse"][0]
-    nonzero = [index for index, value in enumerate(impulse) if value != 0.0]
-    assert nonzero == [IMPULSE_SAMPLE_INDEX]
+    impulse_entry = entries["zero_state_response__impulse"]
+    impulse_left, impulse_right = channels_by_id["zero_state_response__impulse"]
+    assert impulse_left == impulse_right
+    impulse_params = impulse_entry["signalParameters"]
+    impulse_frame = int(impulse_params["impulseFrame"])
+    nonzero = [index for index, value in enumerate(impulse_left) if value != 0.0]
+    assert nonzero == [impulse_frame]
+    assert_exact_zero(impulse_left[:impulse_frame])
+    assert_exact_zero(impulse_left[impulse_frame + 1 :])
     assert math.isclose(
-        impulse[IMPULSE_SAMPLE_INDEX], IMPULSE_AMPLITUDE, abs_tol=1.0 / 32767.0
+        impulse_left[impulse_frame],
+        dbfs_to_linear(IMPULSE_LEVEL_DBFS),
+        abs_tol=2.0 / 8_388_608.0,
     )
-    assert all(value == 0.0 for value in impulse[:IMPULSE_SAMPLE_INDEX])
-    assert all(value == 0.0 for value in impulse[IMPULSE_SAMPLE_INDEX + 1 :])
-    assert impulse_entry["generationParameters"]["impulseSampleIndex"] == IMPULSE_SAMPLE_INDEX
 
-    noise_entry = entries["stationary_noise"]
-    noise = channels_by_id["stationary_noise"][0]
-    noise_parameters = noise_entry["generationParameters"]
-    assert noise_parameters["intentionalAmplitudeModulation"] is False
-    nominal_rms = noise_parameters["nominalRms"]
-    assert math.isclose(rms(noise), nominal_rms, rel_tol=0.10)
-    assert abs(sum(noise) / len(noise)) < 0.01
-    noise_windows = rolling_rms(noise, noise_parameters["rollingRmsWindowFrames"])
-    relative_range = (max(noise_windows) - min(noise_windows)) / rms(noise)
-    assert relative_range <= noise_parameters["rollingRmsRelativeRangeMax"]
+    sweep_entry = entries["frequency_response__log_sweep"]
+    sweep = channels_by_id["frequency_response__log_sweep"][0]
+    sweep_windows = sweep_entry["analysisWindows"]
+    start_window = _window_samples(sweep, sweep_windows[0])
+    end_window = _window_samples(sweep, sweep_windows[1])
+    start_frequency = estimate_frequency(start_window, sample_rate)
+    end_frequency = estimate_frequency(end_window, sample_rate)
+    assert start_frequency < end_frequency
+    assert abs(start_frequency - float(sweep_entry["expectedProperties"]["frequencyStartHz"])) < 10.0
+    assert abs(end_frequency - float(sweep_entry["expectedProperties"]["frequencyEndHz"])) < 1_000.0
 
-    tone = channels_by_id["single_tone"][0]
-    expected_tone_rms = dbfs_to_linear(TONE_LEVEL_DBFS) / math.sqrt(2.0)
-    assert abs(estimate_frequency(tone, SAMPLE_RATE) - TONE_FREQUENCY_HZ) < 2.0
-    assert math.isclose(rms(tone), expected_tone_rms, rel_tol=0.002)
+    stepped_entry = entries["harmonic_response__stepped_sine_1khz"]
+    stepped = channels_by_id["harmonic_response__stepped_sine_1khz"][0]
+    for window in stepped_entry["analysisWindows"]:
+        active = _window_samples(stepped, window)
+        assert_frequency_near(active, sample_rate, float(window["frequencyHz"]), 4.0)
+        expected_rms = dbfs_to_linear(float(window["levelDbFS"])) / math.sqrt(2.0)
+        assert abs(dbfs_from_linear(rms(active)) - dbfs_from_linear(expected_rms)) < 0.5
+    stepped_boundaries = [
+        (0, int(stepped_entry["analysisWindows"][0]["startFrame"])),
+        *[
+            (
+                int(previous["endFrame"]),
+                int(current["startFrame"]),
+            )
+            for previous, current in zip(
+                stepped_entry["analysisWindows"], stepped_entry["analysisWindows"][1:]
+            )
+        ],
+        (
+            int(stepped_entry["analysisWindows"][-1]["endFrame"]),
+            len(stepped),
+        ),
+    ]
+    for start, end in stepped_boundaries:
+        assert_exact_zero(stepped[start:end])
 
-    sweep_entry = entries["frequency_sweep"]
-    sweep = channels_by_id["frequency_sweep"][0]
-    assert len(sweep) == round(SWEEP_DURATION_SECONDS * SAMPLE_RATE)
-    sweep_parameters = sweep_entry["generationParameters"]
-    start_window = sweep[int(0.10 * SAMPLE_RATE) : int(0.20 * SAMPLE_RATE)]
-    end_window = sweep[int(1.80 * SAMPLE_RATE) : int(1.90 * SAMPLE_RATE)]
-    start_estimate = estimate_frequency(start_window, SAMPLE_RATE)
-    end_estimate = estimate_frequency(end_window, SAMPLE_RATE)
-    start_expected = SWEEP_START_HZ * (SWEEP_END_HZ / SWEEP_START_HZ) ** (0.15 / SWEEP_DURATION_SECONDS)
-    end_expected = SWEEP_START_HZ * (SWEEP_END_HZ / SWEEP_START_HZ) ** (1.85 / SWEEP_DURATION_SECONDS)
-    assert math.isclose(start_estimate, start_expected, rel_tol=0.35)
-    assert math.isclose(end_estimate, end_expected, rel_tol=0.15)
-    assert sweep_parameters["startFrequencyHz"] == SWEEP_START_HZ
-    assert sweep_parameters["endFrequencyHz"] == SWEEP_END_HZ
+    two_tone_entry = entries["intermodulation_response__two_tone"]
+    two_tone = channels_by_id["intermodulation_response__two_tone"][0]
+    two_tone_window = _window_samples(two_tone, two_tone_entry["analysisWindows"][0])
+    two_tone_params = two_tone_entry["signalParameters"]
+    for frequency in (float(two_tone_params["f1Hz"]), float(two_tone_params["f2Hz"])):
+        amplitude = projection_amplitude(two_tone_window, frequency, sample_rate)
+        assert abs(amplitude - float(two_tone_params["toneAmplitudeLinear"])) < 0.01
+    assert abs(dbfs_from_linear(rms(two_tone_window)) - float(two_tone_params["levelDbFS"])) < 0.5
 
-    burst_entry = entries["short_burst"]
-    burst = channels_by_id["short_burst"][0]
-    burst_parameters = burst_entry["generationParameters"]
-    start_frame = round(BURST_START_SECONDS * SAMPLE_RATE)
-    end_frame = round((BURST_START_SECONDS + BURST_DURATION_SECONDS) * SAMPLE_RATE)
-    assert all(value == 0.0 for value in burst[:start_frame])
-    assert all(value == 0.0 for value in burst[end_frame:])
-    assert math.isclose(
-        max(abs(value) for value in burst[start_frame:end_frame]),
-        dbfs_to_linear(BURST_LEVEL_DBFS),
-        rel_tol=0.002,
+    noise_entry = entries["broadband_response__white_noise"]
+    noise = channels_by_id["broadband_response__white_noise"][0]
+    assert noise == channels_by_id["broadband_response__white_noise"][1]
+    assert abs(sum(noise) / len(noise)) < 0.002
+    assert abs(dbfs_from_linear(rms(noise)) - NOISE_TARGET_RMS_DBFS) < 0.5
+    assert noise_entry["signalParameters"]["signalSeed"] == stable_seed(
+        BASE_SEED, "broadband_response__white_noise"
     )
-    sustain_start = start_frame + round(0.05 * SAMPLE_RATE)
-    sustain_end = end_frame - round(BURST_RELEASE_MS / 1000.0 * SAMPLE_RATE) - round(0.01 * SAMPLE_RATE)
-    assert abs(estimate_frequency(burst[sustain_start:sustain_end], SAMPLE_RATE) - BURST_FREQUENCY_HZ) < 2.0
-    assert burst_parameters["burstStartSeconds"] == BURST_START_SECONDS
+    noise_again = render("broadband_response__white_noise", sample_rate)
+    assert noise_again == render("broadband_response__white_noise", sample_rate)
+    assert len(noise_again) == len(noise)
+
+    gated_entry = entries["envelope_response__gated_sine"]
+    gated = channels_by_id["envelope_response__gated_sine"][0]
+    gate_windows = gated_entry["analysisWindows"]
+    assert_frequency_near(_window_samples(gated, gate_windows[0]), sample_rate, 440.0, 4.0)
+    assert_frequency_near(_window_samples(gated, gate_windows[1]), sample_rate, 440.0, 4.0)
+    for window in gate_windows:
+        active = _window_samples(gated, window)
+        expected = dbfs_to_linear(float(window["levelDbFS"])) / math.sqrt(2.0)
+        assert abs(dbfs_from_linear(rms(active)) - dbfs_from_linear(expected)) < 0.6
+    assert_exact_zero(gated[: int(gate_windows[0]["startFrame"])])
+    assert_exact_zero(
+        gated[int(gate_windows[0]["endFrame"]) : int(gate_windows[1]["startFrame"])]
+    )
+    assert_exact_zero(gated[int(gate_windows[1]["endFrame"]) :])
+
+    pitch_entry = entries["transient_response__pitch_decay"]
+    pitch = channels_by_id["transient_response__pitch_decay"][0]
+    pitch_expected = pitch_entry["expectedProperties"]
+    for window in pitch_entry["analysisWindows"]:
+        active = _window_samples(pitch, window)
+        assert active
+        early = active[int(0.025 * sample_rate) : int(0.085 * sample_rate)]
+        late = active[int(0.18 * sample_rate) : int(0.27 * sample_rate)]
+        early_frequency = estimate_frequency(early, sample_rate)
+        late_frequency = estimate_frequency(late, sample_rate)
+        assert early_frequency > late_frequency
+        assert 45.0 <= late_frequency <= 85.0
+        assert rms(early) > rms(late)
+        requested_peak = dbfs_to_linear(float(window["levelDbFS"]))
+        assert requested_peak * 0.65 < max(abs(value) for value in active) <= requested_peak * 1.01
+    pitch_boundaries = [
+        (0, int(pitch_entry["analysisWindows"][0]["startFrame"])),
+        *[
+            (int(previous["endFrame"]), int(current["startFrame"]))
+            for previous, current in zip(
+                pitch_entry["analysisWindows"], pitch_entry["analysisWindows"][1:]
+            )
+        ],
+        (int(pitch_entry["analysisWindows"][-1]["endFrame"]), len(pitch)),
+    ]
+    for start, end in pitch_boundaries:
+        assert_exact_zero(pitch[start:end])
+    assert pitch_expected["frequencyDirection"] == "down"
+
+    hf_entry = entries["aliasing_response__high_frequency_sine"]
+    hf = channels_by_id["aliasing_response__high_frequency_sine"][0]
+    measured_hf = estimate_frequency(hf[int(0.2 * sample_rate) : int(1.8 * sample_rate)], sample_rate)
+    expected_hf = HF_FREQUENCY_SAMPLE_RATE_RATIO * sample_rate
+    assert abs(measured_hf - expected_hf) < 50.0
+    assert math.isclose(hf_entry["expectedProperties"]["frequencyHz"], expected_hf)
+
+    stereo_entry = entries["stereo_isolation__channel_probe"]
+    left, right = channels_by_id["stereo_isolation__channel_probe"]
+    stereo_windows = stereo_entry["analysisWindows"]
+    first = stereo_windows[0]
+    second = stereo_windows[1]
+    assert_exact_zero(right[int(first["startFrame"]) : int(first["endFrame"])])
+    assert_exact_zero(left[int(second["startFrame"]) : int(second["endFrame"])])
+    assert rms(left[int(first["startFrame"]) : int(first["endFrame"])]) > 0.1
+    assert rms(right[int(second["startFrame"]) : int(second["endFrame"])]) > 0.1
 
 
-def test_probe_generators() -> None:
-    for sample_rate in (44_100, 48_000, 96_000):
-        staircase = amplitude_staircase(sample_rate)
-        attack = attack_rate_sweep(sample_rate)
-        transient = transient_train(sample_rate, spacing=0.1)
-        threshold = threshold_burst_train(sample_rate)
-        hf = relative_hf_multitone(sample_rate)
-        near_nyquist = near_nyquist_tone(sample_rate)
-        expected_length = round(6 * 0.25 * sample_rate)
-        assert len(staircase) == expected_length
-        assert len(attack) > 0 and len(transient) > 0 and len(threshold) > 0
-        assert len(hf) == sample_rate
-        assert len(near_nyquist) == sample_rate
-        assert all(left == right for left, right in hf)
-        assert all(math.isfinite(left) and math.isfinite(right) for left, right in near_nyquist)
-    assert near_nyquist_tone(44_100) != near_nyquist_tone(48_000)
-    assert relative_hf_multitone(44_100) != relative_hf_multitone(96_000)
-    assert amplitude_staircase(48_000) == amplitude_staircase(48_000)
-    assert attack_rate_sweep(48_000) == attack_rate_sweep(48_000)
-
-
-def main() -> int:
-    root = Path(__file__).parents[1]
+def test_metadata_and_semantics(root: Path) -> None:
     manifest = load_manifest(root)
-    assert not validate(root / "testdata" / "manifest.json"), validate(
-        root / "testdata" / "manifest.json"
-    )
+    errors = validate(root / "testdata" / "manifest.json", root)
+    assert not errors, errors
+    semantic_validate(root, manifest, SAMPLE_RATE)
 
-    first_rng = random.Random(SEED)
-    second_rng = random.Random(SEED)
-    for identifier, _ in CORPUS:
-        assert render(identifier, first_rng) == render(identifier, second_rng), (
-            f"generator output is not repeatable for {identifier}"
-        )
-    test_semantic_signals(root, manifest)
-    test_probe_generators()
 
-    with tempfile.TemporaryDirectory() as temporary:
-        temporary_root = Path(temporary)
-        generated_input = temporary_root / "testdata" / "input"
-        generated_manifest_path = temporary_root / "testdata" / "manifest.json"
-        generate_reference_corpus(generated_input, generated_manifest_path, temporary_root)
-        errors = compare_generated_corpus(temporary_root, root)
-        assert not errors, errors
-
-        generated_manifest = json.loads(generated_manifest_path.read_text(encoding="utf-8"))
-        generated_manifest_path.write_text(
-            json.dumps(generated_manifest, indent=4) + "\n", encoding="utf-8"
-        )
-        errors = compare_generated_corpus(temporary_root, root)
-        assert not errors, errors
-
-        generated_path = generated_input / "impulse.wav"
-        generated_bytes = generated_path.read_bytes()
-        generated_path.write_bytes(
-            generated_bytes[:-1] + bytes([generated_bytes[-1] ^ 1])
-        )
-        errors = compare_generated_corpus(temporary_root, root)
-        assert any("differs from committed reference" in error for error in errors), errors
-
-        generate_reference_corpus(generated_input, generated_manifest_path, temporary_root)
-        generated_manifest = json.loads(generated_manifest_path.read_text(encoding="utf-8"))
-        generated_manifest["files"][0]["sourceType"] = "recording"
-        generated_manifest_path.write_text(
-            json.dumps(generated_manifest, indent=2) + "\n", encoding="utf-8"
-        )
-        errors = compare_manifest_semantics(
-            generated_manifest_path, root / "testdata" / "manifest.json"
-        )
-        assert errors == ["generated manifest differs from committed reference"], errors
-
-    manifest["files"][0]["path"] = "testdata/input/does-not-exist.wav"
-    with tempfile.TemporaryDirectory() as temporary:
-        manifest_path = Path(temporary) / "manifest.json"
-        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-        errors = validate(manifest_path)
-        assert any("manifest declares missing WAV file" in error for error in errors), errors
-
-    invalid = load_manifest(root)
-    invalid["storagePolicy"] = {"repository": False, "gitLfs": True}
-    with tempfile.TemporaryDirectory() as temporary:
-        manifest_path = Path(temporary) / "manifest.json"
-        manifest_path.write_text(json.dumps(invalid), encoding="utf-8")
-        errors = validate(manifest_path)
-        assert any("storage policy" in error for error in errors), errors
-
-    invalid = load_manifest(root)
-    invalid["storagePolicy"]["location"] = "other/input"
-    with tempfile.TemporaryDirectory() as temporary:
-        manifest_path = Path(temporary) / "manifest.json"
-        manifest_path.write_text(json.dumps(invalid), encoding="utf-8")
-        errors = validate(manifest_path)
-        assert any("storage policy must use testdata/input" in error for error in errors), errors
-
-    invalid = load_manifest(root)
-    invalid["storagePolicy"] = None
-    invalid["generator"] = None
-    with tempfile.TemporaryDirectory() as temporary:
-        manifest_path = Path(temporary) / "manifest.json"
-        manifest_path.write_text(json.dumps(invalid), encoding="utf-8")
-        errors = validate(manifest_path)
-        assert any("storage policy" in error for error in errors), errors
-        assert any("generator must be an object" in error for error in errors), errors
-
-    invalid = load_manifest(root)
-    invalid["files"][0]["sha256"] = "0" * 64
-    with tempfile.TemporaryDirectory() as temporary:
-        manifest_path = Path(temporary) / "manifest.json"
-        manifest_path.write_text(json.dumps(invalid), encoding="utf-8")
-        errors = validate(manifest_path)
-        assert any("content hash does not match" in error for error in errors), errors
-
-    invalid = load_manifest(root)
-    invalid["files"][0]["role"] = "listening"
-    invalid["files"][0]["generationParameters"].pop("durationSeconds")
-    with tempfile.TemporaryDirectory() as temporary:
-        manifest_path = Path(temporary) / "manifest.json"
-        manifest_path.write_text(json.dumps(invalid), encoding="utf-8")
-        errors = validate(manifest_path)
-        assert any("role must be canonical-engineering" in error for error in errors), errors
-        assert any("missing generation parameters" in error for error in errors), errors
-
-    invalid = load_manifest(root)
-    invalid["files"][0]["author"] = ""
-    invalid["provenance"]["thirdPartyAudio"] = True
-    with tempfile.TemporaryDirectory() as temporary:
-        manifest_path = Path(temporary) / "manifest.json"
-        manifest_path.write_text(json.dumps(invalid), encoding="utf-8")
-        errors = validate(manifest_path)
-        assert any("author" in error for error in errors), errors
-        assert any("provenance" in error for error in errors), errors
-
-    invalid = load_manifest(root)
-    invalid["files"][0]["sourceType"] = "recording"
-    with tempfile.TemporaryDirectory() as temporary:
-        manifest_path = Path(temporary) / "manifest.json"
-        manifest_path.write_text(json.dumps(invalid), encoding="utf-8")
-        errors = validate(manifest_path)
-        assert any("sourceType must be synthetic" in error for error in errors), errors
-
-    invalid = load_manifest(root)
-    invalid["files"][1]["id"] = invalid["files"][0]["id"]
-    with tempfile.TemporaryDirectory() as temporary:
-        manifest_path = Path(temporary) / "manifest.json"
-        manifest_path.write_text(json.dumps(invalid), encoding="utf-8")
-        errors = validate(manifest_path)
-        assert any("duplicate id" in error for error in errors), errors
-
-    invalid = load_manifest(root)
-    invalid["files"][1]["path"] = invalid["files"][0]["path"]
-    with tempfile.TemporaryDirectory() as temporary:
-        manifest_path = Path(temporary) / "manifest.json"
-        manifest_path.write_text(json.dumps(invalid), encoding="utf-8")
-        errors = validate(manifest_path)
-        assert any("duplicate path" in error for error in errors), errors
-
-    invalid = load_manifest(root)
-    invalid["files"][0]["path"] = "testdata/input/../manifest.json"
-    with tempfile.TemporaryDirectory() as temporary:
-        manifest_path = Path(temporary) / "manifest.json"
-        manifest_path.write_text(json.dumps(invalid), encoding="utf-8")
-        errors = validate(manifest_path)
-        assert any("path escapes testdata/input" in error for error in errors), errors
-
+def test_tamper_and_manifest_contract(root: Path) -> None:
     with tempfile.TemporaryDirectory() as temporary:
         temporary_root = Path(temporary)
         input_root = temporary_root / "testdata" / "input"
-        input_root.mkdir(parents=True)
-        valid_manifest = load_manifest(root)
-        for entry in valid_manifest["files"]:
-            destination = temporary_root / entry["path"]
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(root / entry["path"], destination)
+        manifest_root = temporary_root / "testdata" / "manifest.json"
+        generate_reference_corpus(input_root, manifest_root, temporary_root, SAMPLE_RATE)
         shutil.copyfile(root / "LICENSE", temporary_root / "LICENSE")
-        shutil.copyfile(
-            root / "testdata" / "input" / "impulse.wav",
-            input_root / "unmanifested.wav",
-        )
-        manifest_path = temporary_root / "testdata" / "manifest.json"
-        manifest_path.write_text(json.dumps(valid_manifest), encoding="utf-8")
-        errors = validate(manifest_path, temporary_root)
+
+        tampered = input_root / "zero_input__silence.wav"
+        original = tampered.read_bytes()
+        tampered.write_bytes(original[:-1] + bytes([original[-1] ^ 0x01]))
+        errors = validate(manifest_root, temporary_root)
+        assert any("content hash does not match" in error for error in errors), errors
+
+        valid_manifest = json.loads(manifest_root.read_text(encoding="utf-8"))
+        invalid = json.loads(json.dumps(valid_manifest))
+        invalid["files"][0]["path"] = "testdata/input/../manifest.json"
+        manifest_root.write_text(json.dumps(invalid), encoding="utf-8")
+        errors = validate(manifest_root, temporary_root)
+        assert any("path escapes testdata/input" in error for error in errors), errors
+
+        invalid = json.loads(json.dumps(valid_manifest))
+        invalid["provenance"]["license"] = "unknown"
+        manifest_root.write_text(json.dumps(invalid), encoding="utf-8")
+        errors = validate(manifest_root, temporary_root)
+        assert any("provenance" in error for error in errors), errors
+
+        manifest_root.write_text(json.dumps(valid_manifest), encoding="utf-8")
+        shutil.copyfile(tampered, input_root / "unmanifested.wav")
+        errors = validate(manifest_root, temporary_root)
         assert any("unmanifested WAV file" in error for error in errors), errors
 
-    print("TESTDATA verifier and semantic regression tests: PASS")
+
+def test_sample_rate_generation() -> None:
+    for sample_rate in SUPPORTED_SAMPLE_RATES:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            manifest_path = temporary_root / "testdata" / "manifest.json"
+            generate_reference_corpus(
+                temporary_root / "testdata" / "input",
+                manifest_path,
+                temporary_root,
+                sample_rate,
+            )
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            shutil.copyfile(ROOT / "LICENSE", temporary_root / "LICENSE")
+            assert not validate(manifest_path, temporary_root)
+            semantic_validate(temporary_root, manifest, sample_rate)
+
+
+def main() -> int:
+    test_metadata_and_semantics(ROOT)
+
+    with tempfile.TemporaryDirectory() as temporary:
+        generated_root = Path(temporary)
+        generate_reference_corpus(
+            generated_root / "testdata" / "input",
+            generated_root / "testdata" / "manifest.json",
+            generated_root,
+            SAMPLE_RATE,
+        )
+        errors = compare_generated_corpus(generated_root, ROOT)
+        assert not errors, errors
+
+    test_sample_rate_generation()
+    test_tamper_and_manifest_contract(ROOT)
+
+    # A signal's RNG is keyed by its stable ID, so unrelated corpus ordering cannot alter it.
+    baseline = render("broadband_response__white_noise", SAMPLE_RATE)
+    for identifier in reversed(IDS):
+        render(identifier, SAMPLE_RATE)
+    assert baseline == render("broadband_response__white_noise", SAMPLE_RATE)
+
+    print(
+        "TESTDATA verifier, deterministic regeneration, PCM24 and semantic regression tests: PASS "
+        f"({len(IDS)} fixtures; sample rates {', '.join(str(rate) for rate in SUPPORTED_SAMPLE_RATES)})"
+    )
     return 0
 
 

@@ -40,13 +40,15 @@ STATE-001 已合入 `main`，包括：
 - `ValueTree::createXml()`/`fromXml()` restore regression；
 - all nine static parameters retained。
 
-当前 next state work：
+STATE-002 的 mode value retention integration evidence 已建立；当前 TESTDATA-001
+diagnostic semantic refinement 是既有 corpus infrastructure 的 follow-up，不改变
+plugin StateModel schema 或 production DSP scope。
 
-- STATE-002 mode value retention integration。
-
-当前 wet path 仍为 post-input pass-through。TESTDATA-001 canonical engineering corpus、
-deterministic generator/verifier/semantic regression、generic in-memory probes 和最小离线
-分析工具已建立。以下内容仍未实现：
+当前 wet path 仍为 post-input pass-through。STATE-002 mode-value-retention evidence、
+AUTO-001 PluginProcessor integration evidence、TESTDATA-001 reproducibility/provenance
+infrastructure 和 RENDER-001 pass-through offline smoke 已建立；本 follow-up 将 TESTDATA
+engineering input refinement 收敛为十个 diagnostic signals、PCM24 和 manifest v2 semantic
+contract。generic in-memory probes 和最小离线分析工具仍可供未来 measurement 使用。以下内容仍未实现：
 
 - automation completion；
 - 完整 offline render matrix、DSP property harness 和 performance baseline；
@@ -819,19 +821,25 @@ routing 或 mapping 公式。
 | Gain / mix / routing | constant, sine, or unit fixture | unity、端点、单调性、branch isolation |
 | Smoother | parameter step and mid-ramp retarget | ramp、最终值、click-free transition |
 | Envelope follower | gated tone and `amplitude_staircase` | level dependency、attack/release |
-| Flow Modulator / time-varying micro-delay | `single_tone`, `stationary_noise`, `frequency_sweep` | sidebands、spectral spreading、phase/time-frequency behaviour、interpolation artefacts |
-| Liquid Resonator | `impulse`, `short_burst`, `silence` | modal peaks、decay、tail energy、reset clearing、finite output |
-| Droplet Exciter | `silence`, `amplitude_staircase`, `threshold_burst_train`, `transient_train` | input dependency、threshold、event rate、fixed-seed determinism、voice bound |
-| Friction Texture | `single_tone`, `relative_hf_multitone`, `near_nyquist_tone`, `stationary_noise` | HF sidebands、alias/foldback、peak growth、DC、44.1/48/96 kHz behaviour |
-| Crystal Modal Bank | `impulse`, `short_burst`, `frequency_sweep`, `silence` | non-harmonic modes、ringing、decay、peak bound、tail termination |
-| Crack Transient Generator | `attack_rate_sweep`, `transient_train`, `silence` | rise-speed sensitivity、threshold、event density、voice stealing、fixed-seed behaviour |
+| Flow Modulator / time-varying micro-delay | `frequency_response__log_sweep`, `zero_state_response__impulse`, `aliasing_response__high_frequency_sine`, `stereo_isolation__channel_probe` | frequency/time response、sidebands、fractional-delay coloration、channel leakage |
+| Liquid Resonator | `zero_state_response__impulse`, `frequency_response__log_sweep`, `zero_input__silence` | modal peaks、decay、tail energy、reset clearing、finite output |
+| Droplet Exciter | `envelope_response__gated_sine`, `transient_response__pitch_decay`, `zero_input__silence` | input dependency、threshold、event rate、pitch decay、no spontaneous event |
+| Friction Texture | `aliasing_response__high_frequency_sine`, `broadband_response__white_noise`, `intermodulation_response__two_tone` | HF sidebands、alias/foldback、energy response、DC、nonlinear products |
+| Crystal Modal Bank | `zero_state_response__impulse`, `frequency_response__log_sweep`, `zero_input__silence` | non-harmonic modes、ringing、decay、peak bound、tail termination |
+| Crack Transient Generator | `envelope_response__gated_sine`, `transient_response__pitch_decay`, `zero_input__silence` | rise/level sensitivity、threshold、event density、pitch trajectory、finite output |
 
 `tools/signal_generators.py` 的 probe 默认只在内存中生成，并按 sample rate 动态计算 Nyquist
 相关频率。Water/Ice 名称和上表中的数学方案在各自 ADR Accepted 前都只是 candidate；
 `TESTDATA-001` 不应随候选算法的实验调整而改变。对正弦优先使用 FFT 和 harmonic/sideband
-检查；对 stationary noise 使用 Welch PSD；对 transient 使用 STFT/spectrogram；对 resonator
+检查；对 `broadband_response__white_noise` 使用未来 Welch PSD；对 transient 使用未来
+STFT/spectrogram；对 resonator
 使用 impulse/burst response、spectrum 和 tail-energy；时变 Water 应报告 sideband、spectral
 spreading 和 time-frequency behaviour，不把结果简单写成严格 LTI frequency response。
+
+这些 canonical inputs 是 engineering diagnostic evidence，不是 musical listening material。
+未来 `LISTENING-001` 的 representative corpus 单独负责 licensed musical content、loudness-
+matched A/B、Water/Ice usefulness 和 DAW/product acceptance；不能用其中一类素材替代另一类
+证据。
 
 ### 11.5 Listening Review
 

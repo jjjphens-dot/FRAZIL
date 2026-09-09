@@ -10,7 +10,7 @@
 
 ## 1. 结论
 
-项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；旧版 `TESTDATA-001` reproducibility/provenance infrastructure 已随 PR #12 合入，`RENDER-001` pass-through offline smoke 已随 PR #13 合入。本次工作树已完成 TESTDATA canonical engineering signal design revision 的本地验证，但在 PR 合入前 `main` 仍保留旧版 corpus。M1 仍在进行中；Water/Ice、Routing、完整 render regression matrix、processor property/performance harness 和正式 UI 仍未实现。
+项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；TESTDATA-001 reproducibility/provenance infrastructure 已随 PR #12 合入，`RENDER-001` pass-through offline smoke 已随 PR #13 合入。本工作树已完成 TESTDATA-001 diagnostic corpus follow-up 的本地实现与验证；该 follow-up 尚未合入 `main`，因此 `main` 的当前事实仍以 GitHub live state 为准。M1 仍在进行中；Water/Ice、Routing、完整 render regression matrix、processor property/performance harness 和正式 UI 仍未实现。
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
@@ -98,24 +98,29 @@ Branch audit 仅报告未合并分支中的既有基线路径污染，不改写�
 
 ## 2.5 TESTDATA-001 validation evidence
 
-PR #12 合入的旧版基线以 `tools/generate_testdata.py` 建立了固定 seed、provenance、license、
-storage、WAV metadata 和 SHA-256 审计基础。本次 revision 将 canonical corpus 重构为六个按
-DSP 性质命名的双声道、48 kHz、16-bit PCM 信号：`silence`、`impulse`、`stationary_noise`、
-`single_tone`、`frequency_sweep` 和 `short_burst`；manifest schemaVersion 升为 2，插件 state
-`schemaVersion=1` 未改变。`tools/verify_testdata.py` 已验证 schema/role/signal definition/
-generation parameters、provenance/license、WAV metadata、SHA-256 和 input/manifest 双向集合；
-`tools/test_testdata.py` 已验证 deterministic regeneration、manifest 语义、WAV 字节、SHA-256
-和逐信号 semantic checks。generic in-memory probes 与最小 FFT/PSD/STFT 分析工具已建立；
-`testdata/rendered/` 继续保持 ignored。该 revision 仍是工程测试基线，不等同于 RENDER-001、
-真实 DAW 或听测证据；真实音乐素材应放入单独的 `testdata/listening/` corpus，不得混入
-TESTDATA-001。2026-09-09 本地 evidence：`python tools/generate_testdata.py` PASS（6 fixtures）；
+PR #12 合入的基线以 `tools/generate_testdata.py` 建立了固定 seed、provenance、license、
+storage、WAV metadata 和 SHA-256 审计基础。本 follow-up 将 `testdata/input/` 重构为十个按
+DSP 目标命名的双声道、48 kHz、PCM24 diagnostic signals；manifest `schemaVersion=2` 保持
+为 testdata schema，插件 state `schemaVersion=1` 未改变。当前仓库原 generator 已是 version 2，
+本次语义/格式重构将 generator metadata 更新为 version 3，并采用稳定 per-signal seed。
+`tools/verify_testdata.py` 已验证新的 signal objective/class/parameters/properties/windows/targets、
+provenance/license、PCM24 WAV metadata、SHA-256 和 input/manifest 双向集合；
+`tools/test_testdata.py` 已验证 deterministic regeneration、manifest 语义、WAV 字节、SHA-256、
+tamper/storage/provenance checks，以及十个信号的标准库 semantic checks。44100/48000/96000
+临时 generation 均通过；`RENDER-001` 已改用 `zero_state_response__impulse.wav`，没有建立第二套
+render harness。`testdata/rendered/` 继续保持 ignored；该 evidence 不等同于 Water/Ice DSP、
+真实 DAW 或听测验收，真实音乐素材仍应由独立 `LISTENING-001` 放入 `testdata/listening/`。
+
+2026-09-09 本地 evidence：`python tools/generate_testdata.py --sample-rate 48000` PASS（10 fixtures）；
 `python tools/verify_testdata.py` PASS；`python tools/test_testdata.py` PASS；
-`python tools/analyze_testdata.py testdata/input/frequency_sweep.wav --json-out <ignored build path>`
-PASS（FFT/Welch PSD/STFT）；`python tools/check_markdown_links.py`、
-`python tools/test_check_markdown_links.py`、`python tools/check_portability.py` 和
-`python tools/test_check_portability.py` 均 PASS；`ctest --preset windows-debug --output-on-failure`
-通过 5/5。未执行新的 C++ build、Release/ASAN build、pluginval 或 DAW validation；本次仅修改
-工具、测试输入和文档，复用了现有 Debug build 运行 CTest。
+`python tools/check_markdown_links.py`、`python tools/test_check_markdown_links.py`、
+`python tools/check_portability.py`、`python tools/test_check_portability.py` 和 `git diff --check`
+均 PASS；`cmake --preset windows-debug` 首次因旧 cache/linker 环境失败，随后通过仓库
+`tools/vscode_msvc_env.cmd` 与 `cmake --fresh --preset windows-debug` 成功 configure；
+`cmd /c tools\vscode_build_safe.cmd --preset windows-debug` 通过 safe wrapper build，
+`ctest --preset windows-debug --output-on-failure` 通过 5/5（含 frazil_unit、
+frazil_plugin_integration、frazil_render、frazil_render_cli）。未执行 Release/ASAN、pluginval、
+完整 FFT/THD/IMD measurement、性能 benchmark、真实 DAW 或 manual listening；按本 task non-goals 标记为 NOT RUN。
 ## 3. 当前源码映射
 
 ```text
@@ -185,7 +190,7 @@ PluginProcessor
 ## 5. 现状对应 milestone
 
 - M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
-- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration、旧版 TESTDATA-001 reproducibility infrastructure 和 RENDER-001 pass-through offline smoke 已建立；本工作树的 TESTDATA canonical engineering corpus revision 已通过 generator/verifier/semantic regression 本地验证，待 PR review/merge；仍缺完整 render/property/performance/latency evidence、真实 DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
+- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration、TESTDATA-001 reproducibility infrastructure 和 RENDER-001 pass-through offline smoke 已建立；本工作树的 TESTDATA-001 diagnostic corpus follow-up 已通过 generator/verifier/PCM24/semantic regression、44.1/48/96 temporary generation、safe Debug build 和 CTest 本地验证，待 PR review/merge；仍缺完整 render/property/performance/latency evidence、真实 DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
 - M4 Routing：**未开始**。
