@@ -23,11 +23,11 @@
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；STATE-001 已建立已知 pre-v1 ID migration fixture，公开版本兼容性仍需后续 freeze/evidence；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
 5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；`frazil_render` + `tools/render_testdata.py` 已提供 M1 pass-through offline smoke，固定 input/config/seed 两次运行并检查 finite output、输出字节一致和完整当前配置/input/output hash manifest；`frazil_render_cli` 覆盖 help 成功路径、enable/routing/balance/amount 非法值拒绝、非默认完整配置 manifest 转发，以及同一 output path 重复渲染覆盖而非追加 WAV；CTest render artifacts 已隔离到 preset build tree；现有 Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；完整 render matrix 和真实 DAW automation 仍待执行；
-6. Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现；真实 Host/DAW restore matrix、M5 EditHistoryManager integration 和公开兼容性仍待执行。
+6. Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、DSP property/performance harness、离散 enable/routing transition 和正式 UI 仍未实现；真实 Host/DAW restore matrix、M5 EditHistoryManager integration 和公开兼容性仍待执行；`PARAM-FREEZE-001` 保持为 M2/M3 -> M4 gate，不是 M1 Exit blocker。
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug。PR #9 的人工 review 进一步暴露了角色 ownership、PR creator、commit authorship 和 reviewer evidence 被混为同一账号 gate 的问题；当时提出的“必须由 Implementation DRI account 创建 PR/预绑定不同 reviewer account”属于历史纠正方案，现已由更简单的规则取代：职责和 review evidence 分别真实记录，需要第二人 review 时保留独立 evidence；已有 PR 的后续 push account 必须等于 PR creator；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-10. GitHub 当前已有治理 issue [#11](https://github.com/jjjphens-dot/FRAZIL/issues/11) 用于跟踪 portable GitHub workflow 文档同步；Issues 全状态筛选无其它结果，Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；HOST-000 产品目标已由 Sound & Host Lead 冻结，HOST-001 实际 DAW evidence 和 REAPER exact version 仍未完成；当前 PR、review 和 merge 状态只以 GitHub 为准，不在本文件重复记录；不据此推断不存在其它规则集。
+10. GitHub 当前已有治理 issue [#11](https://github.com/jjjphens-dot/FRAZIL/issues/11) 用于跟踪 portable GitHub workflow 文档同步，以及 TESTDATA-001 rationale issue [#15](https://github.com/jjjphens-dot/FRAZIL/issues/15)；Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；HOST-000 产品目标已由 Sound & Host Lead 冻结，HOST-001 实际 DAW evidence 和 REAPER exact version 仍未完成；当前 PR、review 和 merge 状态只以 GitHub 为准，不在本文件重复记录；不据此推断不存在其它规则集。
 
 ## 2. 已有资产
 
@@ -37,14 +37,14 @@
 | Formats | JUCE target 声明 VST3 + Standalone | 已接入 |
 | Dependency | `external/JUCE` 为 9.0.1，本机文档记录两个兼容补丁 | 需确定仓库获取/补丁策略 |
 | Plugin shell | mono/stereo bus check、editor、versioned state XML adapter | M1-C state boundary 已接入；XML createXml/fromXml restore path 已验证；真实 Host/DAW restore 证据仍待执行 |
-| Parameters | 9 个集中式 APVTS 参数静态注册；enabled ID 已使用 `.enabled` | M1 参数路径已接入；合同仍待 freeze |
+| Parameters | 9 个集中式 APVTS 参数静态注册；enabled ID 已使用 `.enabled` | M1 参数路径已接入；`PARAM-FREEZE-001` 是后续 M2/M3 -> M4 gate，不是 M1 Exit blocker |
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration verified；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
 | UI | 640x360 M0 占位界面 | 非产品 UI |
 | Product identity | `docs/PRODUCT_IDENTITY.md` | FRAZIL adopted working/product name；命名词汇不改变参数合同；法律/商标 clearance 不属于当前工程范围 |
-| Tests | `frazil_smoke` + `frazil_tests` + `frazil_plugin_integration` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state/XML restore + PluginProcessor automation/state integration 覆盖；DSP property/真实 DAW 测试未完成 |
-| Local validation | 本轮 `ci-windows-debug` configure、6-job safe build 和 CTest 均通过；smoke、unit、plugin integration 共 3/3 PASS | 已验证；本机绝对路径仅在 ignored `CMakeUserPresets.json`，仓库 preset 保持可移植 |
+| Tests | `frazil_smoke` + `frazil_unit` + `frazil_plugin_integration` + `frazil_render` + `frazil_render_cli` CTest | M1 contract/gain/smoothing/priming/invariant + STATE-001 state/XML restore + PluginProcessor automation/state integration + render smoke/CLI 覆盖；DSP property/真实 DAW 测试未完成 |
+| Local validation | Current TESTDATA revision 的 `windows-debug` configure、6-job safe build 和 CTest 均通过；`frazil_smoke`、`frazil_unit`、`frazil_plugin_integration`、`frazil_render`、`frazil_render_cli` 共 5/5 PASS | 已验证；本机绝对路径仅在 ignored `CMakeUserPresets.json`，仓库 preset 保持可移植 |
 | pluginval | 现有 Debug VST3 artifact 的 pluginval 1.0.4、strictness 5、seed 12345 `SUCCESS` 记录；Steinberg validator 因未配置而跳过 | 已验证（不等于独立 VST3 validator） |
-| Remote | `jjjphens-dot/FRAZIL` public repository；`main` 和审查分支的当前 SHA、mergeability 与 CI 状态以 GitHub live query 为准；`9955cdb` 仅为历史 safety follow-up baseline，不是当前审查分支 head；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main | GitHub live state；Issues/Milestones/Projects metadata 未建立 |
+| Remote | `jjjphens-dot/FRAZIL` public repository；`main` 和审查分支的当前 SHA、mergeability 与 CI 状态以 GitHub live query 为准；`9955cdb` 仅为历史 safety follow-up baseline，不是当前审查分支 head；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main；TESTDATA-001 rationale 记录见 Issue #15 | GitHub live state；Milestones/Projects metadata 未建立 |
 
 ## 2.1 Clean portability/build-safety PR evidence
 
@@ -79,9 +79,9 @@ repository-portability remediation 与 bounded build-safety guard 已在 commit 
 
 Branch audit 仅报告未合并分支中的既有基线路径污染，不改写其它 branch；合并或 cherry-pick 本修复后应重新运行 portability scan。
 
-## 2.3 Plugin integration validation evidence
+## 2.3 Plugin integration validation evidence（historical 3/3 snapshot）
 
-本审查分支在合入当前 `main` 基线后重新执行了 repository portability scan、scanner regression、build-safety regression、portable `ci-windows-debug` configure、6-job safe build 和 CTest。`frazil_smoke`、`frazil_unit` 与 `frazil_plugin_integration` 共 3/3 PASS。integration target 覆盖实际 PluginProcessor 参数写入进入 audio path、连续 gain automation smoothing、routing mode 切换后的 inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore，以及 XML state reopen。
+本节保留较早的 plugin-integration validation snapshot，不代表当前 TESTDATA revision 的完整 CTest 数量。本审查分支在合入当时的 `main` 基线后重新执行了 repository portability scan、scanner regression、build-safety regression、portable `ci-windows-debug` configure、6-job safe build 和 CTest。`frazil_smoke`、`frazil_unit` 与 `frazil_plugin_integration` 共 3/3 PASS。integration target 覆盖实际 PluginProcessor 参数写入进入 audio path、连续 gain automation smoothing、routing mode 切换后的 inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore，以及 XML state reopen。
 
 本机开发者工具链和构建目录只存在于 ignored local configuration/build output；tracked CMake preset 不包含个人安装路径。干净 clone 的依赖 bootstrap 仍需在 GitHub 网络可用时单独复验。
 
@@ -97,6 +97,11 @@ Branch audit 仅报告未合并分支中的既有基线路径污染，不改写�
 - 当前纠正规则：Implementation/Acceptance DRI、PR creator 和 reviewer 分别记录，不要求相同或预绑定；commit author/committer 由 Git history 记录，push account 只在 existing-PR push 时运行时核对，不在普通 PR body 重复抄写。需要第二人 review 的工作仍保留真实独立 evidence。向已有 PR 分支继续 push 时，只有当前 authenticated account 与 PR creator 相同才允许；同一 repository + branch + PR + auth session 的成功检查可以复用，context/account/permission 变化时重新检查。该规则取代本节早期快照中的严格账号映射方案。
 
 ## 2.5 TESTDATA-001 validation evidence
+
+TESTDATA-001 diagnostic refinement exists to provide stable mathematical engineering inputs for future
+Water/Ice/Routing development。Representative musical acceptance is intentionally separated into
+`LISTENING-001`，while real DAW behavior remains `HOST-001` evidence。当前 closeout 的 GitHub rationale
+记录见 [Issue #15](https://github.com/jjjphens-dot/FRAZIL/issues/15)。
 
 PR #12 合入的基线以 `tools/generate_testdata.py` 建立了固定 seed、provenance、license、
 storage、WAV metadata 和 SHA-256 审计基础。本 follow-up 将 `testdata/input/` 重构为十个按

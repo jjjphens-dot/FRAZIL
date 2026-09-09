@@ -81,26 +81,30 @@ Parameter / State / Engine Contract
   |
   v
 
-M1 Engineering Exit
-  |
-  +--------------------+--------------------+
-  |                    |
-  v                    v
-EXP-W-002          EXP-I-002
-engineering        engineering
-experiment         experiment
+Engineering Evidence (TESTDATA/PERF/ARCH/TEST-002) --------+
+                                                            |
+Sound / Host Evidence (HOST-001) ---------------------------+
+                                                            v
+                       M1 Joint Exit Review
+                              |
+                 +------------+------------+
+                 |                         |
+                 v                         v
+              M2 Water                  M3 Ice
+                 |                         |
+                 v                         v
+              EXP-W-002                EXP-I-002
+                 |                         |
+                 +-----------+-------------+
+                             |
+              EXP-W-003 / EXP-I-003 selection
+                    (LISTENING-001 ready)
+                             |
+                WATER-006 / ICE-006 listening
 
-LISTENING-001 representative corpus preparation may proceed in parallel
-  |                    |
-  +---------> EXP-W-003 / EXP-I-003 selection
-                       |
-                       +--> WATER-006 / ICE-006 listening evidence
-
-M2 Water --------+
-                 |
-M3 Ice ----------+
-                 |
-                 v
+Parallel during M1 (preparatory only; does not change milestone state):
+  EXP-W-001 / EXP-I-001 perceptual brief preparation
+  LISTENING-001 representative corpus preparation
 
 PARAM-FREEZE-001
 v1 Host Parameter Contract Freeze
@@ -133,6 +137,11 @@ v1.0 Release
 
 M2 Water 与 M3 Ice 使用 pipeline-level parallelism：两种材质可处于不同的 brief、experiment、selection、
 production 或 acceptance 阶段，但不按“Water 一人 / Ice 一人”建立孤立 production ownership。
+`EXP-W-002` / `EXP-W-003` 是 M2 Water work items，`EXP-I-002` / `EXP-I-003` 是 M3 Ice work items；
+图中将它们放在对应的 M2/M3 分支下，不表示它们是 milestone 之前的前置条件。
+M1 期间只允许准备 `EXP-W-001` / `EXP-I-001` perceptual briefs 和 `LISTENING-001` corpus，且仅限
+non-production preparation；这不表示 M2/M3 已正式开始，也不授权 production Water/Ice DSP 或 candidate
+production integration。Engineering candidate work 从 M1 Joint Exit 后开始。
 `PARAM-FREEZE-001` 必须在 M2/M3 完成后、M4 开始前完成；`ADR-R-001` 必须在任何 `ROUTE-006`
 实现前 Accepted。任何 Water/Ice 生产实现都依赖 M1 的 ProcessSpec、EngineParameters、Snapshot、统一测试
 素材和性能 baseline。
