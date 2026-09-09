@@ -92,7 +92,10 @@ std::size_t delayWriteIndex_ {};
 3. Comment & Documentation Pass：公共接口、关键算法注释、模块 README、`docs/MODULE_INDEX.md`、ADR/计划/测试合同按影响范围同步；
 4. 最终验证并在 PR 写出实际命令和结果；无影响项写 `N/A`。
 
-实现前还必须完成 [Documentation Synchronization Gate](DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate)：识别受影响合同和证据文档，必要更新与实现放在同一个 PR，并记录 reviewed-but-unchanged 文档及一致性检查结果。
+实现前必须执行 [Documentation Impact Check](DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate)：
+普通 bounded task 使用 Targeted Check，只检查直接相关 contract/module/evidence；仅命中该文档定义的 Full Gate
+trigger 时才执行完整 Documentation Synchronization Gate。必要更新与实现放在同一个 PR，且只对直接相关但
+无需修改的文档记录 `Reviewed, no update required`。
 
 对涉及 State、Water、Ice、Routing、automation 或 edit/history behavior 的实现工作，在阅读 Architecture、Coding Plan、Parameters contract 和相关 Accepted ADR 后，还应 review `docs/CORE_IMPLEMENTATION_GUIDE.md`。该文档是 Level 3 maintained implementation guide，只可解释实现方法和 experiment candidates，不得覆盖 Level 1/2 contracts 或 Accepted ADR decisions。
 

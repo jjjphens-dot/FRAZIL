@@ -8,17 +8,22 @@
 
 ## 1. 测试分层
 
-| 层级 | 位置 | 主要问题 | 每次 PR |
+| 层级 | 位置 | 主要问题 | 适用条件 |
 |---|---|---|---|
-| L0 Build/Smoke | CMake/CTest/portability checker | repository 是否可配置、编译、启动且不含机器专属路径 | 必需 |
+| L0 Build/Smoke | CMake/CTest/portability checker | repository 是否可配置、编译、启动且不含机器专属路径 | `src/**`、production test infrastructure、CMake/presets、dependency/bootstrap、CI workflow、build script 或 executable tooling 变更必需；纯 docs/template 可标记 N/A，除非改变可执行命令、preset 或 CI/build/test 行为 |
 | L1 Unit | `tests/unit/` | mapping、mix、gain、smoother、history 边界是否精确 | 相关变更必需 |
 | L2 DSP Property | `tests/dsp/` | 极值、随机输入、prepare/reset 下是否 finite/stable | DSP 变更必需 |
 | L3 Render Regression | `tests/render/` + `testdata/` | 固定输入/seed/参数下声音输出是否可复现 | 声音/routing 变更必需 |
 | L4 Integration | `tests/integration/` | Processor、参数、state、mode retention | Host/app 变更必需 |
 | L5 Plugin Validation | pluginval/VST3 validator | 生命周期、总线、editor、automation fuzz | 插件变更必需 |
-| L6 DAW Acceptance | 手工矩阵 | 真实枚举、录制、回放、保存、重开 | milestone/release gate |
+| L6 DAW Acceptance | 手工矩阵 | 真实枚举、录制、回放、保存、重开 | HOST work item、明确兼容性任务或 milestone/release gate |
 | L7 Listening | review pack | 声音是否达到 Water/Ice 产品目标 | 声音变更必需 |
 | L8 Performance | benchmark | callback 时间、CPU、allocation、memory | DSP/beta/release |
+
+Validation is impact-based：只有变更可能影响某层验证目标时，该层才是 required。纯 documentation、ownership、
+planning、Issue/PR template、typo 或 non-executable governance 变更，不触发无关 Windows build、CTest、ASAN、
+DSP property、pluginval、render、DAW、listening 或 performance validation。相关但未执行的层级必须以
+`N/A` / `NOT RUN` 记录简短理由；这不降低 code、DSP、plugin、Host 或 release 变更原有的适用 gate。
 
 ### 1.1 Evidence ownership 与验收交接
 

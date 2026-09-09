@@ -54,37 +54,69 @@
 
 ## 5. Documentation Synchronization Gate
 
-这是仓库级 Documentation Impact Analysis、同步和一致性审查的 canonical 规则。凡任务改变 architecture、public interface、module existence/responsibility、ownership、thread/realtime behavior、parameter/state/routing contract、random/latency semantics、test evidence、Host/UI behavior、milestone、build/CI 或 performance，必须在实现前执行以下流程：
+这是仓库级 Documentation Impact Analysis、同步和一致性审查的 canonical 规则。Documentation review 与
+change risk/scope 成比例；Targeted Check 是普通 bounded task 的默认路径，只有明确命中高影响 trigger 才进入
+Full Documentation Synchronization Gate。
+
+#### Level A — Targeted Documentation Impact Check
+
+bug fix、unit regression、small implementation correction、bounded refactor、narrow tooling 和 ordinary docs
+correction 只执行：
 
 ```text
-Read contract
-  -> Identify changed contracts and evidence
-  -> Documentation Impact Analysis
-  -> Implementation
-  -> Documentation Synchronization in the same PR
-  -> Documentation Consistency Review
-  -> Tests / CI
-  -> PR review and final report
+Identify directly affected contract/module/evidence
+  -> Check directly relevant docs
+  -> Update if needed in the same PR
+  -> If no documented contract/status changes: stop
+```
+
+add regression coverage、fix unit test、refactor test helper、add one property case 或修复 deterministic fixture，
+如果不改变 documented support/status、milestone exit evidence、public compatibility claim、canonical testing
+contract，或下列任一产品/工程合同，不触发 Full Gate。
+
+#### Level B — Full Documentation Synchronization Gate
+
+只有改变 architecture、public interface、module existence/responsibility、ownership model、parameter/state/routing
+contract、thread/realtime boundary、latency/random semantics、documented Host/UI behavior、build/dependency/CI
+contract、formal performance contract、milestone/status/support claim 或 release compatibility claim 时执行 Full
+Gate。test evidence 只有在改变 documented project status、support claim、milestone exit evidence、public
+compatibility claim 或 canonical testing contract 时才属于 Full Gate trigger。
+
+```text
+Read affected canonical contract
+  -> Identify changed contracts and documented evidence/status
+  -> Use relevant Documentation Impact Matrix rows
+  -> Implementation + documentation synchronization in the same PR
+  -> Consistency review of affected documents
+  -> Proportional tests / CI
+  -> Risk-appropriate review and final report
 ```
 
 ### 5.1 Documentation Impact Matrix
 
-| 变化领域 | 必须检查的文档 | 同步触发 |
+Full Gate 只使用实际变化命中的矩阵行；Targeted Check 只检查直接相关文档，不机械遍历整张矩阵。
+
+| 变化领域 | 相关文档 | 同步触发 |
 |---|---|---|
 | Architecture / dependency / ownership | `FRAZIL_PROJECT_ARCHITECTURE_v0.3.md`、`MODULE_INDEX.md`、受影响 module README、相关 ADR | 边界、职责、所有权或依赖方向改变时同 PR 更新 |
-| Parameter / Host contract | `PARAMETERS.md`、`MODULE_INDEX.md`、plugin/app README、相关 tests、`PROJECT_STATUS.md` | ID、range、default、choice、smoothing、Host behavior 或 evidence 改变时同 PR 更新 |
+| Parameter / Host contract | `PARAMETERS.md`、`MODULE_INDEX.md`、plugin/app README、相关 tests、`PROJECT_STATUS.md` | ID、range、default、choice、smoothing、documented Host behavior/support 或 compatibility claim 改变时同 PR 更新 |
 | State | `PARAMETERS.md`、ADR-0002、`MODULE_INDEX.md`、app/plugin README、`TESTING.md`、`PROJECT_STATUS.md` | schema、migration、fallback、inactive value retention 或 restore behavior 改变时同 PR 更新 |
-| Realtime / DSP processing | 受影响 module README、`CODE_STANDARDS.md`、`TESTING.md`、相关 ADR、`MODULE_INDEX.md` | realtime boundary、buffer、random、latency、DSP contract 或 evidence 改变时同 PR 更新 |
-| Routing | Architecture、ADR-0001、`PARAMETERS.md`、`MODULE_INDEX.md`、routing README、`TESTING.md` | topology、mix law、transition 或 routing evidence 改变时同 PR 更新 |
+| Realtime / DSP processing | 受影响 module README、`CODE_STANDARDS.md`、`TESTING.md`、相关 ADR、`MODULE_INDEX.md` | realtime boundary、buffer、random、latency、DSP contract 或 documented support/performance claim 改变时同 PR 更新 |
+| Routing | Architecture、ADR-0001、`PARAMETERS.md`、`MODULE_INDEX.md`、routing README、`TESTING.md` | topology、mix law、transition、routing contract 或 documented compatibility/milestone evidence 改变时同 PR 更新 |
 | UI / Undo / interaction | `PARAMETERS.md`、UI/app README、`MODULE_INDEX.md`、`TESTING.md`、相关 UX 文档 | user interaction、gesture/history 或 UI contract 改变时同 PR 更新 |
-| Build / dependency / CI | `ENVIRONMENT.md`、README、`TESTING.md`、`GITHUB_WORKFLOW.md`、`PROJECT_STATUS.md` | toolchain、preset、dependency、workflow 或 CI evidence 改变时同 PR 更新 |
-| Milestone / implementation status | `PROJECT_STATUS.md`、`MODULE_INDEX.md` | Planned/Partial/Implemented、milestone 或 exit-gate status 改变时同 PR 更新 |
+| Build / dependency / CI | `ENVIRONMENT.md`、README、`TESTING.md`、`GITHUB_WORKFLOW.md`、`PROJECT_STATUS.md` | toolchain、preset、dependency、workflow contract 或 documented CI support/status 改变时同 PR 更新 |
+| Milestone / implementation/support status | `PROJECT_STATUS.md`、`MODULE_INDEX.md` | Planned/Partial/Implemented、support claim、milestone 或 exit-gate status 改变时同 PR 更新 |
 
-“Reviewed, no update required” 是有效结果，但必须在 PR checklist 或最终报告中记录理由。不得仅因为改动看起来是局部代码或文档而跳过矩阵审查；`CODING_PLAN.md` 的稳定 milestone 合同只有在计划真正改变时才修改。
+“Reviewed, no update required” 是有效结果，但只需对 directly relevant documents 记录理由。普通 task 不需要
+为完全无关文档逐项填写 `N/A`；`CODING_PLAN.md` 的稳定 milestone 合同只有在计划真正改变时才修改。
 
 ### 5.2 Documentation Consistency Review
 
-实现和文档同步后，必须交叉检查 `PROJECT_STATUS.md`、`MODULE_INDEX.md`、受影响 module README、`CODING_PLAN.md`、`PARAMETERS.md`、`TESTING.md`、`COLLABORATION_ROLES.md`、Architecture 和相关 ADR。重点排查 Planned/Implemented、StateModel existence、parameter freeze、main/feature、CI result/SHA 和 module ownership 的冲突。
+Targeted Check 只交叉检查直接受影响的 canonical/module/evidence 文档。Full Gate 根据 Documentation Impact
+Matrix 中实际命中的行检查 affected `PROJECT_STATUS.md`、`MODULE_INDEX.md`、module README、`CODING_PLAN.md`、
+`PARAMETERS.md`、`TESTING.md`、`COLLABORATION_ROLES.md`、Architecture 或 ADR；不要求每个任务机械打开全部
+文档。重点排查受影响范围内的 Planned/Implemented、module existence、parameter freeze、main/feature、
+documented CI/support result 和 module ownership 冲突。
 
 如果 source、contract、module index、status 或 evidence 互相矛盾，Documentation Gate = FAIL，PR 不得标记 Ready，直到事实层级被明确并完成同步。`PROJECT_STATUS.md` 只记录已验证事实，不承载长期计划正文；长期协作指南只保留职责、合同、边界、流程和阶段重心，不记录 current HEAD、reviewer、临时 branch 或单次 CI 状态。
 
@@ -127,8 +159,7 @@ push、改写 author、force push、rewrite history 或新建无意义 PR。没�
 ### 5.4 Final Report
 
 Agent 完成任务时按风险比例报告。所有任务至少说明 changed files、实际 validation、未执行检查和结果；
-改变 architecture、contract、module/status evidence 或 Documentation Synchronization Gate 所列领域时，使用
-完整 Documentation Review：
+命中 Level B Full Gate trigger 时，使用完整 Documentation Review：
 
 ```text
 ## Documentation Review
@@ -151,8 +182,9 @@ Result:
 PASS / FAIL
 ```
 
-普通 bounded docs/maintenance task 可以合并为简短的 changed/reviewed/consistency/result 结论。不得只写
-“docs updated”；未执行的相关检查必须明确标为 `NOT RUN`。
+Targeted Check 下的 bounded docs/maintenance task 可以合并为简短的 changed/reviewed/consistency/result
+结论，只列 directly relevant documents。不得只写“docs updated”；未执行的相关检查必须明确标为
+`NOT RUN`。
 
 ## Modification Policy
 

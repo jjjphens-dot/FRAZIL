@@ -90,9 +90,14 @@ Contract Review
 
 功能完成后不得跳过独立的 Code Quality Review 或 Comment & Documentation Pass。
 
-### Documentation Synchronization Gate
+### Documentation Impact Check / Synchronization Gate
 
-任何改变架构、公共接口、模块职责、参数/state、realtime、routing、Host/UI 行为、测试证据、milestone 或 build/CI 的任务，必须在实现前执行 Documentation Impact Analysis，并按 [Documentation Synchronization Gate](docs/DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate) 检查受影响文档。需要更新的文档必须与实现进入同一个 PR；无更新必要也必须记录理由。最终反馈必须包含 Documentation Review（Changed、Reviewed, no update required、Consistency、Result）。
+任务先按实际 scope 执行 [Documentation Impact Check](docs/DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate)。
+普通 bounded task 只检查直接相关的 contract/module/evidence；只有 architecture、公共接口、模块职责、
+参数/state/routing、realtime/latency/random、Host/UI documented behavior、build/dependency/CI contract、正式
+performance contract、milestone/status/support 或 release compatibility claim 等 Full Gate trigger 被命中时，
+才执行完整 Documentation Synchronization Gate。需要更新的文档必须与实现进入同一个 PR；只对直接相关但
+无需更新的文档记录理由，最终反馈按变更风险报告 Documentation Review。
 
 ### Forbidden shortcuts
 

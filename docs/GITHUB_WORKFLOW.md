@@ -105,17 +105,21 @@ Backlog -> Ready -> In Progress -> Code Review -> Listening/DAW Test -> Done
 
 合并策略建议 Squash merge，使 `main` 每个 commit 对应一个完整 issue。PR title 使用可读的 Conventional Commit 风格；实验 PR 可保留 draft，未经 gate 不合并生产 target。
 
-PR 必需检查：
+PR validation is impact-based。所有 PR 至少检查 changed-file sanity、凭据/私有路径/禁止生成物、与变更直接
+相关的 documentation/link/path consistency、scope/ownership consistency，以及与风险相称的 review。
 
-- Repository portability scan；
-- portable Windows configure/build/test；
-- formatting/lint（建立后）；
-- unit/DSP/integration tests；
-- 变更影响对应的 render/pluginval 检查；
-- 文档链接/状态一致性；
-- Documentation Impact Analysis 与跨文档 consistency review；
-- Code Quality Review 与 Comment & Documentation Pass；
-- module README、`docs/MODULE_INDEX.md` 和 PR 影响字段同步。
+- Code / build / dependency PR：运行相关 configure、build、CTest 和 portability validation；
+- App / DSP PR：运行相关 build、unit/property tests；只有声音或 routing behavior 受影响时才要求对应 render
+  regression，并在合同要求时提供 listening evidence；
+- Plugin / Host integration PR：按影响运行 plugin integration tests 和 pluginval；真实 DAW matrix 只用于
+  HOST work item、milestone/release gate 或明确 compatibility task；
+- Pure docs / template / governance PR：只要求 Markdown/YAML validity、link/path reference、stale-rule search、
+  实际受影响合同的跨文档一致性和 `git diff` sanity。此类 PR 不要求无关 Windows build、CTest、ASAN、
+  pluginval、render、DAW、listening 或 performance run。
+
+Formatting/lint、Code Quality Review、Comment & Documentation Pass、module README 和 `MODULE_INDEX.md` 也只在
+对应 source、interface、module 或 documentation facts 受影响时执行。render/pluginval 始终只由相关 behavior
+变化触发，不是所有 PR 的固定 gate。
 
 Documentation Synchronization Gate 的 canonical 规则位于 [`DOCUMENT_GOVERNANCE.md`](DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate)。涉及 parameter/state、routing、realtime、核心 DSP、latency、random semantics、performance budget 或 release 的 PR，还必须留下可验证的 GitHub formal review；无法提交 formal review 时，第二位开发者必须在 PR comment 中写明 review scope、复现 evidence、limitations 和 decision。
 
@@ -206,13 +210,18 @@ PR 描述记录 Implementation/Acceptance DRI、PR creator、reviewer 和 review
 
 ## 7. CI 分层计划
 
-### PR required
+### PR / change-triggered validation
 
-- Windows portable Debug configure/build/CTest；
-- CTest 中的 RENDER-001 offline render smoke；
-- 参数/状态/unit tests；
-- source format 检查；
-- 对改动路径触发相关 DSP/render smoke。
+- 所有 PR：changed-file/policy sanity，以及与实际变更相关的 docs/template validity 和 consistency；
+- `src/**`、production test infrastructure、CMake/presets、dependency/bootstrap、CI workflow、build scripts 或
+  executable tooling：Windows portable Debug configure/build/CTest、portability validation 和相关 tests；
+- app/DSP/parameter/state/routing：按影响增加 unit/property/integration 与必要 render smoke；
+- plugin/Host：按影响增加 plugin integration/pluginval；DAW matrix 只在 HOST、compatibility、milestone 或
+  release gate 执行；
+- pure docs/template/non-executable governance：不要求无关 build、CTest、RENDER-001、DSP 或 plugin jobs。
+
+source format 检查只对其覆盖的 source path 生效。CI 即使因平台配置对 docs-only PR 自动运行额外 job，也不把
+这些额外结果改写为该类 PR 的人工 acceptance requirement。
 
 ### Scheduled/nightly
 
