@@ -103,7 +103,9 @@ performance contract、milestone/status/support 或 release compatibility claim 
 
 Agent 不得：
 
-- 功能通过后直接结束而不更新注释、模块 README 或 `MODULE_INDEX.md`；
+- 功能通过后不得跳过与实际变更相关的 Comment & Documentation Pass；只有公共接口、模块职责、行为、
+  contract 或已记录的 documentation fact 发生变化时，才更新对应注释、module README、`MODULE_INDEX.md`
+  或其他相关文档；
 - 修改 LOCKED contract 以迁就实现；
 - 使用 mutable global/static state 省事；
 - 用巨大 class 聚合多个变化原因；
