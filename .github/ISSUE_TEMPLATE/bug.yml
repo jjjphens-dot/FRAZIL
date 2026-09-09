@@ -4,6 +4,9 @@ title: "[BUG] "
 labels:
   - "type:bug"
 body:
+  - type: markdown
+    attributes:
+      value: "Reporter fields come first. Maintainers must complete the ownership contract below before moving the bug to Ready."
   - type: textarea
     id: observed
     attributes:
@@ -68,3 +71,50 @@ body:
       options:
         - label: I checked that attached material contains no credentials or unlicensed/private audio.
           required: true
+  - type: input
+    id: work_item
+    attributes:
+      label: Stable ID / Milestone (maintainer triage)
+      description: Assign the stable bug/work-item ID and milestone before Ready.
+    validations:
+      required: false
+  - type: textarea
+    id: ownership
+    attributes:
+      label: Implementation / Acceptance ownership (maintainer triage)
+      description: Record both DRIs before Ready; roles do not imply GitHub account identity.
+      placeholder: |
+        Implementation DRI:
+        Acceptance DRI:
+    validations:
+      required: false
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and non-goals (maintainer triage)
+      description: Bound the fix before moving the bug to Ready.
+    validations:
+      required: false
+  - type: textarea
+    id: path_scope
+    attributes:
+      label: Allowed / Forbidden paths (maintainer triage)
+      description: Required only for cross-module, production, contract-sensitive or ownership-sensitive fixes; bounded fixes may leave empty.
+      placeholder: |
+        Allowed paths:
+        Forbidden paths:
+    validations:
+      required: false
+  - type: textarea
+    id: handoff
+    attributes:
+      label: Inputs, outputs, handoff and Joint Gate (maintainer triage)
+      description: Fill only for cross-role handoff, milestone gates or contract-sensitive fixes; bounded fixes may leave empty.
+      placeholder: |
+        Inputs owned by Acceptance DRI:
+        Outputs owed to Acceptance DRI:
+        Handoff condition:
+        Joint-gate decisions:
+        Related contract / ADR:
+    validations:
+      required: false

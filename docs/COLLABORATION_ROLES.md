@@ -1,234 +1,337 @@
-# FRAZIL 双人协作分工
+# FRAZIL 双人协作、Ownership 与交接规则
 
 > 状态：Maintained collaboration guide<br>
 > 适用阶段：M0 -> v1.0<br>
-> 角色：Engineering Lead、Sound & Host Lead<br>
-> 具体 assignee 与实时状态：仅在 GitHub Issues/Project 中维护
+> 当前角色映射：Engineering Lead = `Aspartameqwq`；Sound & Host Lead = `jjjphens-dot`<br>
+> 单个工作项的 assignee、状态和截止信息：仅在 GitHub Issues/Project 中维护
 
 ## 1. 协作模型
 
-FRAZIL 的两位开发者具有互补能力：一位拥有更丰富的代码开发经验，另一位拥有更丰富的编曲、音乐制作和插件使用经验。项目采用“双负责人制”，使每项产品能力同时通过工程质量与声音/宿主体验两道门。
+FRAZIL 使用两条互补的责任链：
 
-每个 vertical slice 必须指定：
+> Engineering Lead owns how production software is engineered correctly.
+>
+> Sound & Host Lead owns whether it works correctly as a musical product and inside real DAWs.
 
-- Implementation DRI：对实现完整性负责；
-- Acceptance DRI：对声音、用户行为或宿主验收负责；
-- Joint Gate：涉及长期合同的决策必须两人同意。
+角色映射描述长期职责领域，不等同于 GitHub 登录账号、commit author、PR creator 或 reviewer。
+每个工作项仍必须单独指定 Implementation DRI 和 Acceptance DRI，不能用“谁有空谁继续做”替代稳定
+ownership，也不能把 Water 和 Ice 长期切成两个互不审查的 production 技术孤岛。
 
-角色不绑定姓名。团队只在 GitHub 中把成员映射到角色，不因人员变化改写长期规则。当前阶段也不按“Water 一人、Ice 一人”拆成两个互不审查的技术孤岛。
+每个 Ready 工作项必须具备：
 
-## 2. 角色职责
+- Implementation DRI：对约定 scope 内的实现、测试、文档和修复闭环负责；
+- Acceptance DRI：提供输入并独立验收，不默认进入对方的 production implementation；
+- 明确的 problem/goal、scope/non-goals 和 acceptance criteria。
 
-### 2.1 Engineering Lead
+Write ownership、Allowed/Forbidden paths、双方 inputs/outputs、handoff condition 和 Joint Gate 是风险触发
+字段：cross-module、production DSP、contract/ownership-sensitive、Host acceptance 或 milestone gate 工作必须
+填写；普通 bounded task 不需要为这些字段承担固定管理成本。
 
-由代码开发经验更丰富的成员担任，主要负责：
+## 2. Ownership 术语与防重合规则
 
-- C++20、JUCE、CMake、CI、测试框架和开发工具；
-- `plugin -> app -> dsp` 的依赖边界、公共接口和对象所有权；
+### 2.1 Implementation DRI
+
+Implementation DRI 可以在约定 scope 内编写实现、测试和同 PR 文档；敏感任务还须遵守明确的 Allowed
+paths。DRI 负责回应 finding，并说明未执行验证。
+DRI 是工作责任，不要求与 PR creator、push account、commit author/committer 或 reviewer 使用同一身份。
+
+### 2.2 Acceptance DRI
+
+Acceptance DRI 负责确认验收输入、复现证据、记录 finding 和作出 acceptance decision。正常闭环为：
+
+```text
+Implementation DRI
+  -> implementation and self-validation
+  -> Acceptance DRI review / validation
+  -> finding
+  -> Implementation DRI fix
+  -> Acceptance DRI re-validation
+```
+
+Acceptance DRI 默认是 owner 的实质 production implementation 的 `Review only`，不得为了快速修复而接管
+对方 feature。`Review only` 允许 read、comment、run tests、reproduce、create findings、提出概念性 patch
+建议和提交 acceptance evidence。
+
+Primary ownership 不是 filesystem ACL。另一角色可以完成当前 scope 明确包含的 typo、one-line label fix、
+小型 test-only correction、documentation sync 或 trivial integration correction，只要它不创建/替换 production
+implementation、不改变 Joint Gate contract，且 primary owner 可以 review。此类 bounded fix 不需要 DRI
+Transfer。
+
+### 2.3 Implementation DRI transfer
+
+只有 substantial implementation responsibility 确实换人时，才在 Issue/PR 记录以下内容：
+
+```text
+Implementation DRI Transfer
+
+Previous DRI:
+New DRI:
+Reason:
+Scope transferred:
+Allowed / forbidden paths after transfer:
+Effective point:
+Open findings and evidence state:
+```
+
+DRI transfer 不自动改变已有 PR 的 creator 或 push-account rule。若新 DRI 不能通过现有 PR creator
+继续 push，应显式决定由原 PR creator 继续管理 push，或关闭旧 PR 后以新 ownership 建立 branch/PR；不得
+静默跨账号 push、伪造 author 或 rewrite history。
+
+typo、小型 bounded fix、test-only correction 或 documentation correction 不触发 DRI Transfer。
+
+## 3. 长期角色职责
+
+### 3.1 Engineering Lead
+
+- C++20、JUCE、CMake、CI、测试框架、build portability 和开发工具；
+- `plugin -> app -> dsp` 边界、公共接口、对象所有权和生命周期；
 - audio-thread realtime safety、预分配、smoothing、transition 和 finite output；
 - ParameterLayout、ParameterSnapshot、ParameterMapper、StateModel 与 AudioEngine；
 - production Water/Ice/Routing DSP 的工程实现；
 - unit/property/integration/render harness、ASAN、pluginval 和性能测量；
-- code quality review、公共 API 注释、module README 与 MODULE_INDEX 同步。
+- production code quality、公共 API 注释、module README 与 MODULE_INDEX 同步。
 
-Engineering Lead 不单独决定最终听感、macro 产品语义、DAW 工作流和 UI 操作优先级，也不能为了实现方便改变参数或 routing 合同。
+Engineering Lead 不单独决定最终听感、macro 产品语义、DAW 工作流或 UI 产品优先级，也不能为实现方便
+改变参数、state、routing、latency 或 random persistence 合同。
 
-### 2.2 Sound & Host Lead
+### 3.2 Sound & Host Lead
 
-由编曲、音乐制作和插件使用经验更丰富的成员担任，主要负责：
-
-- Water/Ice perceptual brief、声音参考、反例和 reject criteria；
-- reference corpus 的素材选择、使用场景和许可证信息；
-- candidate A/B、loudness match、独立评分和 accept/revise/reject；
-- 参数名称、默认值、范围、macro 可理解性和极端行为；
-- 目标 DAW 中的参数枚举、automation、state save/reopen 和 offline render；
-- routing、enable、Global Mix、Input/Output Gain 的真实插件操作验证；
+- Water/Ice perceptual brief、声音参考、反例、reject criteria 和 listening rubric；
+- listening/reference 素材、使用场景、许可输入和 representative workload；
+- candidate A/B、loudness match、独立评分与 accept/revise/reject；
+- 参数名称、默认值、范围、macro 语义和极端行为的产品验收；
+- Ableton、FL Studio、REAPER 中的 scan/load、参数枚举、automation、save/reopen 和 offline render；
+- routing、enable、Global Mix、Input/Output Gain 的真实制作体验；
 - UI 信息层级、操作速度、视觉信号流和产品验收；
 - 用户文档、已知限制和音乐制作示例。
 
-Sound & Host Lead 不单独决定 production audio-thread 是否安全、跨模块依赖、对象生命周期和 state migration 技术方案，也不能让未通过 property/performance test 的算法进入 `src/dsp/`。
+Sound & Host Lead 不单独决定 production audio-thread 安全、跨模块依赖、对象生命周期或 state migration
+技术方案，也不能让未通过 property/performance gate 的算法进入 `src/dsp/`。
 
-## 3. Ownership matrix
+## 4. File / Path write ownership
 
-| 工作领域 | Implementation DRI | Acceptance DRI / Required reviewer | 必需证据 |
+下表描述 default responsibility，用于防止两人平行或实质性接管 production work，不是 strict filesystem
+ACL。高风险 Issue 可以用 Allowed/Forbidden paths 收窄写入边界；普通 bounded task 以明确 scope 为准。
+
+| Path / domain | Primary writer | Other developer |
+|---|---|---|
+| `src/app/**` | Engineering Lead | Review only |
+| `src/plugin/**` | Engineering Lead | Host finding / review only |
+| `src/dsp/**` | Engineering Lead | Sound acceptance / review only |
+| `tests/unit/**` | Engineering Lead | Review / scenario input |
+| `tests/dsp/**` | Engineering Lead | Review / listening-risk input |
+| `tests/integration/**` | Engineering Lead | Host scenario input / review |
+| `tests/render/**` | Engineering Lead | Consume / review |
+| `tools/*render*`, `tools/*perf*` | Engineering Lead | Consume / usability finding |
+| CMake、build scripts、`.github/workflows/**` | Engineering Lead | Reproduction review |
+| `testdata/input/**`、`testdata/manifest.json`、`tools/*testdata*` engineering corpus | Engineering Lead；accepted 后冻结 | 修改需显式 Issue；Sound & Host Lead 提供需求/许可 review |
+| `testdata/listening/**` | Sound & Host Lead | Engineering validation |
+| Host/DAW evidence | Sound & Host Lead | Engineering reproducibility review |
+| perceptual briefs、listening rubric/notes | Sound & Host Lead | Engineering feasibility review |
+| production Water/Ice/Routing DSP | Engineering Lead | Sound / Host acceptance |
+| Parameter/state/routing contract | Joint Gate | Joint Gate |
+| Accepted ADR decision | Joint Gate | Joint Gate |
+| formal performance budget | Joint Gate | Joint Gate |
+
+`AGENTS.md`、治理文档和 PR template 的修改按其 Modification Policy 执行。Primary ownership 不能覆盖
+LOCKED/CONTROLLED 文档要求，也不允许 parallel production implementation、静默接管另一 owner 的 feature、
+跨 ownership boundary 的 substantial refactor，或未经批准改变 Joint Gate decision。
+
+## 5. M0 与 M1 ownership
+
+### 5.1 M0 剩余职责
+
+| Work | Implementation DRI | Acceptance DRI | Scope boundary |
 |---|---|---|---|
-| CMake、dependency、CI | Engineering Lead | Sound & Host Lead 复现入口 | fresh clone、Hosted CI、命令记录 |
-| GitHub metadata/workflow | Engineering Lead | Sound & Host Lead 检查协作可用性 | labels、milestones、board、ruleset |
-| HOST-000 compatibility matrix | Sound & Host Lead | Engineering Lead 检查可支持性 | DAW/OS/format/version matrix |
-| ParameterLayout/IDs | Engineering Lead | Sound & Host Lead 审核用户语义 | contract tests、Host enumeration |
-| Snapshot/Mapper/State | Engineering Lead | Sound & Host Lead 验证 DAW 行为 | unit/integration、save/reopen |
-| Gain/Mix/Smoothing | Engineering Lead | Sound & Host Lead 验证听感和 automation | signal tests、automation renders |
-| TESTDATA-001 corpus | Sound & Host Lead | Engineering Lead 检查可复现性 | license、hash、audio metadata |
-| Render/measurement tooling | Engineering Lead | Sound & Host Lead 检查易用性 | one-command pack、manifest |
-| Water/Ice experiment | Sound & Host Lead 定义实验 | Engineering Lead 实现/审查工具 | perceptual brief、A/B、rubric |
-| Water/Ice production DSP | Engineering Lead | Sound & Host Lead 最终验收 | property/render/listening/perf |
-| Routing | Engineering Lead | Sound & Host Lead 验证信号流 | routing matrix、DAW、A/B |
-| UI | Engineering Lead 实现 | Sound & Host Lead 主导 UX 验收 | screenshots、interaction、DAW |
-| EditHistoryManager | Engineering Lead | Sound & Host Lead 验证操作模型 | gesture/source/state tests |
-| Beta performance | Engineering Lead 测量/优化 | Sound & Host Lead 检查声音无退化 | mean/P95/P99/worst + listening |
-| Release | Engineering Lead 技术签核 | Sound & Host Lead 产品签核 | validators、DAW、listening、hash |
+| `GH-001` labels/milestones/Project | Engineering Lead | Sound & Host Lead | 只处理协作 metadata，不改产品合同 |
+| `GH-002` ruleset/branch protection | Engineering Lead | Sound & Host Lead | 只处理 repository governance |
+| CI/build/portability/dependency regression | Engineering Lead | Sound & Host Lead | 复现入口 review；不重做 Accepted JUCE dependency strategy |
+| HOST compatibility content/support classification | Sound & Host Lead | Engineering Lead | 不把未执行 DAW evidence 写成支持事实 |
+| audio/reference licensing product review | Sound & Host Lead | Engineering Lead | 不修改 frozen engineering corpus，除非显式 Issue |
 
-## 4. 当前阶段职责重心
+### 5.2 M1 已建立、只做 regression/finding follow-up
 
-当前 M1 已建立 Parameter/Engine foundation：
+`STATE-001`、`STATE-002`、`AUTO-001` foundation 和 `TESTDATA-001` 已进入 `main`。不得另建平行实现；
+后续只允许由相关 regression、兼容性 finding 或明确新 work item 驱动的修改。`RENDER-001` 的 pass-through
+offline smoke 也已进入 `main`；尚未满足的 render matrix/acceptance 继续由同一 ownership 收口，不重建
+另一套 harness。
 
-- `ParameterLayout`；
-- `ProcessSpec` / `EngineParameters`；
-- `ParameterSnapshot` / `ParameterMapper`；
-- 基础 Input/Output Gain；
-- Global Dry/Wet primitive；
-- continuous smoothing 与 `RandomSource`；
-- Host -> Snapshot -> Mapper -> AudioEngine 参数路径。
+### 5.3 M1 剩余工作矩阵
 
-当前 M1 后续重点：
+| Work item | Implementation DRI | Acceptance DRI / inputs | Allowed paths | Forbidden paths / non-goals |
+|---|---|---|---|---|
+| `RENDER-001` acceptance/follow-up | Engineering Lead | Sound & Host Lead 提供使用性 review | 既有 render target、`tools/*render*`、`tests/render/**`、相关 docs | Water/Ice/Routing、listening selection、DAW acceptance |
+| `TEST-002` | Engineering Lead | Sound & Host Lead 提供风险场景 | property/unit/integration tests 与必要 test support | 新声音算法、UI、routing production |
+| `PERF-BASE-001` | Engineering Lead | Sound & Host Lead 提供实际 workload、素材、block size、制作场景 | performance harness、reports、必要 build/test wiring | 正式性能预算、Water/Ice/Routing/UI |
+| `ARCH-LAT-001` | Engineering Lead | Sound & Host Lead 验收 intentional delay/tail 产品语义 | latency metadata、impulse/automated evidence、相关 ADR/docs | 引入 lookahead/FFT/convolution 或更改 routing 实现 |
+| `HOST-001` | Sound & Host Lead | Engineering Lead 提供 build/plugin 与 finding 修复 | Host evidence、DAW matrix/results、Issue findings | 直接修改 StateModel、Mapper、Snapshot、AudioEngine、PluginProcessor |
+| M1 Joint Exit Review | Sound & Host Lead 维护 Host evidence；Engineering Lead 维护 engineering evidence | 双方 Joint Gate | exit evidence 和 review record | 用单条证据链替代另一条 |
 
-- versioned StateModel；
-- state migration / invalid-state fallback；
-- automation integration；
-- `TESTDATA-001`；
-- offline render / measurement tooling；
-- `PERF-BASE-001`；
-- `HOST-001` / DAW validation。
+### 5.4 HOST-001 handoff
 
-Water、Ice、Routing 和正式 UI 尚未进入 production implementation；在 M1-C 的状态、automation、render、performance 与 Host 边界完成前，不提前推进 production DSP。
+Sound & Host Lead 按 Ableton -> FL Studio -> REAPER 推进，每个 DAW 至少执行：
 
-### Sound & Host Lead 当前重点
+- scan、load、unload、reload；
+- 九个 Host-visible parameters 的 name/order/range/default/choice/automation visibility；
+- automation lane create/record/edit/playback/save/reopen；
+- 非默认参数 project save/close/reopen/value restore；
+- DAW offline render 和明确的环境/步骤/结果记录。
 
-1. `HOST-000`：冻结平台和 DAW compatibility matrix；
-2. `TESTDATA-001`：建立 Water/Ice 共用且许可/hash 可追溯的 reference corpus；
-3. 复核九个核心参数的名称、默认值、单位、automation、mode relevance 和 state restore；
-4. 为 `AUTO-001` 编写真实 DAW automation acceptance scenarios；
-5. 为 `PERF-BASE-001` 选择代表性音频、项目和实际 block size；
-6. 起草 `EXP-W-001` Water perceptual brief，不把候选算法写成结论。
+M1 wet path 仍为 pass-through 时，`global.mix` 不改变声音不是未接入的充分证据；重点检查 Host state、final
+value、lane behavior、retention 和 reopen。发现 engine/state/plugin 问题时创建 finding，包含复现步骤、期望、
+实际结果和 evidence，然后 hand back 给 Engineering Lead；验收方不直接进入上述 production implementation。
 
-### Engineering Lead 当前重点
+M1 只有在 Engineering Evidence 与 Sound / Host Evidence 两条链均满足后，才能进入 Joint Exit Review。
+工程测试不能替代 DAW acceptance，DAW 中“听起来正常”也不能替代自动化工程证据。
 
-1. `STATE-001/002`：建立 versioned StateModel、migration、invalid-state fallback 和 inactive-value retention；
-2. automation integration：验证 Host -> APVTS -> Snapshot -> Mapper -> Engine 的完整链路；
-3. `RENDER-001`：建立 offline render / measurement tooling；
-4. `TEST-002`：补齐 M1-C 所需的 fixtures、boundary 和 integration evidence；
-5. `PERF-BASE-001`：建立基础 AudioEngine 的性能基线；
-6. 提供 `HOST-001` / DAW validation 的工程支持与复现入口。
+## 6. M2/M3 pipeline ownership
 
-### 当前合流点
+M2/M3 使用 pipeline-level parallelism，而不是 isolated Water-vs-Ice developer silos。Water 和 Ice 可以
+处于不同流水线阶段，但 production C++ ownership 不按材质拆给两人各自孤立实现。
 
-| 合流点 | Engineering Lead 提供 | Sound & Host Lead 提供 | 通过条件 |
+### 6.1 Experiment pipeline
+
+| Stage / work item | Implementation DRI | Acceptance / Joint Gate | Output boundary |
 |---|---|---|---|
-| Host contract review | 参数实现约束、兼容性风险 | DAW/用户语义和 automation 场景 | 九个参数逐项签核 |
-| M1 engine gate | Snapshot/Mapper/AudioEngine/tests | DAW save/reopen/automation 复现 | M1 Exit Gate 全满足 |
-| Experiment readiness | one-command render/measure tooling | corpus、brief、rubric、references | 可重复 A/B 而无需改核心 C++ |
+| `EXP-W-001` / `EXP-I-001` perceptual brief | Sound & Host Lead | Engineering Lead feasibility review | brief、references、anti-examples、reject criteria、listening dimensions |
+| `EXP-W-002` / `EXP-I-002` candidate experiment | Engineering Lead | Sound & Host Lead owns question/target/fixtures/A-B/rubric inputs | experiment-only DSP、fixed seed、render、engineering measurements |
+| `EXP-W-003` / `EXP-I-003` candidate selection | Sound & Host Lead | Engineering Lead realtime/latency/CPU/random/maintainability gate；final adoption = Joint Gate | loudness-matched review、rubric、accept/revise/reject、macro direction |
+| Water/Ice algorithm ADR | Engineering Lead records technical decision | Joint Gate | production structure、mapping、latency/tail/random/performance/failure modes |
 
-## 5. M2/M3 Water 与 Ice
+禁止两位开发者在没有显式 experiment scope 时，各自实现竞争的 production candidate。实验 code 必须留在
+`experiments/`，通过 Joint Gate 和 ADR 后才进入 production work item。
 
-第一条 Water vertical slice 使用共同流水线：
+### 6.2 Production ownership
+
+| Work items | Implementation DRI | Acceptance DRI |
+|---|---|---|
+| `WATER-001/002/003/004/005/007` | Engineering Lead | Sound & Host Lead |
+| `WATER-006` listening pack | Sound & Host Lead | Engineering Lead evidence review；final algorithm remains Joint Gate |
+| `ICE-001/002/003/004/005/007` | Engineering Lead | Sound & Host Lead |
+| `ICE-006` listening/differentiation pack | Sound & Host Lead | Engineering Lead evidence review；final algorithm remains Joint Gate |
+
+Sound & Host Lead 默认不修改 WaterProcessor/IceProcessor production implementation。Engineering Lead
+不得用工程可行性替代 macro semantic、musical usefulness、Water-vs-Ice differentiation 或 DAW acceptance。
+这不禁止 Sound & Host Lead 在 `experiments/**`、small scripts、parameter sweeps、fixtures 和 prototype
+exploration 中学习或试验 DSP；只禁止未经 scope/Joint Gate 进入平行 production implementation。
+
+### 6.3 推荐并行波次
 
 ```text
-Sound & Host Lead 定义听感目标、素材和 reject criteria
-    -> 两人 Contract Review
-    -> Engineering Lead 实现最小 candidate
-    -> Sound & Host Lead 独立盲听和参数扫描
-    -> Engineering Lead 处理 artifact、稳定性和性能
-    -> 两人共同 accept / revise / reject
-    -> 通过 production gate 后进入 src/dsp/
+Wave A
+  Engineering Lead: Water candidate engineering
+  Sound & Host Lead: Water rubric + Ice perceptual brief
+
+Wave B
+  Engineering Lead: Water findings + Ice experiment prototype
+  Sound & Host Lead: Water listening/DAW acceptance + Ice selection inputs
+
+Wave C
+  Engineering Lead: Ice production implementation
+  Sound & Host Lead: Water final acceptance + Ice listening preparation
 ```
 
-Water 流程稳定后再复用到 Ice。M2/M3 可以并行进行 brief、素材和 experiment design，但在第一条 production vertical slice 通过前，不并行推进两套高风险实时 C++ DSP。
+团队 WIP <= 2；同一时间最多一个高风险 production DSP implementation。能力交叉通过 review、复现和
+experiment 完成，不通过越过 path ownership 同时修改同一 production feature 完成。
 
-每个 candidate 同时通过：
+## 7. Joint Gate
 
-- Engineering Gate：realtime-safe、finite、deterministic test、automation-safe、性能可解释；
-- Sound Gate：材质辨识成立、输入仍可辨识、具有音乐用途、artifact 可接受；
-- Host Gate：目标 DAW 的 enumeration/automation/state/render 行为可接受。
+以下事项必须双方共同决定：
 
-## 6. 决策权
-
-Engineering Lead 可以阻断 audio-thread 不安全、ownership/dependency 不明、兼容性迁移缺失、NaN/Inf、不可控爆峰/随机、无数据的性能回退及隐藏 global/singleton。
-
-Sound & Host Lead 可以阻断材质身份不成立、输入主体不可辨识、参数语义与听感不符、DAW 行为反直觉、candidate 退化成额外 one-shot 拟音或 GUI 无法服务真实制作工作流。
-
-以下事项必须两人同意：
-
-- Parameter ID、choice、range、default、macro 和 `PARAM-FREEZE-001`；
-- Water/Ice production algorithm；
-- routing crossfade/stage mix law 与 `ADR-R-001`；
-- latency/tail/random persistence 语义；
+- Parameter IDs、ordering、choice indices、ranges、defaults、macros 和 `PARAM-FREEZE-001`；
+- Water 和 Ice production algorithm adoption；
+- routing semantics、StageMixer/crossfade law 和 `ADR-R-001`；
+- latency/tail/random persistence semantics；
 - formal performance budget；
 - Beta 和 Release go/no-go。
 
-意见不一致时工作项进入 Blocked，记录双方证据和最小验证实验；任一角色不得覆盖另一领域的阻断意见。
+意见不一致时记录双方证据和最小验证实验，工作项进入 Blocked；任一角色不得覆盖另一领域的阻断意见。
 
-## 7. Issue 交接格式
+Joint Gate 只由上述合同变化触发。普通 bug fix、test coverage、render harness maintenance、performance
+measurement implementation、DAW evidence collection、docs update 和不改变合同的 bounded implementation
+detail refactor 不需要 Joint Gate。
+
+## 8. Issue / PR task contract
+
+Ready 必填：
 
 ```text
 Stable ID / Milestone:
 Implementation DRI:
 Acceptance DRI:
-Contract and related ADR:
 Problem / sound or user goal:
 Scope:
 Non-goals:
-Inputs / fixtures:
 Engineering acceptance:
-Sound / DAW acceptance:
-Documentation impact:
-Joint decision required:
+Sound / Host acceptance:
 ```
 
-DRI 负责推动工作，不代表可以自行验收。具体姓名、状态、截止信息和 board column 只写 GitHub。
+以下字段只在 cross-module、production DSP、contract/ownership-sensitive、Host handoff 或 milestone gate 时
+要求；bounded single-module task 可以写 `N/A — bounded scope` 或留空：
 
-## 8. 标准协作流程
+```text
+Write ownership:
+Allowed paths:
+Forbidden paths:
+Inputs owned by Acceptance DRI:
+Outputs owed to Acceptance DRI:
+Handoff condition:
+Joint-gate decisions:
+Related contract / ADR:
+Documentation impact:
+```
 
-1. Contract Review：两人确认合同、范围、非目标、fixture、验收和 ADR trigger；
-2. Implementation：Implementation DRI 在短生命周期分支实现，团队 WIP 不超过 2；
-3. Functional Validation：工程侧执行自动测试/性能，声音侧执行 listening/DAW/automation/state/UI；
-4. Code Quality Review：按 `CODE_STANDARDS.md` 检查边界、ownership、realtime 和可维护性；
-5. Comment & Documentation Pass：同步注释、module README、`MODULE_INDEX.md` 和受影响合同；
-6. Final Validation：另一位成员复现关键证据，PR 记录命令、环境、素材/seed、结果和未执行项。
+不得让 agent 把模糊目标扩成跨模块重构；也不得把条件字段当作每个小任务的固定 ACL/checklist。
 
-## 9. Review、能力交叉与节奏
+## 9. Review 与 GitHub 身份
 
-- Engineering Lead authored PR：Sound & Host Lead 检查用户/Host/声音行为和测试可理解性；
-- Sound & Host Lead authored experiment/docs/test-data PR：Engineering Lead 检查可复现性、许可、格式和 LOCKED contract；
-- 参数、routing、state、核心 DSP、latency、random、performance budget 和 release PR 必须两人 review；
-- reviewer 至少说明复现了哪项证据或明确 review 边界，不能只写“LGTM”。
+以下身份必须真实、分别记录，但不要求相同：
 
-### 9.1 PR author、commit author 与 reviewer 身份
+- Implementation DRI / Acceptance DRI：工作 ownership；
+- PR creator / author：创建 GitHub PR 的账号；
+- push account：执行当前 push 的已认证 GitHub 账号；
+- commit author / committer：实际 authorship/commit metadata；
+- reviewer：承担 review responsibility 的人和实际提交 review 的账号。
 
-双人协作中的三类身份必须分开记录：
+`PR creator == Implementation DRI`、`commit author == PR creator` 或 reviewer 与预设角色账号绑定都不是
+项目 gate。唯一严格的账号一致性规则是：向已有 PR 对应分支继续 push 时，当前 authenticated push
+account 必须等于该 PR creator；不一致则停止 push 并检查是否登录了错误账号。完整流程见
+[GITHUB_WORKFLOW.md](GITHUB_WORKFLOW.md)。
 
-- `PR author`：创建 GitHub PR 的账号，默认应是本次工作的 Implementation DRI；
-- `commit author/committer`：实际编写或提交各 commit 的账号，可以与 PR author 不同，但必须真实、可解释；
-- `formal reviewer`：Acceptance DRI 使用的另一个 GitHub account，负责提交 `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES`。
+Reviewer 关注 independence、scope、evidence 和 decision。parameter/state contract、core DSP、Water/Ice
+algorithm adoption、routing、realtime boundary、latency、random semantics、formal performance budget、
+Beta/Release 和 milestone exit 使用完整 Reviewer/scope/reproduced/not-reproduced/findings/decision 记录。普通
+docs、bounded test、typo、narrow tooling 或 low-risk maintenance 只需 Reviewer、Decision 和 notable
+limitations/findings。平台无法记录 formal review 时，可以使用明确标注的 comment/manual evidence，但不得
+把 comment 写成 formal `APPROVE`。
 
-创建 PR 或向已有 PR 分支 push 前，Implementation DRI 必须核对当前登录账号、当前 branch 的 open PR author 和预定 reviewer account。若协作者同时是已有 PR 的 author 和预定 reviewer，不得继续把该 PR 用作自己的实现 review 容器，也不得继续向该分支 push；应由正确的 Implementation DRI account 新建 PR，或改由另一个独立 account review。若协作者只是 commit contributor、不是 PR author 或预定 reviewer，则可以保留其真实 commit 署名。不得冒用账号、伪造 review 或通过改写 commit author 假装解决 PR author 问题。权限受限时的第二位开发者 comment 只能作为明确标注的 fallback evidence，不能写成 formal review。
+## 10. 标准流程与反模式
 
-创建后应在 PR 中记录：Implementation DRI、Acceptance DRI、PR author、commit author/committer、reviewer account、review type 和 review result。该记录用于防止“提交人看起来正确但 PR 创建人错误”的身份混淆。
+1. Contract Review：确认 scope、primary ownership 和与风险相称的第 8 节字段/ADR trigger；
+2. Implementation：DRI 在 bounded scope 内实现；敏感任务遵守明确 paths，团队 WIP 不超过 2；
+3. Functional Validation：工程侧运行自动测试/性能，声音侧运行 listening/DAW/automation/state/UI；
+4. Code Quality Review：检查边界、ownership、realtime 和可维护性；
+5. Comment & Documentation Pass：同步注释、module README、MODULE_INDEX 和受影响合同；
+6. Final Validation：Acceptance DRI 复现关键证据，finding 回到 Implementation DRI 闭环；
+7. GitHub lifecycle：按 PR creator / push-account rule 管理后续 push 和 review evidence。
 
-Sound & Host Lead 逐步掌握 test manifest、Python experiment/参数 sweep、C++ unit test、简单 mapping/UI attachment，以及独立运行 CTest/pluginval。Engineering Lead 必须在目标 DAW 复现 automation/state、独立记录听测，并维护无需修改核心 C++ 即可完成 A/B 的工具。
+禁止以下反模式：
 
-推荐节奏：
-
-- Milestone kickoff：共同完成 Contract Review、依赖排序和 issue 拆分；
-- 日常异步：状态、证据和 blocker 更新到 GitHub issue/PR；
-- 每周 engineering review：接口、technical debt、realtime/performance、CI；
-- 每周 listening/Host review：固定素材 A/B、DAW automation/state、产品风险；
-- Milestone exit review：逐条检查 Coding Plan Exit Gate。
-
-## 10. 反模式
-
-- 工程负责人写完功能后才交给另一人试听；
-- 声音负责人只给口头形容，不提供素材、参数和复现步骤；
-- 一人拥有全部代码知识，另一人无法构建或解释接口；
-- 一人拥有全部声音判断，另一人从不在 DAW 中复现；
-- 按 Water/Ice 切成互不审查的技术孤岛；
+- 两人同时修改同一 production feature，却没有明确 DRI transfer 或拆分后的路径边界；
+- Acceptance DRI 静默接管或大幅重构对方 production code；
+- 以“谁有空谁继续做”替代明确 ownership；
+- 按 Water/Ice 切成互不审查的 production 技术孤岛；
 - 为并行而在公共合同冻结前创建两套不兼容接口；
-- 把 live assignee 和短期状态写进长期文档。
+- 把 live issue 状态或临时 branch 写成长久协作合同；
+- 用 commit author 改写、force push 或新建多余 PR 掩盖 GitHub 登录账号不一致。
 
 ## 11. Modification Policy
 
-本文件属于 LEVEL 3 MAINTAINED collaboration guide，用于解释 `CODING_PLAN.md` 已接受的两人协作方式，不改变 Level 1/2 产品、架构、参数、实时或测试合同。
+本文件属于 LEVEL 3 MAINTAINED collaboration guide，用于解释 `CODING_PLAN.md` 已接受的两人协作方式，
+不改变 Level 1/2 产品、架构、参数、实时或测试合同。
 
-- 角色名称保持稳定，具体人员映射和实时 assignments 由 GitHub 管理；
-- 修改 decision rights、review requirement、WIP 或 production workflow 时，按 CONTROLLED 变更同步 `AGENTS.md`、`CODE_STANDARDS.md`、`DOCUMENT_GOVERNANCE.md` 和 `CODING_PLAN.md`；
+- 当前长期角色映射可以在这里维护；具体 work-item assignee/status 仍只写 GitHub；
+- 修改 decision rights、review requirement、WIP、path ownership 或 production workflow 时，按 CONTROLLED
+  变更同步 `AGENTS.md`、`CODE_STANDARDS.md`、`DOCUMENT_GOVERNANCE.md` 和 `CODING_PLAN.md`；
 - 更新示例、交接格式或解释性文字可作为普通 docs PR；
 - 本文件不得降低 Production Definition of Done 或绕过 LOCKED contract。

@@ -7,6 +7,45 @@ body:
   - type: markdown
     attributes:
       value: "Use the stable ID from docs/CODING_PLAN.md. A Ready issue must be independently testable."
+  - type: input
+    id: work_item
+    attributes:
+      label: Stable ID / Milestone
+      description: Use the Coding Plan ID and milestone, for example M1 / TEST-002.
+    validations:
+      required: true
+  - type: textarea
+    id: ownership
+    attributes:
+      label: Implementation / Acceptance ownership
+      description: Record the two DRIs. Roles do not imply GitHub account identity.
+      placeholder: |
+        Implementation DRI:
+        Acceptance DRI:
+    validations:
+      required: true
+  - type: textarea
+    id: path_scope
+    attributes:
+      label: Allowed / Forbidden paths
+      description: Required for cross-module, production DSP, contract-sensitive or ownership-sensitive work. For a bounded single-module task, write N/A — bounded scope or leave empty.
+      placeholder: |
+        Allowed paths:
+        Forbidden paths:
+    validations:
+      required: false
+  - type: textarea
+    id: handoff
+    attributes:
+      label: Inputs, outputs, handoff and Joint Gate
+      description: Fill this for cross-role handoff, milestone gates, production DSP, Host acceptance or contract-sensitive work. Simple bounded tasks may use N/A.
+      placeholder: |
+        Inputs owned by Acceptance DRI:
+        Outputs owed to Acceptance DRI:
+        Handoff condition:
+        Joint-gate decisions:
+    validations:
+      required: false
   - type: textarea
     id: problem
     attributes:
@@ -60,4 +99,6 @@ body:
         - label: Parameter/automation/state impact has been considered.
           required: true
         - label: Listening or DAW validation need is explicit.
+          required: true
+        - label: Ownership is clear, and any path/handoff fields required by the task's risk or scope are complete.
           required: true

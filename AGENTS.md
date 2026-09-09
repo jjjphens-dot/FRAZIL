@@ -21,34 +21,59 @@
 - 当前阶段：M1-C 进行中；M1-A/M1-B Parameter/Engine foundation 与 M1-C STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`，M1 尚未完成。
 - 已有：JUCE 9.0.1、CMake/Ninja presets、VST3/Standalone、pass-through wet path、APVTS 状态保存、集中式 ParameterLayout、ParameterSnapshot/Mapper、基础 gain/mix/smoothing、9 个 Host 参数和 smoke test。
 - 已有：可移植 CI preset 与 Hosted CI 验证；M1-A/M1-B 的首块 priming、retarget 和 runtime buffer invariant regression 已建立；STATE-001 的 schema migration/fallback、XML restore、STATE-002 mode-value-retention 和 AUTO-001 PluginProcessor integration evidence 已建立。
-- 尚缺：TESTDATA、render/performance harness、真实 Host/DAW validation、编辑历史、Water/Ice/Routing DSP 和正式 UI；公开参数 freeze 与完整兼容性 evidence 仍待完成。
+- 已有：`TESTDATA-001` 可复现 engineering corpus 与 `RENDER-001` pass-through offline smoke 已进入 `main`；这些能力只按 regression/finding 维护，不另建平行实现。
+- 尚缺：`TEST-002` processor property、`PERF-BASE-001`、`ARCH-LAT-001` 完整证据、真实 Host/DAW validation、编辑历史、Water/Ice/Routing DSP 和正式 UI；公开参数 freeze 与完整兼容性 evidence 仍待完成。
 - 当前参数合同已将历史 `water.enable` / `ice.enable` 迁移为 `water.enabled` / `ice.enabled`；现有 state migration evidence 已建立，公开兼容性基线前仍需完整 compatibility evidence 与正式参数 freeze。
 - GitHub 远端为 `https://github.com/jjjphens-dot/FRAZIL`。开始产品代码前必须确认工作目录是该仓库的 Git 工作树，且 `origin` 指向该地址。
 
 不得把规划中的模块、历史验证结果或本地已有工具误写为“当前已实现”。完成状态必须由代码、测试或可复现验证记录支持。
 
-## 2. 开工前最小检查
+## 2. Agent execution model
 
-1. 阅读与任务直接相关的 `docs/` 文档和 ADR。
-2. 执行 `git status --short`，保护用户已有改动；不得覆盖或清理无关变更。
-3. 用 `rg` 定位现有实现和测试，避免创建平行架构。
-4. 将任务映射到 `docs/CODING_PLAN.md` 的 milestone、issue ID、依赖和 exit gate。
-5. 若任务触及参数 ID、范围、state schema、routing 语义或实时路径，先检查现有合同。实现已接受合同不自动创建 ADR；只有需要改变架构决策、依赖边界、公共模块职责、参数/状态兼容性、routing、realtime、latency、random-state 或正式性能合同时，才先更新/新增 ADR，再改实现。
+### Normal bounded task
 
-### Required reading
+实现前只做与风险相称的最小检查：
 
-每次生产代码任务开始前必须阅读：
+1. 确认 scope、non-goals 和主要 ownership/domain；
+2. 执行 `git status --short`，保护用户已有和无关改动；
+3. 阅读 task-relevant plan/work item、直接相关 module/contract，以及现有 implementation/tests；
+4. 用 `rg` 复用现有实现和测试，不创建平行 production path；
+5. 只修改完成任务所需的最少文件，并运行与变更成比例的验证。
 
-- `docs/CODE_STANDARDS.md`；
-- `docs/DOCUMENT_GOVERNANCE.md`；
-- `docs/MODULE_INDEX.md`；
-- 相关模块 README、`docs/CODING_PLAN.md`、`docs/PARAMETERS.md`、`docs/TESTING.md` 和 ADR。
+read、review、analysis、本地 edit/test/commit 和 diff inspection 不要求 GitHub identity preflight。PR creator
+和 authenticated account 是 existing-PR push 时的运行时检查，不是开始实现的前置条件。
 
-所有生产代码修改必须遵守 `docs/CODE_STANDARDS.md`。违反该规范的代码不能因为“功能工作正常”而视为 Done。
+### Ownership-sensitive or cross-module task
 
-涉及 Water、Ice、State、Routing、automation 或 history 的实现任务，在阅读上述 canonical contracts 和
-相关 ADR 之后，还应 review `docs/CORE_IMPLEMENTATION_GUIDE.md`；该指南只提供 Level 3 实现解释和
-候选算法参考，不覆盖 Architecture、Coding Plan、Parameters 或 Accepted ADR。
+仅当任务跨 primary ownership、修改另一角色负责的 production DSP/app/plugin、跨多个模块、存在明显
+scope-creep 风险、改变 LOCKED/CONTROLLED contract，或需要实质 DRI handoff 时，才按需补充确认
+Implementation/Acceptance DRI、write/path scope、handoff condition、Joint Gate 和相关 contract/ADR。
+
+Primary ownership 防止平行或实质性越界 production implementation，不是 filesystem ACL。当前 scope 内的
+typo、文档同步、小型测试修正或 trivial integration fix 可以由另一角色完成，不要求 DRI Transfer；只有
+substantial implementation responsibility 真正换人时才记录 transfer。详细规则见
+`docs/COLLABORATION_ROLES.md`。
+
+### Task-relevant reading
+
+每次 production task 只读取直接相关的 canonical source：
+
+- State：相关 parameter/state contract、ADR、module docs 和 tests；
+- DSP：realtime contract、对应 algorithm ADR/guide 和 testing contract；
+- Build/CI：environment、build 和 workflow 文档；
+- Host acceptance：HOST matrix 与 testing/acceptance protocol。
+
+改变 LOCKED/CONTROLLED contract 时必须完整阅读对应 canonical contract/ADR 并执行 Documentation
+Synchronization Gate。所有 production code 仍受 `docs/CODE_STANDARDS.md` 约束；
+`docs/CORE_IMPLEMENTATION_GUIDE.md` 只提供候选方法和实现解释，不能覆盖 Architecture、Coding Plan、
+Parameters 或 Accepted ADR。
+
+### Joint Gate trigger
+
+Joint Gate 只在改变 Parameter ID/order/range/default、state compatibility、Water/Ice production algorithm、
+routing/StageMixer/crossfade 语义、latency/tail、random persistence、formal performance budget 或 Beta/Release
+go/no-go 时阻断。普通 bug fix、测试覆盖、render harness maintenance、performance measurement 实现、DAW
+evidence、docs update 和不改变合同的 bounded refactor 不触发 Joint Gate。
 
 ### Mandatory development phases
 
@@ -65,15 +90,22 @@ Contract Review
 
 功能完成后不得跳过独立的 Code Quality Review 或 Comment & Documentation Pass。
 
-### Documentation Synchronization Gate
+### Documentation Impact Check / Synchronization Gate
 
-任何改变架构、公共接口、模块职责、参数/state、realtime、routing、Host/UI 行为、测试证据、milestone 或 build/CI 的任务，必须在实现前执行 Documentation Impact Analysis，并按 [Documentation Synchronization Gate](docs/DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate) 检查受影响文档。需要更新的文档必须与实现进入同一个 PR；无更新必要也必须记录理由。最终反馈必须包含 Documentation Review（Changed、Reviewed, no update required、Consistency、Result）。
+任务先按实际 scope 执行 [Documentation Impact Check](docs/DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate)。
+普通 bounded task 只检查直接相关的 contract/module/evidence；只有 architecture、公共接口、模块职责、
+参数/state/routing、realtime/latency/random、Host/UI documented behavior、build/dependency/CI contract、正式
+performance contract、milestone/status/support 或 release compatibility claim 等 Full Gate trigger 被命中时，
+才执行完整 Documentation Synchronization Gate。需要更新的文档必须与实现进入同一个 PR；只对直接相关但
+无需更新的文档记录理由，最终反馈按变更风险报告 Documentation Review。
 
 ### Forbidden shortcuts
 
 Agent 不得：
 
-- 功能通过后直接结束而不更新注释、模块 README 或 `MODULE_INDEX.md`；
+- 功能通过后不得跳过与实际变更相关的 Comment & Documentation Pass；只有公共接口、模块职责、行为、
+  contract 或已记录的 documentation fact 发生变化时，才更新对应注释、module README、`MODULE_INDEX.md`
+  或其他相关文档；
 - 修改 LOCKED contract 以迁就实现；
 - 使用 mutable global/static state 省事；
 - 用巨大 class 聚合多个变化原因；
@@ -186,7 +218,9 @@ ctest --preset windows-debug
 - PR 必须填写架构、参数/automation、实时安全、测试和音频评估影响。
 - PR 必须完成 Documentation Impact Review，并在模板中记录受影响文档和一致性检查结果。
 - 参数合同、routing、state、核心 DSP 或发布流程变更至少一名另一位开发者审批，相关讨论全部 resolve 后合并。
-- 创建 PR 或向已有 PR 分支 push 前必须核对 GitHub 身份：PR author 应为 Implementation DRI，且不得是预定的 Acceptance DRI/reviewer；`PR author`、实际 commit author 和 formal reviewer 是三个独立事实，不能用其中一个替代另一个。至少用 `gh api user --jq .login`、`git branch --show-current` 和 `gh pr list --head <branch> --state open --json number,author,url` 复核；如果已有 PR 的 author 是预定 reviewer，agent 必须停止 push，改由 Implementation DRI account 创建 PR 或明确更换独立 reviewer。不得冒用协作者账号或把 comment 写成 formal review。
+- Implementation/Acceptance DRI、PR creator、commit author/committer 和 reviewer 是不同事实，不要求相同或预绑定。Reviewer 仍按 independence、scope、evidence 和 decision 负责；fallback comment/manual evidence 不得冒充 formal `APPROVE`。
+- 仅在准备向已有 PR branch 执行本 context 的首次 push 时，检查 open PR creator 与当前 authenticated account；相同 repository + branch + PR + auth session 的成功结果可以复用。branch/repository/PR/auth 变化、权限/账号异常或用户说明账号变化时重新检查。没有 open PR 时按普通 push/PR 创建流程处理，PR creator 无需等于 Implementation DRI。
+- 已有 PR 的严格规则保持不变：`current authenticated push account == existing PR creator`。不一致时停止 push 并检查登录；不得跨账号 push、伪造 author、rewrite history、force push 或建立无意义的新 PR。完整流程见 `docs/GITHUB_WORKFLOW.md`。
 - 禁止提交 `build/`、`.venv/`、工具二进制、下载归档、生成 render、DAW cache 或个人路径配置。
 - 未经明确请求，agent 不执行 push、merge、release、branch protection 或删除远端内容。
 
@@ -194,7 +228,9 @@ ctest --preset windows-debug
 
 ## 9. Definition of Ready / Done
 
-Issue 进入 Ready 前必须有：用户/声音问题、范围与非目标、acceptance criteria、测试方式、听测需求、参数/automation/state 影响、依赖和 owner。
+Issue 进入 Ready 前必须有 Stable ID/Milestone、用户/声音问题、scope/non-goals、Implementation DRI、
+Acceptance DRI 和 acceptance criteria。只有 cross-module、production DSP、contract/ownership-sensitive、
+Host handoff 或 milestone-gate 工作才必须补 write/path scope、inputs/outputs、handoff 和 Joint Gate 字段。
 
 完成至少意味着：
 

@@ -67,6 +67,27 @@ Milestone 使用 `M0` 至 `M7`，issue title 使用 Coding Plan 的稳定 ID，�
 [M4][ROUTE-004] Implement Water -> Ice serial processing
 ```
 
+### 3.1 Work item ownership contract
+
+Issue 进入 Ready 前必须记录：
+
+```text
+Stable ID / Milestone:
+Implementation DRI:
+Acceptance DRI:
+Scope / Non-goals:
+Engineering acceptance:
+Sound / Host acceptance:
+```
+
+cross-module、production DSP、contract/ownership-sensitive、Host handoff 或 milestone-gate 工作还应按风险记录
+write ownership、Allowed/Forbidden paths、双方 inputs/outputs、handoff condition、Joint Gate、相关
+contract/ADR 和 documentation impact。普通 bounded task 可省略这些字段或写 `N/A — bounded scope`。
+
+Acceptance DRI 发现 implementation finding 后默认交回 Implementation DRI 修复；当前 scope 内的 typo、
+test/docs 或 trivial integration correction 可以直接完成。只有 substantial implementation responsibility
+换人时才记录 DRI Transfer；transfer 不自动改变已有 PR creator 或后续 push-account rule。
+
 ## 4. Board 与 WIP
 
 ```text
@@ -84,33 +105,93 @@ Backlog -> Ready -> In Progress -> Code Review -> Listening/DAW Test -> Done
 
 合并策略建议 Squash merge，使 `main` 每个 commit 对应一个完整 issue。PR title 使用可读的 Conventional Commit 风格；实验 PR 可保留 draft，未经 gate 不合并生产 target。
 
-PR 必需检查：
+PR validation is impact-based。所有 PR 至少检查 changed-file sanity、凭据/私有路径/禁止生成物、与变更直接
+相关的 documentation/link/path consistency、scope/ownership consistency，以及与风险相称的 review。
 
-- Repository portability scan；
-- portable Windows configure/build/test；
-- formatting/lint（建立后）；
-- unit/DSP/integration tests；
-- 变更影响对应的 render/pluginval 检查；
-- 文档链接/状态一致性；
-- Documentation Impact Analysis 与跨文档 consistency review；
-- Code Quality Review 与 Comment & Documentation Pass；
-- module README、`docs/MODULE_INDEX.md` 和 PR 影响字段同步。
+- Code / build / dependency PR：运行相关 configure、build、CTest 和 portability validation；
+- App / DSP PR：运行相关 build、unit/property tests；只有声音或 routing behavior 受影响时才要求对应 render
+  regression，并在合同要求时提供 listening evidence；
+- Plugin / Host integration PR：按影响运行 plugin integration tests 和 pluginval；真实 DAW matrix 只用于
+  HOST work item、milestone/release gate 或明确 compatibility task；
+- Pure docs / template / governance PR：只要求 Markdown/YAML validity、link/path reference、stale-rule search、
+  实际受影响合同的跨文档一致性和 `git diff` sanity。此类 PR 不要求无关 Windows build、CTest、ASAN、
+  pluginval、render、DAW、listening 或 performance run。
+
+Formatting/lint、Code Quality Review、Comment & Documentation Pass、module README 和 `MODULE_INDEX.md` 也只在
+对应 source、interface、module 或 documentation facts 受影响时执行。render/pluginval 始终只由相关 behavior
+变化触发，不是所有 PR 的固定 gate。
 
 Documentation Synchronization Gate 的 canonical 规则位于 [`DOCUMENT_GOVERNANCE.md`](DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate)。涉及 parameter/state、routing、realtime、核心 DSP、latency、random semantics、performance budget 或 release 的 PR，还必须留下可验证的 GitHub formal review；无法提交 formal review 时，第二位开发者必须在 PR comment 中写明 review scope、复现 evidence、limitations 和 decision。
 
-### 5.1 PR 身份与双人 review gate
+### 5.1 GitHub identity 与 push-account gate
 
-PR 创建身份必须与实现责任一致：
+以下身份相关但不要求相同：
 
-1. 在 `gh pr create` 前用 `gh api user --jq .login` 确认当前登录账号是本次工作的 Implementation DRI；
-2. 由该账号创建 PR，并在创建后用 `gh pr view <number> --json author,headRefName,baseRefName,commits,reviews` 核对 PR author 和 head commit authors/committers；
-3. 预定的 Acceptance DRI/reviewer 必须使用不同的 GitHub account 提交 formal `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES`；PR author 自己的 comment、自己的“approve”文字或 commit 署名都不算独立 review；
-4. 在首次 push 和每次向已有 PR 分支 push 前，都要用 `git branch --show-current` 与 `gh pr list --head <branch> --state open --json number,author,url` 检查当前分支是否已有 PR。若已有 PR 的 author 正是预定 reviewer，必须停止 push；应由正确的 Implementation DRI account 新建 PR，或明确更换为另一个独立 reviewer。协作者可以作为 commit contributor，但不能同时是该 PR author 和预定 reviewer；不得冒用账号、伪造 review 或仅靠改 commit author 来修复 PR author；
-5. 权限受限时可以保留第二位开发者的 comment evidence，但必须标注其不是 formal review，并包含 review scope、reproduced evidence、limitations 和 decision。
+- Implementation DRI / Acceptance DRI：工作 ownership；
+- PR creator / author：创建 GitHub PR 的账号；
+- push account：执行当前 push 的 authenticated GitHub account；
+- commit author / committer：commit 的真实 authorship/commit metadata；
+- reviewer：承担并记录 review responsibility 的人/账号。
 
-PR 描述和最终报告必须分别记录 `PR author`、实际 commit author/committer、formal reviewer account、review type 和 review time；这些字段不能合并成一个“reviewed by”结论。
+`PR creator != Implementation DRI`、`commit author/committer != PR creator` 或 reviewer 没有预绑定角色账号，
+本身都不是违规，也不要求重建 PR、伪造 author 或 rewrite history。
 
-音频 render 和大型日志不要直接塞入 Git 历史；使用 GitHub Actions artifact 或 release asset，并在 PR 记录 manifest/hash。
+GitHub identity 是 existing-PR push 的 lazy runtime gate，不是 read、review、local edit/test/commit 或每次
+普通 push 的固定 preflight。
+
+准备在当前 context 首次向某 branch push 时：
+
+```powershell
+$branch = git branch --show-current
+gh pr list --head $branch --state open --json number,author,url
+```
+
+1. 如果没有 open PR，按普通 push/PR 创建流程继续；PR creator 无需等于 Implementation DRI。
+2. 如果已存在 open PR，且本 repository + branch + PR + authenticated session 尚未验证，再读取 PR
+   creator 并执行 `gh api user --jq .login`。
+3. 只有 `current push account == existing PR creator` 才可向该 PR branch push。
+4. 不一致时停止 push，报告 `Existing PR creator`、`Current authenticated account` 和“可能登录了错误
+   GitHub account”；先检查/切换登录，不得跨账号继续 push。
+5. 不得用改写 commit author、force push、rewrite history 或创建不必要的新 PR 规避账号不一致。
+
+同一 repository + branch + PR + authenticated session 的成功检查可以在当前工作 context 复用。branch、
+repository、PR 或 authentication/account 变化，工具报告权限/账号异常，或用户明确说明账号变化时才重新
+检查。该规则同样适用于 documentation 和 production PR。
+
+### 5.2 Reviewer 与证据
+
+Reviewer 不需要在 PR 创建前与某个角色账号预绑定，也不因曾为相关领域提交过其它 commit、PR creator
+与 Implementation DRI 不同，或 commit authorship 混合而自动失去资格。真正的 gate 是 review
+independence、review scope、evidence 和 decision。
+
+核心/高风险 PR 使用完整 review record：
+
+```text
+Reviewer:
+Review scope:
+Evidence reproduced:
+Evidence not reproduced:
+Findings:
+Decision:
+Formal GitHub review: APPROVE / COMMENT / REQUEST_CHANGES / NOT AVAILABLE / NOT RECORDED
+Fallback review evidence: COMMENT / MANUAL REVIEW / N/A
+```
+
+GitHub 平台自身不允许 formal approval 时，可以保留明确标注的 comment/manual evidence；不得把普通
+comment 写成 formal `APPROVE`。需要另一位开发者 review 的核心 PR 仍必须有真实的第二人证据；自审不能
+冒充独立 review，但项目不再为此建立额外的账号身份矩阵或强制重建 PR。
+
+完整 record 强制用于 parameter/state contract、core DSP、Water/Ice algorithm adoption、routing、realtime
+boundary、latency、random semantics、formal performance budget、Beta/Release 和 milestone exit。普通 docs、
+bounded test、typo、narrow tooling 或 low-risk maintenance 只需 Reviewer、Decision 和 notable
+limitations/findings。
+
+PR 描述记录 Implementation/Acceptance DRI、PR creator、reviewer 和 review type。Current push account 是
+运行时状态，commit author/committer 已由 Git history 记录，不在 PR body 重复维护。
+
+音频 render 和大型日志不要直接塞入 Git 历史；使用 GitHub Actions artifact 或 release asset，并在 PR
+记录可定位的 artifact reference 与必要元数据。只有既有 corpus、发布或完整性合同明确要求时才记录 hash，
+普通文档、构建或工作树验证不得为了“留证”额外计算 hash。
 
 ## 6. `main` 保护建议
 
@@ -129,13 +210,18 @@ PR 描述和最终报告必须分别记录 `PR author`、实际 commit author/co
 
 ## 7. CI 分层计划
 
-### PR required
+### PR / change-triggered validation
 
-- Windows portable Debug configure/build/CTest；
-- CTest 中的 RENDER-001 offline render smoke；
-- 参数/状态/unit tests；
-- source format 检查；
-- 对改动路径触发相关 DSP/render smoke。
+- 所有 PR：changed-file/policy sanity，以及与实际变更相关的 docs/template validity 和 consistency；
+- `src/**`、production test infrastructure、CMake/presets、dependency/bootstrap、CI workflow、build scripts 或
+  executable tooling：Windows portable Debug configure/build/CTest、portability validation 和相关 tests；
+- app/DSP/parameter/state/routing：按影响增加 unit/property/integration 与必要 render smoke；
+- plugin/Host：按影响增加 plugin integration/pluginval；DAW matrix 只在 HOST、compatibility、milestone 或
+  release gate 执行；
+- pure docs/template/non-executable governance：不要求无关 build、CTest、RENDER-001、DSP 或 plugin jobs。
+
+source format 检查只对其覆盖的 source path 生效。CI 即使因平台配置对 docs-only PR 自动运行额外 job，也不把
+这些额外结果改写为该类 PR 的人工 acceptance requirement。
 
 ### Scheduled/nightly
 
