@@ -298,8 +298,12 @@ processor construction 重复完整 Cartesian product。当前 cases 必须覆�
 
 - default/minimum/maximum/intermediate 参数、四种 enable combination 和三个 routing choice；
 - silence、impulse、固定 seed deterministic noise、extreme but finite input；
-- prepare/process、prepare/reset/process、repeated prepare、repeated reset、zero-length block；
-- buffer dimensions、finite output，以及 deterministic input 下的 fresh-processor repeatability。
+- silence 输出的有限性、DC 与最大幅度约束；
+- prepare/process、prepare/process/release/reprepare/process、repeated prepare、repeated
+  release/prepare、zero-length block；
+- 一次 nominal prepare 后的 0、1、7、31 和 1024 sample 实际 callback；
+- buffer dimensions、finite output，以及只针对 M1 neutral/deterministic path 的
+  fresh-processor repeatability。
 
 该 harness 是可供后续 Water/Ice processor 复用的基础；它不代表 Water/Ice、Routing 或真实
 Host/DAW 已完成。
@@ -309,7 +313,8 @@ Host/DAW 已完成。
 | 维度 | 值 |
 |---|---|
 | Sample rate | 44.1, 48, 96 kHz |
-| Block size | 32, 64, 128, 256, 512, 1024 |
+| Representative nominal block values | 32, 64, 128, 256, 512, 1024；不是未经定义的 maximum support limit |
+| Actual callback sizes after nominal 1024 prepare | 0, 1, 7, 31, 1024 |
 | Channels | mono, stereo |
 | Build | Debug, Release, MSVC ASAN |
 | Routing | Parallel, Water -> Ice, Ice -> Water |
@@ -355,9 +360,12 @@ M1 的 `frazil_performance_baseline` 使用真实 PluginProcessor audio path，�
 samples、stereo 和 deterministic LCG input；先 warm up，再测量 2000 callbacks。报告同时记录
 Reference Machine、JUCE/compiler/build、mean/P95/P99/worst、2.666 ms callback deadline、
 mean/worst deadline utilization、Windows process working set 和 measured callback 区间的
-test-executable `operator new` observation。measurement container 在 observation 开启前预分配，
-避免把 harness 自身的 bookkeeping 误报成 audio-thread allocation。该 work item 只提供 baseline，
-不把结果转换成正式 CPU 百分比门槛。
+test-executable `operator new` observation。报告中的 `configuredCommit` 是 CMake configure
+时读取的 Git HEAD，而不是 build-time discovery；正式 baseline 必须先执行
+`cmake --fresh --preset <preset>`，再 build/test，不能把非 fresh configure 生成的 report
+作为正式 evidence。measurement container 在 observation 开启前预分配，避免把 harness 自身的
+bookkeeping 误报成 audio-thread allocation。该 work item 只提供 baseline，不把结果转换成正式
+CPU 百分比门槛。
 
 ### Milestone performance scope
 

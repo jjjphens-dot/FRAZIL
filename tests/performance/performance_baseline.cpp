@@ -248,7 +248,10 @@ bool writeReport(const std::filesystem::path& outputPath,
     report << std::fixed << std::setprecision(3);
     report << "{\n"
            << "  \"workItem\": \"PERF-BASE-001\",\n"
-           << "  \"commit\": \"" << escapeJson(FRAZIL_GIT_COMMIT) << "\",\n"
+           << "  \"configuredCommit\": \"" << escapeJson(FRAZIL_GIT_COMMIT)
+           << "\",\n"
+           << "  \"commitFieldMeaning\": \"Git HEAD captured during CMake configure; "
+              "run cmake --fresh before formal baseline evidence.\",\n"
            << "  \"referenceMachine\": {\n"
            << "    \"cpuVendor\": \"" << escapeJson(juce::SystemStats::getCpuVendor().toStdString())
            << "\",\n"
@@ -357,7 +360,8 @@ int main(int argc, char** argv) {
               << "PERF-BASE-001 baseline recorded: mean_ns=" << mean << ", p95_ns=" << p95
               << ", p99_ns=" << p99 << ", worst_ns=" << worst
               << ", deadline_ns=" << (1.0e9 * kBlockSize / kSampleRate)
-              << ", operator_new_calls=" << allocationCount << ", report="
+              << ", operator_new_calls=" << allocationCount << ", configured_commit="
+              << FRAZIL_GIT_COMMIT << ", report="
               << outputPath.string() << '\n';
     return allocationCount == 0 ? 0 : 1;
 }

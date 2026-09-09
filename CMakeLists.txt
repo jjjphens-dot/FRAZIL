@@ -43,32 +43,48 @@ juce_add_plugin(FRAZIL
     VST3_CATEGORIES Fx
 )
 
+set(FRAZIL_APP_SOURCES
+    src/app/AudioEngine.cpp
+    src/app/AudioEngine.h
+    src/app/EngineParameters.h
+    src/app/ParameterMapper.cpp
+    src/app/ParameterMapper.h
+    src/app/ParameterSnapshot.cpp
+    src/app/ParameterSnapshot.h
+    src/app/ProcessSpec.h
+    src/app/StateModel.cpp
+    src/app/StateModel.h
+)
+
+set(FRAZIL_DSP_SOURCES
+    src/dsp/DryWetMixer.cpp
+    src/dsp/DryWetMixer.h
+    src/dsp/primitives/LinearSmoother.cpp
+    src/dsp/primitives/LinearSmoother.h
+    src/dsp/primitives/RandomSource.cpp
+    src/dsp/primitives/RandomSource.h
+)
+
+set(FRAZIL_PLUGIN_ADAPTER_SOURCES
+    src/plugin/ParameterLayout.cpp
+    src/plugin/ParameterLayout.h
+    src/plugin/StateAdapter.cpp
+    src/plugin/StateAdapter.h
+)
+
+set(FRAZIL_PLUGIN_SOURCES
+    ${FRAZIL_APP_SOURCES}
+    ${FRAZIL_DSP_SOURCES}
+    ${FRAZIL_PLUGIN_ADAPTER_SOURCES}
+    src/plugin/PluginEditor.cpp
+    src/plugin/PluginEditor.h
+    src/plugin/PluginProcessor.cpp
+    src/plugin/PluginProcessor.h
+)
+
 target_sources(FRAZIL
     PRIVATE
-        src/app/AudioEngine.cpp
-        src/app/AudioEngine.h
-        src/app/EngineParameters.h
-        src/app/ParameterMapper.cpp
-        src/app/ParameterMapper.h
-        src/app/ParameterSnapshot.cpp
-        src/app/ParameterSnapshot.h
-        src/app/ProcessSpec.h
-        src/app/StateModel.cpp
-        src/app/StateModel.h
-        src/dsp/DryWetMixer.cpp
-        src/dsp/DryWetMixer.h
-        src/dsp/primitives/LinearSmoother.cpp
-        src/dsp/primitives/LinearSmoother.h
-        src/dsp/primitives/RandomSource.cpp
-        src/dsp/primitives/RandomSource.h
-        src/plugin/ParameterLayout.cpp
-        src/plugin/ParameterLayout.h
-        src/plugin/PluginEditor.cpp
-        src/plugin/PluginEditor.h
-        src/plugin/PluginProcessor.cpp
-        src/plugin/PluginProcessor.h
-        src/plugin/StateAdapter.cpp
-        src/plugin/StateAdapter.h
+        ${FRAZIL_PLUGIN_SOURCES}
 )
 
 target_include_directories(FRAZIL PRIVATE src)
@@ -129,26 +145,9 @@ target_link_libraries(frazil_render
 
 add_executable(frazil_tests
     tests/unit/test_main.cpp
-    src/app/AudioEngine.cpp
-    src/app/AudioEngine.h
-    src/app/EngineParameters.h
-    src/app/ParameterMapper.cpp
-    src/app/ParameterMapper.h
-    src/app/ParameterSnapshot.cpp
-    src/app/ParameterSnapshot.h
-    src/app/ProcessSpec.h
-    src/app/StateModel.cpp
-    src/app/StateModel.h
-    src/dsp/DryWetMixer.cpp
-    src/dsp/DryWetMixer.h
-    src/dsp/primitives/LinearSmoother.cpp
-    src/dsp/primitives/LinearSmoother.h
-    src/dsp/primitives/RandomSource.cpp
-    src/dsp/primitives/RandomSource.h
-    src/plugin/ParameterLayout.cpp
-    src/plugin/ParameterLayout.h
-    src/plugin/StateAdapter.cpp
-    src/plugin/StateAdapter.h
+    ${FRAZIL_APP_SOURCES}
+    ${FRAZIL_DSP_SOURCES}
+    ${FRAZIL_PLUGIN_ADAPTER_SOURCES}
 )
 target_compile_features(frazil_tests PRIVATE cxx_std_20)
 target_include_directories(frazil_tests PRIVATE src)
@@ -163,30 +162,7 @@ juce_add_console_app(frazil_plugin_integration
 target_sources(frazil_plugin_integration
     PRIVATE
     tests/integration/plugin_integration.cpp
-    src/app/AudioEngine.cpp
-    src/app/AudioEngine.h
-    src/app/EngineParameters.h
-    src/app/ParameterMapper.cpp
-    src/app/ParameterMapper.h
-    src/app/ParameterSnapshot.cpp
-    src/app/ParameterSnapshot.h
-    src/app/ProcessSpec.h
-    src/app/StateModel.cpp
-    src/app/StateModel.h
-    src/dsp/DryWetMixer.cpp
-    src/dsp/DryWetMixer.h
-    src/dsp/primitives/LinearSmoother.cpp
-    src/dsp/primitives/LinearSmoother.h
-    src/dsp/primitives/RandomSource.cpp
-    src/dsp/primitives/RandomSource.h
-    src/plugin/ParameterLayout.cpp
-    src/plugin/ParameterLayout.h
-    src/plugin/PluginEditor.cpp
-    src/plugin/PluginEditor.h
-    src/plugin/PluginProcessor.cpp
-    src/plugin/PluginProcessor.h
-    src/plugin/StateAdapter.cpp
-    src/plugin/StateAdapter.h
+    ${FRAZIL_PLUGIN_SOURCES}
 )
 target_compile_features(frazil_plugin_integration PRIVATE cxx_std_20)
 target_include_directories(frazil_plugin_integration PRIVATE src)
@@ -212,30 +188,7 @@ juce_add_console_app(frazil_processor_property
 target_sources(frazil_processor_property
     PRIVATE
     tests/integration/processor_property.cpp
-    src/app/AudioEngine.cpp
-    src/app/AudioEngine.h
-    src/app/EngineParameters.h
-    src/app/ParameterMapper.cpp
-    src/app/ParameterMapper.h
-    src/app/ParameterSnapshot.cpp
-    src/app/ParameterSnapshot.h
-    src/app/ProcessSpec.h
-    src/app/StateModel.cpp
-    src/app/StateModel.h
-    src/dsp/DryWetMixer.cpp
-    src/dsp/DryWetMixer.h
-    src/dsp/primitives/LinearSmoother.cpp
-    src/dsp/primitives/LinearSmoother.h
-    src/dsp/primitives/RandomSource.cpp
-    src/dsp/primitives/RandomSource.h
-    src/plugin/ParameterLayout.cpp
-    src/plugin/ParameterLayout.h
-    src/plugin/PluginEditor.cpp
-    src/plugin/PluginEditor.h
-    src/plugin/PluginProcessor.cpp
-    src/plugin/PluginProcessor.h
-    src/plugin/StateAdapter.cpp
-    src/plugin/StateAdapter.h
+    ${FRAZIL_PLUGIN_SOURCES}
 )
 target_compile_features(frazil_processor_property PRIVATE cxx_std_20)
 target_include_directories(frazil_processor_property PRIVATE src)
@@ -261,30 +214,7 @@ juce_add_console_app(frazil_latency_contract
 target_sources(frazil_latency_contract
     PRIVATE
     tests/integration/latency_contract.cpp
-    src/app/AudioEngine.cpp
-    src/app/AudioEngine.h
-    src/app/EngineParameters.h
-    src/app/ParameterMapper.cpp
-    src/app/ParameterMapper.h
-    src/app/ParameterSnapshot.cpp
-    src/app/ParameterSnapshot.h
-    src/app/ProcessSpec.h
-    src/app/StateModel.cpp
-    src/app/StateModel.h
-    src/dsp/DryWetMixer.cpp
-    src/dsp/DryWetMixer.h
-    src/dsp/primitives/LinearSmoother.cpp
-    src/dsp/primitives/LinearSmoother.h
-    src/dsp/primitives/RandomSource.cpp
-    src/dsp/primitives/RandomSource.h
-    src/plugin/ParameterLayout.cpp
-    src/plugin/ParameterLayout.h
-    src/plugin/PluginEditor.cpp
-    src/plugin/PluginEditor.h
-    src/plugin/PluginProcessor.cpp
-    src/plugin/PluginProcessor.h
-    src/plugin/StateAdapter.cpp
-    src/plugin/StateAdapter.h
+    ${FRAZIL_PLUGIN_SOURCES}
 )
 target_compile_features(frazil_latency_contract PRIVATE cxx_std_20)
 target_include_directories(frazil_latency_contract PRIVATE src)
@@ -315,30 +245,7 @@ juce_add_console_app(frazil_performance_baseline
 target_sources(frazil_performance_baseline
     PRIVATE
     tests/performance/performance_baseline.cpp
-    src/app/AudioEngine.cpp
-    src/app/AudioEngine.h
-    src/app/EngineParameters.h
-    src/app/ParameterMapper.cpp
-    src/app/ParameterMapper.h
-    src/app/ParameterSnapshot.cpp
-    src/app/ParameterSnapshot.h
-    src/app/ProcessSpec.h
-    src/app/StateModel.cpp
-    src/app/StateModel.h
-    src/dsp/DryWetMixer.cpp
-    src/dsp/DryWetMixer.h
-    src/dsp/primitives/LinearSmoother.cpp
-    src/dsp/primitives/LinearSmoother.h
-    src/dsp/primitives/RandomSource.cpp
-    src/dsp/primitives/RandomSource.h
-    src/plugin/ParameterLayout.cpp
-    src/plugin/ParameterLayout.h
-    src/plugin/PluginEditor.cpp
-    src/plugin/PluginEditor.h
-    src/plugin/PluginProcessor.cpp
-    src/plugin/PluginProcessor.h
-    src/plugin/StateAdapter.cpp
-    src/plugin/StateAdapter.h
+    ${FRAZIL_PLUGIN_SOURCES}
 )
 target_compile_features(frazil_performance_baseline PRIVATE cxx_std_20)
 target_include_directories(frazil_performance_baseline PRIVATE src)

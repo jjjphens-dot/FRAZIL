@@ -1,6 +1,7 @@
 #include "plugin/ParameterLayout.h"
 #include "plugin/PluginProcessor.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -27,9 +28,9 @@ enum class InputCase : std::uint8_t { silence, impulse, deterministicNoise, extr
 
 enum class LifecycleCase : std::uint8_t {
     prepareAndProcess,
-    prepareResetAndProcess,
+    prepareProcessReprepareProcess,
     repeatedPrepare,
-    repeatedReset,
+    repeatedReleaseThenPrepare,
     zeroLengthThenProcess
 };
 
@@ -59,15 +60,20 @@ constexpr std::array<ParameterCase, 10> parameterCases{{
     {"both-disabled", 0.0f, 0.0f, 0.0f, 0.5f, 0.4f, 0.9f, 0.0f, 1.0f, 0.0f},
 }};
 
+constexpr float kSilenceOutputTolerance = 1.0e-6f;
+constexpr int kRepresentativeNominalBlockUpperBound = 1024;
 constexpr std::array<double, 3> sampleRates{44100.0, 48000.0, 96000.0};
-constexpr std::array<int, 6> blockSizes{32, 64, 128, 256, 512, 1024};
+constexpr std::array<int, 6> representativeNominalBlockSizes{32, 64, 128, 256, 512,
+                                                              kRepresentativeNominalBlockUpperBound};
 constexpr std::array<int, 2> channelCounts{1, 2};
+constexpr std::array<int, 5> shortAndOddCallbackSizes{
+    0, 1, 7, 31, kRepresentativeNominalBlockUpperBound};
 constexpr std::array<InputCase, 4> inputCases{
     InputCase::silence, InputCase::impulse, InputCase::deterministicNoise,
     InputCase::extremeFinite};
 constexpr std::array<LifecycleCase, 5> lifecycleCases{
-    LifecycleCase::prepareAndProcess, LifecycleCase::prepareResetAndProcess,
-    LifecycleCase::repeatedPrepare, LifecycleCase::repeatedReset,
+    LifecycleCase::prepareAndProcess, LifecycleCase::prepareProcessReprepareProcess,
+    LifecycleCase::repeatedPrepare, LifecycleCase::repeatedReleaseThenPrepare,
     LifecycleCase::zeroLengthThenProcess};
 
 const char* inputName(InputCase input) noexcept {
@@ -88,12 +94,12 @@ const char* lifecycleName(LifecycleCase lifecycle) noexcept {
     switch (lifecycle) {
     case LifecycleCase::prepareAndProcess:
         return "prepare-process";
-    case LifecycleCase::prepareResetAndProcess:
-        return "prepare-reset-process";
+    case LifecycleCase::prepareProcessReprepareProcess:
+        return "prepare-process-reprepare-process";
     case LifecycleCase::repeatedPrepare:
         return "repeated-prepare";
-    case LifecycleCase::repeatedReset:
-        return "repeated-reset";
+    case LifecycleCase::repeatedReleaseThenPrepare:
+        return "repeated-release-then-prepare";
     case LifecycleCase::zeroLengthThenProcess:
         return "zero-length";
     }
@@ -171,6 +177,42 @@ void expectFinite(TestContext& context,
     }
 }
 
+std::vector<float> snapshotBuffer(const juce::AudioBuffer<float>& buffer) {
+    std::vector<float> snapshot;
+    snapshot.reserve(static_cast<std::size_t>(buffer.getNumChannels() * buffer.getNumSamples()));
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+            snapshot.push_back(buffer.getSample(channel, sample));
+    return snapshot;
+}
+
+void expectSilenceOutput(TestContext& context,
+                         const juce::AudioBuffer<float>& buffer,
+                         const std::string& caseName) {
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel) {
+        double sum = 0.0;
+        float maximumMagnitude = 0.0f;
+        for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
+            const auto value = buffer.getSample(channel, sample);
+            sum += static_cast<double>(value);
+            maximumMagnitude = std::max(maximumMagnitude, std::abs(value));
+        }
+
+        const auto measuredDc = buffer.getNumSamples() == 0
+                                    ? 0.0
+                                    : sum / static_cast<double>(buffer.getNumSamples());
+        if (maximumMagnitude > kSilenceOutputTolerance ||
+            std::abs(measuredDc) > static_cast<double>(kSilenceOutputTolerance)) {
+            std::ostringstream description;
+            description << caseName << ": silence output has unexplained signal on channel "
+                        << channel << ", measured DC=" << measuredDc
+                        << ", max magnitude=" << maximumMagnitude
+                        << ", tolerance=" << kSilenceOutputTolerance;
+            expect(context, false, description.str());
+        }
+    }
+}
+
 bool configureBusLayout(TestContext& context,
                         FRAZILAudioProcessor& processor,
                         int channelCount,
@@ -205,34 +247,85 @@ void runPropertyCase(TestContext& context,
     applyParameters(context, processor, parameterValues, name);
     processor.prepareToPlay(sampleRate, blockSize);
 
-    if (lifecycle == LifecycleCase::repeatedPrepare)
+    const auto processOnce = [&](const char* phase) {
+        juce::AudioBuffer<float> buffer(channelCount, blockSize);
+        fillInput(buffer, input);
+        const auto originalChannels = buffer.getNumChannels();
+        const auto originalSamples = buffer.getNumSamples();
+        juce::MidiBuffer midi;
+        processor.processBlock(buffer, midi);
+
+        const auto phaseName = name + ": " + phase;
+        expect(context, buffer.getNumChannels() == originalChannels &&
+                           buffer.getNumSamples() == originalSamples,
+               phaseName + ": buffer dimensions remain valid after processBlock");
+        expectFinite(context, buffer, phaseName);
+        if (input == InputCase::silence)
+            expectSilenceOutput(context, buffer, phaseName);
+        return snapshotBuffer(buffer);
+    };
+
+    switch (lifecycle) {
+    case LifecycleCase::prepareAndProcess:
+        processOnce("process");
+        break;
+    case LifecycleCase::prepareProcessReprepareProcess: {
+        const auto firstOutput = processOnce("initial process");
+        processor.releaseResources();
         processor.prepareToPlay(sampleRate, blockSize);
-    else if (lifecycle == LifecycleCase::prepareResetAndProcess) {
-        processor.releaseResources();
-    } else if (lifecycle == LifecycleCase::repeatedReset) {
+        const auto secondOutput = processOnce("reprepared process");
+        expect(context, firstOutput == secondOutput,
+               name + ": deterministic output repeats after release and reprepare");
+        break;
+    }
+    case LifecycleCase::repeatedPrepare:
+        processor.prepareToPlay(sampleRate, blockSize);
+        processOnce("process after repeated prepare");
+        break;
+    case LifecycleCase::repeatedReleaseThenPrepare:
         processor.releaseResources();
         processor.releaseResources();
         processor.prepareToPlay(sampleRate, blockSize);
-    } else if (lifecycle == LifecycleCase::zeroLengthThenProcess) {
+        processOnce("process after repeated release and prepare");
+        break;
+    case LifecycleCase::zeroLengthThenProcess: {
         juce::AudioBuffer<float> emptyBuffer(channelCount, 0);
         juce::MidiBuffer midi;
         processor.processBlock(emptyBuffer, midi);
         expect(context, emptyBuffer.getNumChannels() == channelCount &&
                            emptyBuffer.getNumSamples() == 0,
                name + ": zero-length buffer dimensions remain valid");
+        processOnce("process after zero-length callback");
+        break;
     }
+    }
+}
 
-    juce::AudioBuffer<float> buffer(channelCount, blockSize);
-    fillInput(buffer, input);
-    const auto originalChannels = buffer.getNumChannels();
-    const auto originalSamples = buffer.getNumSamples();
-    juce::MidiBuffer midi;
-    processor.processBlock(buffer, midi);
+void runShortAndOddCallbackCases(TestContext& context) {
+    const auto& parameters = parameterCases.front();
+    for (const auto actualBlockSize : shortAndOddCallbackSizes) {
+        std::ostringstream caseName;
+        caseName << "rate=48000, prepare nominal=" << kRepresentativeNominalBlockUpperBound
+                 << ", callback=" << actualBlockSize << ", channels=2, parameters="
+                 << parameters.name << ", input=deterministic-noise, lifecycle=single-prepare";
+        const auto name = caseName.str();
+        ++context.cases;
 
-    expect(context, buffer.getNumChannels() == originalChannels &&
-                       buffer.getNumSamples() == originalSamples,
-           name + ": buffer dimensions remain valid after processBlock");
-    expectFinite(context, buffer, name);
+        FRAZILAudioProcessor processor;
+        if (!configureBusLayout(context, processor, 2, name))
+            continue;
+        applyParameters(context, processor, parameters, name);
+        processor.prepareToPlay(48000.0, kRepresentativeNominalBlockUpperBound);
+
+        juce::AudioBuffer<float> buffer(2, actualBlockSize);
+        fillInput(buffer, InputCase::deterministicNoise);
+        juce::MidiBuffer midi;
+        processor.processBlock(buffer, midi);
+        expect(context, buffer.getNumChannels() == 2 &&
+                           buffer.getNumSamples() == actualBlockSize,
+               name + ": actual callback dimensions remain valid");
+        expectFinite(context, buffer, name);
+    }
 }
 
 std::vector<float> runDeterministicCase(int channelCount, int blockSize) {
@@ -256,11 +349,12 @@ std::vector<float> runDeterministicCase(int channelCount, int blockSize) {
     return result;
 }
 
-void testDeterministicOutput(TestContext& context) {
+void testM1NeutralDeterministicOutput(TestContext& context) {
     const auto first = runDeterministicCase(2, 128);
     const auto second = runDeterministicCase(2, 128);
     expect(context, first == second,
-           "fresh processors produce deterministic output for deterministic input");
+           "M1 neutral/deterministic path repeats for fresh processors and deterministic input; "
+           "this is not a production-randomness contract");
 }
 } // namespace
 
@@ -272,7 +366,7 @@ int main() {
     // dimensions are then exercised against a canonical 48 kHz/128/stereo configuration.
     const auto& defaultParameters = parameterCases.front();
     for (const auto sampleRate : sampleRates)
-        for (const auto blockSize : blockSizes)
+    for (const auto blockSize : representativeNominalBlockSizes)
             for (const auto channelCount : channelCounts)
                 runPropertyCase(context, sampleRate, blockSize, channelCount, defaultParameters,
                                 InputCase::deterministicNoise,
@@ -293,12 +387,13 @@ int main() {
         runPropertyCase(context, 48000.0, 128, 2, defaultParameters,
                         InputCase::deterministicNoise, lifecycle);
 
-    testDeterministicOutput(context);
+    runShortAndOddCallbackCases(context);
+    testM1NeutralDeterministicOutput(context);
     if (context.failures != 0)
         return 1;
 
     std::cout << "TEST-002 processor property harness passed (" << context.cases
-              << " representative cases; full rate/block/channel matrix plus parameter, input, "
-                 "and lifecycle sub-matrices)\n";
+              << " representative cases; nominal matrix plus parameter, input, lifecycle, "
+                 "and short/odd callback sub-matrices)\n";
     return 0;
 }

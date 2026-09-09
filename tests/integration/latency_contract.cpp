@@ -1,4 +1,5 @@
 #include "plugin/PluginProcessor.h"
+#include "plugin/ParameterLayout.h"
 
 #include <algorithm>
 #include <cmath>
@@ -12,6 +13,16 @@ constexpr float kComparisonTolerance = 1.0e-6f;
 
 void printFailure(const std::string& message) {
     std::cerr << "ARCH-LAT-001 FAIL: " << message << '\n';
+}
+
+bool setParameterValue(FRAZILAudioProcessor& processor, const char* id, float value) {
+    auto* parameter = processor.parameters.getParameter(id);
+    if (parameter == nullptr)
+        return false;
+
+    parameter->setValueNotifyingHost(
+        processor.parameters.getParameterRange(id).convertTo0to1(value));
+    return true;
 }
 
 bool loadInput(const juce::File& inputFile, juce::AudioBuffer<float>& buffer, double& sampleRate) {
@@ -69,6 +80,14 @@ int main(int argc, char** argv) {
         printFailure("stereo bus layout was rejected");
         return 1;
     }
+
+    using namespace frazil::plugin::parameterIds;
+    if (!setParameterValue(processor, inputGain, 0.0f) ||
+        !setParameterValue(processor, outputGain, 0.0f) ||
+        !setParameterValue(processor, globalMix, 0.0f)) {
+        printFailure("neutral/dry latency fixture could not set unity gain and global.mix=0");
+        return 1;
+    }
     processor.prepareToPlay(sampleRate, kBlockSize);
 
     if (processor.getLatencySamples() != 0) {
@@ -76,7 +95,8 @@ int main(int argc, char** argv) {
         return 1;
     }
     if (processor.getTailLengthSeconds() != 0.0) {
-        printFailure("M1 pass-through plugin reported an unexpected tail");
+        printFailure("M1 skeleton tail regression: current pass-through reports non-zero tail; "
+                     "future algorithm tail requires its own ADR/test update");
         return 1;
     }
 
@@ -120,8 +140,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::cout << "ARCH-LAT-001 latency contract passed: reported=0 samples, tail=0 seconds, "
-              << "impulse_peak_sample=" << outputPeakSample << ", maximum_error="
-              << maximumError << '\n';
+    std::cout << "ARCH-LAT-001 neutral/dry latency contract passed: reported=0 samples, "
+              << "impulse_peak_sample=" << outputPeakSample << ", maximum_dry_error="
+              << maximumError << "; M1 skeleton tail regression passed: tail=0 seconds\n";
     return 0;
 }

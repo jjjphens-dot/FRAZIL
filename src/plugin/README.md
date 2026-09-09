@@ -53,7 +53,7 @@ M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing �
 
 ## Tests
 
-当前证据为 CTest smoke/lifecycle、参数/mapper/engine/state unit tests、实际 PluginProcessor integration、TEST-002 processor property matrix、ARCH-LAT-001 impulse/metadata regression、PERF-BASE-001 callback baseline 和 RENDER-001 offline smoke；这些测试覆盖参数类型/名称/单位/choice、versioned state round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、legacy ID migration、duplicate/nonnumeric/malformed invalid parser fallback、三种 routing、inactive retention、smoothing block regression、首 block priming、reset、runtime buffer invariant、finite output 和 deterministic output。真实 state DAW restore、DAW matrix 与当前变更后的 pluginval/Release/ASAN evidence 必须按本轮实际运行结果记录。
+当前证据为 CTest smoke/lifecycle、参数/mapper/engine/state unit tests、实际 PluginProcessor integration、TEST-002 processor property matrix（含 silence DC/max-magnitude、短/奇数 callback 和标准 reprepare lifecycle）、ARCH-LAT-001 neutral/dry impulse/metadata 与 M1 skeleton-tail regression、PERF-BASE-001 callback baseline 和 RENDER-001 offline smoke；这些测试覆盖参数类型/名称/单位/choice、versioned state round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、legacy ID migration、duplicate/nonnumeric/malformed invalid parser fallback、三种 routing、inactive retention、smoothing block regression、首 block priming、reset、runtime buffer invariant、finite output 和 M1 neutral/deterministic path repeatability。真实 state DAW restore、DAW matrix 与当前变更后的 pluginval/Release/ASAN evidence 必须按本轮实际运行结果记录。
 
 ## Related ADRs
 

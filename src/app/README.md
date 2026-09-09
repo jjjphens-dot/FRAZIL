@@ -56,7 +56,7 @@ app 层不得自行宣称算法 tail 或 latency。v1 Host-reported processing l
 
 ## Tests
 
-当前以 CTest smoke、`frazil_tests` 的 ProcessSpec/ParameterLayout/Snapshot/Mapper/StateModel/Host State Adapter unit cases、`frazil_plugin_integration` 的实际 PluginProcessor automation/state path、`frazil_processor_property` 的代表性 lifecycle/finite matrix、`frazil_latency_contract` 的 impulse/metadata regression、`frazil_performance_baseline` 的 callback baseline，以及 `frazil_render` 的 M1 pass-through offline smoke 为证据；完整 render matrix、真实 DAW restore 和完整 M1 gate 仍未完成。
+当前以 CTest smoke、`frazil_tests` 的 ProcessSpec/ParameterLayout/Snapshot/Mapper/StateModel/Host State Adapter unit cases、`frazil_plugin_integration` 的实际 PluginProcessor automation/state path、`frazil_processor_property` 的代表性 nominal/short-odd callback、silence、lifecycle/finite matrix、`frazil_latency_contract` 的 neutral/dry impulse/metadata 与 M1 skeleton-tail regression、`frazil_performance_baseline` 的 callback baseline，以及 `frazil_render` 的 M1 pass-through offline smoke 为证据；完整 render matrix、真实 DAW restore 和完整 M1 gate 仍未完成。
 
 ## Related ADRs
 
