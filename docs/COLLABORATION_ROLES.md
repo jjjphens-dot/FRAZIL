@@ -113,9 +113,9 @@ Sound & Host Lead 不单独决定 production audio-thread 安全、跨模块依�
 | `tests/dsp/**` | Engineering Lead | Review / listening-risk input |
 | `tests/integration/**` | Engineering Lead | Host scenario input / review |
 | `tests/render/**` | Engineering Lead | Consume / review |
-| `tools/render*`, `tools/perf*` | Engineering Lead | Consume / usability finding |
+| `tools/*render*`, `tools/*perf*` | Engineering Lead | Consume / usability finding |
 | CMake、build scripts、`.github/workflows/**` | Engineering Lead | Reproduction review |
-| `testdata/input/**` engineering corpus | Engineering Lead；accepted 后冻结 | 修改需显式 Issue；Sound & Host Lead 提供需求/许可 review |
+| `testdata/input/**`、`testdata/manifest.json`、`tools/*testdata*` engineering corpus | Engineering Lead；accepted 后冻结 | 修改需显式 Issue；Sound & Host Lead 提供需求/许可 review |
 | `testdata/listening/**` | Sound & Host Lead | Engineering validation |
 | Host/DAW evidence | Sound & Host Lead | Engineering reproducibility review |
 | perceptual briefs、listening rubric/notes | Sound & Host Lead | Engineering feasibility review |
@@ -150,7 +150,7 @@ offline smoke 也已进入 `main`；尚未满足的 render matrix/acceptance 继
 
 | Work item | Implementation DRI | Acceptance DRI / inputs | Allowed paths | Forbidden paths / non-goals |
 |---|---|---|---|---|
-| `RENDER-001` acceptance/follow-up | Engineering Lead | Sound & Host Lead 提供使用性 review | 既有 render target、`tools/render*`、render tests/docs | Water/Ice/Routing、listening selection、DAW acceptance |
+| `RENDER-001` acceptance/follow-up | Engineering Lead | Sound & Host Lead 提供使用性 review | 既有 render target、`tools/*render*`、`tests/render/**`、相关 docs | Water/Ice/Routing、listening selection、DAW acceptance |
 | `TEST-002` | Engineering Lead | Sound & Host Lead 提供风险场景 | property/unit/integration tests 与必要 test support | 新声音算法、UI、routing production |
 | `PERF-BASE-001` | Engineering Lead | Sound & Host Lead 提供实际 workload、素材、block size、制作场景 | performance harness、reports、必要 build/test wiring | 正式性能预算、Water/Ice/Routing/UI |
 | `ARCH-LAT-001` | Engineering Lead | Sound & Host Lead 验收 intentional delay/tail 产品语义 | latency metadata、impulse/automated evidence、相关 ADR/docs | 引入 lookahead/FFT/convolution 或更改 routing 实现 |
