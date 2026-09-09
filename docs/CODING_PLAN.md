@@ -95,31 +95,31 @@ Sound / Host Evidence (HOST-001) ---------------------------+
                  v                         v
               EXP-W-002                EXP-I-002
                  |                         |
-                 +-----------+-------------+
-                             |
-              EXP-W-003 / EXP-I-003 selection
-                    (LISTENING-001 ready)
-                             |
-                WATER-006 / ICE-006 listening
-
-Parallel during M1 (preparatory only; does not change milestone state):
-  EXP-W-001 / EXP-I-001 perceptual brief preparation
-  LISTENING-001 representative corpus preparation
-
-PARAM-FREEZE-001
-v1 Host Parameter Contract Freeze
-                 |
-                 v
-
-ADR-R-001
-Routing Transition / DSP State Strategy
-                 |
-                 v
-
-M4
-Routing / Latency / Gain Integration
-                 |
-                 v
+                 v                         v
+               EXP-W-003                EXP-I-003
+          (LISTENING-001 ready)    (LISTENING-001 ready)
+                 |                         |
+                 v                         v
+               ADR-W-001                ADR-I-001
+                 |                         |
+          Water production          Ice production
+           WATER-001..007             ICE-001..007
+                 |                         |
+                 v                         v
+              M2 Exit                  M3 Exit
+                 |                         |
+                 +------------+------------+
+                              |
+                              v
+                       PARAM-FREEZE-001
+                              |
+                              v
+                           ADR-R-001
+                              |
+                              v
+                           M4
+                              |
+                              v
 
 M5
 UI / Edit History
@@ -133,10 +133,21 @@ Beta Hardening
 
 M7
 v1.0 Release
+
+Parallel during M1 (preparatory only; does not change milestone state):
+  EXP-W-001 / EXP-I-001 perceptual brief preparation
+  LISTENING-001 representative corpus preparation
+
+Shared listening side dependency (not a Water/Ice synchronization barrier):
+  LISTENING-001
+       +--> EXP-W-003
+       +--> EXP-I-003
 ```
 
-M2 Water 与 M3 Ice 使用 pipeline-level parallelism：两种材质可处于不同的 brief、experiment、selection、
-production 或 acceptance 阶段，但不按“Water 一人 / Ice 一人”建立孤立 production ownership。
+M2 Water 和 M3 Ice 在 M1 Joint Exit 之后是 independent pipelines。`EXP-W-*` 阶段不依赖对应的
+`EXP-I-*` 阶段，反之亦然；除计划明确写出的 shared gate 外，两条 pipeline 不互相等待。每条
+pipeline 都独立经过 candidate selection、algorithm ADR、production implementation 和自己的
+milestone exit；两条 pipeline 只有在 M2 Exit 与 M3 Exit 都完成后，才在 `PARAM-FREEZE-001` 汇合。
 `EXP-W-002` / `EXP-W-003` 是 M2 Water work items，`EXP-I-002` / `EXP-I-003` 是 M3 Ice work items；
 图中将它们放在对应的 M2/M3 分支下，不表示它们是 milestone 之前的前置条件。
 M1 期间只允许准备 `EXP-W-001` / `EXP-I-001` perceptual briefs 和 `LISTENING-001` corpus，且仅限
