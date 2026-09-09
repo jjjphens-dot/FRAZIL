@@ -1,9 +1,10 @@
 {
-  "schemaVersion": 1,
-  "corpus": "FRAZIL M1 reference input corpus",
-  "purpose": "Shared deterministic test inputs for Water, Ice, render, and property work.",
+  "schemaVersion": 2,
+  "corpus": "FRAZIL TESTDATA-001 Diagnostic Signal Corpus",
+  "purpose": "Deterministic DSP diagnostic input corpus for property, render, algorithm and measurement work.",
+  "canonicalSampleRate": 48000,
   "provenance": {
-    "type": "generated synthetic reference corpus",
+    "type": "generated synthetic DSP diagnostic signal corpus",
     "thirdPartyAudio": false,
     "author": "FRAZIL project contributors",
     "license": "MIT",
@@ -12,189 +13,1081 @@
   },
   "generator": {
     "path": "tools/generate_testdata.py",
-    "version": 1,
-    "seed": 20260908
+    "version": 3,
+    "baseSeed": 20260908,
+    "seedPolicy": "stableSeed(baseSeed, signalId) for randomized signals"
   },
   "storagePolicy": {
     "location": "testdata/input",
     "repository": true,
     "artifact": false,
     "gitLfs": false,
-    "reason": "Small synthetic fixtures are kept directly in Git; rendered output is ignored."
+    "reason": "Small canonical diagnostic fixtures are kept directly in Git; temporary sample-rate variants and rendered output are not committed."
   },
   "files": [
     {
-      "id": "impulse",
-      "filename": "impulse.wav",
-      "path": "testdata/input/impulse.wav",
-      "purpose": "single-sample near-full-scale stereo impulse",
+      "id": "zero_input__silence",
+      "filename": "zero_input__silence.wav",
+      "path": "testdata/input/zero_input__silence.wav",
+      "role": "canonical-engineering",
+      "signalType": "digital-silence",
+      "purpose": "zero-input stability, DC, finite output and tail termination",
+      "definition": "Two-channel digital silence with every sample exactly zero.",
+      "generationParameters": {
+        "durationSeconds": 2.0,
+        "sampleRate": 48000,
+        "durationFrames": 96000
+      },
+      "expectedUses": [
+        "zero-input-stability",
+        "tail-termination",
+        "no-spontaneous-events"
+      ],
+      "analysisHints": [
+        "sample-exact",
+        "peak",
+        "RMS",
+        "DC",
+        "finite-output"
+      ],
+      "channelRelation": "dual-mono",
+      "testObjective": "zero-input stability, DC, finite output and tail termination",
+      "signalClass": "digital-silence",
+      "signalParameters": {
+        "durationSeconds": 2.0,
+        "sampleRate": 48000,
+        "durationFrames": 96000
+      },
+      "expectedProperties": {
+        "allSamplesExactlyZero": true,
+        "peakLinear": 0.0,
+        "rmsLinear": 0.0,
+        "dcLinear": 0.0
+      },
+      "analysisMethods": [
+        "sample-exact",
+        "peak",
+        "RMS",
+        "DC",
+        "finite-output"
+      ],
+      "analysisWindows": [],
+      "targetTests": [
+        "zero-input-stability",
+        "tail-termination",
+        "no-spontaneous-events"
+      ],
       "sourceType": "synthetic",
-      "source": "FRAZIL synthetic fixture: single-sample near-full-scale stereo impulse; no third-party recording.",
+      "source": "FRAZIL generated diagnostic fixture for zero-input stability, DC, finite output and tail termination. No third-party recording.",
       "author": "FRAZIL project contributors",
       "license": "MIT",
       "licensePath": "LICENSE",
       "redistribution": "Permitted under the repository MIT license.",
-      "sha256": "88d36354f81e1851733fca0a21eb06bf7860312c5c0f50846c8062f0ef29fce4",
+      "sha256": "af49089ff49f4ebe4e67e7ab4bfa3461454e312b948a91f153c48b3c5da2f4d8",
       "sampleRate": 48000,
-      "bitDepth": 16,
+      "bitDepth": 24,
       "channels": 2,
-      "frames": 48000,
-      "durationSeconds": 1.0,
-      "format": "PCM_S16LE",
+      "frames": 96000,
+      "durationSeconds": 2.0,
+      "format": "PCM_S24LE",
       "storage": "repository",
       "artifact": false,
       "gitLfs": false
     },
     {
-      "id": "noise",
-      "filename": "noise.wav",
-      "path": "testdata/input/noise.wav",
-      "purpose": "band-limited-shaped deterministic noise",
+      "id": "zero_state_response__impulse",
+      "filename": "zero_state_response__impulse.wav",
+      "path": "testdata/input/zero_state_response__impulse.wav",
+      "role": "canonical-engineering",
+      "signalType": "delayed-impulse",
+      "purpose": "zero-state response, latency, modal response and tail decay",
+      "definition": "Dual-mono -6 dBFS impulse after 250 ms exact silence and followed by more than 3 s exact silence.",
+      "generationParameters": {
+        "durationSeconds": 4.0,
+        "preSilenceSeconds": 0.25,
+        "amplitudeDbFS": -6.0,
+        "amplitudeLinear": 0.5011872336272722,
+        "sampleRate": 48000,
+        "durationFrames": 192000,
+        "preSilenceFrames": 12000,
+        "impulseFrame": 12000,
+        "postSilenceFrames": 179999
+      },
+      "expectedUses": [
+        "zero-state-response",
+        "latency-alignment",
+        "tail-decay",
+        "stereo-leakage"
+      ],
+      "analysisHints": [
+        "sample-exact",
+        "peak",
+        "latency",
+        "tail-energy",
+        "channel-leakage"
+      ],
+      "channelRelation": "dual-mono",
+      "testObjective": "zero-state response, latency, modal response and tail decay",
+      "signalClass": "delayed-impulse",
+      "signalParameters": {
+        "durationSeconds": 4.0,
+        "preSilenceSeconds": 0.25,
+        "amplitudeDbFS": -6.0,
+        "amplitudeLinear": 0.5011872336272722,
+        "sampleRate": 48000,
+        "durationFrames": 192000,
+        "preSilenceFrames": 12000,
+        "impulseFrame": 12000,
+        "postSilenceFrames": 179999
+      },
+      "expectedProperties": {
+        "preSilenceFrames": 12000,
+        "impulseFrame": 12000,
+        "postSilenceFrames": 179999,
+        "singleIntendedImpulse": true,
+        "channelRelation": "dual-mono"
+      },
+      "analysisMethods": [
+        "sample-exact",
+        "peak",
+        "latency",
+        "tail-energy",
+        "channel-leakage"
+      ],
+      "analysisWindows": [
+        {
+          "name": "pre_silence",
+          "startSeconds": 0.0,
+          "endSeconds": 0.25,
+          "startFrame": 0,
+          "endFrame": 12000
+        },
+        {
+          "name": "impulse_sample",
+          "startSeconds": 0.25,
+          "endSeconds": 0.25,
+          "event": "impulse",
+          "startFrame": 12000,
+          "endFrame": 12000
+        },
+        {
+          "name": "post_silence",
+          "startSeconds": 0.25,
+          "endSeconds": 4.0,
+          "startFrame": 12000,
+          "endFrame": 192000
+        }
+      ],
+      "targetTests": [
+        "zero-state-response",
+        "latency-alignment",
+        "tail-decay",
+        "stereo-leakage"
+      ],
       "sourceType": "synthetic",
-      "source": "FRAZIL synthetic fixture: band-limited-shaped deterministic noise; no third-party recording.",
+      "source": "FRAZIL generated diagnostic fixture for zero-state response, latency, modal response and tail decay. No third-party recording.",
       "author": "FRAZIL project contributors",
       "license": "MIT",
       "licensePath": "LICENSE",
       "redistribution": "Permitted under the repository MIT license.",
-      "sha256": "7cb4b01841404879df90cce349d7b91d9baf25122634667e434296b80cf41077",
+      "sha256": "14e17553f902cf3cf555a843f480a26d6604d9ad1946fb740d25c54ee943b665",
       "sampleRate": 48000,
-      "bitDepth": 16,
+      "bitDepth": 24,
       "channels": 2,
-      "frames": 48000,
-      "durationSeconds": 1.0,
-      "format": "PCM_S16LE",
+      "frames": 192000,
+      "durationSeconds": 4.0,
+      "format": "PCM_S24LE",
       "storage": "repository",
       "artifact": false,
       "gitLfs": false
     },
     {
-      "id": "drums",
-      "filename": "drums.wav",
-      "path": "testdata/input/drums.wav",
-      "purpose": "four synthetic kick/snare transient groups",
+      "id": "frequency_response__log_sweep",
+      "filename": "frequency_response__log_sweep.wav",
+      "path": "testdata/input/frequency_response__log_sweep.wav",
+      "role": "canonical-engineering",
+      "signalType": "logarithmic-sweep",
+      "purpose": "frequency response, spectral shaping and fractional-delay coloration",
+      "definition": "Dual-mono logarithmic sine sweep from 20 Hz to 18 kHz generated by integrated instantaneous frequency with short fades.",
+      "generationParameters": {
+        "durationSeconds": 4.5,
+        "startFrequencyHz": 20.0,
+        "endFrequencyHz": 18000.0,
+        "levelDbFS": -18.0,
+        "fadeInMs": 10.0,
+        "fadeOutMs": 10.0,
+        "sweepType": "logarithmic",
+        "phaseGeneration": "integrated-instantaneous-frequency",
+        "sampleRate": 48000,
+        "durationFrames": 216000
+      },
+      "expectedUses": [
+        "frequency-response",
+        "sweep-direction",
+        "finite-output"
+      ],
+      "analysisHints": [
+        "time-domain-zero-crossing",
+        "spectrogram-future",
+        "finite-output"
+      ],
+      "channelRelation": "dual-mono",
+      "testObjective": "frequency response, spectral shaping and fractional-delay coloration",
+      "signalClass": "logarithmic-sweep",
+      "signalParameters": {
+        "durationSeconds": 4.5,
+        "startFrequencyHz": 20.0,
+        "endFrequencyHz": 18000.0,
+        "levelDbFS": -18.0,
+        "fadeInMs": 10.0,
+        "fadeOutMs": 10.0,
+        "sweepType": "logarithmic",
+        "phaseGeneration": "integrated-instantaneous-frequency",
+        "sampleRate": 48000,
+        "durationFrames": 216000
+      },
+      "expectedProperties": {
+        "frequencyDirection": "up",
+        "frequencyStartHz": 20.0,
+        "frequencyEndHz": 18000.0,
+        "finite": true
+      },
+      "analysisMethods": [
+        "time-domain-zero-crossing",
+        "spectrogram-future",
+        "finite-output"
+      ],
+      "analysisWindows": [
+        {
+          "name": "start_frequency",
+          "startSeconds": 0.02,
+          "endSeconds": 0.12,
+          "expectedFrequencyHz": 20.0,
+          "startFrame": 960,
+          "endFrame": 5760
+        },
+        {
+          "name": "end_frequency",
+          "startSeconds": 4.46,
+          "endSeconds": 4.49,
+          "expectedFrequencyHz": 18000.0,
+          "startFrame": 214080,
+          "endFrame": 215520
+        }
+      ],
+      "targetTests": [
+        "frequency-response",
+        "sweep-direction",
+        "finite-output"
+      ],
       "sourceType": "synthetic",
-      "source": "FRAZIL synthetic fixture: four synthetic kick/snare transient groups; no third-party recording.",
+      "source": "FRAZIL generated diagnostic fixture for frequency response, spectral shaping and fractional-delay coloration. No third-party recording.",
       "author": "FRAZIL project contributors",
       "license": "MIT",
       "licensePath": "LICENSE",
       "redistribution": "Permitted under the repository MIT license.",
-      "sha256": "4439d679926a909146038bb14b32ec5a581f3271aa828336a1e8e629a0b41b8a",
+      "sha256": "e29ef2602d2a5eaeb0357250ab10cdf64e1d8bfceb6b63fb50eff16842378cf0",
       "sampleRate": 48000,
-      "bitDepth": 16,
+      "bitDepth": 24,
       "channels": 2,
-      "frames": 48000,
-      "durationSeconds": 1.0,
-      "format": "PCM_S16LE",
+      "frames": 216000,
+      "durationSeconds": 4.5,
+      "format": "PCM_S24LE",
       "storage": "repository",
       "artifact": false,
       "gitLfs": false
     },
     {
-      "id": "vocal",
-      "filename": "vocal.wav",
-      "path": "testdata/input/vocal.wav",
-      "purpose": "steady harmonic tone with vibrato and a voiced envelope",
+      "id": "harmonic_response__stepped_sine_1khz",
+      "filename": "harmonic_response__stepped_sine_1khz.wav",
+      "path": "testdata/input/harmonic_response__stepped_sine_1khz.wav",
+      "role": "canonical-engineering",
+      "signalType": "stepped-sine",
+      "purpose": "harmonic generation and input-level-dependent gain response",
+      "definition": "Dual-mono 1 kHz sine windows at -36, -24, -12 and -6 dBFS separated by exact silence gaps.",
+      "generationParameters": {
+        "frequencyHz": 1000.0,
+        "levelsDbFS": [
+          -36.0,
+          -24.0,
+          -12.0,
+          -6.0
+        ],
+        "toneDurationSeconds": 0.45,
+        "gapDurationSeconds": 0.15,
+        "preSilenceSeconds": 0.15,
+        "postSilenceSeconds": 0.15,
+        "sampleRate": 48000,
+        "durationFrames": 122400
+      },
+      "expectedUses": [
+        "harmonic-response",
+        "gain-linearity",
+        "level-window-integrity"
+      ],
+      "analysisHints": [
+        "time-domain-zero-crossing",
+        "window-RMS",
+        "harmonic-analysis-future"
+      ],
+      "channelRelation": "dual-mono",
+      "testObjective": "harmonic generation and input-level-dependent gain response",
+      "signalClass": "stepped-sine",
+      "signalParameters": {
+        "frequencyHz": 1000.0,
+        "levelsDbFS": [
+          -36.0,
+          -24.0,
+          -12.0,
+          -6.0
+        ],
+        "toneDurationSeconds": 0.45,
+        "gapDurationSeconds": 0.15,
+        "preSilenceSeconds": 0.15,
+        "postSilenceSeconds": 0.15,
+        "sampleRate": 48000,
+        "durationFrames": 122400
+      },
+      "expectedProperties": {
+        "frequencyHz": 1000.0,
+        "levelsDbFS": [
+          -36.0,
+          -24.0,
+          -12.0,
+          -6.0
+        ],
+        "silenceGapsExactZero": true
+      },
+      "analysisMethods": [
+        "time-domain-zero-crossing",
+        "window-RMS",
+        "harmonic-analysis-future"
+      ],
+      "analysisWindows": [
+        {
+          "name": "level_1",
+          "startSeconds": 0.15,
+          "endSeconds": 0.6,
+          "levelDbFS": -36.0,
+          "frequencyHz": 1000.0,
+          "startFrame": 7200,
+          "endFrame": 28800
+        },
+        {
+          "name": "level_2",
+          "startSeconds": 0.75,
+          "endSeconds": 1.2,
+          "levelDbFS": -24.0,
+          "frequencyHz": 1000.0,
+          "startFrame": 36000,
+          "endFrame": 57600
+        },
+        {
+          "name": "level_3",
+          "startSeconds": 1.35,
+          "endSeconds": 1.8,
+          "levelDbFS": -12.0,
+          "frequencyHz": 1000.0,
+          "startFrame": 64800,
+          "endFrame": 86400
+        },
+        {
+          "name": "level_4",
+          "startSeconds": 1.95,
+          "endSeconds": 2.4,
+          "levelDbFS": -6.0,
+          "frequencyHz": 1000.0,
+          "startFrame": 93600,
+          "endFrame": 115200
+        }
+      ],
+      "targetTests": [
+        "harmonic-response",
+        "gain-linearity",
+        "level-window-integrity"
+      ],
       "sourceType": "synthetic",
-      "source": "FRAZIL synthetic fixture: steady harmonic tone with vibrato and a voiced envelope; no third-party recording.",
+      "source": "FRAZIL generated diagnostic fixture for harmonic generation and input-level-dependent gain response. No third-party recording.",
       "author": "FRAZIL project contributors",
       "license": "MIT",
       "licensePath": "LICENSE",
       "redistribution": "Permitted under the repository MIT license.",
-      "sha256": "7c99a73b04a4d5f03ca00aa0509d0a8cdabf22e595637793b52a7948e51a8fe1",
+      "sha256": "4a06034ab0955823eeb177417b7990a43f0ddb1aa18a8760ad4ab5c07a75c5d3",
       "sampleRate": 48000,
-      "bitDepth": 16,
+      "bitDepth": 24,
       "channels": 2,
-      "frames": 48000,
-      "durationSeconds": 1.0,
-      "format": "PCM_S16LE",
+      "frames": 122400,
+      "durationSeconds": 2.55,
+      "format": "PCM_S24LE",
       "storage": "repository",
       "artifact": false,
       "gitLfs": false
     },
     {
-      "id": "piano",
-      "filename": "piano.wav",
-      "path": "testdata/input/piano.wav",
-      "purpose": "three synthetic struck notes with inharmonic partials",
+      "id": "intermodulation_response__two_tone",
+      "filename": "intermodulation_response__two_tone.wav",
+      "path": "testdata/input/intermodulation_response__two_tone.wav",
+      "role": "canonical-engineering",
+      "signalType": "two-tone",
+      "purpose": "intermodulation, nonlinear mixing and sideband response",
+      "definition": "Dual-mono sum of 997 Hz and 1499 Hz sines inside a declared active window, with exact silence outside.",
+      "generationParameters": {
+        "durationSeconds": 2.0,
+        "frequency1Hz": 997.0,
+        "frequency2Hz": 1499.0,
+        "levelDbFS": -18.0,
+        "toneAmplitudeLinear": 0.12589254117941673,
+        "startSeconds": 0.25,
+        "endSeconds": 1.75,
+        "sampleRate": 48000,
+        "durationFrames": 96000
+      },
+      "expectedUses": [
+        "two-tone-frequency",
+        "intermodulation-response",
+        "amplitude-window"
+      ],
+      "analysisHints": [
+        "time-domain-zero-crossing",
+        "window-RMS",
+        "IMD-analysis-future"
+      ],
+      "channelRelation": "dual-mono",
+      "testObjective": "intermodulation, nonlinear mixing and sideband response",
+      "signalClass": "two-tone",
+      "signalParameters": {
+        "durationSeconds": 2.0,
+        "frequency1Hz": 997.0,
+        "frequency2Hz": 1499.0,
+        "levelDbFS": -18.0,
+        "toneAmplitudeLinear": 0.12589254117941673,
+        "startSeconds": 0.25,
+        "endSeconds": 1.75,
+        "sampleRate": 48000,
+        "durationFrames": 96000
+      },
+      "expectedProperties": {
+        "toneFrequenciesHz": [
+          997.0,
+          1499.0
+        ],
+        "analysisWindow": "declared active window",
+        "targetRmsDbFS": -18.0
+      },
+      "analysisMethods": [
+        "time-domain-zero-crossing",
+        "window-RMS",
+        "IMD-analysis-future"
+      ],
+      "analysisWindows": [
+        {
+          "name": "active_two_tone",
+          "startSeconds": 0.25,
+          "endSeconds": 1.75,
+          "frequenciesHz": [
+            997.0,
+            1499.0
+          ],
+          "levelDbFS": -18.0,
+          "startFrame": 12000,
+          "endFrame": 84000
+        }
+      ],
+      "targetTests": [
+        "two-tone-frequency",
+        "intermodulation-response",
+        "amplitude-window"
+      ],
       "sourceType": "synthetic",
-      "source": "FRAZIL synthetic fixture: three synthetic struck notes with inharmonic partials; no third-party recording.",
+      "source": "FRAZIL generated diagnostic fixture for intermodulation, nonlinear mixing and sideband response. No third-party recording.",
       "author": "FRAZIL project contributors",
       "license": "MIT",
       "licensePath": "LICENSE",
       "redistribution": "Permitted under the repository MIT license.",
-      "sha256": "c31aa62ef1589dc1cccf7de8b36e32bd692e33335fdb8139883c5863d22580c2",
+      "sha256": "1a786cf54fa4806cdab6c212a08905a0ebc83d23bfccfa60169b161b562c8db8",
       "sampleRate": 48000,
-      "bitDepth": 16,
+      "bitDepth": 24,
       "channels": 2,
-      "frames": 48000,
-      "durationSeconds": 1.0,
-      "format": "PCM_S16LE",
+      "frames": 96000,
+      "durationSeconds": 2.0,
+      "format": "PCM_S24LE",
       "storage": "repository",
       "artifact": false,
       "gitLfs": false
     },
     {
-      "id": "guitar",
-      "filename": "guitar.wav",
-      "path": "testdata/input/guitar.wav",
-      "purpose": "three synthetic plucked notes with harmonic decay",
+      "id": "broadband_response__white_noise",
+      "filename": "broadband_response__white_noise.wav",
+      "path": "testdata/input/broadband_response__white_noise.wav",
+      "role": "canonical-engineering",
+      "signalType": "deterministic-white-noise",
+      "purpose": "broadband spectral response, energy response and random-processing regression",
+      "definition": "Dual-mono uniform white noise from a stable per-signal seed with constant gain, no filter and no amplitude LFO.",
+      "generationParameters": {
+        "durationSeconds": 2.0,
+        "baseSeed": 20260908,
+        "distribution": "uniform[-1, 1]",
+        "shaping": "none",
+        "targetRmsDbFS": -18.0,
+        "targetRmsLinear": 0.12589254117941673,
+        "intentionalAmplitudeModulation": false,
+        "filtering": "none",
+        "sampleRate": 48000,
+        "durationFrames": 96000,
+        "signalSeed": 5237814837996085042
+      },
+      "expectedUses": [
+        "determinism",
+        "per-signal-seed",
+        "DC",
+        "RMS",
+        "no-amplitude-LFO"
+      ],
+      "analysisHints": [
+        "sample-statistics",
+        "RMS",
+        "DC",
+        "rolling-RMS",
+        "PSD-analysis-future"
+      ],
+      "channelRelation": "dual-mono",
+      "testObjective": "broadband spectral response, energy response and random-processing regression",
+      "signalClass": "deterministic-white-noise",
+      "signalParameters": {
+        "durationSeconds": 2.0,
+        "baseSeed": 20260908,
+        "distribution": "uniform[-1, 1]",
+        "shaping": "none",
+        "targetRmsDbFS": -18.0,
+        "targetRmsLinear": 0.12589254117941673,
+        "intentionalAmplitudeModulation": false,
+        "filtering": "none",
+        "sampleRate": 48000,
+        "durationFrames": 96000,
+        "signalSeed": 5237814837996085042
+      },
+      "expectedProperties": {
+        "seedPolicy": "stableSeed(baseSeed, signalId)",
+        "nearZeroMean": true,
+        "targetRmsDbFS": -18.0,
+        "noAmplitudeLFO": true,
+        "finite": true
+      },
+      "analysisMethods": [
+        "sample-statistics",
+        "RMS",
+        "DC",
+        "rolling-RMS",
+        "PSD-analysis-future"
+      ],
+      "analysisWindows": [
+        {
+          "name": "full_signal",
+          "startSeconds": 0.0,
+          "endSeconds": 2.0,
+          "startFrame": 0,
+          "endFrame": 96000
+        }
+      ],
+      "targetTests": [
+        "determinism",
+        "per-signal-seed",
+        "DC",
+        "RMS",
+        "no-amplitude-LFO"
+      ],
       "sourceType": "synthetic",
-      "source": "FRAZIL synthetic fixture: three synthetic plucked notes with harmonic decay; no third-party recording.",
+      "source": "FRAZIL generated diagnostic fixture for broadband spectral response, energy response and random-processing regression. No third-party recording.",
       "author": "FRAZIL project contributors",
       "license": "MIT",
       "licensePath": "LICENSE",
       "redistribution": "Permitted under the repository MIT license.",
-      "sha256": "df4dd1f9b52e1330538376309bb5f60b0b30a05d733d69a3753415a52555129d",
+      "sha256": "4c2a0176a45653fb3405e91baabf64a39723a622381aee4a1380a690f84627fd",
       "sampleRate": 48000,
-      "bitDepth": 16,
+      "bitDepth": 24,
       "channels": 2,
-      "frames": 48000,
-      "durationSeconds": 1.0,
-      "format": "PCM_S16LE",
+      "frames": 96000,
+      "durationSeconds": 2.0,
+      "format": "PCM_S24LE",
       "storage": "repository",
       "artifact": false,
       "gitLfs": false
     },
     {
-      "id": "pad",
-      "filename": "pad.wav",
-      "path": "testdata/input/pad.wav",
-      "purpose": "slow stereo chord with gentle amplitude movement",
+      "id": "envelope_response__gated_sine",
+      "filename": "envelope_response__gated_sine.wav",
+      "path": "testdata/input/envelope_response__gated_sine.wav",
+      "role": "canonical-engineering",
+      "signalType": "gated-sine",
+      "purpose": "attack, release, threshold and input-driven gate behavior",
+      "definition": "Dual-mono 440 Hz sine with high- and low-level gate windows separated by exact silence.",
+      "generationParameters": {
+        "durationSeconds": 2.0,
+        "frequencyHz": 440.0,
+        "highLevelDbFS": -6.0,
+        "lowLevelDbFS": -24.0,
+        "preSilenceSeconds": 0.2,
+        "gapSeconds": 0.2,
+        "sampleRate": 48000,
+        "durationFrames": 96000
+      },
+      "expectedUses": [
+        "gate-boundaries",
+        "attack-release",
+        "threshold-levels",
+        "frequency"
+      ],
+      "analysisHints": [
+        "sample-exact",
+        "window-RMS",
+        "time-domain-zero-crossing",
+        "envelope"
+      ],
+      "channelRelation": "dual-mono",
+      "testObjective": "attack, release, threshold and input-driven gate behavior",
+      "signalClass": "gated-sine",
+      "signalParameters": {
+        "durationSeconds": 2.0,
+        "frequencyHz": 440.0,
+        "highLevelDbFS": -6.0,
+        "lowLevelDbFS": -24.0,
+        "preSilenceSeconds": 0.2,
+        "gapSeconds": 0.2,
+        "sampleRate": 48000,
+        "durationFrames": 96000
+      },
+      "expectedProperties": {
+        "gateCount": 2,
+        "silenceWindowsExactZero": true,
+        "frequencyHz": 440.0,
+        "levelsDbFS": [
+          -6.0,
+          -24.0
+        ]
+      },
+      "analysisMethods": [
+        "sample-exact",
+        "window-RMS",
+        "time-domain-zero-crossing",
+        "envelope"
+      ],
+      "analysisWindows": [
+        {
+          "name": "high_level_on",
+          "startSeconds": 0.2,
+          "endSeconds": 0.7,
+          "levelDbFS": -6.0,
+          "frequencyHz": 440.0,
+          "startFrame": 9600,
+          "endFrame": 33600
+        },
+        {
+          "name": "low_level_on",
+          "startSeconds": 0.9,
+          "endSeconds": 1.4,
+          "levelDbFS": -24.0,
+          "frequencyHz": 440.0,
+          "startFrame": 43200,
+          "endFrame": 67200
+        }
+      ],
+      "targetTests": [
+        "gate-boundaries",
+        "attack-release",
+        "threshold-levels",
+        "frequency"
+      ],
       "sourceType": "synthetic",
-      "source": "FRAZIL synthetic fixture: slow stereo chord with gentle amplitude movement; no third-party recording.",
+      "source": "FRAZIL generated diagnostic fixture for attack, release, threshold and input-driven gate behavior. No third-party recording.",
       "author": "FRAZIL project contributors",
       "license": "MIT",
       "licensePath": "LICENSE",
       "redistribution": "Permitted under the repository MIT license.",
-      "sha256": "bb4f414f0b84926343fa2c6c8b4ca7eee05b0c78b6abb5d1f3d1c74710da836b",
+      "sha256": "c7183d1c31aa5aa8103069763a49a42496e9910e3d2e49cb65575190b6098872",
       "sampleRate": 48000,
-      "bitDepth": 16,
+      "bitDepth": 24,
       "channels": 2,
-      "frames": 48000,
-      "durationSeconds": 1.0,
-      "format": "PCM_S16LE",
+      "frames": 96000,
+      "durationSeconds": 2.0,
+      "format": "PCM_S24LE",
       "storage": "repository",
       "artifact": false,
       "gitLfs": false
     },
     {
-      "id": "bass",
-      "filename": "bass.wav",
-      "path": "testdata/input/bass.wav",
-      "purpose": "four low synthetic plucked notes",
+      "id": "transient_response__pitch_decay",
+      "filename": "transient_response__pitch_decay.wav",
+      "path": "testdata/input/transient_response__pitch_decay.wav",
+      "role": "canonical-engineering",
+      "signalType": "pitch-decay-transient",
+      "purpose": "low-frequency transient detection and downward pitch-decay preservation",
+      "definition": "Four dual-mono transients using phase accumulation for f(t) = f_end + (f_start - f_end) exp(-t/tau_f) and A(t) = A0 exp(-t/tau_a).",
+      "generationParameters": {
+        "durationSeconds": 2.3,
+        "fStartHz": 180.0,
+        "fEndHz": 55.0,
+        "tauFrequencySeconds": 0.035,
+        "tauAmplitudeSeconds": 0.12,
+        "levelsDbFS": [
+          -24.0,
+          -18.0,
+          -12.0,
+          -6.0
+        ],
+        "phaseGeneration": "sample-by-sample-phase-accumulation",
+        "forbiddenShortcut": "sin(f(t) * t)",
+        "sampleRate": 48000,
+        "durationFrames": 110400
+      },
+      "expectedUses": [
+        "event-positions",
+        "event-levels",
+        "pitch-decreases",
+        "end-frequency",
+        "amplitude-decay"
+      ],
+      "analysisHints": [
+        "time-domain-zero-crossing",
+        "window-RMS",
+        "envelope",
+        "STFT-analysis-future"
+      ],
+      "channelRelation": "dual-mono",
+      "testObjective": "low-frequency transient detection and downward pitch-decay preservation",
+      "signalClass": "pitch-decay-transient",
+      "signalParameters": {
+        "durationSeconds": 2.3,
+        "fStartHz": 180.0,
+        "fEndHz": 55.0,
+        "tauFrequencySeconds": 0.035,
+        "tauAmplitudeSeconds": 0.12,
+        "levelsDbFS": [
+          -24.0,
+          -18.0,
+          -12.0,
+          -6.0
+        ],
+        "phaseGeneration": "sample-by-sample-phase-accumulation",
+        "forbiddenShortcut": "sin(f(t) * t)",
+        "sampleRate": 48000,
+        "durationFrames": 110400
+      },
+      "expectedProperties": {
+        "frequencyDirection": "down",
+        "frequencyStartHz": 180.0,
+        "frequencyEndHz": 55.0,
+        "amplitudeEnvelope": "A0 * exp(-t / tauAmplitudeSeconds)",
+        "eventLevelsDbFS": [
+          -24.0,
+          -18.0,
+          -12.0,
+          -6.0
+        ],
+        "finite": true
+      },
+      "analysisMethods": [
+        "time-domain-zero-crossing",
+        "window-RMS",
+        "envelope",
+        "STFT-analysis-future"
+      ],
+      "analysisWindows": [
+        {
+          "name": "event_1",
+          "startSeconds": 0.1,
+          "endSeconds": 0.4,
+          "levelDbFS": -24.0,
+          "analysisEarlyWindow": {
+            "startSeconds": 0.101,
+            "endSeconds": 0.115,
+            "startFrame": 4848,
+            "endFrame": 5520
+          },
+          "analysisMiddleWindow": {
+            "startSeconds": 0.14,
+            "endSeconds": 0.18,
+            "startFrame": 6720,
+            "endFrame": 8640
+          },
+          "analysisLateWindow": {
+            "startSeconds": 0.28,
+            "endSeconds": 0.37,
+            "startFrame": 13440,
+            "endFrame": 17760
+          },
+          "startFrame": 4800,
+          "endFrame": 19200
+        },
+        {
+          "name": "event_2",
+          "startSeconds": 0.65,
+          "endSeconds": 0.95,
+          "levelDbFS": -18.0,
+          "analysisEarlyWindow": {
+            "startSeconds": 0.651,
+            "endSeconds": 0.665,
+            "startFrame": 31248,
+            "endFrame": 31920
+          },
+          "analysisMiddleWindow": {
+            "startSeconds": 0.6900000000000001,
+            "endSeconds": 0.73,
+            "startFrame": 33120,
+            "endFrame": 35040
+          },
+          "analysisLateWindow": {
+            "startSeconds": 0.8300000000000001,
+            "endSeconds": 0.92,
+            "startFrame": 39840,
+            "endFrame": 44160
+          },
+          "startFrame": 31200,
+          "endFrame": 45600
+        },
+        {
+          "name": "event_3",
+          "startSeconds": 1.2,
+          "endSeconds": 1.5,
+          "levelDbFS": -12.0,
+          "analysisEarlyWindow": {
+            "startSeconds": 1.201,
+            "endSeconds": 1.215,
+            "startFrame": 57648,
+            "endFrame": 58320
+          },
+          "analysisMiddleWindow": {
+            "startSeconds": 1.2400000000000002,
+            "endSeconds": 1.2800000000000002,
+            "startFrame": 59520,
+            "endFrame": 61440
+          },
+          "analysisLateWindow": {
+            "startSeconds": 1.3800000000000001,
+            "endSeconds": 1.4700000000000002,
+            "startFrame": 66240,
+            "endFrame": 70560
+          },
+          "startFrame": 57600,
+          "endFrame": 72000
+        },
+        {
+          "name": "event_4",
+          "startSeconds": 1.75,
+          "endSeconds": 2.05,
+          "levelDbFS": -6.0,
+          "analysisEarlyWindow": {
+            "startSeconds": 1.7510000000000001,
+            "endSeconds": 1.7650000000000001,
+            "startFrame": 84048,
+            "endFrame": 84720
+          },
+          "analysisMiddleWindow": {
+            "startSeconds": 1.7900000000000003,
+            "endSeconds": 1.8300000000000003,
+            "startFrame": 85920,
+            "endFrame": 87840
+          },
+          "analysisLateWindow": {
+            "startSeconds": 1.9300000000000002,
+            "endSeconds": 2.0200000000000005,
+            "startFrame": 92640,
+            "endFrame": 96960
+          },
+          "startFrame": 84000,
+          "endFrame": 98400
+        }
+      ],
+      "targetTests": [
+        "event-positions",
+        "event-levels",
+        "pitch-decreases",
+        "end-frequency",
+        "amplitude-decay"
+      ],
       "sourceType": "synthetic",
-      "source": "FRAZIL synthetic fixture: four low synthetic plucked notes; no third-party recording.",
+      "source": "FRAZIL generated diagnostic fixture for low-frequency transient detection and downward pitch-decay preservation. No third-party recording.",
       "author": "FRAZIL project contributors",
       "license": "MIT",
       "licensePath": "LICENSE",
       "redistribution": "Permitted under the repository MIT license.",
-      "sha256": "9aa9fcd6dc695770c2e4493d2137922807af49395f79c0dcaf5431b2aa66b656",
+      "sha256": "79afa950b17bebfda5b12182cce14bf168620cff44a3815f87d14bf2beb5c5d5",
       "sampleRate": 48000,
-      "bitDepth": 16,
+      "bitDepth": 24,
       "channels": 2,
-      "frames": 48000,
-      "durationSeconds": 1.0,
-      "format": "PCM_S16LE",
+      "frames": 110400,
+      "durationSeconds": 2.3,
+      "format": "PCM_S24LE",
+      "storage": "repository",
+      "artifact": false,
+      "gitLfs": false
+    },
+    {
+      "id": "aliasing_response__high_frequency_sine",
+      "filename": "aliasing_response__high_frequency_sine.wav",
+      "path": "testdata/input/aliasing_response__high_frequency_sine.wav",
+      "role": "canonical-engineering",
+      "signalType": "sample-rate-relative-sine",
+      "purpose": "high-frequency sidebands, aliasing and sample-rate robustness",
+      "definition": "Dual-mono sine whose frequency is defined as 0.22 times the supplied sample rate.",
+      "generationParameters": {
+        "durationSeconds": 2.0,
+        "frequencySampleRateRatio": 0.22,
+        "levelDbFS": -18.0,
+        "frequencyDefinition": "frequencyHz = frequencySampleRateRatio * sampleRate",
+        "sampleRate": 48000,
+        "durationFrames": 96000,
+        "frequencyHz": 10560.0
+      },
+      "expectedUses": [
+        "sample-rate-relative-frequency",
+        "finite-output",
+        "high-frequency-response"
+      ],
+      "analysisHints": [
+        "time-domain-zero-crossing",
+        "sample-rate-ratio",
+        "aliasing-analysis-future"
+      ],
+      "channelRelation": "dual-mono",
+      "testObjective": "high-frequency sidebands, aliasing and sample-rate robustness",
+      "signalClass": "sample-rate-relative-sine",
+      "signalParameters": {
+        "durationSeconds": 2.0,
+        "frequencySampleRateRatio": 0.22,
+        "levelDbFS": -18.0,
+        "frequencyDefinition": "frequencyHz = frequencySampleRateRatio * sampleRate",
+        "sampleRate": 48000,
+        "durationFrames": 96000,
+        "frequencyHz": 10560.0
+      },
+      "expectedProperties": {
+        "frequencySampleRateRatio": 0.22,
+        "finite": true,
+        "frequencyHz": 10560.0
+      },
+      "analysisMethods": [
+        "time-domain-zero-crossing",
+        "sample-rate-ratio",
+        "aliasing-analysis-future"
+      ],
+      "analysisWindows": [
+        {
+          "name": "full_signal",
+          "startSeconds": 0.0,
+          "endSeconds": 2.0,
+          "startFrame": 0,
+          "endFrame": 96000
+        }
+      ],
+      "targetTests": [
+        "sample-rate-relative-frequency",
+        "finite-output",
+        "high-frequency-response"
+      ],
+      "sourceType": "synthetic",
+      "source": "FRAZIL generated diagnostic fixture for high-frequency sidebands, aliasing and sample-rate robustness. No third-party recording.",
+      "author": "FRAZIL project contributors",
+      "license": "MIT",
+      "licensePath": "LICENSE",
+      "redistribution": "Permitted under the repository MIT license.",
+      "sha256": "8e129d9047107075de305964e6bea6d0aece85d2be1c0806ea54ed487da872a3",
+      "sampleRate": 48000,
+      "bitDepth": 24,
+      "channels": 2,
+      "frames": 96000,
+      "durationSeconds": 2.0,
+      "format": "PCM_S24LE",
+      "storage": "repository",
+      "artifact": false,
+      "gitLfs": false
+    },
+    {
+      "id": "stereo_isolation__channel_probe",
+      "filename": "stereo_isolation__channel_probe.wav",
+      "path": "testdata/input/stereo_isolation__channel_probe.wav",
+      "role": "canonical-engineering",
+      "signalType": "stereo-channel-probe",
+      "purpose": "left/right isolation and unintended crossfeed detection",
+      "definition": "Window A is left-only 440 Hz sine and Window B is right-only 440 Hz sine; each inactive channel is exact zero.",
+      "generationParameters": {
+        "durationSeconds": 1.6,
+        "frequencyHz": 440.0,
+        "levelDbFS": -12.0,
+        "inactiveChannelValue": 0.0,
+        "sampleRate": 48000,
+        "durationFrames": 76800
+      },
+      "expectedUses": [
+        "left-isolation",
+        "right-isolation",
+        "crossfeed",
+        "channel-leakage"
+      ],
+      "analysisHints": [
+        "sample-exact",
+        "window-RMS",
+        "channel-isolation"
+      ],
+      "channelRelation": "left-only/right-only-windowed",
+      "testObjective": "left/right isolation and unintended crossfeed detection",
+      "signalClass": "stereo-channel-probe",
+      "signalParameters": {
+        "durationSeconds": 1.6,
+        "frequencyHz": 440.0,
+        "levelDbFS": -12.0,
+        "inactiveChannelValue": 0.0,
+        "sampleRate": 48000,
+        "durationFrames": 76800
+      },
+      "expectedProperties": {
+        "inactiveChannelExactlyZero": true,
+        "activeChannel": "window-declared",
+        "windowCount": 2
+      },
+      "analysisMethods": [
+        "sample-exact",
+        "window-RMS",
+        "channel-isolation"
+      ],
+      "analysisWindows": [
+        {
+          "name": "left_only",
+          "startSeconds": 0.2,
+          "endSeconds": 0.7,
+          "activeChannel": "left",
+          "frequencyHz": 440.0,
+          "startFrame": 9600,
+          "endFrame": 33600
+        },
+        {
+          "name": "right_only",
+          "startSeconds": 0.9,
+          "endSeconds": 1.4,
+          "activeChannel": "right",
+          "frequencyHz": 440.0,
+          "startFrame": 43200,
+          "endFrame": 67200
+        }
+      ],
+      "targetTests": [
+        "left-isolation",
+        "right-isolation",
+        "crossfeed",
+        "channel-leakage"
+      ],
+      "sourceType": "synthetic",
+      "source": "FRAZIL generated diagnostic fixture for left/right isolation and unintended crossfeed detection. No third-party recording.",
+      "author": "FRAZIL project contributors",
+      "license": "MIT",
+      "licensePath": "LICENSE",
+      "redistribution": "Permitted under the repository MIT license.",
+      "sha256": "2147cefa808b7899ca72e351a440b02112e9ed276cf8feaae136ec525c7ba88f",
+      "sampleRate": 48000,
+      "bitDepth": 24,
+      "channels": 2,
+      "frames": 76800,
+      "durationSeconds": 1.6,
+      "format": "PCM_S24LE",
       "storage": "repository",
       "artifact": false,
       "gitLfs": false

@@ -40,16 +40,24 @@ Reference input corpus:
     python tools/verify_testdata.py
     python tools/test_testdata.py
 
-`generate_testdata.py` creates the eight deterministic, synthetic `TESTDATA-001`
-WAV fixtures and their manifest. Its `generate_corpus` API accepts the input
-directory, manifest path and manifest root explicitly, and the CLI exposes the
-same context through `--input-dir`, `--manifest` and `--manifest-root` so a
-complete corpus can be generated outside the repository. `verify_testdata.py` checks provenance, the
-repository MIT license, repository/no-LFS storage, WAV metadata and the
-manifest's SHA-256 values. The manifest records each input's id, filename,
-purpose, sourceType, source, author, redistribution terms, sample rate, bit depth,
-channels, duration and repository/artifact/LFS storage policy. These hashes are
-limited to the required reference inputs; rendered output remains ignored.
+`generate_testdata.py` creates the ten deterministic DSP diagnostic WAV
+fixtures and their schema-v2 manifest. Its `SignalSpec` model keeps each
+signal's objective, mathematical parameters, expected properties, analysis
+windows, and target tests next to its renderer. The CLI supports
+`--sample-rate 44100|48000|96000`; only the 48 kHz PCM24 corpus is committed.
+`verify_testdata.py` checks those contracts, the repository MIT license,
+repository/no-LFS storage, PCM24 WAV metadata, strict input/manifest set
+consistency, and the manifest's SHA-256 values. These hashes are limited to
+the required reference inputs; generated probes and rendered output remain
+ignored. `test_testdata.py` uses only the Python standard library for semantic
+checks; future FFT/THD/IMD measurement tooling remains outside this follow-up.
+
+`signal_generators.py` provides deterministic, in-memory algorithm probes:
+amplitude staircase, attack-rate sweep, transient train, threshold burst train,
+relative-Nyquist multitone, and near-Nyquist tone. `analyze_testdata.py` is
+optional experiment/measurement support for waveform metrics, FFT, Welch PSD,
+stereo correlation, and STFT/spectrogram metadata; optional PNG plots can be
+written with `--plot-dir`. It is not a TESTDATA-001 semantic exit blocker.
 
 Offline render smoke:
 

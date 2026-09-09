@@ -10,7 +10,7 @@
 
 本计划是 CONTROLLED 工程合同。工作项、依赖、验收标准和 exit gate 的修改必须通过 issue/review，并同步受影响的架构、测试、参数或治理文档；本文件不记录实时 issue 状态，也不以状态文字替代验证证据。
 
-`CODING_PLAN.md v1.0` 是 FRAZIL 从 M0 到 M7 的正式工程执行基线，不等于 FRAZIL plugin v1.0 release。插件当前仍处于 M0/M1 早期开发阶段。
+`CODING_PLAN.md v1.1` 是当前 FRAZIL M0 到 M7 的 Approved Development Baseline，不等于 FRAZIL plugin v1.0 release。文中较早的 v1.0 表述属于历史文字，不覆盖当前 v1.1 合同；插件当前仍处于 M0/M1 早期开发阶段。
 
 ## 1. 计划使用方式
 
@@ -81,26 +81,45 @@ Parameter / State / Engine Contract
   |
   v
 
-M2 Water --------+
-                 |
-M3 Ice ----------+
-                 |
-                 v
-
-PARAM-FREEZE-001
-v1 Host Parameter Contract Freeze
-                 |
-                 v
-
-ADR-R-001
-Routing Transition / DSP State Strategy
-                 |
-                 v
-
-M4
-Routing / Latency / Gain Integration
-                 |
-                 v
+Engineering Evidence (TESTDATA/PERF/ARCH/TEST-002) --------+
+                                                            |
+Sound / Host Evidence (HOST-001) ---------------------------+
+                                                            v
+                       M1 Joint Exit Review
+                              |
+                 +------------+------------+
+                 |                         |
+                 v                         v
+              M2 Water                  M3 Ice
+                 |                         |
+                 v                         v
+              EXP-W-002                EXP-I-002
+                 |                         |
+                 v                         v
+               EXP-W-003                EXP-I-003
+          (LISTENING-001 ready)    (LISTENING-001 ready)
+                 |                         |
+                 v                         v
+               ADR-W-001                ADR-I-001
+                 |                         |
+          Water production          Ice production
+           WATER-001..007             ICE-001..007
+                 |                         |
+                 v                         v
+              M2 Exit                  M3 Exit
+                 |                         |
+                 +------------+------------+
+                              |
+                              v
+                       PARAM-FREEZE-001
+                              |
+                              v
+                           ADR-R-001
+                              |
+                              v
+                           M4
+                              |
+                              v
 
 M5
 UI / Edit History
@@ -114,10 +133,26 @@ Beta Hardening
 
 M7
 v1.0 Release
+
+Parallel during M1 (preparatory only; does not change milestone state):
+  EXP-W-001 / EXP-I-001 perceptual brief preparation
+  LISTENING-001 representative corpus preparation
+
+Shared listening side dependency (not a Water/Ice synchronization barrier):
+  LISTENING-001
+       +--> EXP-W-003
+       +--> EXP-I-003
 ```
 
-M2 Water 与 M3 Ice 使用 pipeline-level parallelism：两种材质可处于不同的 brief、experiment、selection、
-production 或 acceptance 阶段，但不按“Water 一人 / Ice 一人”建立孤立 production ownership。
+M2 Water 和 M3 Ice 在 M1 Joint Exit 之后是 independent pipelines。`EXP-W-*` 阶段不依赖对应的
+`EXP-I-*` 阶段，反之亦然；除计划明确写出的 shared gate 外，两条 pipeline 不互相等待。每条
+pipeline 都独立经过 candidate selection、algorithm ADR、production implementation 和自己的
+milestone exit；两条 pipeline 只有在 M2 Exit 与 M3 Exit 都完成后，才在 `PARAM-FREEZE-001` 汇合。
+`EXP-W-002` / `EXP-W-003` 是 M2 Water work items，`EXP-I-002` / `EXP-I-003` 是 M3 Ice work items；
+图中将它们放在对应的 M2/M3 分支下，不表示它们是 milestone 之前的前置条件。
+M1 期间只允许准备 `EXP-W-001` / `EXP-I-001` perceptual briefs 和 `LISTENING-001` corpus，且仅限
+non-production preparation；这不表示 M2/M3 已正式开始，也不授权 production Water/Ice DSP 或 candidate
+production integration。Engineering candidate work 从 M1 Joint Exit 后开始。
 `PARAM-FREEZE-001` 必须在 M2/M3 完成后、M4 开始前完成；`ADR-R-001` 必须在任何 `ROUTE-006`
 实现前 Accepted。任何 Water/Ice 生产实现都依赖 M1 的 ProcessSpec、EngineParameters、Snapshot、统一测试
 素材和性能 baseline。
@@ -239,7 +274,7 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 |---|---:|---|---|---|
 | STATE-001 | P0 | versioned StateModel/adapter and history boundary | `schemaVersion`、全部参数、invalid input fallback；非音频线程迁移；明确 Host automation/restore 不进入 plugin history 的边界 | fixtures + round-trip + boundary review |
 | STATE-002 | P0 | mode value retention | 切换三种 mode、保存、恢复，不重置 inactive values | integration scenario |
-| TESTDATA-001 | P0 | Establish licensed reference audio corpus | impulse、noise、drums、vocal、piano、guitar、pad、bass；每项记录 source/license/hash/sample rate/channels/storage/repository-artifact-LFS 策略；Water/Ice 共用 corpus | manifest review + hash/licence audit |
+| TESTDATA-001 | P0 | Establish deterministic DSP diagnostic corpus | Layer B canonical ten-signal diagnostic corpus；SignalSpec mathematical definitions；manifest schema v2；PCM24/provenance/hash/storage；standard-library semantic regression；temporary 44.1/48/96 kHz generation；与 Layer D listening corpus 解耦 | deterministic regeneration + byte/hash equality + per-signal semantic checks + RENDER-001 shared-input regression |
 | PERF-BASE-001 | P0 | Establish realtime performance baseline | Reference Machine、OS、compiler、build type、48 kHz/128、测量方法；记录 mean/P95/P99/worst callback、deadline、memory、allocation observation | reproducible baseline report；不预设百分比阈值 |
 | ARCH-LAT-001 | P0 | Define v1 processing latency and intentional delay/tail policy | v1 Host-reported processing latency 为 0 samples；不依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC；Water/Ice 允许属于声音设计的 intentional effect delay/tail，但不得依赖 Host latency compensation | ADR + latency metadata/infrastructure acceptance |
 | RENDER-001 | P0 | offline WAV harness | 固定 `TESTDATA-001` input/config/seed -> WAV + manifest；不依赖实时设备；candidate A/B 可复现 | deterministic smoke render |
@@ -267,6 +302,15 @@ implementation responsibility 换人时才记录 Implementation DRI Transfer。
 
 ### M1 Exit gate
 
+`TESTDATA-001` 的独立 exit criteria 是：十个 diagnostic signal 存在且 filename/ID 直接表达
+测试目标；manifest schema v2 的 signal definition、provenance、license、redistribution、hash
+和 storage audit 完整；generator 支持 per-signal duration、PCM24、stable per-signal seed 和
+44.1/48/96 kHz temporary generation；每个 canonical signal 有 standard-library semantic
+verification；analysisMethods 已为未来 measurement tooling 记录。FFT/PSD/STFT 等大型分析基础
+仍不是本 follow-up 的实现目标。M1 不要求
+final Water/Ice probes、algorithm-specific acceptance thresholds 或真实 listening corpus；这些
+随 `EXP-W-*`、`EXP-I-*`、`ADR-W-001` 和 `ADR-I-001` 推进。
+
 - Parameter registry 与 `docs/PARAMETERS.md` 完全一致；
 - AudioEngine 实际消费 Snapshot/EngineParameters；
 - gain/global mix 位置与数学由 tests 证明；
@@ -281,6 +325,27 @@ implementation responsibility 换人时才记录 Implementation DRI Transfer。
 - Debug/Release/ASAN + pluginval PASS；
 - `HOST-000` 中定义的 primary target DAW 完成参数枚举与 project save/reopen smoke。
 
+### M2/M3 Shared Perceptual Preparation
+
+`LISTENING-001` 是跨 milestone 的 **Shared Representative Listening Corpus**，当前不属于
+M1-C，也不是 M1 Exit Gate 的 P0 blocker。其 Implementation DRI 为 Sound & Host Lead，
+Acceptance DRI 为 Engineering Lead。允许的 scope 包括 licensed representative musical
+material、source/author、license、redistribution permission、hash、sample rate、bit depth、
+channel count、duration、storage policy 和 Water/Ice listening rubric suitability。
+
+Acceptance criteria：representative coverage accepted；source/license/redistribution audit complete；
+metadata/hash/storage evidence complete；material suitable for the Water/Ice listening rubric；
+Engineering Lead evidence review complete。DAW acceptance 不属于 `LISTENING-001`。
+
+明确 non-goals：`TESTDATA-001` engineering fixtures、production Water/Ice DSP、HOST-001
+兼容性证据、DAW automation evidence，以及 DSP mathematical acceptance。
+
+依赖关系必须保持为：`LISTENING-001` 可以在 M1 期间并行准备，不阻塞 M1 Exit，也不阻塞
+`EXP-W-002` / `EXP-I-002` engineering experiments；但它必须在 `EXP-W-003` / `EXP-I-003`
+perceptual candidate selection 以及 `WATER-006` / `ICE-006` final listening evidence 之前
+ready。`TESTDATA-001` 负责 engineering evidence，`LISTENING-001` 负责 perceptual evidence，
+两者不可互相替代。
+
 ## 6. M2 — Water Vertical Slice
 
 ### 目标
@@ -292,8 +357,8 @@ implementation responsibility 换人时才记录 Implementation DRI Transfer。
 | ID | P | 工作 | 交付/验收 |
 |---|---:|---|---|
 | EXP-W-001 | P0 | Water perceptual brief | 3-5 个可听属性（流动、液体扰动/水滴、共振、平滑度等）、反例、参考素材与评价表 |
-| EXP-W-002 | P0 | 候选机制实验 | 使用 `TESTDATA-001`；至少两种低耦合候选；固定测试 seed；baseline/A/B；参数空间与 CPU 初测 |
-| EXP-W-003 | P0 | 选择 vertical slice | 使用统一 listening rubric 做双人 loudness-matched review；选择理由、放弃理由、风险；确定最多 2 个首批 macro |
+| EXP-W-002 | P0 | 候选机制实验 | 工程 measurement/regression 使用 `TESTDATA-001` diagnostic corpus；至少两种低耦合候选；固定测试 seed；参数空间与 CPU 初测；不把 diagnostic WAV 当作 musical acceptance |
+| EXP-W-003 | P0 | 选择 vertical slice | 使用 `LISTENING-001` representative listening corpus 与统一 listening rubric 做双人 loudness-matched review；选择理由、放弃理由、风险；确定最多 2 个首批 macro |
 | ADR-W-001 | P0 | Water 算法 ADR | 信号结构、latency/tail、随机性、参数 mapping、性能与失败模式 |
 
 候选可探索 FlowModulator、DropletExciter、LiquidResonator、SpectralShaper 或 MicroDelayNetwork，但名称不是实现要求；以听感、稳定性和预算决定。
@@ -307,7 +372,7 @@ implementation responsibility 换人时才记录 Implementation DRI Transfer。
 | WATER-003 | P0 | product macros | 名称体现用户听感；mapping 集中；自动化平滑；文档/parameter registry | mapping/automation tests |
 | WATER-004 | P0 | click-free enable | disabled=pass-through；重新开启保留 macro；过渡无异常峰值 | transient automation render |
 | WATER-005 | P0 | performance/tail | 相对 `PERF-BASE-001` 的 48k/128 baseline 报告 mean/P95/P99/worst；不引入非零 Host-reported processing latency；intentional effect delay/tail 由 Water ADR/tests 描述 | benchmark + plugin metadata |
-| WATER-006 | P0 | listening pack | 使用 `TESTDATA-001` 的多类素材 dry/baseline/candidate + manifest；按 Water rubric 记录 | rubric accepted；未触发 Reject Criteria |
+| WATER-006 | P0 | listening pack | 使用 `LISTENING-001` 的多类代表性素材进行 dry/baseline/candidate + rubric review；工程诊断另由 `TESTDATA-001` 提供 measurement/regression evidence | rubric accepted；未触发 Reject Criteria |
 | WATER-007 | P0 | integration | AudioEngine 的 Water-only 临时路径，不引入 routing 语义 | pluginval + DAW automation |
 
 ### M2 pipeline ownership
@@ -323,7 +388,10 @@ implementation responsibility 换人时才记录 Implementation DRI Transfer。
 
 ### M2 Exit gate
 
-Water-only 在 `TESTDATA-001` 固定素材上具有一致可辨识的材质变化，输入仍可辨识；所有宏符合 `AUTO-001` 且无明显 zipper；通过 Water listening rubric 和 Reject Criteria；bypass/state/seed/render/property/performance/pluginval 通过；WaterProcessor 未依赖 Host、UI 或 RoutingMode。
+Water-only 在 `LISTENING-001` 代表性素材上具有一致可辨识的材质变化，输入仍可辨识；工程
+诊断在 `TESTDATA-001` 上通过；所有宏符合 `AUTO-001` 且无明显 zipper；通过 Water listening
+rubric 和 Reject Criteria；bypass/state/seed/render/property/performance/pluginval 通过；
+WaterProcessor 未依赖 Host、UI 或 RoutingMode。
 
 ## 7. M3 — Ice Vertical Slice
 
@@ -336,15 +404,15 @@ Water-only 在 `TESTDATA-001` 固定素材上具有一致可辨识的材质变�
 | ID | P | 工作 | 具体要求/验收 |
 |---|---:|---|---|
 | EXP-I-001 | P0 | Ice perceptual brief | 冰晶/摩擦/脆裂/硬度等属性、反例、参考与评价表 |
-| EXP-I-002 | P0 | 候选机制实验 | 使用 `TESTDATA-001`；至少两候选；固定测试 seed；A/B；CPU 和极端参数 |
-| EXP-I-003 | P0 | vertical slice selection | 按 Ice listening rubric 双人听测；最多 2 个首批 macro；风险和弃选记录 |
+| EXP-I-002 | P0 | 候选机制实验 | 工程 measurement/regression 使用 `TESTDATA-001` diagnostic corpus；至少两候选；固定测试 seed；A/B；CPU 和极端参数；不把 diagnostic WAV 当作 musical acceptance |
+| EXP-I-003 | P0 | vertical slice selection | 使用 `LISTENING-001` representative listening corpus，按 Ice listening rubric 双人听测；最多 2 个首批 macro；风险和弃选记录 |
 | ADR-I-001 | P0 | Ice 算法 ADR | 结构、transient/random、latency/tail、mapping、预算 |
 | ICE-001 | P0 | `IceProcessor` lifecycle | 与 Water 接口习惯一致但不强求内部对称；无 routing/APVTS |
 | ICE-002 | P0 | Ice core | 选定的摩擦/晶体/裂纹机制最小组合；finite/repeatable |
 | ICE-003 | P0 | product macros | 用户语义、mapping、smoothing、automation/state |
 | ICE-004 | P0 | enable transition | pass-through、value retention、click-free |
 | ICE-005 | P0 | performance/tail | 相对 `PERF-BASE-001` 的 Reference baseline 报告 mean/P95/P99/worst；不引入非零 Host-reported processing latency；intentional effect delay/tail 由 Ice ADR/tests 描述 |
-| ICE-006 | P0 | listening pack | 使用 `TESTDATA-001`，跨素材且与 Water 可区分；按 Ice rubric 记录 |
+| ICE-006 | P0 | listening pack | 使用 `LISTENING-001`，跨代表性素材且与 Water 可区分；工程诊断另由 `TESTDATA-001` 提供 measurement/regression evidence；按 Ice rubric 记录 |
 | ICE-007 | P0 | integration | Ice-only AudioEngine 路径 + pluginval/DAW smoke |
 
 ### M3 pipeline ownership
