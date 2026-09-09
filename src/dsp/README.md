@@ -40,7 +40,7 @@ M1 `DSP-002`/`DSP-004`/`DSP-005` 已建立 `DryWetMixer`、sample-rate-aware `Li
 
 ## State / Tail / Latency
 
-DSP 可以拥有声音设计所需的 intentional effect delay/tail，但不得把它伪装为 Host processing latency。v1 Host-reported latency 为 0 samples；routing infrastructure 的 latency 由 `ROUTE-011` 验证。
+DSP 可以拥有声音设计所需的 intentional effect delay/tail，但不得把它伪装为 Host processing latency。v1 Host-reported latency 为 0 samples；正式边界见 [ADR-0005](../../docs/adr/0005-zero-sample-processing-latency.md)，当前 M1 infrastructure 由 `frazil_latency_contract` 验证，未来 routing infrastructure 的 latency 由 `ROUTE-011` 验证。
 
 ## Tests
 
@@ -48,7 +48,7 @@ DSP 可以拥有声音设计所需的 intentional effect delay/tail，但不得�
 
 ## Related ADRs
 
-[ADR-0001](../../docs/adr/0001-routing-and-control-model.md)、[ADR-0003](../../docs/adr/0003-realtime-processing-boundary.md)，以及未来各算法/transition ADR。
+[ADR-0001](../../docs/adr/0001-routing-and-control-model.md)、[ADR-0003](../../docs/adr/0003-realtime-processing-boundary.md)、[ADR-0005](../../docs/adr/0005-zero-sample-processing-latency.md)，以及未来各算法/transition ADR。
 
 ## Files
 

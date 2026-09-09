@@ -74,7 +74,10 @@
         "frazil_smoke",
         "frazil_render",
         "frazil_tests",
-        "frazil_plugin_integration"
+        "frazil_plugin_integration",
+        "frazil_processor_property",
+        "frazil_latency_contract",
+        "frazil_performance_baseline"
       ]
     },
     {
@@ -86,7 +89,10 @@
         "frazil_smoke",
         "frazil_render",
         "frazil_tests",
-        "frazil_plugin_integration"
+        "frazil_plugin_integration",
+        "frazil_processor_property",
+        "frazil_latency_contract",
+        "frazil_performance_baseline"
       ]
     },
     {
@@ -98,7 +104,10 @@
         "frazil_smoke",
         "frazil_render",
         "frazil_tests",
-        "frazil_plugin_integration"
+        "frazil_plugin_integration",
+        "frazil_processor_property",
+        "frazil_latency_contract",
+        "frazil_performance_baseline"
       ]
     },
     {
@@ -110,7 +119,10 @@
         "frazil_smoke",
         "frazil_render",
         "frazil_tests",
-        "frazil_plugin_integration"
+        "frazil_plugin_integration",
+        "frazil_processor_property",
+        "frazil_latency_contract",
+        "frazil_performance_baseline"
       ]
     }
   ],

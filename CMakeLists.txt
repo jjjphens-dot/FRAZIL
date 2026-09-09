@@ -2,6 +2,17 @@ cmake_minimum_required(VERSION 3.25)
 
 project(FRAZIL VERSION 0.1.0 LANGUAGES C CXX)
 
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_VARIABLE FRAZIL_GIT_COMMIT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+if(NOT FRAZIL_GIT_COMMIT)
+    set(FRAZIL_GIT_COMMIT "unknown")
+endif()
+
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/JUCE/CMakeLists.txt")
     message(FATAL_ERROR
         "JUCE 9.0.1 is missing. Expected it at external/JUCE."
@@ -192,6 +203,167 @@ target_link_libraries(frazil_plugin_integration
 )
 juce_generate_juce_header(frazil_plugin_integration)
 add_test(NAME frazil_plugin_integration COMMAND frazil_plugin_integration)
+
+juce_add_console_app(frazil_processor_property
+    PRODUCT_NAME "FRAZIL Processor Property Harness"
+    NEEDS_WEB_BROWSER FALSE
+    NEEDS_CURL FALSE
+)
+target_sources(frazil_processor_property
+    PRIVATE
+    tests/integration/processor_property.cpp
+    src/app/AudioEngine.cpp
+    src/app/AudioEngine.h
+    src/app/EngineParameters.h
+    src/app/ParameterMapper.cpp
+    src/app/ParameterMapper.h
+    src/app/ParameterSnapshot.cpp
+    src/app/ParameterSnapshot.h
+    src/app/ProcessSpec.h
+    src/app/StateModel.cpp
+    src/app/StateModel.h
+    src/dsp/DryWetMixer.cpp
+    src/dsp/DryWetMixer.h
+    src/dsp/primitives/LinearSmoother.cpp
+    src/dsp/primitives/LinearSmoother.h
+    src/dsp/primitives/RandomSource.cpp
+    src/dsp/primitives/RandomSource.h
+    src/plugin/ParameterLayout.cpp
+    src/plugin/ParameterLayout.h
+    src/plugin/PluginEditor.cpp
+    src/plugin/PluginEditor.h
+    src/plugin/PluginProcessor.cpp
+    src/plugin/PluginProcessor.h
+    src/plugin/StateAdapter.cpp
+    src/plugin/StateAdapter.h
+)
+target_compile_features(frazil_processor_property PRIVATE cxx_std_20)
+target_include_directories(frazil_processor_property PRIVATE src)
+target_compile_definitions(frazil_processor_property
+    PRIVATE
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_VST3_CAN_REPLACE_VST2=0
+)
+target_link_libraries(frazil_processor_property
+    PRIVATE
+        juce::juce_audio_utils
+        juce::juce_audio_processors
+)
+juce_generate_juce_header(frazil_processor_property)
+add_test(NAME frazil_processor_property COMMAND frazil_processor_property)
+
+juce_add_console_app(frazil_latency_contract
+    PRODUCT_NAME "FRAZIL Latency Contract"
+    NEEDS_WEB_BROWSER FALSE
+    NEEDS_CURL FALSE
+)
+target_sources(frazil_latency_contract
+    PRIVATE
+    tests/integration/latency_contract.cpp
+    src/app/AudioEngine.cpp
+    src/app/AudioEngine.h
+    src/app/EngineParameters.h
+    src/app/ParameterMapper.cpp
+    src/app/ParameterMapper.h
+    src/app/ParameterSnapshot.cpp
+    src/app/ParameterSnapshot.h
+    src/app/ProcessSpec.h
+    src/app/StateModel.cpp
+    src/app/StateModel.h
+    src/dsp/DryWetMixer.cpp
+    src/dsp/DryWetMixer.h
+    src/dsp/primitives/LinearSmoother.cpp
+    src/dsp/primitives/LinearSmoother.h
+    src/dsp/primitives/RandomSource.cpp
+    src/dsp/primitives/RandomSource.h
+    src/plugin/ParameterLayout.cpp
+    src/plugin/ParameterLayout.h
+    src/plugin/PluginEditor.cpp
+    src/plugin/PluginEditor.h
+    src/plugin/PluginProcessor.cpp
+    src/plugin/PluginProcessor.h
+    src/plugin/StateAdapter.cpp
+    src/plugin/StateAdapter.h
+)
+target_compile_features(frazil_latency_contract PRIVATE cxx_std_20)
+target_include_directories(frazil_latency_contract PRIVATE src)
+target_compile_definitions(frazil_latency_contract
+    PRIVATE
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_VST3_CAN_REPLACE_VST2=0
+)
+target_link_libraries(frazil_latency_contract
+    PRIVATE
+        juce::juce_audio_utils
+        juce::juce_audio_formats
+        juce::juce_audio_processors
+)
+juce_generate_juce_header(frazil_latency_contract)
+add_test(
+    NAME frazil_latency_contract
+    COMMAND frazil_latency_contract
+            --input "${CMAKE_CURRENT_SOURCE_DIR}/testdata/input/zero_state_response__impulse.wav"
+)
+
+juce_add_console_app(frazil_performance_baseline
+    PRODUCT_NAME "FRAZIL Performance Baseline"
+    NEEDS_WEB_BROWSER FALSE
+    NEEDS_CURL FALSE
+)
+target_sources(frazil_performance_baseline
+    PRIVATE
+    tests/performance/performance_baseline.cpp
+    src/app/AudioEngine.cpp
+    src/app/AudioEngine.h
+    src/app/EngineParameters.h
+    src/app/ParameterMapper.cpp
+    src/app/ParameterMapper.h
+    src/app/ParameterSnapshot.cpp
+    src/app/ParameterSnapshot.h
+    src/app/ProcessSpec.h
+    src/app/StateModel.cpp
+    src/app/StateModel.h
+    src/dsp/DryWetMixer.cpp
+    src/dsp/DryWetMixer.h
+    src/dsp/primitives/LinearSmoother.cpp
+    src/dsp/primitives/LinearSmoother.h
+    src/dsp/primitives/RandomSource.cpp
+    src/dsp/primitives/RandomSource.h
+    src/plugin/ParameterLayout.cpp
+    src/plugin/ParameterLayout.h
+    src/plugin/PluginEditor.cpp
+    src/plugin/PluginEditor.h
+    src/plugin/PluginProcessor.cpp
+    src/plugin/PluginProcessor.h
+    src/plugin/StateAdapter.cpp
+    src/plugin/StateAdapter.h
+)
+target_compile_features(frazil_performance_baseline PRIVATE cxx_std_20)
+target_include_directories(frazil_performance_baseline PRIVATE src)
+target_compile_definitions(frazil_performance_baseline
+    PRIVATE
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_VST3_CAN_REPLACE_VST2=0
+        FRAZIL_GIT_COMMIT="${FRAZIL_GIT_COMMIT}"
+        FRAZIL_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
+)
+target_link_libraries(frazil_performance_baseline
+    PRIVATE
+        juce::juce_audio_utils
+        juce::juce_audio_processors
+)
+if(WIN32)
+    target_link_libraries(frazil_performance_baseline PRIVATE Psapi)
+endif()
+juce_generate_juce_header(frazil_performance_baseline)
+add_test(
+    NAME frazil_performance_baseline
+    COMMAND frazil_performance_baseline
+            --output "${CMAKE_CURRENT_BINARY_DIR}/performance/perf_base_001.json"
+)
 add_test(
     NAME frazil_render
     COMMAND ${Python3_EXECUTABLE}
@@ -216,13 +388,15 @@ if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
         "${frazil_msvc_tool_bin_dir}/clang_rt.asan_dynamic-x86_64.dll")
 
     set_property(
-        TEST frazil_smoke frazil_unit frazil_plugin_integration frazil_render frazil_render_cli
+        TEST frazil_smoke frazil_unit frazil_plugin_integration frazil_processor_property
+             frazil_latency_contract frazil_performance_baseline frazil_render frazil_render_cli
         PROPERTY ENVIRONMENT_MODIFICATION
                  "PATH=path_list_prepend:${frazil_msvc_tool_bin_dir}"
     )
     foreach(
         frazil_test_target
-        IN ITEMS frazil_smoke frazil_tests frazil_plugin_integration frazil_render
+        IN ITEMS frazil_smoke frazil_tests frazil_plugin_integration frazil_processor_property
+                   frazil_latency_contract frazil_performance_baseline frazil_render
     )
         if(EXISTS "${frazil_asan_runtime_dll}")
             add_custom_command(

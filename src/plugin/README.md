@@ -53,11 +53,11 @@ M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing �
 
 ## Tests
 
-当前证据为 CTest smoke/lifecycle、Debug/Release/ASAN build 和参数/mapper/engine/state unit tests，包含参数类型/名称/单位/choice、versioned state round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、legacy ID migration、duplicate/nonnumeric/malformed invalid parser fallback、三种 routing、inactive retention、smoothing block regression、首 block priming、reset 和 runtime buffer invariant；本轮 Debug VST3 的 pluginval strictness 5 已通过，automation、render、完整 property、真实 state DAW restore 和 DAW matrix 仍待执行。
+当前证据为 CTest smoke/lifecycle、参数/mapper/engine/state unit tests、实际 PluginProcessor integration、TEST-002 processor property matrix、ARCH-LAT-001 impulse/metadata regression、PERF-BASE-001 callback baseline 和 RENDER-001 offline smoke；这些测试覆盖参数类型/名称/单位/choice、versioned state round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、legacy ID migration、duplicate/nonnumeric/malformed invalid parser fallback、三种 routing、inactive retention、smoothing block regression、首 block priming、reset、runtime buffer invariant、finite output 和 deterministic output。真实 state DAW restore、DAW matrix 与当前变更后的 pluginval/Release/ASAN evidence 必须按本轮实际运行结果记录。
 
 ## Related ADRs
 
-[ADR-0002](../../docs/adr/0002-parameter-and-state-contract.md)、[ADR-0003](../../docs/adr/0003-realtime-processing-boundary.md)、[ADR-0004](../../docs/adr/0004-juce-and-ci-dependency-strategy.md)。
+[ADR-0002](../../docs/adr/0002-parameter-and-state-contract.md)、[ADR-0003](../../docs/adr/0003-realtime-processing-boundary.md)、[ADR-0004](../../docs/adr/0004-juce-and-ci-dependency-strategy.md)、[ADR-0005](../../docs/adr/0005-zero-sample-processing-latency.md)。
 
 ## Files
 

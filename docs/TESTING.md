@@ -288,6 +288,22 @@ Water/Ice candidate 至少在以下任一情况发生时 reject 或退回 experi
 
 ## 5. 支持矩阵
 
+### 5.1 TEST-002 processor property harness
+
+`frazil_processor_property` 复用真实 `FRAZILAudioProcessor -> ParameterSnapshot ->
+ParameterMapper -> AudioEngine` 路径，不建立第二套 processor 或 DSP。它用数据驱动的
+sample-rate/block-size/channel matrix 覆盖 44.1/48/96 kHz、32/64/128/256/512/1024 samples
+和 mono/stereo；参数、输入和 lifecycle 维度使用 canonical 子矩阵，避免为每个高成本 JUCE
+processor construction 重复完整 Cartesian product。当前 cases 必须覆盖：
+
+- default/minimum/maximum/intermediate 参数、四种 enable combination 和三个 routing choice；
+- silence、impulse、固定 seed deterministic noise、extreme but finite input；
+- prepare/process、prepare/reset/process、repeated prepare、repeated reset、zero-length block；
+- buffer dimensions、finite output，以及 deterministic input 下的 fresh-processor repeatability。
+
+该 harness 是可供后续 Water/Ice processor 复用的基础；它不代表 Water/Ice、Routing 或真实
+Host/DAW 已完成。
+
 基础自动矩阵：
 
 | 维度 | 值 |
@@ -334,6 +350,14 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 - CPU、峰值内存/常驻内存；
 - allocation observation/count；
 - denormal 行为。
+
+M1 的 `frazil_performance_baseline` 使用真实 PluginProcessor audio path，固定 48 kHz、128
+samples、stereo 和 deterministic LCG input；先 warm up，再测量 2000 callbacks。报告同时记录
+Reference Machine、JUCE/compiler/build、mean/P95/P99/worst、2.666 ms callback deadline、
+mean/worst deadline utilization、Windows process working set 和 measured callback 区间的
+test-executable `operator new` observation。measurement container 在 observation 开启前预分配，
+避免把 harness 自身的 bookkeeping 误报成 audio-thread allocation。该 work item 只提供 baseline，
+不把结果转换成正式 CPU 百分比门槛。
 
 ### Milestone performance scope
 

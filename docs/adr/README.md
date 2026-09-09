@@ -14,3 +14,4 @@ ADR 的 Accepted Decision 是 LOCKED 历史合同；Context、Consequences 和 V
 | [0002](0002-parameter-and-state-contract.md) | Accepted | 静态 Host 参数、Snapshot 和 state 兼容性 |
 | [0003](0003-realtime-processing-boundary.md) | Accepted | 实时线程与层级依赖边界 |
 | [0004](0004-juce-and-ci-dependency-strategy.md) | Proposed | JUCE 固定、补丁和可移植 CI 获取方式 |
+| [0005](0005-zero-sample-processing-latency.md) | Accepted | v1 零采样 Host processing latency 与 intentional effect delay/tail 边界 |

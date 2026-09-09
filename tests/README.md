@@ -12,6 +12,16 @@
 - `frazil_plugin_integration`：实际 `FRAZILAudioProcessor` 的参数写入到音频路径、连续
   gain automation smoothing、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore，以及全部 routing mode 切换后的 inactive amount/state reopen
   integration cases；
+- `frazil_processor_property`：TEST-002 的数据驱动 processor property harness；完整覆盖
+  44.1/48/96 kHz、32/64/128/256/512/1024 block、mono/stereo 的 runtime matrix，并在
+  48 kHz/128/stereo canonical 子矩阵覆盖参数极值、enable/routing combinations、silence、
+  impulse、deterministic noise、extreme finite input、prepare/reset/repeated prepare/repeated
+  reset/zero-length lifecycle 和 fresh-processor deterministic output；
+- `frazil_latency_contract`：ARCH-LAT-001 的 canonical TESTDATA-001 impulse alignment 与
+  `getLatencySamples() == 0` / zero-tail metadata regression；
+- `frazil_performance_baseline`：PERF-BASE-001 的 headless 48 kHz/128/stereo processor
+  workload，记录 mean/P95/P99/worst、callback deadline、working set 和 measured-callback
+  `operator new` observation；报告写入 ignored preset build tree；
 - `frazil_render` + `tools/render_testdata.py`：RENDER-001 的离线 WAV smoke，固定 input/config/seed
   通过当前 AudioEngine 处理，检查 finite output、重复运行字节一致性，并生成完整当前配置、
   input/output metadata 与 SHA-256 manifest；CTest 产物写入 preset build tree 下的 ignored
