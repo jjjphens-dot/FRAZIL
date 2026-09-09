@@ -12,6 +12,8 @@ Implementation DRI:
 
 Acceptance DRI:
 
+<!-- The fields below are required for cross-module, production DSP, contract/ownership-sensitive, Host handoff, or milestone-gate work. Bounded tasks may use N/A. -->
+
 Write ownership:
 
 Allowed paths:
@@ -119,19 +121,22 @@ Related contract / ADR:
 
 PR creator:
 
-Current push account:
-
-Relevant commit authors/committers:
-
 Reviewer:
 
 Review type:
 
-- [ ] Implementation/Acceptance DRI and GitHub identities are recorded separately; no equality is assumed
-- [ ] Current branch and open PR creator were checked with `gh pr list --head <branch> --state open --json number,author,url`
-- [ ] Current authenticated account was checked with `gh api user --jq .login`
-- [ ] No open PR existed before this push, or existing PR creator matches current push account
-- [ ] Any mismatch stopped the push and triggered a GitHub login check, or N/A
-- [ ] Review scope, reproduced/not-reproduced evidence, findings, and decision are recorded
-- [ ] Formal GitHub review type is recorded
-- [ ] If formal review is unavailable, fallback comment/manual evidence is explicitly labeled and does not claim formal `APPROVE`
+Decision:
+
+Notable limitations/findings:
+
+- [ ] Existing-PR push identity check passed, or N/A
+
+<!-- Required only for parameter/state contracts, core DSP/algorithm adoption, routing, realtime/latency/random semantics, formal performance budget, Beta/Release, or milestone exit. -->
+
+Core/high-risk review scope:
+
+Evidence reproduced:
+
+Evidence not reproduced:
+
+Formal GitHub review / fallback evidence:

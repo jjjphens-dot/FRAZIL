@@ -28,51 +28,52 @@
 
 不得把规划中的模块、历史验证结果或本地已有工具误写为“当前已实现”。完成状态必须由代码、测试或可复现验证记录支持。
 
-## 2. 开工前最小检查
+## 2. Agent execution model
 
-1. 阅读与任务直接相关的 `docs/` 文档和 ADR。
-2. 执行 `git status --short`，保护用户已有改动；不得覆盖或清理无关变更。
-3. 用 `rg` 定位现有实现和测试，避免创建平行架构。
-4. 将任务映射到 `docs/CODING_PLAN.md` 的 milestone、issue ID、依赖和 exit gate。
-5. 若任务触及参数 ID、范围、state schema、routing 语义或实时路径，先检查现有合同。实现已接受合同不自动创建 ADR；只有需要改变架构决策、依赖边界、公共模块职责、参数/状态兼容性、routing、realtime、latency、random-state 或正式性能合同时，才先更新/新增 ADR，再改实现。
+### Normal bounded task
 
-### Agent execution 与 write gate
+实现前只做与风险相称的最小检查：
 
-进入实现前必须从 Issue/PR 明确记录或补齐：
+1. 确认 scope、non-goals 和主要 ownership/domain；
+2. 执行 `git status --short`，保护用户已有和无关改动；
+3. 阅读 task-relevant plan/work item、直接相关 module/contract，以及现有 implementation/tests；
+4. 用 `rg` 复用现有实现和测试，不创建平行 production path；
+5. 只修改完成任务所需的最少文件，并运行与变更成比例的验证。
 
-1. Stable Work Item / Milestone；
-2. Scope 与 Non-goals；
-3. Implementation DRI；
-4. Acceptance DRI；
-5. Write ownership；
-6. Allowed paths；
-7. Forbidden paths；
-8. Acceptance DRI 拥有的 inputs 和应收到的 outputs；
-9. Handoff condition；
-10. Related contracts / ADR；
-11. Joint Gate；
-12. Current branch 与该 branch 是否存在 open PR；
-13. push/PR 操作前的 existing PR creator 与 current authenticated GitHub account。
+read、review、analysis、本地 edit/test/commit 和 diff inspection 不要求 GitHub identity preflight。PR creator
+和 authenticated account 是 existing-PR push 时的运行时检查，不是开始实现的前置条件。
 
-默认 path ownership 见 `docs/COLLABORATION_ROLES.md`。Agent 只能修改 Allowed paths；Acceptance DRI
-默认 review/reproduce/create finding，不直接修改对方 production implementation。确需换人时必须先记录
-Implementation DRI Transfer（previous/new DRI、reason、transferred scope、paths、effective point 和 evidence
-state）。字段不足以安全界定写入范围时，先补 task contract，不得自行扩成跨模块重构。
+### Ownership-sensitive or cross-module task
 
-### Required reading
+仅当任务跨 primary ownership、修改另一角色负责的 production DSP/app/plugin、跨多个模块、存在明显
+scope-creep 风险、改变 LOCKED/CONTROLLED contract，或需要实质 DRI handoff 时，才按需补充确认
+Implementation/Acceptance DRI、write/path scope、handoff condition、Joint Gate 和相关 contract/ADR。
 
-每次生产代码任务开始前必须阅读：
+Primary ownership 防止平行或实质性越界 production implementation，不是 filesystem ACL。当前 scope 内的
+typo、文档同步、小型测试修正或 trivial integration fix 可以由另一角色完成，不要求 DRI Transfer；只有
+substantial implementation responsibility 真正换人时才记录 transfer。详细规则见
+`docs/COLLABORATION_ROLES.md`。
 
-- `docs/CODE_STANDARDS.md`；
-- `docs/DOCUMENT_GOVERNANCE.md`；
-- `docs/MODULE_INDEX.md`；
-- 相关模块 README、`docs/CODING_PLAN.md`、`docs/PARAMETERS.md`、`docs/TESTING.md` 和 ADR。
+### Task-relevant reading
 
-所有生产代码修改必须遵守 `docs/CODE_STANDARDS.md`。违反该规范的代码不能因为“功能工作正常”而视为 Done。
+每次 production task 只读取直接相关的 canonical source：
 
-涉及 Water、Ice、State、Routing、automation 或 history 的实现任务，在阅读上述 canonical contracts 和
-相关 ADR 之后，还应 review `docs/CORE_IMPLEMENTATION_GUIDE.md`；该指南只提供 Level 3 实现解释和
-候选算法参考，不覆盖 Architecture、Coding Plan、Parameters 或 Accepted ADR。
+- State：相关 parameter/state contract、ADR、module docs 和 tests；
+- DSP：realtime contract、对应 algorithm ADR/guide 和 testing contract；
+- Build/CI：environment、build 和 workflow 文档；
+- Host acceptance：HOST matrix 与 testing/acceptance protocol。
+
+改变 LOCKED/CONTROLLED contract 时必须完整阅读对应 canonical contract/ADR 并执行 Documentation
+Synchronization Gate。所有 production code 仍受 `docs/CODE_STANDARDS.md` 约束；
+`docs/CORE_IMPLEMENTATION_GUIDE.md` 只提供候选方法和实现解释，不能覆盖 Architecture、Coding Plan、
+Parameters 或 Accepted ADR。
+
+### Joint Gate trigger
+
+Joint Gate 只在改变 Parameter ID/order/range/default、state compatibility、Water/Ice production algorithm、
+routing/StageMixer/crossfade 语义、latency/tail、random persistence、formal performance budget 或 Beta/Release
+go/no-go 时阻断。普通 bug fix、测试覆盖、render harness maintenance、performance measurement 实现、DAW
+evidence、docs update 和不改变合同的 bounded refactor 不触发 Joint Gate。
 
 ### Mandatory development phases
 
@@ -210,10 +211,9 @@ ctest --preset windows-debug
 - PR 必须填写架构、参数/automation、实时安全、测试和音频评估影响。
 - PR 必须完成 Documentation Impact Review，并在模板中记录受影响文档和一致性检查结果。
 - 参数合同、routing、state、核心 DSP 或发布流程变更至少一名另一位开发者审批，相关讨论全部 resolve 后合并。
-- Implementation DRI、Acceptance DRI、PR creator、push account、commit author/committer 和 reviewer 是不同事实，必须真实记录，但不要求彼此相同。不得以 `PR creator != Implementation DRI`、`commit author != PR creator` 或 reviewer 未预绑定角色账号为由重建 PR 或改写历史。
-- 创建 PR、首次向 branch push 或向已有 PR 分支继续 push 前，至少执行 `git branch --show-current`、`gh pr list --head <branch> --state open --json number,author,url` 和 `gh api user --jq .login`。若没有 open PR，当前准备管理该 PR 生命周期的账号可以创建 PR；无需等于 Implementation DRI。
-- 向已有 PR 对应分支继续 push 时，唯一严格的账号一致性规则是 `current authenticated push account == existing PR creator`。不一致时必须停止 push，报告两个账号并优先检查是否登录错误；不得跨账号继续 push、伪造 commit author、rewrite history、force push 或建立不必要的新 PR 来掩盖登录错误。documentation PR 与 code PR 使用同一规则。
-- Reviewer 按 review independence、scope、evidence 和 decision 选择，不预绑定某个角色账号。平台无法记录 formal review 时可以使用明确标注的 comment/manual evidence，但不得写成 formal `APPROVE`；需要另一位开发者 review 的工作仍需真实的第二人 evidence。
+- Implementation/Acceptance DRI、PR creator、commit author/committer 和 reviewer 是不同事实，不要求相同或预绑定。Reviewer 仍按 independence、scope、evidence 和 decision 负责；fallback comment/manual evidence 不得冒充 formal `APPROVE`。
+- 仅在准备向已有 PR branch 执行本 context 的首次 push 时，检查 open PR creator 与当前 authenticated account；相同 repository + branch + PR + auth session 的成功结果可以复用。branch/repository/PR/auth 变化、权限/账号异常或用户说明账号变化时重新检查。没有 open PR 时按普通 push/PR 创建流程处理，PR creator 无需等于 Implementation DRI。
+- 已有 PR 的严格规则保持不变：`current authenticated push account == existing PR creator`。不一致时停止 push 并检查登录；不得跨账号 push、伪造 author、rewrite history、force push 或建立无意义的新 PR。完整流程见 `docs/GITHUB_WORKFLOW.md`。
 - 禁止提交 `build/`、`.venv/`、工具二进制、下载归档、生成 render、DAW cache 或个人路径配置。
 - 未经明确请求，agent 不执行 push、merge、release、branch protection 或删除远端内容。
 
@@ -221,9 +221,9 @@ ctest --preset windows-debug
 
 ## 9. Definition of Ready / Done
 
-Issue 进入 Ready 前必须有：Stable ID/Milestone、用户/声音问题、范围与非目标、Implementation DRI、
-Acceptance DRI、write ownership、Allowed/Forbidden paths、双方 inputs/outputs、handoff condition、Joint Gate、
-acceptance criteria、测试方式、听测需求、参数/automation/state 影响和依赖。
+Issue 进入 Ready 前必须有 Stable ID/Milestone、用户/声音问题、scope/non-goals、Implementation DRI、
+Acceptance DRI 和 acceptance criteria。只有 cross-module、production DSP、contract/ownership-sensitive、
+Host handoff 或 milestone-gate 工作才必须补 write/path scope、inputs/outputs、handoff 和 Joint Gate 字段。
 
 完成至少意味着：
 

@@ -18,34 +18,34 @@ body:
     id: ownership
     attributes:
       label: Implementation / Acceptance ownership
-      description: Record Implementation DRI, Acceptance DRI and write ownership. Roles do not imply GitHub account identity.
+      description: Record the two DRIs. Roles do not imply GitHub account identity.
       placeholder: |
         Implementation DRI:
         Acceptance DRI:
-        Write ownership:
     validations:
       required: true
   - type: textarea
     id: path_scope
     attributes:
       label: Allowed / Forbidden paths
-      description: List exact writable paths and explicit path exclusions.
+      description: Required for cross-module, production DSP, contract-sensitive or ownership-sensitive work. For a bounded single-module task, write N/A — bounded scope or leave empty.
       placeholder: |
         Allowed paths:
         Forbidden paths:
     validations:
-      required: true
+      required: false
   - type: textarea
     id: handoff
     attributes:
       label: Inputs, outputs, handoff and Joint Gate
+      description: Fill this for cross-role handoff, milestone gates, production DSP, Host acceptance or contract-sensitive work. Simple bounded tasks may use N/A.
       placeholder: |
         Inputs owned by Acceptance DRI:
         Outputs owed to Acceptance DRI:
         Handoff condition:
         Joint-gate decisions:
     validations:
-      required: true
+      required: false
   - type: textarea
     id: problem
     attributes:
@@ -100,5 +100,5 @@ body:
           required: true
         - label: Listening or DAW validation need is explicit.
           required: true
-        - label: Ownership, path scope and handoff fields are complete.
+        - label: Ownership is clear, and any path/handoff fields required by the task's risk or scope are complete.
           required: true

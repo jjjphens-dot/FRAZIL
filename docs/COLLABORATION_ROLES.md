@@ -21,16 +21,18 @@ ownership，也不能把 Water 和 Ice 长期切成两个互不审查的 product
 
 - Implementation DRI：对约定 scope 内的实现、测试、文档和修复闭环负责；
 - Acceptance DRI：提供输入并独立验收，不默认进入对方的 production implementation；
-- Write ownership：本工作项允许谁修改哪些文件或领域；
-- Allowed paths / Forbidden paths：把写入边界落实到路径；
-- Handoff condition：实现交给验收所需的证据和完成条件；
-- Joint Gate：涉及长期产品或工程合同的决策必须两人同意。
+- 明确的 problem/goal、scope/non-goals 和 acceptance criteria。
+
+Write ownership、Allowed/Forbidden paths、双方 inputs/outputs、handoff condition 和 Joint Gate 是风险触发
+字段：cross-module、production DSP、contract/ownership-sensitive、Host acceptance 或 milestone gate 工作必须
+填写；普通 bounded task 不需要为这些字段承担固定管理成本。
 
 ## 2. Ownership 术语与防重合规则
 
 ### 2.1 Implementation DRI
 
-Implementation DRI 可以编写允许路径内的实现、测试和同 PR 文档，负责回应 finding，并说明未执行验证。
+Implementation DRI 可以在约定 scope 内编写实现、测试和同 PR 文档；敏感任务还须遵守明确的 Allowed
+paths。DRI 负责回应 finding，并说明未执行验证。
 DRI 是工作责任，不要求与 PR creator、push account、commit author/committer 或 reviewer 使用同一身份。
 
 ### 2.2 Acceptance DRI
@@ -46,13 +48,18 @@ Implementation DRI
   -> Acceptance DRI re-validation
 ```
 
-Acceptance DRI 默认是 owner 路径的 `Review only`，不得为了快速修复而直接进入对方 production
-implementation。`Review only` 允许 read、comment、run tests、reproduce、create findings、提出概念性 patch
-建议和提交 acceptance evidence；默认不允许直接修改 owner 的 production implementation 或扩大 Issue scope。
+Acceptance DRI 默认是 owner 的实质 production implementation 的 `Review only`，不得为了快速修复而接管
+对方 feature。`Review only` 允许 read、comment、run tests、reproduce、create findings、提出概念性 patch
+建议和提交 acceptance evidence。
+
+Primary ownership 不是 filesystem ACL。另一角色可以完成当前 scope 明确包含的 typo、one-line label fix、
+小型 test-only correction、documentation sync 或 trivial integration correction，只要它不创建/替换 production
+implementation、不改变 Joint Gate contract，且 primary owner 可以 review。此类 bounded fix 不需要 DRI
+Transfer。
 
 ### 2.3 Implementation DRI transfer
 
-确需换人实现时，先在 Issue/PR 记录以下内容，再修改原 owner 的写入路径：
+只有 substantial implementation responsibility 确实换人时，才在 Issue/PR 记录以下内容：
 
 ```text
 Implementation DRI Transfer
@@ -69,6 +76,8 @@ Open findings and evidence state:
 DRI transfer 不自动改变已有 PR 的 creator 或 push-account rule。若新 DRI 不能通过现有 PR creator
 继续 push，应显式决定由原 PR creator 继续管理 push，或关闭旧 PR 后以新 ownership 建立 branch/PR；不得
 静默跨账号 push、伪造 author 或 rewrite history。
+
+typo、小型 bounded fix、test-only correction 或 documentation correction 不触发 DRI Transfer。
 
 ## 3. 长期角色职责
 
@@ -101,8 +110,8 @@ Sound & Host Lead 不单独决定 production audio-thread 安全、跨模块依�
 
 ## 4. File / Path write ownership
 
-下表是默认写入边界。具体 Issue 可以缩小 Allowed paths；只有显式 DRI transfer 或双方批准的 Joint Gate
-才能扩大到另一个 owner 的 production 路径。
+下表描述 default responsibility，用于防止两人平行或实质性接管 production work，不是 strict filesystem
+ACL。高风险 Issue 可以用 Allowed/Forbidden paths 收窄写入边界；普通 bounded task 以明确 scope 为准。
 
 | Path / domain | Primary writer | Other developer |
 |---|---|---|
@@ -124,8 +133,9 @@ Sound & Host Lead 不单独决定 production audio-thread 安全、跨模块依�
 | Accepted ADR decision | Joint Gate | Joint Gate |
 | formal performance budget | Joint Gate | Joint Gate |
 
-`AGENTS.md`、治理文档和 PR template 的修改按其 Modification Policy 执行。路径 ownership 不能覆盖
-LOCKED/CONTROLLED 文档要求，也不能授权 agent 顺手修改未列入 Allowed paths 的文件。
+`AGENTS.md`、治理文档和 PR template 的修改按其 Modification Policy 执行。Primary ownership 不能覆盖
+LOCKED/CONTROLLED 文档要求，也不允许 parallel production implementation、静默接管另一 owner 的 feature、
+跨 ownership boundary 的 substantial refactor，或未经批准改变 Joint Gate decision。
 
 ## 5. M0 与 M1 ownership
 
@@ -202,6 +212,8 @@ M2/M3 使用 pipeline-level parallelism，而不是 isolated Water-vs-Ice develo
 
 Sound & Host Lead 默认不修改 WaterProcessor/IceProcessor production implementation。Engineering Lead
 不得用工程可行性替代 macro semantic、musical usefulness、Water-vs-Ice differentiation 或 DAW acceptance。
+这不禁止 Sound & Host Lead 在 `experiments/**`、small scripts、parameter sweeps、fixtures 和 prototype
+exploration 中学习或试验 DSP；只禁止未经 scope/Joint Gate 进入平行 production implementation。
 
 ### 6.3 推荐并行波次
 
@@ -235,12 +247,29 @@ experiment 完成，不通过越过 path ownership 同时修改同一 production
 
 意见不一致时记录双方证据和最小验证实验，工作项进入 Blocked；任一角色不得覆盖另一领域的阻断意见。
 
+Joint Gate 只由上述合同变化触发。普通 bug fix、test coverage、render harness maintenance、performance
+measurement implementation、DAW evidence collection、docs update 和不改变合同的 bounded implementation
+detail refactor 不需要 Joint Gate。
+
 ## 8. Issue / PR task contract
+
+Ready 必填：
 
 ```text
 Stable ID / Milestone:
 Implementation DRI:
 Acceptance DRI:
+Problem / sound or user goal:
+Scope:
+Non-goals:
+Engineering acceptance:
+Sound / Host acceptance:
+```
+
+以下字段只在 cross-module、production DSP、contract/ownership-sensitive、Host handoff 或 milestone gate 时
+要求；bounded single-module task 可以写 `N/A — bounded scope` 或留空：
+
+```text
 Write ownership:
 Allowed paths:
 Forbidden paths:
@@ -249,16 +278,10 @@ Outputs owed to Acceptance DRI:
 Handoff condition:
 Joint-gate decisions:
 Related contract / ADR:
-Problem / sound or user goal:
-Scope:
-Non-goals:
-Engineering acceptance:
-Sound / Host acceptance:
 Documentation impact:
 ```
 
-字段缺失时 Issue 不进入 Ready。若已有 work item 没有路径级 scope，先补齐合同再继续写入；不得让 agent
-自行把模糊目标扩成跨模块重构。
+不得让 agent 把模糊目标扩成跨模块重构；也不得把条件字段当作每个小任务的固定 ACL/checklist。
 
 ## 9. Review 与 GitHub 身份
 
@@ -275,14 +298,17 @@ Documentation impact:
 account 必须等于该 PR creator；不一致则停止 push 并检查是否登录了错误账号。完整流程见
 [GITHUB_WORKFLOW.md](GITHUB_WORKFLOW.md)。
 
-Reviewer 关注 independence、scope、evidence 和 decision。Formal review 记录 Reviewer、Review scope、
-Evidence reproduced、Evidence not reproduced、Findings 和 Decision。平台无法记录 formal review 时，可以
-使用明确标注的 comment/manual evidence，但不得把 comment 写成 formal `APPROVE`。
+Reviewer 关注 independence、scope、evidence 和 decision。parameter/state contract、core DSP、Water/Ice
+algorithm adoption、routing、realtime boundary、latency、random semantics、formal performance budget、
+Beta/Release 和 milestone exit 使用完整 Reviewer/scope/reproduced/not-reproduced/findings/decision 记录。普通
+docs、bounded test、typo、narrow tooling 或 low-risk maintenance 只需 Reviewer、Decision 和 notable
+limitations/findings。平台无法记录 formal review 时，可以使用明确标注的 comment/manual evidence，但不得
+把 comment 写成 formal `APPROVE`。
 
 ## 10. 标准流程与反模式
 
-1. Contract Review：确认本文件第 8 节字段和 ADR trigger；
-2. Implementation：DRI 只在 Allowed paths 内实现，团队 WIP 不超过 2；
+1. Contract Review：确认 scope、primary ownership 和与风险相称的第 8 节字段/ADR trigger；
+2. Implementation：DRI 在 bounded scope 内实现；敏感任务遵守明确 paths，团队 WIP 不超过 2；
 3. Functional Validation：工程侧运行自动测试/性能，声音侧运行 listening/DAW/automation/state/UI；
 4. Code Quality Review：检查边界、ownership、realtime 和可维护性；
 5. Comment & Documentation Pass：同步注释、module README、MODULE_INDEX 和受影响合同；
@@ -292,7 +318,7 @@ Evidence reproduced、Evidence not reproduced、Findings 和 Decision。平台�
 禁止以下反模式：
 
 - 两人同时修改同一 production feature，却没有明确 DRI transfer 或拆分后的路径边界；
-- Acceptance DRI 发现问题后直接修对方 production code；
+- Acceptance DRI 静默接管或大幅重构对方 production code；
 - 以“谁有空谁继续做”替代明确 ownership；
 - 按 Water/Ice 切成互不审查的 production 技术孤岛；
 - 为并行而在公共合同冻结前创建两套不兼容接口；

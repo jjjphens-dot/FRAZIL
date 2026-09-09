@@ -95,9 +95,10 @@ realtime architecture、performance budget 和 release PR 必须留下可验证�
 GitHub formal `APPROVE`、`COMMENT` 或 `REQUEST_CHANGES` submission。需要另一位开发者 review 的工作仍需
 真实的第二人 evidence；PR creator 自审不能冒充独立 review。
 
-Implementation DRI、Acceptance DRI、PR creator、push account、commit author/committer 和 reviewer 必须
-分别、真实记录，但不要求相同或预先映射到固定账号。`PR creator != Implementation DRI`、commit authorship
-混合或 reviewer 曾参与其它相关 commit，本身不触发 PR recreation。reviewer evidence 明确：
+Implementation DRI、Acceptance DRI、PR creator 和 reviewer 分别记录，但不要求相同或预先映射到固定
+账号。push account 是运行时状态，commit author/committer 已由 Git history 记录，无需在普通 PR body
+重复抄写。`PR creator != Implementation DRI`、commit authorship 混合或 reviewer 曾参与其它相关 commit，
+本身不触发 PR recreation。核心/高风险 reviewer evidence 明确：
 
 ```text
 Reviewer
@@ -114,16 +115,20 @@ Fallback comment/manual evidence or N/A
 comment 写成 formal `APPROVE`。既有 PR 的 evidence 缺口记录为 historical process gap，不通过回滚、伪造
 author 或 history rewrite 补造。
 
-创建 PR、首次向 branch push 或向已有 PR 分支继续 push 前，preflight 至少核对
-`git branch --show-current`、`gh pr list --head <branch> --state open --json number,author,url` 和
-`gh api user --jq .login`。如果 branch 没有 open PR，当前准备管理该 PR lifecycle 的账号可以创建 PR，
-无需等于 Implementation DRI。若已有 PR，唯一严格的账号一致性规则是：执行后续 push 的 authenticated
-account 必须等于 existing PR creator。不同则停止 push 并优先检查错误登录；不得跨账号 push、改写
-commit author、force push、rewrite history 或新建不必要的 PR 规避。文档 PR 与 code PR 使用同一规则。
+普通 docs、bounded test、typo、narrow tooling 或 low-risk maintenance 的 review 记录可缩减为 Reviewer、
+Decision 和 notable limitations/findings；documentation/review evidence 应与风险和 scope 成比例。
+
+仅在准备向 existing PR branch 执行当前 context 的首次 push 时，核对 open PR creator 和 authenticated
+account。相同 repository + branch + PR + auth session 的成功检查可以复用；上下文或账号变化、权限异常时
+重新检查。authenticated account 必须等于 existing PR creator；不同则停止 push 并检查登录，不得跨账号
+push、改写 author、force push、rewrite history 或新建无意义 PR。没有 open PR 时按普通 push/PR 创建流程
+处理；文档 PR 与 code PR 使用同一规则。
 
 ### 5.4 Final Report
 
-Agent 完成任务时，最终反馈必须包含：
+Agent 完成任务时按风险比例报告。所有任务至少说明 changed files、实际 validation、未执行检查和结果；
+改变 architecture、contract、module/status evidence 或 Documentation Synchronization Gate 所列领域时，使用
+完整 Documentation Review：
 
 ```text
 ## Documentation Review
@@ -146,7 +151,8 @@ Result:
 PASS / FAIL
 ```
 
-不得只写“docs updated”；未执行的检查必须明确标为 `NOT RUN`。
+普通 bounded docs/maintenance task 可以合并为简短的 changed/reviewed/consistency/result 结论。不得只写
+“docs updated”；未执行的相关检查必须明确标为 `NOT RUN`。
 
 ## Modification Policy
 

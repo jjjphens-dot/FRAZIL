@@ -6,10 +6,12 @@
 
 基本目标是高内聚、低耦合、明确所有权、可验证的实时安全和小而稳定的公共接口。任何例外都必须在 issue/PR 中说明影响、理由、替代方案和退出条件。修改前先检查既有合同：实现已接受的架构、参数、状态或实时合同不自动要求 ADR；只有改变决策、边界、兼容性或正式预算时才补 ADR。
 
-所有生产修改还必须遵守工作项的 write ownership 和 Allowed/Forbidden paths。Implementation DRI 只在
-约定路径内实现；Acceptance DRI 默认 review、复现和创建 finding，不直接修改对方 production
-implementation。职责确需变化时，先按 `COLLABORATION_ROLES.md` 记录 Implementation DRI Transfer；不得
-把 code review 变成未声明的跨模块共同实现。
+Primary ownership 防止平行或实质性越界 production implementation，不是 filesystem ACL。普通 bounded
+task 按明确 scope 修改最少文件；cross-module、production DSP 或 contract/ownership-sensitive 工作才要求
+write ownership 和 Allowed/Forbidden paths。Acceptance DRI 默认 review、复现和创建 finding，但 scope 内
+的 typo、小型 test/docs 或 trivial integration fix 不需要 DRI Transfer；只有 substantial implementation
+responsibility 换人时才按 `COLLABORATION_ROLES.md` 记录 transfer。不得把 code review 变成未声明的
+production feature 接管。
 
 ## 2. 模块边界与依赖
 

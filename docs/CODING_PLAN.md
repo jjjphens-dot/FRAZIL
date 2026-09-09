@@ -16,9 +16,11 @@
 
 本计划中的每一行工作项都应成为一个 GitHub issue，稳定 ID 写入 issue title、branch、PR 和 changelog。状态只允许：Backlog、Ready、In Progress、Review、Validation、Done、Blocked。
 
-Issue 进入 Ready 前必须填写 Implementation DRI、Acceptance DRI、write ownership、Allowed paths、
-Forbidden paths、双方输入/输出、handoff condition、Joint Gate、scope/non-goals 和验收证据。DRI 描述工作
-ownership，不等同于 PR creator、push account、commit author/committer 或 reviewer identity。完整字段见
+Issue 进入 Ready 前必须填写 Implementation DRI、Acceptance DRI、scope/non-goals 和验收标准。write
+ownership、Allowed/Forbidden paths、双方输入/输出、handoff condition、Joint Gate 和 related contract/ADR
+只在 cross-module、production DSP、contract/ownership-sensitive、Host handoff 或 milestone-gate 工作中要求；
+普通 bounded task 不承担完整字段税。DRI 描述工作 ownership，不等同于 PR creator、commit
+author/committer 或 reviewer identity。完整规则见
 [`COLLABORATION_ROLES.md`](COLLABORATION_ROLES.md#8-issue--pr-task-contract)。
 
 一个工作项只有在代码/文档、自动测试、必要听测/DAW 证据和 review 全部满足后才是 Done。`[x]` 只表示本地审计确认，不表示已在 GitHub 关闭。
@@ -259,8 +261,9 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 | `HOST-001` | Sound & Host Lead | Engineering Lead 提供 build/plugin 并修复 handed-back findings | DAW evidence、matrix/result、findings | 直接修改 StateModel/Mapper/Snapshot/AudioEngine/PluginProcessor |
 | M1 Joint Exit Review | 双方各自维护所属 evidence | Joint Gate | Engineering Evidence + Sound/Host Evidence | 任一证据链替代另一条 |
 
-Acceptance DRI 发现 production 问题时先创建可复现 finding，再交回 Implementation DRI；除非记录
-Implementation DRI Transfer，否则不得直接修改对方 owner 路径。
+Acceptance DRI 发现 production 问题时默认先创建可复现 finding，再交回 Implementation DRI。当前 task
+scope 明确包含的 typo、小型 test/docs 或 trivial integration fix 可由另一角色完成；只有 substantial
+implementation responsibility 换人时才记录 Implementation DRI Transfer。
 
 ### M1 Exit gate
 

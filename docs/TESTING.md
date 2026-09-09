@@ -26,8 +26,9 @@
   Lead 提供 representative workload、风险场景和产品可理解性 review。
 - Sound & Host Lead 是 L6 DAW acceptance 和 L7 listening evidence 的默认 Implementation DRI；Engineering
   Lead 检查环境、步骤、产物和结论是否可复现，并修复由 finding 交回的 production 问题。
-- Acceptance DRI 默认只 read、run、reproduce、review 和 create finding，不直接修改对方 owner 的
-  production implementation；变更职责必须先记录 Implementation DRI Transfer。
+- Acceptance DRI 默认只 read、run、reproduce、review 和 create finding，不接管对方 owner 的 substantial
+  production implementation。当前 scope 内的 typo、小型 test/docs 或 trivial integration correction 不触发
+  DRI Transfer；只有 substantial implementation responsibility 确实换人时才记录 transfer。
 - M1 Exit Gate 必须同时具备 Engineering Evidence 与 Sound / Host Evidence。自动测试不替代真实 DAW
   acceptance，DAW 中“听起来正常”也不替代 finite/property/state/performance evidence。
 

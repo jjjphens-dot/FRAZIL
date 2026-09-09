@@ -75,23 +75,18 @@ Issue 进入 Ready 前必须记录：
 Stable ID / Milestone:
 Implementation DRI:
 Acceptance DRI:
-Write ownership:
-Allowed paths:
-Forbidden paths:
-Inputs owned by Acceptance DRI:
-Outputs owed to Acceptance DRI:
-Handoff condition:
-Joint-gate decisions:
-Related contract / ADR:
 Scope / Non-goals:
 Engineering acceptance:
 Sound / Host acceptance:
-Documentation impact:
 ```
 
-Acceptance DRI 发现 implementation finding 后交回 Implementation DRI 修复；默认不直接进入对方的
-production paths。确需换人时，在 Issue/PR 记录 Previous/New DRI、reason、transferred scope、effective
-point、paths 和 open evidence。DRI transfer 不自动改变已有 PR creator 或后续 push-account rule。
+cross-module、production DSP、contract/ownership-sensitive、Host handoff 或 milestone-gate 工作还应按风险记录
+write ownership、Allowed/Forbidden paths、双方 inputs/outputs、handoff condition、Joint Gate、相关
+contract/ADR 和 documentation impact。普通 bounded task 可省略这些字段或写 `N/A — bounded scope`。
+
+Acceptance DRI 发现 implementation finding 后默认交回 Implementation DRI 修复；当前 scope 内的 typo、
+test/docs 或 trivial integration correction 可以直接完成。只有 substantial implementation responsibility
+换人时才记录 DRI Transfer；transfer 不自动改变已有 PR creator 或后续 push-account rule。
 
 ## 4. Board 与 WIP
 
@@ -137,24 +132,27 @@ Documentation Synchronization Gate 的 canonical 规则位于 [`DOCUMENT_GOVERNA
 `PR creator != Implementation DRI`、`commit author/committer != PR creator` 或 reviewer 没有预绑定角色账号，
 本身都不是违规，也不要求重建 PR、伪造 author 或 rewrite history。
 
-push/PR preflight：
+GitHub identity 是 existing-PR push 的 lazy runtime gate，不是 read、review、local edit/test/commit 或每次
+普通 push 的固定 preflight。
+
+准备在当前 context 首次向某 branch push 时：
 
 ```powershell
 $branch = git branch --show-current
 gh pr list --head $branch --state open --json number,author,url
-gh api user --jq .login
 ```
 
-1. 如果该 branch 没有 open PR，当前准备负责该 PR GitHub lifecycle 的账号可以创建 PR；该账号成为
-   PR creator，无需等于 Implementation DRI。
-2. 如果已存在 open PR，读取其 creator/author 和当前 authenticated account。
-3. 只有 `current push account == existing PR creator` 才可向该 PR branch 继续 push。
+1. 如果没有 open PR，按普通 push/PR 创建流程继续；PR creator 无需等于 Implementation DRI。
+2. 如果已存在 open PR，且本 repository + branch + PR + authenticated session 尚未验证，再读取 PR
+   creator 并执行 `gh api user --jq .login`。
+3. 只有 `current push account == existing PR creator` 才可向该 PR branch push。
 4. 不一致时停止 push，报告 `Existing PR creator`、`Current authenticated account` 和“可能登录了错误
    GitHub account”；先检查/切换登录，不得跨账号继续 push。
 5. 不得用改写 commit author、force push、rewrite history 或创建不必要的新 PR 规避账号不一致。
 
-该规则同样适用于 `docs/**`、`AGENTS.md`、`README.md`、`.github/**` 和 production code。首次 push 后如果
-尚未创建 PR，创建者应确认自己愿意管理该 PR lifecycle；PR 一旦存在，后续 push 使用其 creator account。
+同一 repository + branch + PR + authenticated session 的成功检查可以在当前工作 context 复用。branch、
+repository、PR 或 authentication/account 变化，工具报告权限/账号异常，或用户明确说明账号变化时才重新
+检查。该规则同样适用于 documentation 和 production PR。
 
 ### 5.2 Reviewer 与证据
 
@@ -162,7 +160,7 @@ Reviewer 不需要在 PR 创建前与某个角色账号预绑定，也不因曾�
 与 Implementation DRI 不同，或 commit authorship 混合而自动失去资格。真正的 gate 是 review
 independence、review scope、evidence 和 decision。
 
-review record 至少包含：
+核心/高风险 PR 使用完整 review record：
 
 ```text
 Reviewer:
@@ -179,10 +177,17 @@ GitHub 平台自身不允许 formal approval 时，可以保留明确标注的 c
 comment 写成 formal `APPROVE`。需要另一位开发者 review 的核心 PR 仍必须有真实的第二人证据；自审不能
 冒充独立 review，但项目不再为此建立额外的账号身份矩阵或强制重建 PR。
 
-PR 描述和最终报告分别记录 Implementation/Acceptance DRI、PR creator、current push account、相关
-commit authors/committers、reviewer、review type 和时间，不合并成一个模糊的“reviewed by”结论。
+完整 record 强制用于 parameter/state contract、core DSP、Water/Ice algorithm adoption、routing、realtime
+boundary、latency、random semantics、formal performance budget、Beta/Release 和 milestone exit。普通 docs、
+bounded test、typo、narrow tooling 或 low-risk maintenance 只需 Reviewer、Decision 和 notable
+limitations/findings。
 
-音频 render 和大型日志不要直接塞入 Git 历史；使用 GitHub Actions artifact 或 release asset，并在 PR 记录 manifest/hash。
+PR 描述记录 Implementation/Acceptance DRI、PR creator、reviewer 和 review type。Current push account 是
+运行时状态，commit author/committer 已由 Git history 记录，不在 PR body 重复维护。
+
+音频 render 和大型日志不要直接塞入 Git 历史；使用 GitHub Actions artifact 或 release asset，并在 PR
+记录可定位的 artifact reference 与必要元数据。只有既有 corpus、发布或完整性合同明确要求时才记录 hash，
+普通文档、构建或工作树验证不得为了“留证”额外计算 hash。
 
 ## 6. `main` 保护建议
 

@@ -2490,10 +2490,14 @@ reviewed
 项目使用互补而不重叠的长期 ownership：Engineering Lead 负责 production software 的 C++/JUCE、
 架构、工具、测试、realtime safety 和 Water/Ice/Routing 工程实现；Sound & Host Lead 负责 perceptual
 brief、listening acceptance、macro 产品语义和真实 DAW behavior。每个工作项另外指定 Implementation DRI、
-Acceptance DRI、Allowed/Forbidden paths 和 handoff condition。
+Acceptance DRI、scope/non-goals 和 acceptance criteria；只有 cross-module、production DSP、
+contract/ownership-sensitive、Host handoff 或 milestone-gate 工作才补 Allowed/Forbidden paths、双方
+inputs/outputs 和 handoff condition。
 
-Acceptance DRI 默认 review/reproduce/create finding，不直接修改对方 production implementation；确需换人时
-记录 Implementation DRI Transfer。M2/M3 采用 pipeline-level parallelism：Water 与 Ice 可处于不同阶段，
+Acceptance DRI 默认 review/reproduce/create finding，不接管对方 substantial production implementation；
+scope 内的 typo、小型 test/docs 或 trivial integration correction 不触发 transfer，只有 substantial
+implementation responsibility 换人时才记录 Implementation DRI Transfer。M2/M3 采用 pipeline-level
+parallelism：Water 与 Ice 可处于不同阶段，
 但不得按“Water 一人 / Ice 一人”形成孤立 production ownership。接口、routing、参数 ID、算法采纳、声音
 方向和 formal performance budget 必须双人理解并按 Joint Gate 决策。详细规则见
 [`COLLABORATION_ROLES.md`](COLLABORATION_ROLES.md)。
@@ -2533,15 +2537,17 @@ Issue 进入 Ready 前：
 - [ ] 用户行为明确；
 - [ ] Stable ID / Milestone 明确；
 - [ ] Implementation DRI 与 Acceptance DRI 明确；
-- [ ] Write ownership、Allowed paths 与 Forbidden paths 明确；
-- [ ] 双方输入/输出和 handoff condition 明确；
-- [ ] Joint Gate 与相关 contract/ADR 明确；
+- [ ] Scope 与 non-goals 明确；
 - [ ] Acceptance Criteria 明确；
 - [ ] 自动测试方法明确；
 - [ ] 是否需要 Listening Test 明确；
 - [ ] 是否涉及参数 ID 明确；
 - [ ] 是否影响 Host automation 明确；
 - [ ] dependency 明确。
+
+cross-module、production DSP、contract/ownership-sensitive、Host handoff 或 milestone-gate 工作还必须明确
+write/path scope、双方 inputs/outputs、handoff condition、Joint Gate 和相关 contract/ADR；普通 bounded task
+不要求补齐这些风险触发字段。
 
 ---
 
