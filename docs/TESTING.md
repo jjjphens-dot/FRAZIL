@@ -182,7 +182,9 @@ matrices remain unit/property/integration concerns and are not encoded as WAVs.
 Manifest schemaVersion 2 records `testObjective`, `signalClass`,
 `signalParameters`, `expectedProperties`, `analysisMethods`,
 `analysisWindows`, and `targetTests`, in addition to provenance, license,
-redistribution, WAV metadata, storage policy, and SHA-256. The generator uses
+redistribution, WAV metadata, storage policy, SHA-256, and the existing
+`role`/`signalType`/`purpose`/`definition`/`generationParameters`/`expectedUses`/
+`analysisHints`/per-signal `channelRelation` fields. The generator uses
 stable per-signal seeds derived from `BASE_SEED + signal ID`; adding or reordering
 an unrelated signal cannot alter an existing randomized fixture. The committed
 sample rate is 48 kHz; the same generator validates temporary 44.1 kHz and

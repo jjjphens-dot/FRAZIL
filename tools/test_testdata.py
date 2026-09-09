@@ -151,6 +151,15 @@ def _all_channel_data(root: Path, manifest: dict) -> tuple[dict[str, dict[str, o
 def semantic_validate(root: Path, manifest: dict, expected_rate: int | None = None) -> None:
     entries, channels_by_id, sample_rate = _all_channel_data(root, manifest)
     assert set(entries) == set(IDS)
+    assert all(
+        entries[identifier]["channelRelation"] == "dual-mono"
+        for identifier in IDS
+        if identifier != "stereo_isolation__channel_probe"
+    )
+    assert (
+        entries["stereo_isolation__channel_probe"]["channelRelation"]
+        == "left-only/right-only-windowed"
+    )
     if expected_rate is not None:
         assert sample_rate == expected_rate
 
@@ -214,7 +223,10 @@ def semantic_validate(root: Path, manifest: dict, expected_rate: int | None = No
     two_tone = channels_by_id["intermodulation_response__two_tone"][0]
     two_tone_window = _window_samples(two_tone, two_tone_entry["analysisWindows"][0])
     two_tone_params = two_tone_entry["signalParameters"]
-    for frequency in (float(two_tone_params["f1Hz"]), float(two_tone_params["f2Hz"])):
+    for frequency in (
+        float(two_tone_params["frequency1Hz"]),
+        float(two_tone_params["frequency2Hz"]),
+    ):
         amplitude = projection_amplitude(two_tone_window, frequency, sample_rate)
         assert abs(amplitude - float(two_tone_params["toneAmplitudeLinear"])) < 0.01
     assert abs(dbfs_from_linear(rms(two_tone_window)) - float(two_tone_params["levelDbFS"])) < 0.5
@@ -252,12 +264,20 @@ def semantic_validate(root: Path, manifest: dict, expected_rate: int | None = No
     for window in pitch_entry["analysisWindows"]:
         active = _window_samples(pitch, window)
         assert active
-        early = active[int(0.025 * sample_rate) : int(0.085 * sample_rate)]
-        late = active[int(0.18 * sample_rate) : int(0.27 * sample_rate)]
+        early_window = window["analysisEarlyWindow"]
+        middle_window = window["analysisMiddleWindow"]
+        late_window = window["analysisLateWindow"]
+        early = pitch[int(early_window["startFrame"]) : int(early_window["endFrame"])]
+        middle = pitch[
+            int(middle_window["startFrame"]) : int(middle_window["endFrame"])
+        ]
+        late = pitch[int(late_window["startFrame"]) : int(late_window["endFrame"])]
         early_frequency = estimate_frequency(early, sample_rate)
+        middle_frequency = estimate_frequency(middle, sample_rate)
         late_frequency = estimate_frequency(late, sample_rate)
-        assert early_frequency > late_frequency
-        assert 45.0 <= late_frequency <= 85.0
+        assert early_frequency > middle_frequency > late_frequency
+        assert abs(early_frequency - float(pitch_entry["signalParameters"]["fStartHz"])) < 40.0
+        assert abs(late_frequency - float(pitch_entry["signalParameters"]["fEndHz"])) < 30.0
         assert rms(early) > rms(late)
         requested_peak = dbfs_to_linear(float(window["levelDbFS"]))
         assert requested_peak * 0.65 < max(abs(value) for value in active) <= requested_peak * 1.01

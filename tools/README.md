@@ -54,10 +54,10 @@ checks; future FFT/THD/IMD measurement tooling remains outside this follow-up.
 
 `signal_generators.py` provides deterministic, in-memory algorithm probes:
 amplitude staircase, attack-rate sweep, transient train, threshold burst train,
-relative-Nyquist multitone, and near-Nyquist tone. `analyze_testdata.py` is a
-small offline diagnostic for waveform metrics, FFT, Welch PSD, stereo
-correlation, and STFT/spectrogram metadata; optional PNG plots can be written
-with `--plot-dir`.
+relative-Nyquist multitone, and near-Nyquist tone. `analyze_testdata.py` is
+optional experiment/measurement support for waveform metrics, FFT, Welch PSD,
+stereo correlation, and STFT/spectrogram metadata; optional PNG plots can be
+written with `--plot-dir`. It is not a TESTDATA-001 semantic exit blocker.
 
 Offline render smoke:
 

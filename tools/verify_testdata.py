@@ -41,6 +41,14 @@ REQUIRED_ENTRY_FIELDS = {
     "id",
     "filename",
     "path",
+    "role",
+    "signalType",
+    "purpose",
+    "definition",
+    "generationParameters",
+    "expectedUses",
+    "analysisHints",
+    "channelRelation",
     "testObjective",
     "signalClass",
     "signalParameters",
@@ -129,6 +137,22 @@ def _analysis_windows(errors: list[str], identifier: object, entry: dict[str, ob
             errors.append(f"{identifier}: analysisWindows[{index}] endSeconds precedes startSeconds")
         if not isinstance(window.get("startFrame"), int) or not isinstance(window.get("endFrame"), int):
             errors.append(f"{identifier}: analysisWindows[{index}] frames must be integers")
+        for nested_name, nested in window.items():
+            if not isinstance(nested, dict) or not (
+                "startSeconds" in nested or "endSeconds" in nested
+            ):
+                continue
+            for key in ("startSeconds", "endSeconds", "startFrame", "endFrame"):
+                if key not in nested:
+                    errors.append(
+                        f"{identifier}: analysisWindows[{index}].{nested_name} missing {key}"
+                    )
+            if not isinstance(nested.get("startFrame"), int) or not isinstance(
+                nested.get("endFrame"), int
+            ):
+                errors.append(
+                    f"{identifier}: analysisWindows[{index}].{nested_name} frames must be integers"
+                )
 
 
 def _wav_metadata(path: Path) -> dict[str, int | float | str | bool]:
@@ -163,6 +187,8 @@ def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
         errors.append("manifest corpus name is incorrect")
     if manifest.get("purpose") != EXPECTED_PURPOSE:
         errors.append("manifest purpose must identify DSP diagnostic work")
+    if manifest.get("canonicalSampleRate") != 48_000:
+        errors.append("manifest canonicalSampleRate must be 48000")
 
     provenance = manifest.get("provenance")
     if (
@@ -222,11 +248,26 @@ def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
             errors.append(f"{identifier}: missing required fields {missing_fields}")
         for field in ("testObjective", "signalClass", "source", "author", "license", "licensePath", "redistribution"):
             _non_empty_string(errors, identifier, entry, field)
-        for field in ("signalParameters", "expectedProperties"):
+        for field in ("purpose", "definition"):
+            _non_empty_string(errors, identifier, entry, field)
+        if entry.get("role") != "canonical-engineering":
+            errors.append(f"{identifier}: role must be canonical-engineering")
+        if entry.get("signalType") != entry.get("signalClass"):
+            errors.append(f"{identifier}: signalType must match signalClass")
+        if entry.get("purpose") != entry.get("testObjective"):
+            errors.append(f"{identifier}: purpose must match testObjective")
+        for field in ("signalParameters", "expectedProperties", "generationParameters"):
             _object(errors, identifier, entry, field)
+        if entry.get("signalParameters") != entry.get("generationParameters"):
+            errors.append(f"{identifier}: generationParameters must match signalParameters")
+        for field in ("expectedUses", "analysisHints"):
+            _string_list(errors, identifier, entry, field)
         _string_list(errors, identifier, entry, "analysisMethods")
         _string_list(errors, identifier, entry, "targetTests")
         _analysis_windows(errors, identifier, entry)
+        channel_relation = entry.get("channelRelation")
+        if channel_relation not in {"dual-mono", "left-only/right-only-windowed"}:
+            errors.append(f"{identifier}: channelRelation is not a supported per-signal relation")
 
         relative_path = entry.get("path")
         if not isinstance(relative_path, str):

@@ -1,7 +1,7 @@
 # FRAZIL 当前实现与差距
 
 > 快照日期：2026-09-09<br>
-> 依据：最新 `origin/main` 的仓库文档/源码审计、GitHub PR/Issue live query，以及既有 portable build/CTest/Actions evidence；本次 governance 修改未重跑 C++ build。<br>
+> 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
 ## Modification Policy
@@ -10,7 +10,7 @@
 
 ## 1. 结论
 
-项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；TESTDATA-001 reproducibility/provenance infrastructure 已随 PR #12 合入，`RENDER-001` pass-through offline smoke 已随 PR #13 合入。本工作树已完成 TESTDATA-001 diagnostic corpus follow-up 的本地实现与验证；该 follow-up 尚未合入 `main`，因此 `main` 的当前事实仍以 GitHub live state 为准。M1 仍在进行中；Water/Ice、Routing、完整 render regression matrix、processor property/performance harness 和正式 UI 仍未实现。
+项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；TESTDATA-001 reproducibility/provenance infrastructure 已随 PR #12 合入，`RENDER-001` pass-through offline smoke 已随 PR #13 合入。TESTDATA-001 diagnostic corpus 当前 revision 已完成本地实现与验证；其 PR、CI 和合并状态以 GitHub live state 为准。M1 仍在进行中；Water/Ice、Routing、完整 render regression matrix、processor property/performance harness 和正式 UI 仍未实现。
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
@@ -119,8 +119,11 @@ render harness。`testdata/rendered/` 继续保持 ignored；该 evidence 不等
 `tools/vscode_msvc_env.cmd` 与 `cmake --fresh --preset windows-debug` 成功 configure；
 `cmd /c tools\vscode_build_safe.cmd --preset windows-debug` 通过 safe wrapper build，
 `ctest --preset windows-debug --output-on-failure` 通过 5/5（含 frazil_unit、
-frazil_plugin_integration、frazil_render、frazil_render_cli）。未执行 Release/ASAN、pluginval、
-完整 FFT/THD/IMD measurement、性能 benchmark、真实 DAW 或 manual listening；按本 task non-goals 标记为 NOT RUN。
+frazil_plugin_integration、frazil_render、frazil_render_cli）；`tools/analyze_testdata.py`
+对 `frequency_response__log_sweep.wav` 与 `harmonic_response__stepped_sine_1khz.wav`
+的代表性 FFT/Welch PSD/STFT 分析均 PASS。未执行 Release/ASAN、pluginval、完整
+FFT/THD/IMD measurement、性能 benchmark、真实 DAW 或 manual listening；按本 task
+non-goals 标记为 NOT RUN。
 ## 3. 当前源码映射
 
 ```text
@@ -190,7 +193,7 @@ PluginProcessor
 ## 5. 现状对应 milestone
 
 - M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
-- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration、TESTDATA-001 reproducibility infrastructure 和 RENDER-001 pass-through offline smoke 已建立；本工作树的 TESTDATA-001 diagnostic corpus follow-up 已通过 generator/verifier/PCM24/semantic regression、44.1/48/96 temporary generation、safe Debug build 和 CTest 本地验证，待 PR review/merge；仍缺完整 render/property/performance/latency evidence、真实 DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
+- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration、TESTDATA-001 reproducibility infrastructure 和 RENDER-001 pass-through offline smoke 已建立；TESTDATA-001 diagnostic corpus 当前 revision 已通过 generator/verifier/PCM24/semantic regression、44.1/48/96 temporary generation、safe Debug build 和 CTest 本地验证，其 review/merge 状态以 GitHub 为准；仍缺完整 render/property/performance/latency evidence、真实 DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
 - M4 Routing：**未开始**。

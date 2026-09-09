@@ -25,8 +25,9 @@
   完整性、完整 generator-to-temporary WAV + manifest 语义/字节级可复现性、44.1/48/96 kHz
   temporary generation、每个信号的 semantic regression 和 input/manifest 双向集合回归；
 - `tools/signal_generators.py` 与 `tools/analyze_testdata.py`：不写入 canonical corpus 的
-  deterministic algorithm probes，以及 waveform、FFT、Welch PSD、RMS、DC、stereo correlation
-  和 STFT/spectrogram 离线分析；
+  deterministic algorithm probes，以及可选的 waveform、FFT、Welch PSD、RMS、DC、stereo
+  correlation 和 STFT/spectrogram experiment analysis；analyzer 不是 TESTDATA-001 semantic
+  exit blocker；
 
 后续按 `docs/TESTING.md` 增加 DSP property、完整 render regression 和真实 Host/DAW acceptance；
 测试 target 不依赖运行中的插件 editor。
