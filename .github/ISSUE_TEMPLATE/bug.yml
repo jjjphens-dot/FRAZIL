@@ -77,7 +77,7 @@ body:
       label: Stable ID / Milestone (maintainer triage)
       description: Assign the stable bug/work-item ID and milestone before Ready.
     validations:
-      required: true
+      required: false
   - type: textarea
     id: ownership
     attributes:
@@ -87,14 +87,14 @@ body:
         Implementation DRI:
         Acceptance DRI:
     validations:
-      required: true
+      required: false
   - type: textarea
     id: scope
     attributes:
       label: Scope and non-goals (maintainer triage)
       description: Bound the fix before moving the bug to Ready.
     validations:
-      required: true
+      required: false
   - type: textarea
     id: path_scope
     attributes:
