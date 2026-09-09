@@ -13,8 +13,8 @@ source remains recognisable. The effect must be driven by the input: rhythm, pit
 placement should continue to influence the result. It is not a water-sample player and should not reduce every
 source to the same decorative splash.
 
-The first experiment wave compares low-coupling candidates against the dry/baseline path. It does not select a
-production algorithm, freeze Host parameters, or authorize code under `src/dsp/`.
+The first experiment wave compares low-coupling candidates against dry and a separately declared baseline. It
+does not select a production algorithm, freeze Host parameters, or authorize code under `src/dsp/`.
 
 ## 2. Audible attributes
 
@@ -29,15 +29,20 @@ or pitch wobble.
 
 ### 2.2 Input-excited liquid articulation
 
-Transients and level changes should produce liquid-like ripples, droplets, or container resonance in proportion
-to the input. Silence must not generate unrelated foreground events. A candidate may have a decaying tail, but
-the tail must remain traceable to preceding input.
+Transients, envelope changes, and musical articulation should produce a perceptibly related Water response.
+Ripples, droplets, and resonant behaviour are possible audible manifestations, not mandatory implementation
+mechanisms. The response must be causally linked to, and traceable to, preceding input; silence must not
+generate unrelated foreground events. A candidate may have a decaying tail, but this brief does not require a
+strictly proportional relationship between input level and effect strength.
 
 ### 2.3 Organic variation with stable identity
 
-Repeated phrases may vary subtly, yet the Water identity should remain recognisable across drums, voice,
-pitched instruments, pads, bass, and diagnostic signals. Randomness must not create arbitrary clicks, abrupt
-image jumps, or a different effect category from pass to pass.
+Repeated phrases may vary subtly, yet the Water identity should remain recognisable across appropriate
+representative musical sources in `LISTENING-001`: drums, voice, pitched instruments, pads, and bass.
+Randomness must not create arbitrary clicks, abrupt image jumps, or a different effect category from pass to
+pass. `TESTDATA-001` is not musical acceptance evidence; across its diagnostic signals, candidate behaviour
+must instead remain finite, bounded, repeatable, explainable, and consistent with the candidate's declared
+technical behaviour. Diagnostic inputs are not required to sound like Water.
 
 ### 2.4 Controllable depth with preserved source
 
@@ -45,15 +50,18 @@ At low-to-moderate settings, the source's timing, pitch centre, and musical role
 depth may make the material more diffuse or resonant, but the useful range must not be concentrated in a tiny
 control region or depend on compensating output gain.
 
-### 2.5 Acoustic reference anchors
+### 2.5 Physical / perceptual reference anchors
 
-These real-world references align vocabulary during review; they are not required samples and do not prescribe
-how a candidate produces the result:
+These physical references and perceptual metaphors align review vocabulary; they are not required recordings
+and do not prescribe how a candidate produces the result. The intended audible consequences are:
 
-- a continuous current viewed through a disturbed surface: connected motion with irregular refraction;
-- ripples after an object touches still water: a clear input event followed by bounded, decaying motion;
-- droplets exciting a vessel or pool: short liquid articulation whose timing follows excitation;
-- a source heard through moving water: softened and shifting colour while the source remains identifiable.
+- a continuous current viewed through a disturbed surface: connected, non-periodic motion with irregular but
+  coherent spectral change;
+- ripples after an object touches still water: a clear input-related event followed by bounded, decaying motion;
+- droplets exciting a vessel or pool: short liquid articulation whose timing follows excitation, without a
+  requirement for literal droplet synthesis;
+- a source heard through moving water: softened and shifting spectral colour while the source remains
+  identifiable and no fixed comb or resonant pitch dominates.
 
 The target is the shared perceptual behaviour in these references, not literal environmental realism. A musical
 result may be stylised, provided it retains Water identity and satisfies the source-preservation and rejection
@@ -68,7 +76,8 @@ These outcomes do not satisfy the brief, even if they sound polished in isolatio
 - one fixed resonant pitch or comb tone that dominates unrelated sources;
 - a wet wash that removes transient and pitch identity at ordinary, non-extreme settings;
 - metallic crystal, brittle fracture, or frozen texture better classified as Ice;
-- identical foreground events or nearly identical output character for every corpus input;
+- identical foreground events or nearly identical output character across unrelated representative musical
+  sources;
 - loudness increase mistaken for stronger Water identity;
 - uncontrolled clicks, zipper noise, DC, explosive peaks, unstable stereo motion, or non-finite output.
 
@@ -95,13 +104,17 @@ mechanisms and failures; they are not musical listening evidence and cannot pass
 | `envelope_response__gated_sine.wav` | Do onset, release, and quiet/strong excitation remain input-driven? | Events during gaps, stuck tail, or the same response at both levels |
 | `transient_response__pitch_decay.wav` | Are transient timing and low-frequency pitch decay preserved? | Attack erased, pitch lost, or disproportionate low-end pumping |
 | `aliasing_response__high_frequency_sine.wav` | Are high-frequency modulation products controlled across sample rates? | Strong fold-back tones, explosive peak, or sample-rate-specific instability |
-| `stereo_isolation__channel_probe.wav` | Is channel motion intentional without unexplained crossfeed or image jumps? | Leakage into the inactive channel or unstable lateral movement |
+| `stereo_isolation__channel_probe.wav` | Does channel behaviour match the candidate's declared channel model? For intentional spatial spread, is cross-channel response bounded, stable, repeatable, and controlled? | Unexplained crossfeed, behaviour contradicting the declared channel model, unstable image jumps, uncontrolled/random left-right movement, unbounded cross-channel energy, or unpredictable equivalent renders |
+
+Intentional widening, cross-channel resonance, or spatial ripple is not automatically a failure. If a candidate
+declares a channel-preserving model, strict inactive-channel isolation remains the applicable diagnostic
+expectation.
 
 ### 4.2 Representative listening references
 
 EXP-W-003 listening uses the separate `LISTENING-001` corpus defined by
-[`testdata/listening/README.md`](../../testdata/listening/README.md). Before selection, it should contain
-licensed, musically representative excerpts covering at least:
+[`testdata/listening/README.md`](../../testdata/listening/README.md). For Water's EXP-W-003 selection pack,
+the proposed representative coverage is:
 
 - transient percussion or drums, to judge liquid articulation without losing groove;
 - vocal, to judge intelligibility, sibilance, pitch, and phrasing;
@@ -110,16 +123,63 @@ licensed, musically representative excerpts covering at least:
 - bass, to judge weight, pitch stability, DC, and stereo low-end behaviour;
 - a full mix, to judge whether the effect has a practical production role.
 
-For every reference, record source/author, licence and redistribution permission, location, sample rate, bit
-depth, channels, duration, content hash, and intended listening question. Do not commit unlicensed recordings.
+This is a Water selection proposal, not a silent redefinition of the shared global `LISTENING-001` coverage for
+Water and Ice. The shared corpus contract and its acceptance remain governed by the canonical listening-corpus
+documents and the Engineering Lead evidence review.
+
+For every reference, record source/author, licence, explicit redistribution permission, location, sample rate,
+bit depth, channels, duration, content hash, storage policy, and intended listening question. Do not commit
+unlicensed recordings.
 
 ## 5. Candidate comparison protocol
 
-For every candidate and meaningful parameter region:
+### 5.1 Baseline contract
 
-1. Render the same input, sample rate, block size, parameter fixture, and fixed test seed through dry, baseline,
-   and candidate paths.
-2. Match comparison loudness without hiding unstable peaks or changing the candidate's internal behaviour.
+Each EXP-W-002 comparison must define its baseline before listening begins. The evidence must record:
+
+- baseline identity and type;
+- baseline version or reproducible description;
+- purpose of the baseline;
+- why it is an appropriate comparison for the experiment;
+- whether it is bypass/pass-through, a previous candidate, a simplified mechanism, or another defined control.
+
+The baseline must not change silently between candidate reviews. If baseline is identical to dry/pass-through for
+the experiment, record that explicitly rather than presenting them as two independent references. This contract
+does not select a baseline algorithm.
+
+### 5.2 Evaluated parameter region
+
+Because Host parameters and production macros are not frozen by EXP-W-001, each EXP-W-002 candidate must declare
+the parameter region actually evaluated. At minimum, identify the low/subtle region, moderate/normal-use region,
+high/extreme region, and any deliberately excluded unsafe or meaningless region. Record the candidate-local
+parameter names, values, units, and mapping description without turning them into new Host parameters. This makes
+claims about a useful range reviewable instead of silently subjective.
+
+### 5.3 Loudness matching evidence
+
+Every candidate comparison manifest or listening record must record:
+
+- loudness matching method;
+- measured dry loudness;
+- measured baseline loudness;
+- measured candidate loudness;
+- applied compensation in dB for each compared path;
+- post-match residual difference;
+- peak and true-peak observation where available;
+- whether a safety peak limited the amount of compensation.
+
+“Loudness matched” alone is not sufficient evidence. Matching must not alter candidate internal DSP behaviour,
+conceal unstable peaks or clipping, or turn output gain into part of Water identity. This brief does not impose a
+repository-wide numeric loudness metric or tolerance; any future shared requirement belongs in a separately
+reviewed update to `docs/TESTING.md`.
+
+### 5.4 Render and listening procedure
+
+For every candidate and declared parameter region:
+
+1. Render the same input, sample rate, block size, parameter fixture, and fixed test seed through dry, the
+   declared baseline, and the candidate path.
+2. Apply and document the loudness-matching procedure and observations above.
 3. Randomise candidate labels for the independent listening pass; keep the key outside the listening notes until
    scores and short reasons are recorded.
 4. Evaluate headphones and monitors at a fixed comfortable playback level. Recheck low frequencies in mono and
@@ -130,7 +190,8 @@ For every candidate and meaningful parameter region:
 
 The review pack follows [`docs/TESTING.md`](../../docs/TESTING.md): `00-dry.wav`, `01-baseline.wav`, candidate
 renders, `manifest.json`, and `LISTENING_NOTES.md`. The manifest must identify candidate version, full
-parameters, seed, build, input, render settings, and loudness measurements.
+parameters, declared parameter region, seed, build, input, render settings, baseline identity, and loudness
+matching evidence.
 
 ## 6. Listening scorecard
 
@@ -143,10 +204,11 @@ scores; do not replace them with a single total.
 | Input Recognizability | Source role is lost | Source is readable with meaningful compromise | Timing, pitch, articulation, and role remain clear |
 | Motion / Fluidity | Static, stepped, or mechanically periodic | Some connected motion with audible repetition/artifact | Continuous, organic motion that follows the source |
 | Musical Usefulness | Novelty only or impractical range | Useful in limited contexts | Multiple useful depths and source types without gain tricks |
-| Artifact Severity | No distracting artifact in the evaluated range | Noticeable but potentially revisable | Severe or frequent artifacts |
+| Artifact Severity — inverse scale (1 best / 5 worst) | No distracting artifact in the evaluated range | Noticeable but potentially revisable | Severe or frequent artifacts |
 
-Artifact Severity follows `docs/TESTING.md`: 1 is best/least severe and 5 is worst/most severe. Review notes must
-also use explicit artifact names so the score cannot be misread.
+Artifact Severity follows `docs/TESTING.md`: 1 is best/least severe and 5 is worst/most severe. Do not average
+the five dimensions or derive a total score. Review notes must also use explicit artifact names so the score
+cannot be misread.
 
 ### Review record
 
@@ -156,11 +218,25 @@ reviewer:
 date:
 monitoring path and level:
 inputs and cases reviewed:
+baseline identity / type:
+baseline version or reproducible description:
+baseline purpose and comparison rationale:
+evaluated parameter region (low / moderate / high / excluded):
+loudness matching method:
+measured dry loudness:
+measured baseline loudness:
+measured candidate loudness:
+applied compensation (dB; each compared path):
+post-match residual difference:
+peak / true-peak observation:
+safety peak limited compensation: yes / no / not observed
 Water Identity (1-5) + reason:
 Input Recognizability (1-5) + reason:
 Motion / Fluidity (1-5) + reason:
 Musical Usefulness (1-5) + reason:
 Artifact Severity (1-5; 1 = least severe) + reason:
+stereo / image observation (non-scored):
+mono compatibility / collapse observation (non-scored):
 strongest use case:
 worst failure case:
 seed sensitivity:
@@ -175,7 +251,10 @@ This brief is ready to close only when both leads confirm that:
 
 - the four attributes and counterexamples distinguish Water from generic modulation, reverb, and Ice;
 - every TESTDATA-001 input has a defined engineering diagnostic question;
+- diagnostic stability is not treated as Water musical identity;
 - the score direction and reject criteria are unambiguous;
+- each candidate comparison declares its baseline, evaluated parameter region, and loudness evidence;
+- stereo/image and mono observations can be recorded without adding a sixth rubric dimension;
 - no candidate algorithm or new Host parameter has been frozen by this document;
 - the candidate team can prepare repeatable baseline/A/B packs without changing core C++;
 - unresolved taste disagreements and required licensed musical references are recorded for EXP-W-002/003.
