@@ -10,6 +10,7 @@
 - `PERF-BASE-001`: Debug, Release, and ASAN reports passed with zero observed `operator new` calls during measured callbacks. The report field is `configuredCommit`, meaning Git HEAD captured during CMake configure; formal evidence requires fresh configure. The measured values and method are recorded in [PERF-BASE-001.md](PERF-BASE-001.md).
 - `ARCH-LAT-001`: the real `FRAZILAudioProcessor` reported 0 samples latency in the neutral/dry fixture (`input.gain=0 dB`, `output.gain=0 dB`, `global.mix=0`); the canonical impulse peak remained at sample 12000 with maximum dry error 0. The zero-tail assertion is explicitly current M1 skeleton evidence, not a permanent Water/Ice tail contract.
 - Debug, Release, and ASAN each passed all 8 CTest entries: smoke, unit, plugin integration, processor property, latency contract, performance baseline, render, and render CLI.
+- Hosted CI: PR #18 head `13f1bc146c026d977217dbffe459120de59a40a3`, Windows Debug / CMake / CTest run `34373522402` completed `SUCCESS`; the remote CTest suite passed 8/8. This is hosted Debug evidence only and does not imply hosted Release/ASAN, pluginval, DAW, or listening evidence.
 - Portability, Markdown-link, and VS Code task scanners plus their regression tests passed.
 
 ## Review boundary
