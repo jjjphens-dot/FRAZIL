@@ -13,7 +13,7 @@
 | L0 Build/Smoke | CMake/CTest/portability checker | repository 是否可配置、编译、启动且不含机器专属路径 | `src/**`、production test infrastructure、CMake/presets、dependency/bootstrap、CI workflow、build script 或 executable tooling 变更必需；纯 docs/template 可标记 N/A，除非改变可执行命令、preset 或 CI/build/test 行为 |
 | L1 Unit | `tests/unit/` | mapping、mix、gain、smoother、history 边界是否精确 | 相关变更必需 |
 | L2 DSP Property | `tests/dsp/` | 极值、随机输入、prepare/reset 下是否 finite/stable | DSP 变更必需 |
-| L3 Render Regression | `tests/render/` + `testdata/` | 固定输入/seed/参数下声音输出是否可复现 | 声音/routing 变更必需 |
+| L3 Render Regression | `tests/render/` + `testdata/` | canonical engineering input、algorithm probe、固定 seed/参数下声音输出是否可复现 | 声音/routing 变更必需 |
 | L4 Integration | `tests/integration/` | Processor、参数、state、mode retention | Host/app 变更必需 |
 | L5 Plugin Validation | pluginval/VST3 validator | 生命周期、总线、editor、automation fuzz | 插件变更必需 |
 | L6 DAW Acceptance | 手工矩阵 | 真实枚举、录制、回放、保存、重开 | HOST work item、明确兼容性任务或 milestone/release gate |
@@ -117,7 +117,7 @@ M1 建立 generic `RandomSource` 的 fixed-seed、explicit injection、reseed、
 
 每个 case 固定：
 
-- 输入 WAV 的内容 hash 与许可证来源；
+- canonical engineering WAV 或明确生成的 algorithm probe、内容 hash/生成参数与许可证来源；
 - sample rate、channel count、block size；
 - 完整参数 JSON/文本 fixture；
 - routing 和 enable 状态；
@@ -151,18 +151,35 @@ Water/Ice render matrix、听测或 DAW acceptance。该 CLI 回归还验证同�
 
 ## 4. Listening Review
 
-### 固定素材（TESTDATA-001）
+### TESTDATA-001 canonical engineering corpus
 
-`TESTDATA-001` 必须建立并维护同一套 Water/Ice 共用的 reference corpus：impulse、noise、drums、vocal、piano、guitar、pad、bass。每个素材的 machine-readable manifest 至少记录 id、filename、purpose、source、author、license、redistribution、content hash、sample rate、bit depth、channel count、duration（秒）、storage location，以及 repository/artifact/LFS 策略。未完成许可和 hash 审计的素材不能成为 regression reference。
+`TESTDATA-001` 现在正式定义为 **FRAZIL Canonical Engineering Signal Corpus**，只承担
+Layer B 的稳定工程输入：`silence`、`impulse`、`stationary_noise`、`single_tone`、
+`frequency_sweep` 和 `short_burst`。这些信号按照暴露的数学/DSP 性质命名，不模拟真实
+乐器，也不替代听测素材。manifest schemaVersion=2 记录每项的 role、signalType、definition、
+generationParameters、expectedUses、analysisHints、channelRelation，以及既有的 provenance、
+license、redistribution、WAV metadata、storage policy 和 SHA-256。
 
-当前仓库提供八个由 `tools/generate_testdata.py` 固定 seed 生成的双声道
-`PCM_S16LE` 输入，并将小型合成 fixture 直接存放在 `testdata/input/`；manifest 明确标记为
-generated synthetic reference corpus、每项 `sourceType=synthetic`、无第三方音频，并记录每项的
-provenance、redistribution、WAV metadata 和 SHA-256。`tools/test_testdata.py` 会调用完整 generator
-在临时目录生成 WAV 与 manifest，按 `json.loads` 结果比较 manifest 语义，再逐字节及按 SHA-256
-对比 committed fixtures；`tools/verify_testdata.py` 会检查 manifest 与 `testdata/input/*.wav`
-的双向集合一致性。未来真实音乐素材应放入单独的 `testdata/listening/` corpus，不得混入
-TESTDATA-001 engineering corpus。
+`testdata/input/` 只保存这些 canonical fixed references。`tools/test_testdata.py` 在临时目录
+完整再生 manifest/WAV，比较 manifest 语义、WAV 字节和 SHA-256，并执行逐信号 semantic checks；
+`tools/verify_testdata.py` 执行 schema/contract、provenance/license/hash、WAV metadata 和
+manifest/`input/*.wav` 双向集合检查。`tools/signal_generators.py` 的 Layer C probes 默认
+在内存中生成，由 Water/Ice 实验自行固定 sample rate、seed 和参数；它们不改变 canonical
+fixture。
+
+### 四层测试分工
+
+| 层 | 核心问题 |
+|---|---|
+| Canonical engineering signal | DSP 是否基本正确？ |
+| Generated algorithm probe | 当前候选算法是否按照数学设计工作？ |
+| Unit/property fixture | gain、mapping、smoothing、routing、event boundary 等精确数学是否正确？ |
+| Listening corpus | 产品声音是否有价值？ |
+
+Layer A 的 gain mapping、dB 转换、smoother ramp/retarget、routing endpoint、enable gating、
+RandomSource、block partition 和 controlled Water/Ice stub 输出应优先由 unit/property fixture
+验证，而不是不断增加 WAV。Layer D 的真实音乐素材未来放入独立的 `testdata/listening/`，不得
+混入 TESTDATA-001 或被当作 byte-exact canonical reference。
 
 ### Review pack
 

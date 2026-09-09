@@ -40,16 +40,25 @@ Reference input corpus:
     python tools/verify_testdata.py
     python tools/test_testdata.py
 
-`generate_testdata.py` creates the eight deterministic, synthetic `TESTDATA-001`
-WAV fixtures and their manifest. Its `generate_corpus` API accepts the input
-directory, manifest path and manifest root explicitly, and the CLI exposes the
-same context through `--input-dir`, `--manifest` and `--manifest-root` so a
-complete corpus can be generated outside the repository. `verify_testdata.py` checks provenance, the
-repository MIT license, repository/no-LFS storage, WAV metadata and the
-manifest's SHA-256 values. The manifest records each input's id, filename,
-purpose, sourceType, source, author, redistribution terms, sample rate, bit depth,
-channels, duration and repository/artifact/LFS storage policy. These hashes are
-limited to the required reference inputs; rendered output remains ignored.
+`generate_testdata.py` creates the six deterministic, synthetic canonical
+engineering WAV fixtures and their schema-v2 manifest. Its `generate_corpus`
+API accepts the input directory, manifest path and manifest root explicitly,
+and the CLI exposes the same context through `--input-dir`, `--manifest` and
+`--manifest-root` so a complete corpus can be generated outside the repository.
+The generator supports per-signal duration and the manifest records each
+signal's role, mathematical definition, generation parameters, expected uses,
+analysis hints, and channel relation in addition to provenance. `verify_testdata.py`
+checks those contracts, the repository MIT license, repository/no-LFS storage,
+WAV metadata, strict input/manifest set consistency, and the manifest's
+SHA-256 values. These hashes are limited to the required reference inputs;
+generated probes and rendered output remain ignored.
+
+`signal_generators.py` provides deterministic, in-memory algorithm probes:
+amplitude staircase, attack-rate sweep, transient train, threshold burst train,
+relative-Nyquist multitone, and near-Nyquist tone. `analyze_testdata.py` is a
+small offline diagnostic for waveform metrics, FFT, Welch PSD, stereo
+correlation, and STFT/spectrogram metadata; optional PNG plots can be written
+with `--plot-dir`.
 
 Offline render smoke:
 

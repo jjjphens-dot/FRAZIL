@@ -10,7 +10,7 @@
 
 ## 1. 结论
 
-项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；`TESTDATA-001` 的 synthetic engineering corpus 已随 PR #12 合入，`RENDER-001` pass-through offline smoke 已随 PR #13 合入。M1 仍在进行中；Water/Ice、Routing、完整 render regression matrix、processor property/performance harness 和正式 UI 仍未实现。
+项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；旧版 `TESTDATA-001` reproducibility/provenance infrastructure 已随 PR #12 合入，`RENDER-001` pass-through offline smoke 已随 PR #13 合入。本次工作树已完成 TESTDATA canonical engineering signal design revision 的本地验证，但在 PR 合入前 `main` 仍保留旧版 corpus。M1 仍在进行中；Water/Ice、Routing、完整 render regression matrix、processor property/performance harness 和正式 UI 仍未实现。
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
@@ -98,16 +98,24 @@ Branch audit 仅报告未合并分支中的既有基线路径污染，不改写�
 
 ## 2.5 TESTDATA-001 validation evidence
 
-PR #12 合入的基线以 `tools/generate_testdata.py` 生成八个固定 seed 的双声道、48 kHz、16-bit PCM
-输入，并以 `tools/verify_testdata.py` 验证 manifest 中的 generated synthetic reference corpus、每项
-`sourceType=synthetic`、无第三方音频、author/redistribution、根目录 MIT license、repository/no-LFS
-策略、WAV metadata、SHA-256 内容完整性和 `testdata/input/*.wav` 反向集合；`tools/test_testdata.py`
-还会调用完整 generator 在临时目录生成 WAV 与 manifest，按 JSON 语义比较 manifest，并逐字节及
-按 SHA-256 对比 committed fixtures，负例回归也通过。每个输入约 1 秒、
-约 192 KiB，直接存放于 `testdata/input/`；`testdata/rendered/` 继续保持 ignored。该 corpus 是工程
-测试基线，不等同于 RENDER-001、真实 DAW 或听测证据；验收时 `generate_testdata.py` 重复生成后无
-tracked diff，`check_portability.py`、`check_markdown_links.py` 和 `git diff --check` 也通过；未来
-真实音乐素材应放入单独的 `testdata/listening/` corpus，不得混入 TESTDATA-001。
+PR #12 合入的旧版基线以 `tools/generate_testdata.py` 建立了固定 seed、provenance、license、
+storage、WAV metadata 和 SHA-256 审计基础。本次 revision 将 canonical corpus 重构为六个按
+DSP 性质命名的双声道、48 kHz、16-bit PCM 信号：`silence`、`impulse`、`stationary_noise`、
+`single_tone`、`frequency_sweep` 和 `short_burst`；manifest schemaVersion 升为 2，插件 state
+`schemaVersion=1` 未改变。`tools/verify_testdata.py` 已验证 schema/role/signal definition/
+generation parameters、provenance/license、WAV metadata、SHA-256 和 input/manifest 双向集合；
+`tools/test_testdata.py` 已验证 deterministic regeneration、manifest 语义、WAV 字节、SHA-256
+和逐信号 semantic checks。generic in-memory probes 与最小 FFT/PSD/STFT 分析工具已建立；
+`testdata/rendered/` 继续保持 ignored。该 revision 仍是工程测试基线，不等同于 RENDER-001、
+真实 DAW 或听测证据；真实音乐素材应放入单独的 `testdata/listening/` corpus，不得混入
+TESTDATA-001。2026-09-09 本地 evidence：`python tools/generate_testdata.py` PASS（6 fixtures）；
+`python tools/verify_testdata.py` PASS；`python tools/test_testdata.py` PASS；
+`python tools/analyze_testdata.py testdata/input/frequency_sweep.wav --json-out <ignored build path>`
+PASS（FFT/Welch PSD/STFT）；`python tools/check_markdown_links.py`、
+`python tools/test_check_markdown_links.py`、`python tools/check_portability.py` 和
+`python tools/test_check_portability.py` 均 PASS；`ctest --preset windows-debug --output-on-failure`
+通过 5/5。未执行新的 C++ build、Release/ASAN build、pluginval 或 DAW validation；本次仅修改
+工具、测试输入和文档，复用了现有 Debug build 运行 CTest。
 ## 3. 当前源码映射
 
 ```text
@@ -177,7 +185,7 @@ PluginProcessor
 ## 5. 现状对应 milestone
 
 - M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
-- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration、TESTDATA-001 corpus 和 RENDER-001 pass-through offline smoke 已建立；仍缺完整 render/property/performance/latency evidence、真实 DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
+- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration、旧版 TESTDATA-001 reproducibility infrastructure 和 RENDER-001 pass-through offline smoke 已建立；本工作树的 TESTDATA canonical engineering corpus revision 已通过 generator/verifier/semantic regression 本地验证，待 PR review/merge；仍缺完整 render/property/performance/latency evidence、真实 DAW 验证和正式参数 freeze；M5 EditHistoryManager 仍未开始。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
 - M4 Routing：**未开始**。

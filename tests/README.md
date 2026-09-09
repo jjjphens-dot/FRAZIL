@@ -19,9 +19,14 @@
 - `tools/test_render_cli.py`：回归 `frazil_render` 的 `--help` 成功路径、enable/routing/balance/
   amount 非法值拒绝、一组非默认完整配置在 manifest 中的逐字段保留，以及同一 output path
   重复渲染时覆盖而非追加 WAV；
-- `tools/verify_testdata.py` 与 `tools/test_testdata.py`：`TESTDATA-001` 的八类合成输入、
-  manifest、机器可读 provenance、MIT 来源、WAV metadata、存储策略、SHA-256 完整性、
-  完整 generator-to-temporary WAV + manifest 语义/字节级可复现性和 input/manifest 双向集合回归；
+- `tools/verify_testdata.py` 与 `tools/test_testdata.py`：`TESTDATA-001` 的六类 canonical
+  engineering 输入、schema-v2 manifest、signal definition/generation parameters、机器可读
+  provenance、MIT 来源、WAV metadata、存储策略、SHA-256 完整性、完整
+  generator-to-temporary WAV + manifest 语义/字节级可复现性、每个信号的 semantic regression
+  和 input/manifest 双向集合回归；
+- `tools/signal_generators.py` 与 `tools/analyze_testdata.py`：不写入 canonical corpus 的
+  deterministic algorithm probes，以及 waveform、FFT、Welch PSD、RMS、DC、stereo correlation
+  和 STFT/spectrogram 离线分析；
 
 后续按 `docs/TESTING.md` 增加 DSP property、完整 render regression 和真实 Host/DAW acceptance；
 测试 target 不依赖运行中的插件 editor。

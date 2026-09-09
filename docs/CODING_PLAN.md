@@ -239,7 +239,7 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 |---|---:|---|---|---|
 | STATE-001 | P0 | versioned StateModel/adapter and history boundary | `schemaVersion`、全部参数、invalid input fallback；非音频线程迁移；明确 Host automation/restore 不进入 plugin history 的边界 | fixtures + round-trip + boundary review |
 | STATE-002 | P0 | mode value retention | 切换三种 mode、保存、恢复，不重置 inactive values | integration scenario |
-| TESTDATA-001 | P0 | Establish licensed reference audio corpus | impulse、noise、drums、vocal、piano、guitar、pad、bass；每项记录 source/license/hash/sample rate/channels/storage/repository-artifact-LFS 策略；Water/Ice 共用 corpus | manifest review + hash/licence audit |
+| TESTDATA-001 | P0 | Establish FRAZIL Canonical Engineering Signal Corpus | Layer B canonical `silence`、`impulse`、`stationary_noise`、`single_tone`、`frequency_sweep`、`short_burst`；manifest schema/definition/generation parameters/provenance/hash/storage；generic Layer C probes；与 Layer D listening corpus 解耦 | deterministic regeneration + semantic signal checks + manifest/provenance/hash audit |
 | PERF-BASE-001 | P0 | Establish realtime performance baseline | Reference Machine、OS、compiler、build type、48 kHz/128、测量方法；记录 mean/P95/P99/worst callback、deadline、memory、allocation observation | reproducible baseline report；不预设百分比阈值 |
 | ARCH-LAT-001 | P0 | Define v1 processing latency and intentional delay/tail policy | v1 Host-reported processing latency 为 0 samples；不依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC；Water/Ice 允许属于声音设计的 intentional effect delay/tail，但不得依赖 Host latency compensation | ADR + latency metadata/infrastructure acceptance |
 | RENDER-001 | P0 | offline WAV harness | 固定 `TESTDATA-001` input/config/seed -> WAV + manifest；不依赖实时设备；candidate A/B 可复现 | deterministic smoke render |
@@ -266,6 +266,13 @@ scope 明确包含的 typo、小型 test/docs 或 trivial integration fix 可由
 implementation responsibility 换人时才记录 Implementation DRI Transfer。
 
 ### M1 Exit gate
+
+`TESTDATA-001` 的独立 exit criteria 是：canonical engineering signal corpus 存在；manifest 的
+schema、signal definition、provenance、license、redistribution、hash 和 storage audit 完整；
+generator 支持 per-signal duration 且 deterministic；每个 canonical signal 有 semantic
+verification；FFT/PSD/STFT 等分析基础和 generic algorithm probe generator 已记录。M1 不要求
+final Water/Ice probes、algorithm-specific acceptance thresholds 或真实 listening corpus；这些
+随 `EXP-W-*`、`EXP-I-*`、`ADR-W-001` 和 `ADR-I-001` 推进。
 
 - Parameter registry 与 `docs/PARAMETERS.md` 完全一致；
 - AudioEngine 实际消费 Snapshot/EngineParameters；

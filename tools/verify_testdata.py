@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the TESTDATA-001 manifest, licenses, WAV metadata, and content hashes."""
+"""Verify the TESTDATA-001 manifest, contracts, WAV metadata, and hashes."""
 
 from __future__ import annotations
 
@@ -13,11 +13,95 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "testdata" / "manifest.json"
-REQUIRED_IDS = {"impulse", "noise", "drums", "vocal", "piano", "guitar", "pad", "bass"}
-EXPECTED_PURPOSE = "Shared deterministic test inputs for Water, Ice, render, and property work."
+REQUIRED_IDS = {
+    "silence",
+    "impulse",
+    "stationary_noise",
+    "single_tone",
+    "frequency_sweep",
+    "short_burst",
+}
+EXPECTED_SCHEMA_VERSION = 2
+EXPECTED_CORPUS = "FRAZIL Canonical Engineering Signal Corpus"
+EXPECTED_PURPOSE = (
+    "Deterministic engineering signals named by the DSP properties they expose."
+)
 EXPECTED_SOURCE_TYPE = "synthetic"
 EXPECTED_AUTHOR = "FRAZIL project contributors"
 EXPECTED_REDISTRIBUTION = "Permitted under the repository MIT license."
+EXPECTED_GENERATOR_VERSION = 2
+EXPECTED_SEED = 20260908
+REQUIRED_ENTRY_FIELDS = {
+    "id",
+    "filename",
+    "path",
+    "role",
+    "signalType",
+    "purpose",
+    "definition",
+    "generationParameters",
+    "expectedUses",
+    "analysisHints",
+    "channelRelation",
+    "sourceType",
+    "source",
+    "author",
+    "license",
+    "licensePath",
+    "redistribution",
+    "sha256",
+    "sampleRate",
+    "bitDepth",
+    "channels",
+    "frames",
+    "durationSeconds",
+    "format",
+    "storage",
+    "artifact",
+    "gitLfs",
+}
+EXPECTED_SIGNAL_TYPES = {
+    "silence": "silence",
+    "impulse": "impulse",
+    "stationary_noise": "stationary-noise",
+    "single_tone": "sine",
+    "frequency_sweep": "logarithmic-sweep",
+    "short_burst": "controlled-burst",
+}
+REQUIRED_GENERATION_FIELDS = {
+    "silence": {"durationSeconds"},
+    "impulse": {"durationSeconds", "amplitude", "impulseSampleIndex"},
+    "stationary_noise": {
+        "durationSeconds",
+        "seed",
+        "distribution",
+        "shaping",
+        "gain",
+        "nominalRms",
+        "intentionalAmplitudeModulation",
+        "rollingRmsWindowFrames",
+        "rollingRmsRelativeRangeMax",
+    },
+    "single_tone": {"durationSeconds", "frequencyHz", "levelDbFS", "phaseRadians"},
+    "frequency_sweep": {
+        "durationSeconds",
+        "startFrequencyHz",
+        "endFrequencyHz",
+        "levelDbFS",
+        "fadeInMs",
+        "fadeOutMs",
+        "sweepType",
+    },
+    "short_burst": {
+        "durationSeconds",
+        "burstFrequencyHz",
+        "burstStartSeconds",
+        "burstDurationSeconds",
+        "attackMs",
+        "releaseMs",
+        "levelDbFS",
+    },
+}
 
 
 def file_sha256(path: Path) -> str:
@@ -39,6 +123,16 @@ def actual_input_wav_paths(repository_root: Path) -> set[str]:
     }
 
 
+def _validate_string_list(
+    errors: list[str], identifier: object, entry: dict[str, object], field: str
+) -> None:
+    value = entry.get(field)
+    if not isinstance(value, list) or not value or not all(
+        isinstance(item, str) and item.strip() for item in value
+    ):
+        errors.append(f"{identifier}: {field} must be a non-empty string list")
+
+
 def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
     repository_root = repository_root.resolve()
     errors: list[str] = []
@@ -49,9 +143,9 @@ def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
     if not isinstance(manifest, dict):
         return ["manifest root must be an object"]
 
-    if manifest.get("schemaVersion") != 1:
-        errors.append("manifest schemaVersion must be 1")
-    if manifest.get("corpus") != "FRAZIL M1 reference input corpus":
+    if manifest.get("schemaVersion") != EXPECTED_SCHEMA_VERSION:
+        errors.append(f"manifest schemaVersion must be {EXPECTED_SCHEMA_VERSION}")
+    if manifest.get("corpus") != EXPECTED_CORPUS:
         errors.append("manifest corpus name is incorrect")
     if manifest.get("purpose") != EXPECTED_PURPOSE:
         errors.append("manifest purpose is incorrect")
@@ -59,7 +153,7 @@ def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
     provenance = manifest.get("provenance")
     if (
         not isinstance(provenance, dict)
-        or provenance.get("type") != "generated synthetic reference corpus"
+        or provenance.get("type") != "generated synthetic engineering signal corpus"
         or provenance.get("thirdPartyAudio") is not False
         or provenance.get("author") != EXPECTED_AUTHOR
         or provenance.get("license") != "MIT"
@@ -67,7 +161,7 @@ def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
         or provenance.get("redistribution") != EXPECTED_REDISTRIBUTION
     ):
         errors.append(
-            "manifest provenance must identify generated synthetic corpus with no third-party audio"
+            "manifest provenance must identify generated engineering signals with no third-party audio"
         )
 
     storage = manifest.get("storagePolicy")
@@ -85,12 +179,14 @@ def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
     generator = manifest.get("generator")
     if not isinstance(generator, dict):
         errors.append("manifest generator must be an object")
-    elif generator.get("path") != "tools/generate_testdata.py":
-        errors.append("manifest generator path is incorrect")
-    if isinstance(generator, dict) and (
-        generator.get("version") != 1 or generator.get("seed") != 20260908
-    ):
-        errors.append("manifest generator version or seed is incorrect")
+    else:
+        if generator.get("path") != "tools/generate_testdata.py":
+            errors.append("manifest generator path is incorrect")
+        if (
+            generator.get("version") != EXPECTED_GENERATOR_VERSION
+            or generator.get("seed") != EXPECTED_SEED
+        ):
+            errors.append("manifest generator version or seed is incorrect")
 
     files = manifest.get("files")
     if not isinstance(files, list):
@@ -115,19 +211,55 @@ def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
             errors.append("manifest file entries must be objects")
             continue
         identifier = entry.get("id", "<missing id>")
+        missing_fields = sorted(REQUIRED_ENTRY_FIELDS - set(entry))
+        if missing_fields:
+            errors.append(f"{identifier}: missing required fields {missing_fields}")
+
+        if entry.get("role") != "canonical-engineering":
+            errors.append(f"{identifier}: role must be canonical-engineering")
+        expected_signal_type = (
+            EXPECTED_SIGNAL_TYPES.get(identifier)
+            if isinstance(identifier, str)
+            else None
+        )
+        if entry.get("signalType") != expected_signal_type:
+            errors.append(f"{identifier}: signalType is not valid for this canonical signal")
+        if not isinstance(entry.get("definition"), str) or not entry["definition"].strip():
+            errors.append(f"{identifier}: definition must be recorded")
+        generation_parameters = entry.get("generationParameters")
+        if not isinstance(generation_parameters, dict):
+            errors.append(f"{identifier}: generationParameters must be an object")
+        else:
+            required_generation_fields = (
+                REQUIRED_GENERATION_FIELDS.get(identifier, set())
+                if isinstance(identifier, str)
+                else set()
+            )
+            missing_generation = sorted(
+                required_generation_fields - set(generation_parameters)
+            )
+            if missing_generation:
+                errors.append(
+                    f"{identifier}: missing generation parameters {missing_generation}"
+                )
+        _validate_string_list(errors, identifier, entry, "expectedUses")
+        _validate_string_list(errors, identifier, entry, "analysisHints")
+        if entry.get("channelRelation") != "dual-mono":
+            errors.append(f"{identifier}: channelRelation must be dual-mono")
+
         relative_path = entry.get("path")
         if not isinstance(relative_path, str):
             errors.append(f"{identifier}: path must be inside testdata/input")
             continue
-        manifest_path = PurePosixPath(relative_path)
+        manifest_file_path = PurePosixPath(relative_path)
         if (
-            manifest_path.is_absolute()
-            or ".." in manifest_path.parts
-            or manifest_path.parts[:2] != ("testdata", "input")
+            manifest_file_path.is_absolute()
+            or ".." in manifest_file_path.parts
+            or manifest_file_path.parts[:2] != ("testdata", "input")
         ):
             errors.append(f"{identifier}: path escapes testdata/input")
             continue
-        if manifest_path.suffix.lower() != ".wav":
+        if manifest_file_path.suffix.lower() != ".wav":
             errors.append(f"{identifier}: declared path is not a WAV file")
         else:
             declared_wav_paths.add(relative_path)
@@ -135,13 +267,13 @@ def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
             errors.append(f"{identifier}: duplicate path {relative_path}")
         seen_paths.add(relative_path)
 
-        path = repository_root.joinpath(*manifest_path.parts)
+        path = repository_root.joinpath(*manifest_file_path.parts)
         if not path.is_file():
             continue
 
         if entry.get("filename") != path.name:
             errors.append(f"{identifier}: filename does not match the referenced file")
-        if not isinstance(entry.get("purpose"), str) or not entry["purpose"]:
+        if not isinstance(entry.get("purpose"), str) or not entry["purpose"].strip():
             errors.append(f"{identifier}: purpose must be recorded")
         if entry.get("sourceType") != EXPECTED_SOURCE_TYPE:
             errors.append(f"{identifier}: sourceType must be synthetic")
@@ -184,15 +316,14 @@ def validate(manifest_path: Path, repository_root: Path = ROOT) -> list[str]:
             errors.append(f"{identifier}: invalid WAV: {error}")
             continue
 
-        metadata_keys = (
+        for key in (
             "sampleRate",
             "bitDepth",
             "channels",
             "frames",
             "durationSeconds",
             "format",
-        )
-        for key in metadata_keys:
+        ):
             if entry.get(key) != metadata[key]:
                 errors.append(f"{identifier}: {key} metadata does not match the WAV")
         if metadata["compressed"]:
