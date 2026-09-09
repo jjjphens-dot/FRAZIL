@@ -151,10 +151,12 @@ LOCKED/CONTROLLED 文档要求，也不允许 parallel production implementation
 
 ### 5.2 M1 已建立、只做 regression/finding follow-up
 
-`STATE-001`、`STATE-002`、`AUTO-001` foundation 和 `TESTDATA-001` 已进入 `main`。不得另建平行实现；
-后续只允许由相关 regression、兼容性 finding 或明确新 work item 驱动的修改。`RENDER-001` 的 pass-through
-offline smoke 也已进入 `main`；尚未满足的 render matrix/acceptance 继续由同一 ownership 收口，不重建
-另一套 harness。
+`STATE-001`、`STATE-002`、`AUTO-001` foundation 和 `TESTDATA-001` original
+reproducibility/provenance infrastructure 已进入 `main`。`RENDER-001` 的 pass-through offline smoke
+也已进入 `main`。TESTDATA-001 diagnostic semantic refinement 仍归同一 Engineering Lead ownership，
+在其 GitHub merge state 确认接受前，按 finding-driven follow-up 处理；不得把它描述为平行 TESTDATA
+实现，也不得另建平行 corpus 或 render harness。后续只允许由相关 regression、兼容性 finding 或明确
+新 work item 驱动的修改；尚未满足的 render matrix/acceptance 继续由同一 ownership 收口。
 
 ### 5.3 M1 剩余工作矩阵
 
@@ -188,6 +190,17 @@ M1 只有在 Engineering Evidence 与 Sound / Host Evidence 两条链均满足�
 
 M2/M3 使用 pipeline-level parallelism，而不是 isolated Water-vs-Ice developer silos。Water 和 Ice 可以
 处于不同流水线阶段，但 production C++ ownership 不按材质拆给两人各自孤立实现。
+
+### 6.0 LISTENING-001 shared preparation
+
+| Work item | Implementation DRI | Acceptance DRI | Allowed paths | Forbidden paths / non-goals |
+|---|---|---|---|---|
+| `LISTENING-001` | Sound & Host Lead | Engineering Lead | `testdata/listening/**`、listening corpus metadata、license/provenance evidence、directly related listening docs | `testdata/input/**`、TESTDATA generator/verifier、production Water/Ice DSP、HOST-001 DAW evidence、parameter/state contracts |
+
+`LISTENING-001` 可以在 M1 期间开始准备，但不阻塞 M1 Exit。它必须在 `EXP-W-003` / `EXP-I-003`
+perceptual candidate selection 以及 `WATER-006` / `ICE-006` listening pack 或 final listening evidence
+之前 ready；`EXP-W-002` / `EXP-I-002` engineering experiments 可以直接使用 `TESTDATA-001`，不需
+等待 listening corpus 完成。DAW compatibility/automation/save-reopen evidence 始终归 `HOST-001`。
 
 ### 6.1 Experiment pipeline
 

@@ -225,11 +225,14 @@ Sound / Host lane
   -> parameter enumeration / automation / save-reopen / DAW render evidence
   -> representative workload for PERF-BASE-001
   -> EXP-W-001 perceptual brief only; no production DSP
+  -> LISTENING-001 representative corpus preparation (parallel; does not block M1 Joint Exit)
 
 Both evidence lanes
   -> M1 Joint Exit Review
-  -> EXP-W-002/003
+  -> EXP-W-002 / EXP-I-002 engineering experiments using TESTDATA-001
+  -> EXP-W-003 / EXP-I-003 selection only after LISTENING-001 is ready
+  -> WATER-006 / ICE-006 listening evidence only after LISTENING-001 is ready
   -> Water production only after experiment and Joint Gate
 ```
 
-HOST-000 产品目标已冻结，support classification 仍需满足 Engineering Lead review 与 HOST-001 evidence 条件。STATE-001/002、AUTO-001 foundation、TESTDATA-001 和 RENDER-001 pass-through smoke 已进入最新 `main` 基线并转为 regression/finding ownership；不得建立平行实现。Water/Ice/Routing 仍未开始 production。
+HOST-000 产品目标已冻结，support classification 仍需满足 Engineering Lead review 与 HOST-001 evidence 条件。STATE-001/002、AUTO-001 foundation、TESTDATA-001 original reproducibility/provenance infrastructure（PR #12）和 RENDER-001 pass-through smoke（PR #13）已进入 `main` 并转为 regression/finding ownership；当前 TESTDATA-001 diagnostic semantic refinement 仍是同一 work item 的 finding-driven follow-up，其 PR/CI/merge 状态只以 GitHub live state 为准。不得建立平行实现。Water/Ice/Routing 仍未开始 production。

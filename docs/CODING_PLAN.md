@@ -10,7 +10,7 @@
 
 本计划是 CONTROLLED 工程合同。工作项、依赖、验收标准和 exit gate 的修改必须通过 issue/review，并同步受影响的架构、测试、参数或治理文档；本文件不记录实时 issue 状态，也不以状态文字替代验证证据。
 
-`CODING_PLAN.md v1.0` 是 FRAZIL 从 M0 到 M7 的正式工程执行基线，不等于 FRAZIL plugin v1.0 release。插件当前仍处于 M0/M1 早期开发阶段。
+`CODING_PLAN.md v1.1` 是当前 FRAZIL M0 到 M7 的 Approved Development Baseline，不等于 FRAZIL plugin v1.0 release。文中较早的 v1.0 表述属于历史文字，不覆盖当前 v1.1 合同；插件当前仍处于 M0/M1 早期开发阶段。
 
 ## 1. 计划使用方式
 
@@ -80,6 +80,21 @@ Parameter / State / Engine Contract
   +-> automation granularity contract
   |
   v
+
+M1 Engineering Exit
+  |
+  +--------------------+--------------------+
+  |                    |
+  v                    v
+EXP-W-002          EXP-I-002
+engineering        engineering
+experiment         experiment
+
+LISTENING-001 representative corpus preparation may proceed in parallel
+  |                    |
+  +---------> EXP-W-003 / EXP-I-003 selection
+                       |
+                       +--> WATER-006 / ICE-006 listening evidence
 
 M2 Water --------+
                  |
@@ -240,7 +255,6 @@ M1 的 wet path 可暂时等于 post-input pass-through，以单独验证 gain/g
 | STATE-001 | P0 | versioned StateModel/adapter and history boundary | `schemaVersion`、全部参数、invalid input fallback；非音频线程迁移；明确 Host automation/restore 不进入 plugin history 的边界 | fixtures + round-trip + boundary review |
 | STATE-002 | P0 | mode value retention | 切换三种 mode、保存、恢复，不重置 inactive values | integration scenario |
 | TESTDATA-001 | P0 | Establish deterministic DSP diagnostic corpus | Layer B canonical ten-signal diagnostic corpus；SignalSpec mathematical definitions；manifest schema v2；PCM24/provenance/hash/storage；standard-library semantic regression；temporary 44.1/48/96 kHz generation；与 Layer D listening corpus 解耦 | deterministic regeneration + byte/hash equality + per-signal semantic checks + RENDER-001 shared-input regression |
-| LISTENING-001 | P0 | Shared Representative Listening Corpus | Layer D licensed musical material for Water/Ice perceptual review；独立 source/license/redistribution/metadata；不把 synthetic diagnostic WAV 当作 musical acceptance material；本任务只建立合同边界，不提交素材 | Sound & Host Lead implementation + Engineering Lead evidence review + rubric/DAW acceptance |
 | PERF-BASE-001 | P0 | Establish realtime performance baseline | Reference Machine、OS、compiler、build type、48 kHz/128、测量方法；记录 mean/P95/P99/worst callback、deadline、memory、allocation observation | reproducible baseline report；不预设百分比阈值 |
 | ARCH-LAT-001 | P0 | Define v1 processing latency and intentional delay/tail policy | v1 Host-reported processing latency 为 0 samples；不依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC；Water/Ice 允许属于声音设计的 intentional effect delay/tail，但不得依赖 Host latency compensation | ADR + latency metadata/infrastructure acceptance |
 | RENDER-001 | P0 | offline WAV harness | 固定 `TESTDATA-001` input/config/seed -> WAV + manifest；不依赖实时设备；candidate A/B 可复现 | deterministic smoke render |
@@ -290,6 +304,27 @@ final Water/Ice probes、algorithm-specific acceptance thresholds 或真实 list
 - offline render 可复现，property tests 无 NaN/Inf；
 - Debug/Release/ASAN + pluginval PASS；
 - `HOST-000` 中定义的 primary target DAW 完成参数枚举与 project save/reopen smoke。
+
+### M2/M3 Shared Perceptual Preparation
+
+`LISTENING-001` 是跨 milestone 的 **Shared Representative Listening Corpus**，当前不属于
+M1-C，也不是 M1 Exit Gate 的 P0 blocker。其 Implementation DRI 为 Sound & Host Lead，
+Acceptance DRI 为 Engineering Lead。允许的 scope 包括 licensed representative musical
+material、source/author、license、redistribution permission、hash、sample rate、bit depth、
+channel count、duration、storage policy 和 Water/Ice listening rubric suitability。
+
+Acceptance criteria：representative coverage accepted；source/license/redistribution audit complete；
+metadata/hash/storage evidence complete；material suitable for the Water/Ice listening rubric；
+Engineering Lead evidence review complete。DAW acceptance 不属于 `LISTENING-001`。
+
+明确 non-goals：`TESTDATA-001` engineering fixtures、production Water/Ice DSP、HOST-001
+兼容性证据、DAW automation evidence，以及 DSP mathematical acceptance。
+
+依赖关系必须保持为：`LISTENING-001` 可以在 M1 期间并行准备，不阻塞 M1 Exit，也不阻塞
+`EXP-W-002` / `EXP-I-002` engineering experiments；但它必须在 `EXP-W-003` / `EXP-I-003`
+perceptual candidate selection 以及 `WATER-006` / `ICE-006` final listening evidence 之前
+ready。`TESTDATA-001` 负责 engineering evidence，`LISTENING-001` 负责 perceptual evidence，
+两者不可互相替代。
 
 ## 6. M2 — Water Vertical Slice
 

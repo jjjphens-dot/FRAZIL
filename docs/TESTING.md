@@ -39,6 +39,20 @@ DSP property、pluginval、render、DAW、listening 或 performance validation�
 
 具体 work-item DRI、路径边界与 handoff 见 [`COLLABORATION_ROLES.md`](COLLABORATION_ROLES.md)。
 
+### 1.2 L6/L7 work-item mapping
+
+`L6 DAW Acceptance` 归属 `HOST-001`：负责 scan/load、parameter enumeration、automation、
+save/reopen、DAW render 和 Host compatibility evidence。
+
+`L7 Listening` 归属 `LISTENING-001` 与 `WATER-006` / `ICE-006`：负责 representative musical
+material、license/provenance、perceptual review suitability 和 Water/Ice product-sound evidence。
+`LISTENING-001` 可以在 M1 期间准备，但不是 M1 Exit Gate；它必须在 `EXP-W-003` / `EXP-I-003`
+以及 `WATER-006` / `ICE-006` 前 ready。`EXP-W-002` / `EXP-I-002` engineering experiments
+可以直接使用 `TESTDATA-001`，不需要等待 listening corpus 完成。
+
+Listening WAV 可以被放入 DAW 播放或作为 DAW 测试输入，但这不会把 `LISTENING-001` 变成
+DAW compatibility evidence 的 owner；该证据链仍归 `HOST-001`。
+
 ## 2. 自动化测试必须覆盖
 
 ### ParameterLayout
@@ -202,8 +216,9 @@ it does not create a parallel canonical corpus or render harness.
 `testdata/input/**` is for objective engineering evidence. The separate
 `testdata/listening/**` boundary is for the future **Representative Listening
 Corpus** (`LISTENING-001`): licensed musical material, Water/Ice musical
-usefulness, A/B review, and DAW/product acceptance. No real listening material
-is introduced by this TESTDATA follow-up. Water/Ice engineering measurement
+usefulness, loudness-matched A/B review, and product-sound listening evidence.
+DAW compatibility and Host acceptance belong to `HOST-001`. No real listening
+material is introduced by this TESTDATA follow-up. Water/Ice engineering measurement
 must use the diagnostic signals above; product sound acceptance must not rely
 on impulse, sweep, or synthetic diagnostic tones alone.
 

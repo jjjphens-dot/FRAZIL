@@ -20,9 +20,15 @@
 如果本文与上述合同或 Accepted ADR 冲突，应停止扩大实现范围，记录冲突并通过 issue/ADR
 解决，不能让实现或本文说明自行覆盖合同。
 
-## 1. 当前基线与推荐执行顺序
+## 1. 已建立 foundation 与当前 M1 remaining areas
 
-当前已验证的实现基线（本文不保存临时 branch、current HEAD 或单次 CI metadata）：
+本文不定义 milestone status 或 work-item dependency。Exact work-item dependencies and ordering
+are authoritative only in `CODING_PLAN.md`; this guide explains implementation context and must
+not redefine them。本文也不保存临时 branch、current HEAD 或单次 CI metadata。
+
+### Established / already evidenced foundation
+
+当前已验证的 foundation 包括：
 
 - 9 个静态 Host 参数；
 - `ParameterSnapshot` 与 `ParameterMapper`；
@@ -40,50 +46,48 @@ STATE-001 已合入 `main`，包括：
 - `ValueTree::createXml()`/`fromXml()` restore regression；
 - all nine static parameters retained。
 
-STATE-002 的 mode value retention integration evidence 已建立；当前 TESTDATA-001
-diagnostic semantic refinement 是既有 corpus infrastructure 的 follow-up，不改变
-plugin StateModel schema 或 production DSP scope。
+STATE-002 的 mode value retention integration evidence 已建立。AUTO-001
+PluginProcessor integration evidence、TESTDATA-001 original reproducibility/provenance
+infrastructure 和 RENDER-001 pass-through offline smoke 已建立并分别由既有 work item 维护。
+当前 TESTDATA-001 diagnostic semantic refinement 是同一 corpus 的 finding-driven follow-up，
+不改变 plugin StateModel schema 或 production DSP scope。generic in-memory probes 和最小
+离线分析工具仍可供未来 measurement 使用。
 
-当前 wet path 仍为 post-input pass-through。STATE-002 mode-value-retention evidence、
-AUTO-001 PluginProcessor integration evidence、TESTDATA-001 reproducibility/provenance
-infrastructure 和 RENDER-001 pass-through offline smoke 已建立；本 follow-up 将 TESTDATA
-engineering input refinement 收敛为十个 diagnostic signals、PCM24 和 manifest v2 semantic
-contract。generic in-memory probes 和最小离线分析工具仍可供未来 measurement 使用。以下内容仍未实现：
+当前 wet path 仍为 post-input pass-through。
 
-- automation completion；
-- 完整 offline render matrix、DSP property harness 和 performance baseline；
-- real DAW/HOST-001 evidence；
-- Water、Ice、Routing 生产 DSP；
-- `EditHistoryManager` 与 production UI。
+### Current M1 remaining areas
 
-推荐顺序必须保持：
+当前仍需收口的区域仅包括：
+
+- TESTDATA-001 diagnostic revision closeout / review；
+- RENDER-001 existing-harness acceptance/finding follow-up；
+- PERF-BASE-001、ARCH-LAT-001 和 TEST-002；
+- remaining Host/DAW automation evidence 和 discrete enable/routing transition acceptance；
+  AUTO-001 integration evidence 已存在，但不等于完整 Host acceptance；
+- HOST-001 DAW/Host evidence；
+- M1 Joint Exit Review。
+
+Water、Ice、Routing、`EditHistoryManager` 和 production UI 属于后续 milestone，不在此处重定义。
+
+以下图示只表达已建立 foundation 与当前 remaining areas 的上下文，不是新的 dependency authority：
 
 ```text
-STATE-001 DONE / MERGED
-  -> STATE-002 mode value retention integration
-  -> PARAM-004 / AUTO-001
-  -> TESTDATA-001
-  -> PERF-BASE-001
-  -> ARCH-LAT-001
-  -> RENDER-001
-  -> TEST-002
-  -> HOST-001
-  -> M1 Exit Gate
-  -> M2 Water experiments and vertical slice
-  -> M3 Ice experiments and vertical slice
-  -> PARAM-FREEZE-001
-  -> ADR-R-001
-  -> M4 Routing integration
-  -> M5 UI/Edit History
-  -> M6 Hardening
-  -> M7 Release
+Established foundation:
+  STATE-001 / STATE-002 evidence
+  PARAM-004 / AUTO-001 integration evidence
+  TESTDATA-001 original infrastructure
+  RENDER-001 pass-through smoke
+
+Current M1 remaining:
+  TESTDATA diagnostic revision closeout/review
+  RENDER-001 existing-harness acceptance/finding follow-up
+  PERF-BASE-001 / ARCH-LAT-001 / TEST-002
+  HOST-001 and M1 Joint Exit Review
 ```
 
 Water 与 Ice 的实验研究可以并行，但生产实现不得绕过 M1 的生命周期、测试素材、渲染和性能
-基线。
-
-M0 governance tails such as HOST-000 / GitHub rules may proceed in parallel, but their required
-gates must be closed before the corresponding milestone exit.
+基线。M0 governance tails such as HOST-000 / GitHub rules may proceed in parallel, but their
+required gates must be closed before the corresponding milestone exit。
 
 ## 2. 总体处理链与数学合同
 
@@ -837,8 +841,10 @@ STFT/spectrogram；对 resonator
 spreading 和 time-frequency behaviour，不把结果简单写成严格 LTI frequency response。
 
 这些 canonical inputs 是 engineering diagnostic evidence，不是 musical listening material。
-未来 `LISTENING-001` 的 representative corpus 单独负责 licensed musical content、loudness-
-matched A/B、Water/Ice usefulness 和 DAW/product acceptance；不能用其中一类素材替代另一类
+未来 `LISTENING-001` 的 representative corpus 负责 licensed musical content、loudness-
+matched A/B source material、Water/Ice perceptual usefulness 和 product-sound listening evidence。
+`HOST-001` 单独负责 DAW compatibility 和 Host acceptance evidence。Representative listening
+material 可以在 DAW 测试中作为输入，但不拥有 DAW acceptance；不能用其中一类素材替代另一类
 证据。
 
 ### 11.5 Listening Review
