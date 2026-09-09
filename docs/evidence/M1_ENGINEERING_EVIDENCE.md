@@ -1,6 +1,6 @@
 # M1 Engineering Evidence
 
-- Tested code commit: `94f302ff63008f8f23008b2cb3daa1ea4476008e`
+- Tested code commit: `0eec5988dd22cf99c6118e88744e7cb6481b5eca`
 - Scope: TEST-002, PERF-BASE-001, ARCH-LAT-001, and bounded documentation/build wiring.
 - Status: engineering evidence established; M1 Joint Exit is not claimed.
 

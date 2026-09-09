@@ -1,7 +1,8 @@
 # PERF-BASE-001 Reference Baseline
 
 - Status: measured baseline; no formal CPU percentage threshold is defined.
-- Tested code commit: recorded in the surrounding evidence; each JSON report records `configuredCommit` captured at fresh configure time.
+- Tested code commit: `0eec5988dd22cf99c6118e88744e7cb6481b5eca`
+- `configuredCommit` in each report: `0eec5988dd22cf99c6118e88744e7cb6481b5eca`
 - Date: 2026-09-09
 - Reference machine: Windows 11, Intel Core i9-14900HX, 32 logical CPUs, 16003 MiB RAM.
 - Toolchain: MSVC `_MSC_VER=1943`, JUCE 9.0.1.
@@ -9,9 +10,9 @@
 
 | Preset | Mean ns | P95 ns | P99 ns | Worst ns | Mean deadline utilization | Worst deadline utilization | Measured callback allocations |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Debug | 8747.8 | 9900 | 10600 | 37400 | 0.328% | 1.403% | 0 |
-| Release | 596.65 | 700 | 800 | 10100 | 0.023% | 0.38% | 0 |
-| ASAN | 13202.20 | 13600 | 19600 | 306200 | 0.49% | 11.48% | 0 |
+| Debug | 9214.35 | 10100 | 10800 | 23100 | 0.35% | 0.87% | 0 |
+| Release | 628.00 | 800 | 800 | 8900 | 0.02% | 0.33% | 0 |
+| ASAN | 16763.00 | 23200 | 33100 | 94100 | 0.63% | 3.53% | 0 |
 
 The audio deadline is 2,666,666.667 ns for the selected workload. The ASAN timing is diagnostic rather than a release-performance claim. Reports are generated under the ignored preset build trees at `build/<preset>/performance/perf_base_001.json`. A report is formal baseline evidence only when the corresponding preset was freshly configured before build/test; a non-fresh configure can retain an older configured commit and must be treated as stale.
 
