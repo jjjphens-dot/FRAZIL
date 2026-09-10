@@ -13,6 +13,37 @@ if(NOT FRAZIL_GIT_COMMIT)
     set(FRAZIL_GIT_COMMIT "unknown")
 endif()
 
+execute_process(
+    COMMAND git status --porcelain --untracked-files=normal
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_VARIABLE FRAZIL_GIT_STATUS
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE FRAZIL_GIT_STATUS_RESULT
+    ERROR_QUIET
+)
+if(NOT FRAZIL_GIT_STATUS_RESULT EQUAL 0)
+    set(FRAZIL_GIT_STATE "unknown")
+elseif(FRAZIL_GIT_STATUS)
+    set(FRAZIL_GIT_STATE "dirty")
+else()
+    set(FRAZIL_GIT_STATE "clean")
+endif()
+
+set(FRAZIL_COMPILER_FLAGS "${CMAKE_CXX_FLAGS}")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    string(APPEND FRAZIL_COMPILER_FLAGS " ${CMAKE_CXX_FLAGS_DEBUG}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    string(APPEND FRAZIL_COMPILER_FLAGS " ${CMAKE_CXX_FLAGS_RELEASE}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    string(APPEND FRAZIL_COMPILER_FLAGS " ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+    string(APPEND FRAZIL_COMPILER_FLAGS " ${CMAKE_CXX_FLAGS_MINSIZEREL}")
+endif()
+string(STRIP "${FRAZIL_COMPILER_FLAGS}" FRAZIL_COMPILER_FLAGS)
+if(NOT FRAZIL_COMPILER_FLAGS)
+    set(FRAZIL_COMPILER_FLAGS "none reported by CMake configure")
+endif()
+
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/JUCE/CMakeLists.txt")
     message(FATAL_ERROR
         "JUCE 9.0.1 is missing. Expected it at external/JUCE."
@@ -255,7 +286,9 @@ target_compile_definitions(frazil_performance_baseline
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
         FRAZIL_GIT_COMMIT="${FRAZIL_GIT_COMMIT}"
+        FRAZIL_GIT_STATE="${FRAZIL_GIT_STATE}"
         FRAZIL_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
+        FRAZIL_COMPILER_FLAGS="${FRAZIL_COMPILER_FLAGS}"
 )
 target_link_libraries(frazil_performance_baseline
     PRIVATE

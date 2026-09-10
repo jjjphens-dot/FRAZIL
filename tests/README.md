@@ -24,9 +24,11 @@
 - `frazil_latency_contract`：ARCH-LAT-001 的 canonical TESTDATA-001 impulse alignment 与
   neutral/dry fixture、`getLatencySamples() == 0` 和当前 M1 skeleton zero-tail regression；
 - `frazil_performance_baseline`：PERF-BASE-001 的 headless 48 kHz/128/stereo processor
-  workload，记录 mean/P95/P99/worst、callback deadline、working set 和 measured-callback
-  `operator new` observation；报告写入 ignored preset build tree，并以 `configuredCommit`
-  标记 configure-time Git HEAD；正式 evidence 要求 fresh configure；
+  workload，记录 Reference Machine、OS、compiler/effective flags、build type、Reference DAW、
+  measurement tool、thread/instance configuration、statistical method、mean/P95/P99/worst、
+  callback deadline、CPU/denormal observation、working set 和 measured-callback `operator new`
+  observation；报告写入 ignored preset build tree，并以 `configuredCommit` 与 `sourceState`
+  标记 configure-time Git HEAD 及 clean/dirty/unknown 状态；正式 evidence 要求 fresh configure；
 - `frazil_render` + `tools/render_testdata.py`：RENDER-001 的离线 WAV smoke，固定 input/config/seed
   通过当前 AudioEngine 处理，检查 finite output、重复运行字节一致性，并生成完整当前配置、
   input/output metadata 与 SHA-256 manifest；CTest 产物写入 preset build tree 下的 ignored

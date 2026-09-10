@@ -190,6 +190,22 @@ std::string compilerDescription() {
 #endif
 }
 
+std::string compilerFlags() {
+#if defined(FRAZIL_COMPILER_FLAGS)
+    return FRAZIL_COMPILER_FLAGS;
+#else
+    return "unknown";
+#endif
+}
+
+std::string gitState() {
+#if defined(FRAZIL_GIT_STATE)
+    return FRAZIL_GIT_STATE;
+#else
+    return "unknown";
+#endif
+}
+
 void fillDeterministicInput(juce::AudioBuffer<float>& buffer, std::uint32_t& state) {
     for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
         state = state * 1664525U + 1013904223U;
@@ -252,6 +268,7 @@ bool writeReport(const std::filesystem::path& outputPath,
            << "\",\n"
            << "  \"commitFieldMeaning\": \"Git HEAD captured during CMake configure; "
               "run cmake --fresh before formal baseline evidence.\",\n"
+           << "  \"sourceState\": \"" << escapeJson(gitState()) << "\",\n"
            << "  \"referenceMachine\": {\n"
            << "    \"cpuVendor\": \"" << escapeJson(juce::SystemStats::getCpuVendor().toStdString())
            << "\",\n"
@@ -262,6 +279,7 @@ bool writeReport(const std::filesystem::path& outputPath,
            << "    \"os\": \""
            << escapeJson(juce::SystemStats::getOperatingSystemName().toStdString()) << "\",\n"
            << "    \"compiler\": \"" << escapeJson(compilerDescription()) << "\",\n"
+           << "    \"compilerFlags\": \"" << escapeJson(compilerFlags()) << "\",\n"
            << "    \"buildType\": \"" << escapeJson(buildType()) << "\",\n"
            << "    \"juceVersion\": \""
            << escapeJson(juce::SystemStats::getJUCEVersion().toStdString()) << "\"\n"
@@ -273,6 +291,15 @@ bool writeReport(const std::filesystem::path& outputPath,
            << "    \"warmupCallbacks\": " << kWarmupCallbacks << ",\n"
            << "    \"measuredCallbacks\": " << kMeasuredCallbacks << ",\n"
            << "    \"input\": \"deterministic LCG noise, fixed seed 0x2468ace1\"\n"
+           << "  },\n"
+           << "  \"measurement\": {\n"
+           << "    \"tool\": \"std::chrono::steady_clock in frazil_performance_baseline\",\n"
+           << "    \"referenceDaw\": \"N/A - standalone CTest executable; no DAW host involved\",\n"
+           << "    \"threadConfiguration\": \"one test process thread; no host worker threads\",\n"
+           << "    \"instanceConfiguration\": \"one FRAZILAudioProcessor instance\",\n"
+           << "    \"statisticalMethod\": \"arithmetic mean, nearest-rank P95/P99, and maximum over 2000 measured callbacks\",\n"
+           << "    \"cpuObservation\": \"N/A - harness records callback timing and machine CPU identity, not OS CPU utilization counters\",\n"
+           << "    \"denormalBehavior\": \"N/A - no denormal-specific stimulus or flush-to-zero measurement; deterministic finite LCG baseline only\"\n"
            << "  },\n"
            << "  \"timing\": {\n"
            << "    \"unit\": \"nanoseconds\",\n"
@@ -295,7 +322,7 @@ bool writeReport(const std::filesystem::path& outputPath,
            << "    \"mechanism\": \"test executable global operator new observer\",\n"
            << "    \"operatorNewCallsDuringMeasuredCallbacks\": " << allocationCount << "\n"
            << "  },\n"
-           << "  \"interpretation\": \"Baseline only; no formal CPU percentage threshold is defined.\"\n"
+           << "  \"interpretation\": \"Baseline only; no formal CPU percentage threshold is defined. A dirty or unknown sourceState is not clean-tree formal evidence.\"\n"
            << "}\n";
     return report.good();
 }
@@ -361,7 +388,7 @@ int main(int argc, char** argv) {
               << ", p99_ns=" << p99 << ", worst_ns=" << worst
               << ", deadline_ns=" << (1.0e9 * kBlockSize / kSampleRate)
               << ", operator_new_calls=" << allocationCount << ", configured_commit="
-              << FRAZIL_GIT_COMMIT << ", report="
+              << FRAZIL_GIT_COMMIT << ", source_state=" << gitState() << ", report="
               << outputPath.string() << '\n';
     return allocationCount == 0 ? 0 : 1;
 }

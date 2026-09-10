@@ -366,10 +366,14 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 
 M1 的 `frazil_performance_baseline` 使用真实 PluginProcessor audio path，固定 48 kHz、128
 samples、stereo 和 deterministic LCG input；先 warm up，再测量 2000 callbacks。报告同时记录
-Reference Machine、JUCE/compiler/build、mean/P95/P99/worst、2.666 ms callback deadline、
-mean/worst deadline utilization、Windows process working set 和 measured callback 区间的
-test-executable `operator new` observation。报告中的 `configuredCommit` 是 CMake configure
-时读取的 Git HEAD，而不是 build-time discovery；正式 baseline 必须先执行
+Reference Machine、OS、compiler、effective compiler flags、build type、JUCE、Reference DAW、
+measurement tool、thread/instance configuration、statistical method、mean/P95/P99/worst、
+2.666 ms callback deadline、mean/worst deadline utilization、CPU observation、Windows process
+working set、allocation observation 和 denormal behavior。Standalone CTest 没有 Reference DAW、
+OS CPU utilization counter 或 denormal-specific stimulus 时，报告必须写入带理由的 `N/A`，
+不能省略字段。报告中的 `configuredCommit` 是 CMake configure 时读取的 Git HEAD，
+`sourceState` 明确标记 configure 时的 `clean`、`dirty` 或 `unknown` 状态，而不是 build-time discovery；
+正式 baseline 必须先执行
 `cmake --fresh --preset <preset>`，再 build/test，不能把非 fresh configure 生成的 report
 作为正式 evidence。measurement container 在 observation 开启前预分配，避免把 harness 自身的
 bookkeeping 误报成 audio-thread allocation。该 work item 只提供 baseline，不把结果转换成正式

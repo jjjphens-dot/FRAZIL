@@ -42,7 +42,7 @@
 | UI | 640x360 M0 占位界面 | 非产品 UI |
 | Product identity | `docs/PRODUCT_IDENTITY.md` | FRAZIL adopted working/product name；命名词汇不改变参数合同；法律/商标 clearance 不属于当前工程范围 |
 | Tests | `frazil_smoke` + `frazil_unit` + `frazil_plugin_integration` + `frazil_processor_property` + `frazil_latency_contract` + `frazil_performance_baseline` + `frazil_render` + `frazil_render_cli` CTest | Debug/Release/ASAN 各 8/8 PASS；TEST-002、PERF-BASE-001、ARCH-LAT-001 当前 branch evidence 已记录；真实 DAW 测试未完成 |
-| Local validation | 当前 branch `13f1bc1` 的 Debug、Release、ASAN fresh configure、6-job safe build 和 CTest 均通过；portability、Markdown-link、VS Code task scanners 及 regression tests 均 PASS | 已验证；本机绝对路径仅在 ignored local configuration/build output，仓库 preset 保持可移植 |
+| Local validation | PR #18 follow-up 的 Debug、Release、ASAN fresh configure、6-job safe build 和 CTest 结果见 2.6，并按该节记录 exact tested implementation commit；当前 branch HEAD 与最新 CI 以 GitHub live query 为准 | 已验证；本机绝对路径仅在 ignored local configuration/build output，仓库 preset 保持可移植 |
 | pluginval | 当前机器缺少 `tools/bin/pluginval.exe`，current-artifact validation `NOT RUN`；历史 Debug artifact pluginval 记录保留为历史 evidence | 当前变更未验证（不等于独立 VST3 validator） |
 | Remote | `jjjphens-dot/FRAZIL` public repository；`main` 和审查分支的当前 SHA、mergeability 与 CI 状态以 GitHub live query 为准；`9955cdb` 仅为历史 safety follow-up baseline，不是当前审查分支 head；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main；TESTDATA-001 rationale 记录见 Issue #15 | GitHub live state；Milestones/Projects metadata 未建立 |
 
