@@ -23,12 +23,13 @@
   output；1024 不是 public maximum-support claim；
 - `frazil_latency_contract`：ARCH-LAT-001 的 canonical TESTDATA-001 impulse alignment 与
   neutral/dry fixture、`getLatencySamples() == 0` 和当前 M1 skeleton zero-tail regression；
-- `frazil_performance_baseline`：PERF-BASE-001 的 headless 48 kHz/128/stereo processor
-  workload，记录 Reference Machine、OS、compiler/effective flags、build type、Reference DAW、
-  measurement tool、thread/instance configuration、statistical method、mean/P95/P99/worst、
-  callback deadline、CPU/denormal observation、working set 和 measured-callback `operator new`
-  observation；报告写入 ignored preset build tree，并以 `configuredCommit` 与 `sourceState`
-  标记 configure-time Git HEAD 及 clean/dirty/unknown 状态；正式 evidence 要求 fresh configure；
+- `frazil_performance`：手动运行的 PERF-BASE-001 headless 48 kHz/128/stereo `AudioEngine`
+  workload，分别测量 steady-state 与 parameter-retarget/smoothing 场景，记录 Reference
+  Machine、OS、compiler/effective flags、build type、Reference DAW、measurement tool、
+  thread/instance configuration、statistical method、mean/P95/P99/worst、callback deadline、
+  process CPU、working set、measured-callback `operator new`、finite output 和 denormal probe；
+  输出以 `configuredCommit` 与 `sourceState` 标记 configure-time provenance；它是手动 benchmark，
+  不作为 CTest 通过/失败门槛，正式 evidence 要求 fresh configure 且 `sourceState=clean`；
 - `frazil_render` + `tools/render_testdata.py`：RENDER-001 的离线 WAV smoke，固定 input/config/seed
   通过当前 AudioEngine 处理，检查 finite output、重复运行字节一致性，并生成完整当前配置、
   input/output metadata 与 SHA-256 manifest；CTest 产物写入 preset build tree 下的 ignored

@@ -364,20 +364,25 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 - allocation observation/count；
 - denormal 行为。
 
-M1 的 `frazil_performance_baseline` 使用真实 PluginProcessor audio path，固定 48 kHz、128
-samples、stereo 和 deterministic LCG input；先 warm up，再测量 2000 callbacks。报告同时记录
-Reference Machine、OS、compiler、effective compiler flags、build type、JUCE、Reference DAW、
-measurement tool、thread/instance configuration、statistical method、mean/P95/P99/worst、
-2.666 ms callback deadline、mean/worst deadline utilization、CPU observation、Windows process
-working set、allocation observation 和 denormal behavior。Standalone CTest 没有 Reference DAW、
-OS CPU utilization counter 或 denormal-specific stimulus 时，报告必须写入带理由的 `N/A`，
-不能省略字段。报告中的 `configuredCommit` 是 CMake configure 时读取的 Git HEAD，
-`sourceState` 明确标记 configure 时的 `clean`、`dirty` 或 `unknown` 状态，而不是 build-time discovery；
-正式 baseline 必须先执行
-`cmake --fresh --preset <preset>`，再 build/test，不能把非 fresh configure 生成的 report
-作为正式 evidence。measurement container 在 observation 开启前预分配，避免把 harness 自身的
-bookkeeping 误报成 audio-thread allocation。该 work item 只提供 baseline，不把结果转换成正式
-CPU 百分比门槛。
+M1 的 `frazil_performance` 是手动运行的 headless `AudioEngine` benchmark，不加入 CTest
+通过/失败门槛。它固定 48 kHz、128 samples、stereo 和预分配 buffer，分别测量 steady-state
+与 parameter-retarget/smoothing 场景，每个场景 warm up 2000 blocks，再测量 20000 blocks。
+报告必须同时记录 Reference Machine、OS、compiler、effective compiler flags、build type、
+Reference DAW、measurement tool、thread/instance configuration、statistical method、
+mean/P95/P99/worst、2.666 ms callback deadline、mean/worst deadline utilization、进程 CPU
+时间、Windows process working set、measured-callback allocation count、finite-output 结果和
+denormal probe 结果。`configuredCommit` 是 CMake configure 时读取的 Git HEAD，`sourceState`
+明确标记 configure 时的 `clean`、`dirty` 或 `unknown` 状态；只有 fresh configure 且
+`sourceState=clean` 才能标记为 formal baseline，dirty/unknown 必须显式标记为非正式证据。
+measurement buffers/result storage 在 observation 开启前预分配，避免把 harness bookkeeping
+误报成 audio-thread allocation。该 work item 只提供 baseline，不把结果转换成正式 CPU 百分比
+门槛，也不替代 pluginval、DAW 或 listening evidence。
+
+```powershell
+cmake --fresh --preset windows-release
+python tools/build_safe.py --preset windows-release
+.\build\windows-release\frazil_performance.exe
+```
 
 ### Milestone performance scope
 

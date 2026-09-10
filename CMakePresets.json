@@ -77,7 +77,7 @@
         "frazil_plugin_integration",
         "frazil_processor_property",
         "frazil_latency_contract",
-        "frazil_performance_baseline"
+        "frazil_performance"
       ]
     },
     {
@@ -92,7 +92,7 @@
         "frazil_plugin_integration",
         "frazil_processor_property",
         "frazil_latency_contract",
-        "frazil_performance_baseline"
+        "frazil_performance"
       ]
     },
     {
@@ -107,7 +107,7 @@
         "frazil_plugin_integration",
         "frazil_processor_property",
         "frazil_latency_contract",
-        "frazil_performance_baseline"
+        "frazil_performance"
       ]
     },
     {
@@ -122,7 +122,7 @@
         "frazil_plugin_integration",
         "frazil_processor_property",
         "frazil_latency_contract",
-        "frazil_performance_baseline"
+        "frazil_performance"
       ]
     }
   ],

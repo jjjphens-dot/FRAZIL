@@ -268,42 +268,30 @@ add_test(
             --input "${CMAKE_CURRENT_SOURCE_DIR}/testdata/input/zero_state_response__impulse.wav"
 )
 
-juce_add_console_app(frazil_performance_baseline
-    PRODUCT_NAME "FRAZIL Performance Baseline"
-    NEEDS_WEB_BROWSER FALSE
-    NEEDS_CURL FALSE
+add_executable(frazil_performance
+    tests/performance/performance_main.cpp
+    src/app/AudioEngine.cpp
+    src/app/AudioEngine.h
+    src/app/EngineParameters.h
+    src/app/ProcessSpec.h
+    src/dsp/DryWetMixer.cpp
+    src/dsp/DryWetMixer.h
+    src/dsp/primitives/LinearSmoother.cpp
+    src/dsp/primitives/LinearSmoother.h
 )
-target_sources(frazil_performance_baseline
+target_compile_features(frazil_performance PRIVATE cxx_std_20)
+target_include_directories(frazil_performance PRIVATE src)
+target_compile_definitions(frazil_performance
     PRIVATE
-    tests/performance/performance_baseline.cpp
-    ${FRAZIL_PLUGIN_SOURCES}
-)
-target_compile_features(frazil_performance_baseline PRIVATE cxx_std_20)
-target_include_directories(frazil_performance_baseline PRIVATE src)
-target_compile_definitions(frazil_performance_baseline
-    PRIVATE
-        JUCE_WEB_BROWSER=0
-        JUCE_USE_CURL=0
-        JUCE_VST3_CAN_REPLACE_VST2=0
         FRAZIL_GIT_COMMIT="${FRAZIL_GIT_COMMIT}"
         FRAZIL_GIT_STATE="${FRAZIL_GIT_STATE}"
         FRAZIL_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
         FRAZIL_COMPILER_FLAGS="${FRAZIL_COMPILER_FLAGS}"
 )
-target_link_libraries(frazil_performance_baseline
-    PRIVATE
-        juce::juce_audio_utils
-        juce::juce_audio_processors
-)
+target_link_libraries(frazil_performance PRIVATE juce::juce_audio_basics)
 if(WIN32)
-    target_link_libraries(frazil_performance_baseline PRIVATE Psapi)
+    target_link_libraries(frazil_performance PRIVATE Psapi)
 endif()
-juce_generate_juce_header(frazil_performance_baseline)
-add_test(
-    NAME frazil_performance_baseline
-    COMMAND frazil_performance_baseline
-            --output "${CMAKE_CURRENT_BINARY_DIR}/performance/perf_base_001.json"
-)
 add_test(
     NAME frazil_render
     COMMAND ${Python3_EXECUTABLE}
@@ -329,14 +317,14 @@ if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
 
     set_property(
         TEST frazil_smoke frazil_unit frazil_plugin_integration frazil_processor_property
-             frazil_latency_contract frazil_performance_baseline frazil_render frazil_render_cli
+             frazil_latency_contract frazil_render frazil_render_cli
         PROPERTY ENVIRONMENT_MODIFICATION
                  "PATH=path_list_prepend:${frazil_msvc_tool_bin_dir}"
     )
     foreach(
         frazil_test_target
         IN ITEMS frazil_smoke frazil_tests frazil_plugin_integration frazil_processor_property
-                   frazil_latency_contract frazil_performance_baseline frazil_render
+                   frazil_latency_contract frazil_render frazil_performance
     )
         if(EXISTS "${frazil_asan_runtime_dll}")
             add_custom_command(
