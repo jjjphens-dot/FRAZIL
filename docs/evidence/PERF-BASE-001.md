@@ -1,19 +1,21 @@
 # PERF-BASE-001 Reference Baseline
 
 - Status: measured baseline; no formal CPU percentage threshold is defined.
-- Tested code commit: `0eec5988dd22cf99c6118e88744e7cb6481b5eca`
-- `configuredCommit` in each report: `0eec5988dd22cf99c6118e88744e7cb6481b5eca`
-- Date: 2026-09-09
+- Tested code commit: `2b931cd6d5bade6630170ab7c0a861a5c68df4ac`
+- `configuredCommit` in each report: `2b931cd6d5bade6630170ab7c0a861a5c68df4ac`
+- `sourceState` in each report: `clean`
+- Date: 2026-09-10
 - Reference machine: Windows 11, Intel Core i9-14900HX, 32 logical CPUs, 16003 MiB RAM.
 - Toolchain: MSVC `_MSC_VER=1943`, JUCE 9.0.1.
 - Workload: 48 kHz, 128 samples, stereo, 256 warmup callbacks, 2000 measured callbacks, deterministic LCG input with fixed seed `0x2468ace1`.
 - Record metadata: each generated report records effective compiler flags, build type, Reference DAW, measurement tool, thread/instance configuration, and statistical method. For this standalone CTest baseline, Reference DAW is `N/A` because no DAW host is involved; CPU utilization counters and denormal-specific stimulus are also `N/A` with that rationale. `sourceState` records whether the configure-time tree was `clean`, `dirty`, or `unknown`; only `clean` after fresh configure is formal clean-tree evidence.
+- Effective compiler flags: Debug `/DWIN32 /D_WINDOWS /EHsc /Ob0 /Od /RTC1`; Release `/DWIN32 /D_WINDOWS /EHsc /O2 /Ob2 /DNDEBUG`; ASAN `/fsanitize=address /Zi /EHsc /Ob0 /Od /RTC1`.
 
 | Preset | Mean ns | P95 ns | P99 ns | Worst ns | Mean deadline utilization | Worst deadline utilization | Measured callback allocations |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Debug | 9214.35 | 10100 | 10800 | 23100 | 0.35% | 0.87% | 0 |
-| Release | 628.00 | 800 | 800 | 8900 | 0.02% | 0.33% | 0 |
-| ASAN | 16763.00 | 23200 | 33100 | 94100 | 0.63% | 3.53% | 0 |
+| Debug | 10579.05 | 16200 | 16600 | 70500 | 0.397% | 2.644% | 0 |
+| Release | 599.30 | 700 | 700 | 1800 | 0.022% | 0.068% | 0 |
+| ASAN | 14582.10 | 17100 | 19100 | 156700 | 0.547% | 5.876% | 0 |
 
 The audio deadline is 2,666,666.667 ns for the selected workload. The ASAN timing is diagnostic rather than a release-performance claim. Reports are generated under the ignored preset build trees at `build/<preset>/performance/perf_base_001.json`. A report is formal baseline evidence only when the corresponding preset was freshly configured before build/test, has `sourceState=clean`, and names the exact `configuredCommit`; a non-fresh configure or dirty/unknown source state must be treated as stale/non-formal.
 

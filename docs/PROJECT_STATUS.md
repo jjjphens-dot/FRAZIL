@@ -132,7 +132,7 @@ non-goals 标记为 NOT RUN。
 
 ## 2.6 M1 engineering follow-up evidence
 
-当前 follow-up implementation commit `903a68a` 的 TEST-002、PERF-BASE-001 和 ARCH-LAT-001 结果见 [`docs/evidence/M1_ENGINEERING_EVIDENCE.md`](evidence/M1_ENGINEERING_EVIDENCE.md) 与 [`docs/evidence/PERF-BASE-001.md`](evidence/PERF-BASE-001.md)。Debug、Release、ASAN 均通过 fresh configure、safe build 和 8/8 CTest；focused mutation verification 也证明 active lifecycle corruption、active valid-but-different output 和 neutral exact-repeatability corruption 能被分别验证；PR #18 implementation head 的 Hosted Windows Debug run `34436676861` 已通过 Configure、Build 和 8/8 Test。该证据只覆盖当前 M1 pass-through/plugin foundation，不提前宣称 Water/Ice/Routing、完整 render、pluginval、真实 DAW 或 M1 Joint Exit 已完成。
+当前 follow-up implementation commit `2b931cd6d5bade6630170ab7c0a861a5c68df4ac` 的 TEST-002、PERF-BASE-001 和 ARCH-LAT-001 结果见 [`docs/evidence/M1_ENGINEERING_EVIDENCE.md`](evidence/M1_ENGINEERING_EVIDENCE.md) 与 [`docs/evidence/PERF-BASE-001.md`](evidence/PERF-BASE-001.md)。Debug、Release、ASAN 均通过 fresh configure、safe build 和 8/8 CTest；三套 PERF-BASE-001 report 均记录相同 `configuredCommit`、`sourceState=clean` 和 0 次 measured-callback `operator new`；focused mutation verification 也证明 active lifecycle corruption、active valid-but-different output 和 neutral exact-repeatability corruption 能被分别验证；PR #18 implementation head `2b931cd6d5bade6630170ab7c0a861a5c68df4ac` 的 Hosted Windows Debug run `34463783379` 已通过 Configure、Build 和 8/8 Test。该证据只覆盖当前 M1 pass-through/plugin foundation，不提前宣称 Water/Ice/Routing、完整 render、pluginval、真实 DAW 或 M1 Joint Exit 已完成。
 
 ## 3. 当前源码映射
 
