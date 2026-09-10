@@ -107,14 +107,15 @@ Serial：
 ```text
 finite input -> finite output
 silence -> no unexplained DC/NaN/Inf
-prepare -> process -> release/reprepare 可恢复
+active/default prepare -> process -> release/reprepare -> process 可恢复
 prepared nominal matrix 内的 zero/short/odd actual callbacks 不越界
 ```
 
 `nominal/prepared block size` 与实际 callback 的 sample count 是两个不同维度；当前 `1024`
 只是 representative nominal upper test value，不是 FRAZIL 已定义的 public maximum support
-limit。需要 byte-exact repeatability 的 lifecycle 或 fresh-processor case 只适用于 ADR-0005
-一致的 M1 neutral/dry fixture，不冻结未来 Water/Ice production randomness。
+limit。active lifecycle 只验证 recovery、finite output 和 valid processing state；需要 byte-exact
+repeatability 的 lifecycle 或 fresh-processor case 只适用于 ADR-0005 一致的 M1 neutral/dry
+fixture，不冻结未来 Water/Ice production randomness。
 
 若算法有合理 tail，测试 tail reporting 与衰减；无 tail 时验证清零/旁路行为。
 
@@ -305,8 +306,9 @@ processor construction 重复完整 Cartesian product。当前 cases 必须覆�
 - default/minimum/maximum/intermediate 参数、四种 enable combination 和三个 routing choice；
 - silence、impulse、固定 seed deterministic noise、extreme but finite input；
 - silence 输出的有限性、DC 与最大幅度约束；
-- prepare/process、prepare/process/release/reprepare/process、repeated prepare、repeated
+- active/default prepare/process/release/reprepare/process recovery、repeated prepare、repeated
   release/prepare、zero-length block；
+- separate M1 neutral/dry prepare/process/release/reprepare/process exact-repeatability case；
 - 一次 nominal prepare 后的 0、1、7、31 和 1024 sample 实际 callback；
 - buffer dimensions、finite output，以及只针对 M1 neutral/deterministic path 的
   fresh-processor repeatability。

@@ -29,6 +29,7 @@ enum class InputCase : std::uint8_t { silence, impulse, deterministicNoise, extr
 enum class LifecycleCase : std::uint8_t {
     prepareAndProcess,
     prepareProcessReprepareProcess,
+    neutralPrepareProcessReprepareProcessExact,
     repeatedPrepare,
     repeatedReleaseThenPrepare,
     zeroLengthThenProcess
@@ -63,6 +64,7 @@ constexpr std::array<ParameterCase, 10> parameterCases{{
 constexpr float kSilenceOutputTolerance = 1.0e-6f;
 constexpr float kParameterValueTolerance = 1.0e-5f;
 constexpr int kRepresentativeNominalBlockUpperBound = 1024;
+constexpr int kDeterministicFixtureChannels = 2;
 constexpr std::array<double, 3> sampleRates{44100.0, 48000.0, 96000.0};
 constexpr std::array<int, 6> representativeNominalBlockSizes{32, 64, 128, 256, 512,
                                                               kRepresentativeNominalBlockUpperBound};
@@ -72,9 +74,12 @@ constexpr std::array<int, 5> shortAndOddCallbackSizes{
 constexpr std::array<InputCase, 4> inputCases{
     InputCase::silence, InputCase::impulse, InputCase::deterministicNoise,
     InputCase::extremeFinite};
-constexpr std::array<LifecycleCase, 5> lifecycleCases{
-    LifecycleCase::prepareAndProcess, LifecycleCase::prepareProcessReprepareProcess,
-    LifecycleCase::repeatedPrepare, LifecycleCase::repeatedReleaseThenPrepare,
+constexpr std::array<LifecycleCase, 6> lifecycleCases{
+    LifecycleCase::prepareAndProcess,
+    LifecycleCase::prepareProcessReprepareProcess,
+    LifecycleCase::neutralPrepareProcessReprepareProcessExact,
+    LifecycleCase::repeatedPrepare,
+    LifecycleCase::repeatedReleaseThenPrepare,
     LifecycleCase::zeroLengthThenProcess};
 
 const char* inputName(InputCase input) noexcept {
@@ -96,7 +101,9 @@ const char* lifecycleName(LifecycleCase lifecycle) noexcept {
     case LifecycleCase::prepareAndProcess:
         return "prepare-process";
     case LifecycleCase::prepareProcessReprepareProcess:
-        return "prepare-process-reprepare-process";
+        return "prepare-process-reprepare-process-active-recovery";
+    case LifecycleCase::neutralPrepareProcessReprepareProcessExact:
+        return "neutral-prepare-process-reprepare-process-exact";
     case LifecycleCase::repeatedPrepare:
         return "repeated-prepare";
     case LifecycleCase::repeatedReleaseThenPrepare:
@@ -264,10 +271,11 @@ void runPropertyCase(TestContext& context,
                      InputCase input,
                      LifecycleCase lifecycle) {
     std::ostringstream caseName;
-    const auto exactRepeatability = lifecycle == LifecycleCase::prepareProcessReprepareProcess;
     caseName << "rate=" << sampleRate << ", block=" << blockSize
              << ", channels=" << channelCount << ", parameters="
-             << (exactRepeatability ? "neutral/dry" : parameterValues.name)
+             << (lifecycle == LifecycleCase::neutralPrepareProcessReprepareProcessExact
+                     ? "neutral/dry"
+                     : parameterValues.name)
              << ", input=" << inputName(input) << ", lifecycle=" << lifecycleName(lifecycle);
     const auto name = caseName.str();
     ++context.cases;
@@ -277,7 +285,8 @@ void runPropertyCase(TestContext& context,
         return;
     if (!applyParameters(context, processor, parameterValues, name))
         return;
-    if (exactRepeatability && !applyNeutralDryFixture(context, processor, name))
+    if (lifecycle == LifecycleCase::neutralPrepareProcessReprepareProcessExact &&
+        !applyNeutralDryFixture(context, processor, name))
         return;
     processor.prepareToPlay(sampleRate, blockSize);
 
@@ -303,11 +312,17 @@ void runPropertyCase(TestContext& context,
     case LifecycleCase::prepareAndProcess:
         processOnce("process");
         break;
-    case LifecycleCase::prepareProcessReprepareProcess: {
-        const auto firstOutput = processOnce("initial process");
+    case LifecycleCase::prepareProcessReprepareProcess:
+        processOnce("active initial process");
         processor.releaseResources();
         processor.prepareToPlay(sampleRate, blockSize);
-        const auto secondOutput = processOnce("reprepared process");
+        processOnce("active recovered process");
+        break;
+    case LifecycleCase::neutralPrepareProcessReprepareProcessExact: {
+        const auto firstOutput = processOnce("neutral initial process");
+        processor.releaseResources();
+        processor.prepareToPlay(sampleRate, blockSize);
+        const auto secondOutput = processOnce("neutral recovered process");
         expect(context, firstOutput == secondOutput,
                name + ": neutral/dry exact output repeats after release and reprepare; "
                        "this is not a production-randomness contract");
@@ -365,7 +380,6 @@ void runShortAndOddCallbackCases(TestContext& context) {
 }
 
 std::vector<float> runDeterministicCase(TestContext& context,
-                                        int channelCount,
                                         int blockSize,
                                         const char* instanceName) {
     FRAZILAudioProcessor processor;
@@ -381,13 +395,14 @@ std::vector<float> runDeterministicCase(TestContext& context,
         return {};
     processor.prepareToPlay(48000.0, blockSize);
 
-    juce::AudioBuffer<float> buffer(channelCount, blockSize);
+    juce::AudioBuffer<float> buffer(kDeterministicFixtureChannels, blockSize);
     fillInput(buffer, InputCase::deterministicNoise);
     juce::MidiBuffer midi;
     processor.processBlock(buffer, midi);
 
-    std::vector<float> result(static_cast<std::size_t>(channelCount * blockSize));
-    for (int channel = 0; channel < channelCount; ++channel)
+    std::vector<float> result(
+        static_cast<std::size_t>(kDeterministicFixtureChannels * blockSize));
+    for (int channel = 0; channel < kDeterministicFixtureChannels; ++channel)
         for (int sample = 0; sample < blockSize; ++sample)
             result[static_cast<std::size_t>(channel * blockSize + sample)] =
                 buffer.getSample(channel, sample);
@@ -395,9 +410,10 @@ std::vector<float> runDeterministicCase(TestContext& context,
 }
 
 void testM1NeutralDeterministicOutput(TestContext& context) {
-    const auto first = runDeterministicCase(context, 2, 128, "first fresh processor");
-    const auto second = runDeterministicCase(context, 2, 128, "second fresh processor");
-    const auto expectedSize = static_cast<std::size_t>(2 * 128);
+    const auto first = runDeterministicCase(context, 128, "first fresh processor");
+    const auto second = runDeterministicCase(context, 128, "second fresh processor");
+    const auto expectedSize =
+        static_cast<std::size_t>(kDeterministicFixtureChannels * 128);
     expect(context, first.size() == expectedSize && second.size() == expectedSize,
            "M1 neutral/deterministic path produced expected fixture output sizes");
     expect(context, first == second,

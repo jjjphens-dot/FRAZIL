@@ -16,11 +16,11 @@
   44.1/48/96 kHz、32/64/128/256/512/1024 的 representative nominal block values、
   mono/stereo runtime matrix，并在 48 kHz/128/stereo canonical 子矩阵覆盖参数极值、
   enable/routing combinations、silence 的 finite/DC/max-magnitude 性质、impulse、
-  deterministic noise、extreme finite input、prepare/process/release/reprepare/process、
-  repeated prepare、repeated release/prepare、zero-length lifecycle、短/奇数实际 callback
-  和仅限 M1 neutral/deterministic path 的 fresh-processor exact-repeatability；生命周期
-  恢复本身只要求 dimensions/finite/normal processing，不冻结 active production output；
-  1024 不是 public maximum-support claim；
+  deterministic noise、extreme finite input、active/default prepare/process/release/reprepare/process
+  recovery、repeated prepare、repeated release/prepare、zero-length lifecycle、短/奇数实际
+  callback，以及独立且仅限 M1 neutral/deterministic path 的 fresh-processor exact-repeatability；
+  active lifecycle 恢复只要求 dimensions/finite/normal processing，不冻结 active production
+  output；1024 不是 public maximum-support claim；
 - `frazil_latency_contract`：ARCH-LAT-001 的 canonical TESTDATA-001 impulse alignment 与
   neutral/dry fixture、`getLatencySamples() == 0` 和当前 M1 skeleton zero-tail regression；
 - `frazil_performance_baseline`：PERF-BASE-001 的 headless 48 kHz/128/stereo processor
