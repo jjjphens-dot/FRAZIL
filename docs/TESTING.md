@@ -101,14 +101,21 @@ Serial：
 
 ### Processor property
 
-对所有支持的 sample rate/block size、参数极值及固定 seed 随机输入：
+对工作项定义的 representative sample-rate / nominal-block matrix、参数极值及固定 seed
+输入：
 
 ```text
 finite input -> finite output
 silence -> no unexplained DC/NaN/Inf
-prepare -> process -> reset -> prepare 可重复
-zero/short/maximum supported block 不越界
+active/default prepare -> process -> release/reprepare -> process 可恢复
+prepared nominal matrix 内的 zero/short/odd actual callbacks 不越界
 ```
+
+`nominal/prepared block size` 与实际 callback 的 sample count 是两个不同维度；当前 `1024`
+只是 representative nominal upper test value，不是 FRAZIL 已定义的 public maximum support
+limit。active lifecycle 只验证 recovery、finite output 和 valid processing state；需要 byte-exact
+repeatability 的 lifecycle 或 fresh-processor case 只适用于 ADR-0005 一致的 M1 neutral/dry
+fixture，不冻结未来 Water/Ice production randomness。
 
 若算法有合理 tail，测试 tail reporting 与衰减；无 tail 时验证清零/旁路行为。
 
@@ -288,12 +295,34 @@ Water/Ice candidate 至少在以下任一情况发生时 reject 或退回 experi
 
 ## 5. 支持矩阵
 
+### 5.1 TEST-002 processor property harness
+
+`frazil_processor_property` 复用真实 `FRAZILAudioProcessor -> ParameterSnapshot ->
+ParameterMapper -> AudioEngine` 路径，不建立第二套 processor 或 DSP。它用数据驱动的
+sample-rate/block-size/channel matrix 覆盖 44.1/48/96 kHz、32/64/128/256/512/1024 samples
+和 mono/stereo；参数、输入和 lifecycle 维度使用 canonical 子矩阵，避免为每个高成本 JUCE
+processor construction 重复完整 Cartesian product。当前 cases 必须覆盖：
+
+- default/minimum/maximum/intermediate 参数、四种 enable combination 和三个 routing choice；
+- silence、impulse、固定 seed deterministic noise、extreme but finite input；
+- silence 输出的有限性、DC 与最大幅度约束；
+- active/default prepare/process/release/reprepare/process recovery、repeated prepare、repeated
+  release/prepare、zero-length block；
+- separate M1 neutral/dry prepare/process/release/reprepare/process exact-repeatability case；
+- 一次 nominal prepare 后的 0、1、7、31 和 1024 sample 实际 callback；
+- buffer dimensions、finite output，以及只针对 M1 neutral/deterministic path 的
+  fresh-processor repeatability。
+
+该 harness 是可供后续 Water/Ice processor 复用的基础；它不代表 Water/Ice、Routing 或真实
+Host/DAW 已完成。
+
 基础自动矩阵：
 
 | 维度 | 值 |
 |---|---|
 | Sample rate | 44.1, 48, 96 kHz |
-| Block size | 32, 64, 128, 256, 512, 1024 |
+| Representative nominal block values | 32, 64, 128, 256, 512, 1024；不是未经定义的 maximum support limit |
+| Actual callback sizes after nominal 1024 prepare | 0, 1, 7, 31, 1024 |
 | Channels | mono, stereo |
 | Build | Debug, Release, MSVC ASAN |
 | Routing | Parallel, Water -> Ice, Ice -> Water |
@@ -334,6 +363,26 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 - CPU、峰值内存/常驻内存；
 - allocation observation/count；
 - denormal 行为。
+
+M1 的 `frazil_performance` 是手动运行的 headless `AudioEngine` benchmark，不加入 CTest
+通过/失败门槛。它固定 48 kHz、128 samples、stereo 和预分配 buffer，分别测量 steady-state
+与 parameter-retarget/smoothing 场景，每个场景 warm up 2000 blocks，再测量 20000 blocks。
+报告必须同时记录 Reference Machine、OS、compiler、effective compiler flags、build type、
+Reference DAW、measurement tool、thread/instance configuration、statistical method、
+mean/P95/P99/worst、2.666 ms callback deadline、mean/worst deadline utilization、进程 CPU
+时间、Windows process working set、measured-callback allocation count、finite-output 结果和
+denormal probe 结果。`configuredCommit` 是 CMake configure 时读取的 Git HEAD，`sourceState`
+明确标记 configure 时的 `clean`、`dirty` 或 `unknown` 状态；只有 fresh configure 且
+`sourceState=clean` 才能标记为 formal baseline，dirty/unknown 必须显式标记为非正式证据。
+measurement buffers/result storage 在 observation 开启前预分配，避免把 harness bookkeeping
+误报成 audio-thread allocation。该 work item 只提供 baseline，不把结果转换成正式 CPU 百分比
+门槛，也不替代 pluginval、DAW 或 listening evidence。
+
+```powershell
+cmake --fresh --preset windows-release
+python tools/build_safe.py --preset windows-release
+.\build\windows-release\frazil_performance.exe
+```
 
 ### Milestone performance scope
 

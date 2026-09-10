@@ -12,6 +12,24 @@
 - `frazil_plugin_integration`：实际 `FRAZILAudioProcessor` 的参数写入到音频路径、连续
   gain automation smoothing、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore，以及全部 routing mode 切换后的 inactive amount/state reopen
   integration cases；
+- `frazil_processor_property`：TEST-002 的数据驱动 processor property harness；完整覆盖
+  44.1/48/96 kHz、32/64/128/256/512/1024 的 representative nominal block values、
+  mono/stereo runtime matrix，并在 48 kHz/128/stereo canonical 子矩阵覆盖参数极值、
+  enable/routing combinations、silence 的 finite/DC/max-magnitude 性质、impulse、
+  deterministic noise、extreme finite input、active/default prepare/process/release/reprepare/process
+  recovery、repeated prepare、repeated release/prepare、zero-length lifecycle、短/奇数实际
+  callback，以及独立且仅限 M1 neutral/deterministic path 的 fresh-processor exact-repeatability；
+  active lifecycle 恢复只要求 dimensions/finite/normal processing，不冻结 active production
+  output；1024 不是 public maximum-support claim；
+- `frazil_latency_contract`：ARCH-LAT-001 的 canonical TESTDATA-001 impulse alignment 与
+  neutral/dry fixture、`getLatencySamples() == 0` 和当前 M1 skeleton zero-tail regression；
+- `frazil_performance`：手动运行的 PERF-BASE-001 headless 48 kHz/128/stereo `AudioEngine`
+  workload，分别测量 steady-state 与 parameter-retarget/smoothing 场景，记录 Reference
+  Machine、OS、compiler/effective flags、build type、Reference DAW、measurement tool、
+  thread/instance configuration、statistical method、mean/P95/P99/worst、callback deadline、
+  process CPU、working set、measured-callback `operator new`、finite output 和 denormal probe；
+  输出以 `configuredCommit` 与 `sourceState` 标记 configure-time provenance；它是手动 benchmark，
+  不作为 CTest 通过/失败门槛，正式 evidence 要求 fresh configure 且 `sourceState=clean`；
 - `frazil_render` + `tools/render_testdata.py`：RENDER-001 的离线 WAV smoke，固定 input/config/seed
   通过当前 AudioEngine 处理，检查 finite output、重复运行字节一致性，并生成完整当前配置、
   input/output metadata 与 SHA-256 manifest；CTest 产物写入 preset build tree 下的 ignored
