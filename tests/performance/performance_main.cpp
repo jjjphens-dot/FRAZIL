@@ -12,16 +12,19 @@
 #include "app/AudioEngine.h"
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
 #include <limits>
 #include <new>
 #include <numeric>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -152,6 +155,11 @@ constexpr int kWarmupBlocks = 2000;
 constexpr int kMeasuredBlocks = 20000;
 constexpr double kReferenceFrequencyHz = 440.0;
 constexpr double kTwoPi = 6.283185307179586476925286766559;
+constexpr double kReferenceAmplitude = 0.25;
+constexpr double kReferenceChannelPhaseRadians = 0.25;
+// Parameter-retarget workload alternates between approximately -6 dB and +6 dB.
+constexpr float kRetargetLowGainLinear = 0.5011872f;
+constexpr float kRetargetHighGainLinear = 1.9952623f;
 
 struct ResourceSnapshot final {
     bool memoryAvailable{};
@@ -193,12 +201,67 @@ std::string configuredCommit() {
 #endif
 }
 
-std::string sourceState() {
+std::string configuredSourceState() {
 #if defined(FRAZIL_GIT_STATE)
     return FRAZIL_GIT_STATE;
 #else
     return "unknown";
 #endif
+}
+
+std::optional<std::string> runGitCommand(std::string_view command) {
+#if defined(_WIN32)
+    constexpr std::string_view nullDevice = "NUL";
+#else
+    constexpr std::string_view nullDevice = "/dev/null";
+#endif
+
+    const auto commandWithRedirect = std::string(command) + " 2>" + std::string(nullDevice);
+#if defined(_WIN32)
+    auto* pipe = _popen(commandWithRedirect.c_str(), "r");
+#else
+    auto* pipe = popen(commandWithRedirect.c_str(), "r");
+#endif
+    if (pipe == nullptr)
+        return std::nullopt;
+
+    std::string output;
+    std::array<char, 128> buffer{};
+    while (std::fgets(buffer.data(), static_cast<int>(buffer.size()), pipe) != nullptr)
+        output += buffer.data();
+
+#if defined(_WIN32)
+    const auto exitCode = _pclose(pipe);
+#else
+    const auto exitCode = pclose(pipe);
+#endif
+    if (exitCode != 0)
+        return std::nullopt;
+
+    while (!output.empty() && (output.back() == '\r' || output.back() == '\n'))
+        output.pop_back();
+    return output;
+}
+
+struct RuntimeProvenance final {
+    std::string commit{"unknown"};
+    std::string sourceState{"unknown"};
+};
+
+RuntimeProvenance captureRuntimeProvenance() {
+    const auto commit = runGitCommand("git rev-parse HEAD");
+    const auto status = runGitCommand("git status --porcelain");
+    if (!commit.has_value() || !status.has_value())
+        return {};
+
+    return {commit.value(), status->empty() ? "clean" : "dirty"};
+}
+
+bool hasFormalProvenance(std::string_view configuredCommitValue,
+                         std::string_view configuredSourceStateValue,
+                         const RuntimeProvenance& runtime) noexcept {
+    return configuredCommitValue != "unknown" && configuredCommitValue == runtime.commit &&
+           configuredSourceStateValue == "clean" && runtime.sourceState == "clean";
 }
 
 std::string buildType() {
@@ -269,24 +332,31 @@ ResourceSnapshot captureResources() noexcept {
     return snapshot;
 }
 
-void fillReferenceBlock(juce::AudioBuffer<float>& buffer) noexcept {
-    for (int channel = 0; channel < buffer.getNumChannels(); ++channel) {
-        auto* samples = buffer.getWritePointer(channel);
-        const auto channelPhase = static_cast<double>(channel) * 0.25;
+class ReferenceOscillator final {
+  public:
+    ReferenceOscillator(double sampleRateHz, double frequencyHz) noexcept
+        : phaseIncrement_(kTwoPi * frequencyHz / sampleRateHz) {}
+
+    void fill(juce::AudioBuffer<float>& buffer) noexcept {
+        auto* const* channelData = buffer.getArrayOfWritePointers();
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
-            const auto time = static_cast<double>(sample) / kReferenceSampleRateHz;
-            samples[sample] = static_cast<float>(
-                0.25 * std::sin(kTwoPi * kReferenceFrequencyHz * time + channelPhase));
+            for (int channel = 0; channel < buffer.getNumChannels(); ++channel) {
+                const auto channelPhase =
+                    static_cast<double>(channel) * kReferenceChannelPhaseRadians;
+                channelData[channel][sample] =
+                    static_cast<float>(kReferenceAmplitude * std::sin(phase_ + channelPhase));
+            }
+
+            phase_ += phaseIncrement_;
+            if (phase_ >= kTwoPi)
+                phase_ -= kTwoPi;
         }
     }
-}
 
-void copyReferenceBlock(const juce::AudioBuffer<float>& source,
-                        juce::AudioBuffer<float>& destination) noexcept {
-    for (int channel = 0; channel < destination.getNumChannels(); ++channel)
-        destination.copyFrom(channel, 0, source.getReadPointer(channel),
-                             destination.getNumSamples());
-}
+  private:
+    double phase_{};
+    double phaseIncrement_{};
+};
 
 bool hasFiniteOutput(const juce::AudioBuffer<float>& buffer) noexcept {
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
@@ -319,9 +389,9 @@ void applyScenarioParameters(EngineParameters& parameters, int block, bool retar
         return;
 
     const auto firstTarget = (block % 2) == 0;
-    parameters.inputGainLinear = firstTarget ? 0.5011872f : 1.9952623f;
+    parameters.inputGainLinear = firstTarget ? kRetargetLowGainLinear : kRetargetHighGainLinear;
     parameters.globalMix = firstTarget ? 0.0f : 1.0f;
-    parameters.outputGainLinear = firstTarget ? 1.9952623f : 0.5011872f;
+    parameters.outputGainLinear = firstTarget ? kRetargetHighGainLinear : kRetargetLowGainLinear;
 }
 
 double percentile(std::vector<double>& samples, double fraction) {
@@ -339,14 +409,13 @@ BenchmarkResult measureScenario(std::string_view name, bool retarget) {
     if (!engine.prepare(spec))
         return BenchmarkResult{name};
 
-    juce::AudioBuffer<float> source(kReferenceChannels, kReferenceBlockSizeSamples);
     juce::AudioBuffer<float> work(kReferenceChannels, kReferenceBlockSizeSamples);
-    fillReferenceBlock(source);
+    ReferenceOscillator reference(kReferenceSampleRateHz, kReferenceFrequencyHz);
 
     EngineParameters parameters{};
     for (int block = 0; block < kWarmupBlocks; ++block) {
         applyScenarioParameters(parameters, block, retarget);
-        copyReferenceBlock(source, work);
+        reference.fill(work);
         engine.process(work, parameters);
     }
 
@@ -360,7 +429,7 @@ BenchmarkResult measureScenario(std::string_view name, bool retarget) {
 
     for (int block = 0; block < kMeasuredBlocks; ++block) {
         applyScenarioParameters(parameters, block, retarget);
-        copyReferenceBlock(source, work);
+        reference.fill(work);
         const auto callbackStart = std::chrono::steady_clock::now();
         engine.process(work, parameters);
         const auto callbackEnd = std::chrono::steady_clock::now();
@@ -467,9 +536,18 @@ void printResult(const BenchmarkResult& result) {
 } // namespace
 
 int main() {
+    const auto configuredCommitValue = configuredCommit();
+    const auto configuredSourceStateValue = configuredSourceState();
+    const auto runtimeProvenance = captureRuntimeProvenance();
+    const auto formalProvenance =
+        hasFormalProvenance(configuredCommitValue, configuredSourceStateValue, runtimeProvenance);
+
     std::cout << std::fixed << std::setprecision(3) << "FRAZIL PERF-BASE-001\n"
-              << "configured_commit=" << configuredCommit() << '\n'
-              << "source_state=" << sourceState() << '\n'
+              << "configured_commit=" << configuredCommitValue << '\n'
+              << "configured_source_state=" << configuredSourceStateValue << '\n'
+              << "runtime_commit=" << runtimeProvenance.commit << '\n'
+              << "runtime_source_state=" << runtimeProvenance.sourceState << '\n'
+              << "formal_provenance_status=" << (formalProvenance ? "PASS" : "NOT RUN") << '\n'
               << "build_type=" << buildType() << '\n'
               << "compiler=" << compilerDescription() << '\n'
               << "compiler_flags=" << compilerFlags() << '\n'
@@ -488,14 +566,13 @@ int main() {
 
     printResult(steadyState);
     printResult(parameterRetarget);
-    std::cout << "denormal_behavior=input_subnormal_samples=" << denormal.inputSubnormalSamples
-              << ";output_subnormal_samples=" << denormal.outputSubnormalSamples
-              << ";output_nonfinite_samples=" << denormal.outputNonFiniteSamples << '\n'
-              << "denormal_probe_status="
+    std::cout << "input_subnormal_samples=" << denormal.inputSubnormalSamples << '\n'
+              << "output_subnormal_samples=" << denormal.outputSubnormalSamples << '\n'
+              << "output_nonfinite_samples=" << denormal.outputNonFiniteSamples << '\n'
+              << "denormal_probe_status=" << (denormal.prepared ? "OBSERVED" : "NOT RUN") << '\n'
+              << "denormal_finite_output_status="
               << (denormal.prepared && denormal.outputNonFiniteSamples == 0 ? "PASS" : "FAIL")
-              << '\n'
-              << "formal_provenance_status=" << (sourceState() == "clean" ? "PASS" : "NOT RUN")
-              << " (fresh configure with source_state=clean required)\n";
+              << '\n';
 
     return steadyState.finiteOutput && parameterRetarget.finiteOutput && denormal.prepared &&
                    denormal.outputNonFiniteSamples == 0

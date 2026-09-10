@@ -24,7 +24,8 @@ block size: 128 samples
 channels: 2
 warm-up: 2000 blocks per scenario
 measurement window: 20000 blocks per scenario
-input: deterministic 440 Hz stereo reference block, generated in the benchmark
+input: deterministic 440 Hz stereo reference oscillator with continuous phase across blocks,
+  generated in the benchmark; the oscillator state is continuous across warm-up and measurement
 Reference DAW: N/A; headless AudioEngine benchmark
 measurement tool: std::chrono::steady_clock around AudioEngine::process
 thread configuration: one benchmark process thread
@@ -54,6 +55,12 @@ coarser than these short windows; it is retained as an observation and is not a 
 Working-set observations were 3.938 MiB before and 4.094 MiB after/peak for steady-state, and
 4.094 MiB before and 4.094 MiB after/peak for parameter-retarget.
 
+`configured_commit` and `configured_source_state` are captured by CMake at configure time.
+`runtime_commit` and `runtime_source_state` are read by the executable before formal measurement.
+`formal_provenance_status=PASS` requires matching commits and `clean` for both source states;
+dirty, unknown, or mismatched provenance is `NOT RUN` and does not force the benchmark process to
+fail.
+
 ## Denormal and finite-output observation
 
 The benchmark runs a separate prepared `AudioEngine` probe with 256 subnormal input samples
@@ -63,12 +70,15 @@ The benchmark runs a separate prepared `AudioEngine` probe with 256 subnormal in
 input_subnormal_samples: 256
 output_subnormal_samples: 256
 output_nonfinite_samples: 0
-denormal_probe_status: PASS
+denormal_probe_status: OBSERVED
+denormal_finite_output_status: PASS
 ```
 
-The probe records observed handling; it does not claim a platform-independent flush-to-zero mode.
+The probe records observed handling; `denormal_finite_output_status=PASS` means only that the
+processed output remained finite. It does not claim a platform-independent flush-to-zero mode.
 Both benchmark scenarios also reported finite output, and the measured callback allocation
-observer recorded zero `operator new` calls.
+observer recorded zero `operator new` calls for the selected `AudioEngine::process` workload; it
+is not complete `FRAZILAudioProcessor::processBlock` allocation-free evidence.
 
 ## Validation boundary
 
@@ -76,5 +86,6 @@ observer recorded zero `operator new` calls.
 - ASAN fresh configure, safe build and CTest: **7/7 PASS**.
 - This evidence does not claim pluginval, real DAW, listening, offline render coverage beyond the
   existing RENDER-001 smoke, or a formal M1 Joint Exit.
-- Dirty or unknown `source_state` is visibly reported by the executable and is not formal baseline
-  evidence; only this clean fresh-configure run is recorded above.
+- Dirty or unknown `configured_source_state`/`runtime_source_state`, a runtime commit mismatch, or
+  unavailable Git is visibly reported by the executable and is not formal baseline evidence; only
+  a clean fresh-configure run with `formal_provenance_status=PASS` is recorded above.

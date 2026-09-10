@@ -365,15 +365,23 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 - denormal 行为。
 
 M1 的 `frazil_performance` 是手动运行的 headless `AudioEngine` benchmark，不加入 CTest
-通过/失败门槛。它固定 48 kHz、128 samples、stereo 和预分配 buffer，分别测量 steady-state
-与 parameter-retarget/smoothing 场景，每个场景 warm up 2000 blocks，再测量 20000 blocks。
+通过/失败门槛。它固定 48 kHz、128 samples、stereo 和预分配 buffer，使用跨 block 保持 phase
+的 deterministic 440 Hz reference oscillator，分别测量 steady-state 与
+parameter-retarget/smoothing 场景；同一个 oscillator state 连续贯穿 warm-up 和 measured
+section，每个场景 warm up 2000 blocks，再测量 20000 blocks。
 报告必须同时记录 Reference Machine、OS、compiler、effective compiler flags、build type、
 Reference DAW、measurement tool、thread/instance configuration、statistical method、
 mean/P95/P99/worst、2.666 ms callback deadline、mean/worst deadline utilization、进程 CPU
-时间、Windows process working set、measured-callback allocation count、finite-output 结果和
-denormal probe 结果。`configuredCommit` 是 CMake configure 时读取的 Git HEAD，`sourceState`
-明确标记 configure 时的 `clean`、`dirty` 或 `unknown` 状态；只有 fresh configure 且
-`sourceState=clean` 才能标记为 formal baseline，dirty/unknown 必须显式标记为非正式证据。
+时间、Windows process working set、selected `AudioEngine::process` workload 的 measured-callback
+allocation count、finite-output 结果和 denormal probe 结果。输出字段
+`configured_commit`/`configured_source_state` 是 CMake configure 时读取的 Git provenance，
+`runtime_commit`/`runtime_source_state` 是 benchmark 启动、正式 measurement 前读取的 Git
+provenance；只有两次 commit 相同、两次 source state 都是 `clean` 时，
+`formal_provenance_status=PASS`。dirty、unknown 或 commit mismatch 必须显式标记为
+`NOT RUN`，但不使 benchmark 因 provenance mismatch 强制失败。allocation observation 只覆盖
+该 `AudioEngine::process` workload，不是完整 `FRAZILAudioProcessor::processBlock` callback
+allocation-free evidence。denormal 输出使用 `denormal_probe_status=OBSERVED` 和
+`denormal_finite_output_status=PASS/FAIL`；后者只表示输出 finite，不表示 FTZ/DAZ 已验证。
 measurement buffers/result storage 在 observation 开启前预分配，避免把 harness bookkeeping
 误报成 audio-thread allocation。该 work item 只提供 baseline，不把结果转换成正式 CPU 百分比
 门槛，也不替代 pluginval、DAW 或 listening evidence。
