@@ -1,16 +1,16 @@
 # M1 Engineering Evidence
 
-- Tested code commit: `315bcb84a7478423cda290de8609d08f50961c1a`
+- Tested code commit: `903a68a8548ab21df6a182f5ba7d48d1625197eb`
 - Scope: TEST-002, PERF-BASE-001, ARCH-LAT-001, and bounded documentation/build wiring.
 - Status: engineering evidence established; M1 Joint Exit is not claimed.
 
 ## Results
 
-- `TEST-002`: `frazil_processor_property` passed 70 representative cases. The harness covers representative nominal values 32/64/128/256/512/1024 (not a public maximum), the full 44.1/48/96 kHz and mono/stereo matrix, actual callback sizes 0/1/7/31/1024 after nominal 1024 prepare, parameter extremes/routing/enable states, silence finite/DC/max-magnitude checks, impulse/noise/extreme finite input, lifecycle recovery checks, finite-output checks, and exact repeatability only in the explicit ADR-0005 M1 neutral/dry fixture. Active lifecycle cases do not establish a future Water/Ice production-randomness contract.
+- `TEST-002`: `frazil_processor_property` passed 71 representative cases. The harness covers representative nominal values 32/64/128/256/512/1024 (not a public maximum), the full 44.1/48/96 kHz and mono/stereo matrix, actual callback sizes 0/1/7/31/1024 after nominal 1024 prepare, parameter extremes/routing/enable states, silence finite/DC/max-magnitude checks, impulse/noise/extreme finite input, active/default lifecycle recovery checks, finite-output checks, and exact repeatability only in the separate ADR-0005 M1 neutral/dry fixture. Active lifecycle output is not required to be byte/float identical across reprepare and does not establish a future Water/Ice production-randomness contract.
 - `PERF-BASE-001`: Debug, Release, and ASAN reports passed with zero observed `operator new` calls during measured callbacks. The report field is `configuredCommit`, meaning Git HEAD captured during CMake configure; formal evidence requires fresh configure. The measured values and method are recorded in [PERF-BASE-001.md](PERF-BASE-001.md).
 - `ARCH-LAT-001`: the real `FRAZILAudioProcessor` reported 0 samples latency in the neutral/dry fixture (`input.gain=0 dB`, `output.gain=0 dB`, `global.mix=0`); the canonical impulse peak remained at sample 12000 with maximum dry error 0. The zero-tail assertion is explicitly current M1 skeleton evidence, not a permanent Water/Ice tail contract.
 - Debug, Release, and ASAN each passed all 8 CTest entries: smoke, unit, plugin integration, processor property, latency contract, performance baseline, render, and render CLI.
-- Hosted CI: PR #18 implementation head `315bcb84a7478423cda290de8609d08f50961c1a`, Windows Debug / CMake / CTest run `34384956584` completed `SUCCESS`; configure, build, and the remote CTest suite passed 8/8. This is hosted Debug evidence only and does not imply hosted Release/ASAN, pluginval, DAW, or listening evidence.
+- Hosted CI: PR #18 implementation head `903a68a8548ab21df6a182f5ba7d48d1625197eb`, Windows Debug / CMake / CTest run `34436676861` completed `SUCCESS`; configure, build, and the remote CTest suite passed 8/8. This is hosted Debug evidence only and does not imply hosted Release/ASAN, pluginval, DAW, or listening evidence.
 - Portability, Markdown-link, and VS Code task scanners plus their regression tests passed.
 
 ## Review boundary
