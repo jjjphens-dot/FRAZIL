@@ -27,7 +27,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout FRAZILAudioProcessor::create
 }
 
 void FRAZILAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
-    audioEngine_.prepare(ProcessSpec{sampleRate, samplesPerBlock, getTotalNumOutputChannels()});
+    const auto prepared =
+        audioEngine_.prepare(ProcessSpec{sampleRate, samplesPerBlock, getTotalNumOutputChannels()});
+    jassert(prepared);
 }
 
 void FRAZILAudioProcessor::releaseResources() {

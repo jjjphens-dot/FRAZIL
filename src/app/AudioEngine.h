@@ -8,8 +8,16 @@
 
 class AudioEngine {
   public:
+    // Prepare allocates all callback storage for the supplied sample rate, maximum block size,
+    // and channel count. It must complete before process() is called; false leaves the engine
+    // unprepared.
     bool prepare(const ProcessSpec&) noexcept;
+
+    // Reset clears callback state and returns parameter smoothers to their neutral values.
     void reset() noexcept;
+
+    // Process is realtime-safe after prepare(): it performs no I/O, locking, or allocation. The
+    // caller supplies finite, mapped EngineParameters and a buffer within the prepared bounds.
     void process(juce::AudioBuffer<float>& buffer, const EngineParameters&) noexcept;
 
   private:
