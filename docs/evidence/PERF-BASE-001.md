@@ -88,12 +88,13 @@ is not complete `FRAZILAudioProcessor::processBlock` allocation-free evidence.
 
 - Release fresh configure, safe build and CTest: **7/7 PASS**. The manual benchmark is separate.
 - ASAN fresh configure, safe build and CTest: **7/7 PASS**.
-- Provenance regression cases: clean matching configure/runtime Git reported `PASS`; a tracked
-  source mutation after configure reported `runtime_source_state=dirty` and `NOT RUN`; execution
-  from a different clean Git repository reported a runtime commit mismatch and `NOT RUN`; and
-  execution with Git unavailable reported `runtime_commit=unknown`,
-  `runtime_source_state=unknown`, and `NOT RUN`. In each negative case the benchmark itself still
-  returned exit code 0 with finite output.
+- Provenance regression cases: Case A clean matching configure/runtime Git reported `PASS`; Case B
+  a tracked source mutation after configure reported `runtime_source_state=dirty` and `NOT RUN`;
+  Case C a configure/runtime commit mismatch reported `NOT RUN`; Case D execution with Git
+  unavailable reported `runtime_commit=unknown`, `runtime_source_state=unknown`, and `NOT RUN`;
+  and Case E execution from a clean Repo B CWD while the configured Repo A was dirty still reported
+  Repo A's `runtime_source_state=dirty` and `NOT RUN`. In each negative case the benchmark itself
+  still returned exit code 0 with finite output.
 - This evidence does not claim pluginval, real DAW, listening, offline render coverage beyond the
   existing RENDER-001 smoke, or a formal M1 Joint Exit.
 - Dirty or unknown `configured_source_state`/`runtime_source_state`, a runtime commit mismatch, or
