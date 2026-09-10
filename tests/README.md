@@ -47,5 +47,5 @@
   correlation 和 STFT/spectrogram experiment analysis；analyzer 不是 TESTDATA-001 semantic
   exit blocker；
 
-后续按 `docs/TESTING.md` 增加 DSP property、完整 render regression 和真实 Host/DAW acceptance；
+现有 `frazil_processor_property` 已提供 processor-level property harness；后续按 `docs/TESTING.md` 增加 Water/Ice module-level DSP property、完整 render regression 和真实 Host/DAW acceptance。processor-level property coverage 不等同于 Water/Ice production DSP property coverage；
 测试 target 不依赖运行中的插件 editor。

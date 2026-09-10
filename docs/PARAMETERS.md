@@ -32,15 +32,23 @@ M1 是 `core contract stabilization`：建立静态参数注册、Snapshot、map
 
 ## 2. 已知 pre-v1 差异
 
-M0 基线曾注册 `water.enable` 与 `ice.enable`；已合入 `main` 的 M1 `ParameterLayout` 已完成一次性迁移，当前生产代码采用合同 ID `water.enabled` 与 `ice.enabled`。公开版本前仍需补齐 state compatibility/migration 证据。
+M0 基线曾注册 `water.enable` 与 `ice.enable`；已合入 `main` 的 M1 `ParameterLayout` 已完成一次性迁移，当前生产代码采用合同 ID `water.enabled` 与 `ice.enabled`。
 
-处理顺序：
+已完成的 pre-v1 migration work：
 
-1. 在任何公开 release/preset/session 之前完成一次性更名；
-2. 将参数定义从 `PluginProcessor.cpp` 移至 `src/plugin/ParameterLayout.*`；
-3. 添加精确 ID、顺序、类型、范围和默认值枚举测试；
-4. 添加 state round-trip 测试；
-5. 若确认已有外部 session 使用旧 ID，再通过 ADR 决定兼容读取，禁止默默丢值。
+- ParameterLayout extraction 已完成；
+- canonical `.enabled` IDs 已实现；
+- exact parameter contract regression 已建立；
+- state round-trip 已建立；
+- known legacy-ID migration fixture 已建立。
+
+剩余 compatibility work：
+
+- public Host compatibility freeze evidence；
+- real DAW/session compatibility where applicable；
+- `PARAM-FREEZE-001`。
+
+公开 Host compatibility freeze 尚未完成；在公开版本前不得把当前 M1 contract draft 写成永久的 v1 preset/session compatibility 承诺。
 
 ## 3. 信号和参数语义
 

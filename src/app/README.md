@@ -6,7 +6,7 @@
 
 ## Responsibilities
 
-- `AudioEngine` 的 prepare/reset/process 生命周期和未来的 gain/routing/global mix 编排；
+- `AudioEngine` 的 prepare/reset/process 生命周期、当前 gain/global-mix 编排和未来的 routing 编排；
 - `ParameterSnapshot`、`ParameterMapper`、`StateModel` 和 `EditHistoryManager` 的应用层边界；
 - 为 plugin 层提供小而明确的接口，为 dsp 层提供不依赖 APVTS/Host 的 engine 参数；为 UI 提供狭窄的 message-thread edit/history command boundary。
 

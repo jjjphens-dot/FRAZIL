@@ -2,7 +2,7 @@
 
 FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器，首要格式为 VST3，并保留 Standalone 作为开发与测试宿主。
 
-当前处于 M1 早期：Windows + JUCE 9.0.1 构建链路、静态参数合同、Snapshot/Mapper 和基础 gain/mix skeleton 已接入，wet path 仍为 pass-through，Water / Ice / Routing 生产 DSP 尚未实现。详细事实基线见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)，实施顺序见 [`docs/CODING_PLAN.md`](docs/CODING_PLAN.md)。
+当前处于 M1 foundation / engineering-evidence stage：Windows + JUCE 9.0.1 构建链路、parameter/state foundation、TESTDATA-001、RENDER-001、TEST-002、ARCH-LAT-001 和 PERF-BASE-001 已建立；wet path 仍为 pass-through，Water / Ice / Routing 生产 DSP 尚未实现，M1 remains incomplete。详细事实基线见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)，实施顺序见 [`docs/CODING_PLAN.md`](docs/CODING_PLAN.md)。
 
 ## 产品合同摘要
 
