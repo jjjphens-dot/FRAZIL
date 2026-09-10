@@ -41,8 +41,8 @@
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration verified；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
 | UI | 640x360 M0 占位界面 | 非产品 UI |
 | Product identity | `docs/PRODUCT_IDENTITY.md` | FRAZIL adopted working/product name；命名词汇不改变参数合同；法律/商标 clearance 不属于当前工程范围 |
-| Tests | `frazil_smoke` + `frazil_unit` + `frazil_plugin_integration` + `frazil_processor_property` + `frazil_latency_contract` + `frazil_performance_baseline` + `frazil_render` + `frazil_render_cli` CTest | Debug/Release/ASAN 各 8/8 PASS；TEST-002、PERF-BASE-001、ARCH-LAT-001 当前 branch evidence 已记录；真实 DAW 测试未完成 |
-| Local validation | PR #18 follow-up 的 Debug、Release、ASAN fresh configure、6-job safe build 和 CTest 结果见 2.6，并按该节记录 exact tested implementation commit；当前 branch HEAD 与最新 CI 以 GitHub live query 为准 | 已验证；本机绝对路径仅在 ignored local configuration/build output，仓库 preset 保持可移植 |
+| Tests | `frazil_smoke` + `frazil_unit` + `frazil_plugin_integration` + `frazil_processor_property` + `frazil_latency_contract` + `frazil_render` + `frazil_render_cli` CTest；`frazil_performance` manual benchmark | Release/ASAN 各 7/7 PASS；canonical PERF-BASE-001 的 steady-state、parameter-retarget、CPU/memory/allocation、finite-output 和 denormal evidence 已记录；真实 DAW 测试未完成 |
+| Local validation | PR #18 follow-up 的 Release、ASAN fresh configure、6-job safe build、7/7 CTest 和 Release manual benchmark 结果见 2.6，并按该节记录 exact tested implementation commit；当前 branch HEAD 与最新 CI 以 GitHub live query 为准 | 已验证；本机绝对路径仅在 ignored local configuration/build output，仓库 preset 保持可移植 |
 | pluginval | 当前机器缺少 `tools/bin/pluginval.exe`，current-artifact validation `NOT RUN`；历史 Debug artifact pluginval 记录保留为历史 evidence | 当前变更未验证（不等于独立 VST3 validator） |
 | Remote | `jjjphens-dot/FRAZIL` public repository；`main` 和审查分支的当前 SHA、mergeability 与 CI 状态以 GitHub live query 为准；`9955cdb` 仅为历史 safety follow-up baseline，不是当前审查分支 head；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main；TESTDATA-001 rationale 记录见 Issue #15 | GitHub live state；Milestones/Projects metadata 未建立 |
 
@@ -132,7 +132,7 @@ non-goals 标记为 NOT RUN。
 
 ## 2.6 M1 engineering follow-up evidence
 
-当前 follow-up implementation commit `2b931cd6d5bade6630170ab7c0a861a5c68df4ac` 的 TEST-002、PERF-BASE-001 和 ARCH-LAT-001 结果见 [`docs/evidence/M1_ENGINEERING_EVIDENCE.md`](evidence/M1_ENGINEERING_EVIDENCE.md) 与 [`docs/evidence/PERF-BASE-001.md`](evidence/PERF-BASE-001.md)。Debug、Release、ASAN 均通过 fresh configure、safe build 和 8/8 CTest；三套 PERF-BASE-001 report 均记录相同 `configuredCommit`、`sourceState=clean` 和 0 次 measured-callback `operator new`；focused mutation verification 也证明 active lifecycle corruption、active valid-but-different output 和 neutral exact-repeatability corruption 能被分别验证；PR #18 implementation head `2b931cd6d5bade6630170ab7c0a861a5c68df4ac` 的 Hosted Windows Debug run `34463783379` 已通过 Configure、Build 和 8/8 Test。该证据只覆盖当前 M1 pass-through/plugin foundation，不提前宣称 Water/Ice/Routing、完整 render、pluginval、真实 DAW 或 M1 Joint Exit 已完成。
+当前 follow-up implementation commit `e56664c8775f614e77004ac891d63a5c2fd2fa7a` 的 TEST-002、PERF-BASE-001 和 ARCH-LAT-001 结果见 [`docs/evidence/M1_ENGINEERING_EVIDENCE.md`](evidence/M1_ENGINEERING_EVIDENCE.md) 与 [`docs/evidence/PERF-BASE-001.md`](evidence/PERF-BASE-001.md)。Release、ASAN 均通过 fresh configure、safe build 和 7/7 CTest；canonical `frazil_performance` manual Release benchmark 的 `configuredCommit` 与 implementation commit 一致、`sourceState=clean`，并记录 steady-state/parameter-retarget、CPU、memory、allocation、finite-output 和 denormal observations；focused mutation verification 也证明 active lifecycle corruption、active valid-but-different output 和 neutral exact-repeatability corruption 能被分别验证。Hosted CI、pluginval、真实 DAW、listening 和 M1 Joint Exit 不在本地证据范围内，需以 GitHub/live validation 和后续 acceptance 为准。
 
 ## 3. 当前源码映射
 
@@ -182,7 +182,7 @@ PluginProcessor
 - 正向事实：`src/plugin`、`src/app`、`src/dsp`、`src/ui` 目录边界已经存在；当前未发现 mutable global runtime state；AudioEngine 的运行状态由实例成员持有；`JuceHeader.h` 目前局限在插件适配层。
 - 已确认技术债：`PluginProcessor` 仍公开 APVTS，后续需要收窄 Host parameter interface；完整 Host/DAW state compatibility 与 history integration 尚未完成；wet path 仍为 pass-through，Water/Ice/Routing 尚未实现。
 - 有意保留的未实现项：Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、正式 UI 和离散 transition 均仍按 Coding Plan 处于计划阶段；当前 RENDER-001 只覆盖 M1 pass-through offline smoke；本次状态工作不提前创建声音算法或 history 生产依赖。
-- 当前验证边界：CTest 已提供当前列出的 unit/lifecycle/invariant、processor property、latency、performance 和 render smoke 证据，但不能据此宣称完整 realtime safety、真实 DAW、完整 render/listening 或公开兼容性已完成。
+- 当前验证边界：CTest 已提供当前列出的 unit/lifecycle/invariant、processor property、latency 和 render smoke 证据；PERF-BASE-001 是独立 manual benchmark，不是 CTest gate。以上不能据此宣称完整 realtime safety、真实 DAW、完整 render/listening 或公开兼容性已完成。
 
 ## 4. 参数差异审计
 
