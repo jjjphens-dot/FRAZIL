@@ -2,6 +2,10 @@
 
 当前测试 target：
 
+`frazil_tests` 的 unit harness 由 `tests/unit/test_main.cpp` dispatcher、共享的
+`tests/unit/test_support.h`、参数/state cases、DSP primitive cases 和 AudioEngine cases
+组成；各模块共享显式 `TestContext`，但继续链接为同一个 test executable。
+
 - `frazil_smoke`：CTest wiring smoke；
 - `frazil_tests`：ProcessSpec、ParameterLayout 精确类型/名称/单位/choice 合同、
   ParameterSnapshot、ParameterMapper、DryWetMixer、LinearSmoother repeated-target/retarget

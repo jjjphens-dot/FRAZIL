@@ -174,6 +174,10 @@ target_link_libraries(frazil_render
 
 add_executable(frazil_tests
     tests/unit/test_main.cpp
+    tests/unit/test_support.h
+    tests/unit/parameter_state_tests.cpp
+    tests/unit/dsp_tests.cpp
+    tests/unit/audio_engine_tests.cpp
     ${FRAZIL_ENGINE_SOURCES}
     ${FRAZIL_PLUGIN_ADAPTER_SOURCES}
 )
