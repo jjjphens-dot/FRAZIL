@@ -3,12 +3,6 @@
 #include <cmath>
 
 namespace {
-constexpr int kRoutingModeCount = 3;
-constexpr float kAmountMinimum = 0.0f;
-constexpr float kAmountMaximum = 1.0f;
-constexpr float kGainMinimumDb = -24.0f;
-constexpr float kGainMaximumDb = 24.0f;
-
 bool hasAnyParameter(const StateModel::SerializedState& state) noexcept {
     return state.waterEnabled.has_value() || state.iceEnabled.has_value() ||
            state.routingMode.has_value() || state.parallelBalance.has_value() ||
@@ -76,23 +70,35 @@ StateModel::DeserializeResult StateModel::deserialize(const SerializedState& sta
         usedFallback = true;
 
     if (state.routingMode.has_value() && *state.routingMode >= 0 &&
-        *state.routingMode < kRoutingModeCount)
+        *state.routingMode < frazil::parameter_contract::kRoutingModeCount)
         result.values.routing = static_cast<RoutingMode>(*state.routingMode);
     else
         usedFallback = true;
 
-    usedFallback |= !assignFiniteInRange(state.parallelBalance, kAmountMinimum, kAmountMaximum,
+    usedFallback |= !assignFiniteInRange(state.parallelBalance,
+                                         frazil::parameter_contract::kAmountRange.minimum,
+                                         frazil::parameter_contract::kAmountRange.maximum,
                                          defaults.parallelBalance, result.values.parallelBalance);
-    usedFallback |= !assignFiniteInRange(state.waterAmount, kAmountMinimum, kAmountMaximum,
-                                         defaults.waterAmount, result.values.waterAmount);
-    usedFallback |= !assignFiniteInRange(state.iceAmount, kAmountMinimum, kAmountMaximum,
-                                         defaults.iceAmount, result.values.iceAmount);
-    usedFallback |= !assignFiniteInRange(state.inputGainDb, kGainMinimumDb, kGainMaximumDb,
-                                         defaults.inputGainDb, result.values.inputGainDb);
-    usedFallback |= !assignFiniteInRange(state.globalMix, kAmountMinimum, kAmountMaximum,
-                                         defaults.globalMix, result.values.globalMix);
-    usedFallback |= !assignFiniteInRange(state.outputGainDb, kGainMinimumDb, kGainMaximumDb,
-                                         defaults.outputGainDb, result.values.outputGainDb);
+    usedFallback |=
+        !assignFiniteInRange(state.waterAmount, frazil::parameter_contract::kAmountRange.minimum,
+                             frazil::parameter_contract::kAmountRange.maximum, defaults.waterAmount,
+                             result.values.waterAmount);
+    usedFallback |=
+        !assignFiniteInRange(state.iceAmount, frazil::parameter_contract::kAmountRange.minimum,
+                             frazil::parameter_contract::kAmountRange.maximum, defaults.iceAmount,
+                             result.values.iceAmount);
+    usedFallback |=
+        !assignFiniteInRange(state.inputGainDb, frazil::parameter_contract::kGainDbRange.minimum,
+                             frazil::parameter_contract::kGainDbRange.maximum, defaults.inputGainDb,
+                             result.values.inputGainDb);
+    usedFallback |=
+        !assignFiniteInRange(state.globalMix, frazil::parameter_contract::kAmountRange.minimum,
+                             frazil::parameter_contract::kAmountRange.maximum, defaults.globalMix,
+                             result.values.globalMix);
+    usedFallback |=
+        !assignFiniteInRange(state.outputGainDb, frazil::parameter_contract::kGainDbRange.minimum,
+                             frazil::parameter_contract::kGainDbRange.maximum,
+                             defaults.outputGainDb, result.values.outputGainDb);
 
     if (usedFallback)
         result.status = DeserializeStatus::fallback;

@@ -13,15 +13,16 @@ class StateModel final {
     static constexpr std::uint32_t kCurrentSchemaVersion = 1;
 
     struct Values final {
-        bool waterEnabled{true};
-        bool iceEnabled{true};
-        RoutingMode routing{RoutingMode::parallel};
-        float parallelBalance{0.5f};
-        float waterAmount{1.0f};
-        float iceAmount{1.0f};
-        float inputGainDb{};
-        float globalMix{1.0f};
-        float outputGainDb{};
+        bool waterEnabled{frazil::parameter_contract::kDefaultWaterEnabled};
+        bool iceEnabled{frazil::parameter_contract::kDefaultIceEnabled};
+        RoutingMode routing{
+            static_cast<RoutingMode>(frazil::parameter_contract::kDefaultRoutingModeIndex)};
+        float parallelBalance{frazil::parameter_contract::kDefaultParallelBalance};
+        float waterAmount{frazil::parameter_contract::kDefaultWaterAmount};
+        float iceAmount{frazil::parameter_contract::kDefaultIceAmount};
+        float inputGainDb{frazil::parameter_contract::kDefaultInputGainDb};
+        float globalMix{frazil::parameter_contract::kDefaultGlobalMix};
+        float outputGainDb{frazil::parameter_contract::kDefaultOutputGainDb};
     };
 
     // A parsed, transport-neutral envelope. The optional fields let the plugin adapter represent

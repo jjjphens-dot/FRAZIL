@@ -3,14 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace {
-constexpr float kAmountMinimum = 0.0f;
-constexpr float kAmountMaximum = 1.0f;
-constexpr float kGainMinimumDb = -24.0f;
-constexpr float kGainMaximumDb = 24.0f;
-constexpr float kDefaultGainDb = 0.0f;
-constexpr int kRoutingModeCount = 3;
-} // namespace
+namespace parameter_contract = frazil::parameter_contract;
 
 float ParameterMapper::clampFinite(float value, float minimum, float maximum,
                                    float fallback) noexcept {
@@ -30,19 +23,26 @@ EngineParameters ParameterMapper::map(const ParameterSnapshot& snapshot) const n
     parameters.iceEnabled = snapshot.iceEnabled;
 
     const auto routingIndex = snapshot.routingModeIndex;
-    if (routingIndex >= 0 && routingIndex < kRoutingModeCount)
+    if (routingIndex >= 0 && routingIndex < parameter_contract::kRoutingModeCount)
         parameters.routing = static_cast<RoutingMode>(routingIndex);
 
-    parameters.parallelBalance =
-        clampFinite(snapshot.parallelBalance, kAmountMinimum, kAmountMaximum, 0.5f);
-    parameters.waterStageAmount =
-        clampFinite(snapshot.waterAmount, kAmountMinimum, kAmountMaximum, 1.0f);
-    parameters.iceStageAmount =
-        clampFinite(snapshot.iceAmount, kAmountMinimum, kAmountMaximum, 1.0f);
-    parameters.inputGainLinear = decibelsToLinear(
-        clampFinite(snapshot.inputGainDb, kGainMinimumDb, kGainMaximumDb, kDefaultGainDb));
-    parameters.globalMix = clampFinite(snapshot.globalMix, kAmountMinimum, kAmountMaximum, 1.0f);
-    parameters.outputGainLinear = decibelsToLinear(
-        clampFinite(snapshot.outputGainDb, kGainMinimumDb, kGainMaximumDb, kDefaultGainDb));
+    parameters.parallelBalance = clampFinite(
+        snapshot.parallelBalance, parameter_contract::kAmountRange.minimum,
+        parameter_contract::kAmountRange.maximum, parameter_contract::kDefaultParallelBalance);
+    parameters.waterStageAmount = clampFinite(
+        snapshot.waterAmount, parameter_contract::kAmountRange.minimum,
+        parameter_contract::kAmountRange.maximum, parameter_contract::kDefaultWaterAmount);
+    parameters.iceStageAmount = clampFinite(
+        snapshot.iceAmount, parameter_contract::kAmountRange.minimum,
+        parameter_contract::kAmountRange.maximum, parameter_contract::kDefaultIceAmount);
+    parameters.inputGainLinear = decibelsToLinear(clampFinite(
+        snapshot.inputGainDb, parameter_contract::kGainDbRange.minimum,
+        parameter_contract::kGainDbRange.maximum, parameter_contract::kDefaultInputGainDb));
+    parameters.globalMix = clampFinite(snapshot.globalMix, parameter_contract::kAmountRange.minimum,
+                                       parameter_contract::kAmountRange.maximum,
+                                       parameter_contract::kDefaultGlobalMix);
+    parameters.outputGainLinear = decibelsToLinear(clampFinite(
+        snapshot.outputGainDb, parameter_contract::kGainDbRange.minimum,
+        parameter_contract::kGainDbRange.maximum, parameter_contract::kDefaultOutputGainDb));
     return parameters;
 }

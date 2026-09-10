@@ -11,7 +11,8 @@ bool loadBoolOrDefault(const std::atomic<float>* source, bool defaultValue) noex
     if (source == nullptr)
         return defaultValue;
 
-    return source->load(std::memory_order_relaxed) >= 0.5f;
+    return source->load(std::memory_order_relaxed) >=
+           frazil::parameter_contract::kEnabledOnThreshold;
 }
 
 int loadRoutingModeOrDefault(const std::atomic<float>* source, int defaultValue) noexcept {

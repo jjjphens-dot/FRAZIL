@@ -1,30 +1,40 @@
 #include "ParameterLayout.h"
 
+#include "../app/ParameterContract.h"
+
 namespace frazil::plugin {
 juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout() {
+    using namespace frazil::parameter_contract;
     using Range = juce::NormalisableRange<float>;
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
     layout.add(std::make_unique<juce::AudioParameterBool>(parameterIds::kWaterEnabled,
-                                                          "Water Enabled", true));
-    layout.add(
-        std::make_unique<juce::AudioParameterBool>(parameterIds::kIceEnabled, "Ice Enabled", true));
+                                                          "Water Enabled", kDefaultWaterEnabled));
+    layout.add(std::make_unique<juce::AudioParameterBool>(parameterIds::kIceEnabled, "Ice Enabled",
+                                                          kDefaultIceEnabled));
     layout.add(std::make_unique<juce::AudioParameterChoice>(
         parameterIds::kRoutingMode, "Routing Mode",
-        juce::StringArray{"Parallel", "Water -> Ice", "Ice -> Water"}, 0));
+        juce::StringArray{"Parallel", "Water -> Ice", "Ice -> Water"}, kDefaultRoutingModeIndex));
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        parameterIds::kParallelBalance, "Parallel Balance", Range{0.0f, 1.0f, 0.001f}, 0.5f));
+        parameterIds::kParallelBalance, "Parallel Balance",
+        Range{kAmountRange.minimum, kAmountRange.maximum, kAmountRange.step},
+        kDefaultParallelBalance));
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        parameterIds::kWaterAmount, "Water Amount", Range{0.0f, 1.0f, 0.001f}, 1.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>(parameterIds::kIceAmount, "Ice Amount",
-                                                           Range{0.0f, 1.0f, 0.001f}, 1.0f));
+        parameterIds::kWaterAmount, "Water Amount",
+        Range{kAmountRange.minimum, kAmountRange.maximum, kAmountRange.step}, kDefaultWaterAmount));
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        parameterIds::kInputGain, "Input Gain", Range{-24.0f, 24.0f, 0.01f}, 0.0f,
+        parameterIds::kIceAmount, "Ice Amount",
+        Range{kAmountRange.minimum, kAmountRange.maximum, kAmountRange.step}, kDefaultIceAmount));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        parameterIds::kInputGain, "Input Gain",
+        Range{kGainDbRange.minimum, kGainDbRange.maximum, kGainDbRange.step}, kDefaultInputGainDb,
         juce::AudioParameterFloatAttributes{}.withLabel("dB")));
-    layout.add(std::make_unique<juce::AudioParameterFloat>(parameterIds::kGlobalMix, "Global Mix",
-                                                           Range{0.0f, 1.0f, 0.001f}, 1.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        parameterIds::kOutputGain, "Output Gain", Range{-24.0f, 24.0f, 0.01f}, 0.0f,
+        parameterIds::kGlobalMix, "Global Mix",
+        Range{kAmountRange.minimum, kAmountRange.maximum, kAmountRange.step}, kDefaultGlobalMix));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        parameterIds::kOutputGain, "Output Gain",
+        Range{kGainDbRange.minimum, kGainDbRange.maximum, kGainDbRange.step}, kDefaultOutputGainDb,
         juce::AudioParameterFloatAttributes{}.withLabel("dB")));
 
     return layout;

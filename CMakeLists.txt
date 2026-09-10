@@ -80,6 +80,7 @@ set(FRAZIL_APP_SOURCES
     src/app/EngineParameters.h
     src/app/ParameterMapper.cpp
     src/app/ParameterMapper.h
+    src/app/ParameterContract.h
     src/app/ParameterSnapshot.cpp
     src/app/ParameterSnapshot.h
     src/app/ProcessSpec.h

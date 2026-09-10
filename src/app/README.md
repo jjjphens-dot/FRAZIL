@@ -7,6 +7,7 @@
 ## Responsibilities
 
 - `AudioEngine` 的 prepare/reset/process 生命周期、当前 gain/global-mix 编排和未来的 routing 编排；
+- `ParameterContract.h` 提供不依赖 JUCE 的 Host-facing 范围、step、default 和 routing count；
 - `ParameterSnapshot`、`ParameterMapper`、`StateModel` 和 `EditHistoryManager` 的应用层边界；
 - 为 plugin 层提供小而明确的接口，为 dsp 层提供不依赖 APVTS/Host 的 engine 参数；为 UI 提供狭窄的 message-thread edit/history command boundary。
 
@@ -36,7 +37,7 @@ UI -> narrow app edit/history command interface -> EditHistoryManager (message t
 
 ## Parameter / Data Types
 
-正式 Host 参数由 plugin 层 `src/plugin/ParameterLayout.*` 集中注册。app 层的 Snapshot 只接收由 plugin 缓存的原子参数指针，Mapper 输出不含 Host 对象的 `EngineParameters`；app 不依赖 ParameterLayout、PluginProcessor 或 Host adapter。
+正式 Host 参数的 ID、名称和注册顺序由 plugin 层 `src/plugin/ParameterLayout.*` 集中注册；范围、step、default 和 routing count 的值合同由 app 层 `ParameterContract.h` 共享。app 层的 Snapshot 只接收由 plugin 缓存的原子参数指针，Mapper 输出不含 Host 对象的 `EngineParameters`；app 不依赖 PluginProcessor 或 Host adapter。
 
 ## Ownership & Lifetime
 
@@ -64,7 +65,7 @@ app 层不得自行宣称算法 tail 或 latency。v1 Host-reported processing l
 
 ## Files
 
-`AudioEngine.*`、`ProcessSpec.h`、`EngineParameters.h`、`ParameterSnapshot.*`、`ParameterMapper.*` 和 `StateModel.*` 当前存在；`EditHistoryManager.*` 仍为 app 计划路径；`ParameterLayout.*` 属于已实现的 `src/plugin/` M1 路径。
+`AudioEngine.*`、`ProcessSpec.h`、`EngineParameters.h`、`ParameterContract.h`、`ParameterSnapshot.*`、`ParameterMapper.*` 和 `StateModel.*` 当前存在；`EditHistoryManager.*` 仍为 app 计划路径；`ParameterLayout.*` 属于已实现的 `src/plugin/` M1 路径。
 
 ## Modification Policy
 

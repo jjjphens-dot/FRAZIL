@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ParameterContract.h"
+
 #include <atomic>
 
 // Non-owning APVTS atomics cached by the plugin during construction. The owners outlive each
@@ -17,15 +19,15 @@ struct ParameterSourcePointers final {
 };
 
 struct ParameterSnapshot final {
-    bool waterEnabled{true};
-    bool iceEnabled{true};
-    int routingModeIndex{};
-    float parallelBalance{0.5f};
-    float waterAmount{1.0f};
-    float iceAmount{1.0f};
-    float inputGainDb{};
-    float globalMix{1.0f};
-    float outputGainDb{};
+    bool waterEnabled{frazil::parameter_contract::kDefaultWaterEnabled};
+    bool iceEnabled{frazil::parameter_contract::kDefaultIceEnabled};
+    int routingModeIndex{frazil::parameter_contract::kDefaultRoutingModeIndex};
+    float parallelBalance{frazil::parameter_contract::kDefaultParallelBalance};
+    float waterAmount{frazil::parameter_contract::kDefaultWaterAmount};
+    float iceAmount{frazil::parameter_contract::kDefaultIceAmount};
+    float inputGainDb{frazil::parameter_contract::kDefaultInputGainDb};
+    float globalMix{frazil::parameter_contract::kDefaultGlobalMix};
+    float outputGainDb{frazil::parameter_contract::kDefaultOutputGainDb};
 
     // Reads each cached source exactly once. The caller owns the atomics and must keep them
     // alive for the lifetime of the capture boundary.

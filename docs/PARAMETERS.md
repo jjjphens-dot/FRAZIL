@@ -12,6 +12,8 @@
 
 所有参数在插件构造时一次性静态注册。`enabled` 与 `routing.mode` 也作为可自动化离散参数暴露；Undo/Redo 不注册。
 
+代码职责边界：`src/plugin/ParameterLayout.*` 负责 Host/JUCE-facing ID、顺序、类型和注册；`src/app/ParameterContract.h` 是不依赖 JUCE 的范围、step、default 与 routing-count value authority，供 mapping、state validation 和 offline harness 复用。两者共同实现本表合同，不能由任一消费者复制另一份数值事实。
+
 | ID | Host 名称 | 类型/范围 | 默认 | DSP 语义 | 当前模式相关性 | 平滑/切换 |
 |---|---|---|---:|---|---|---|
 | `water.enabled` | Water Enabled | bool | on | Water stage/branch 是否参与处理 | 全部 | click-free bypass |

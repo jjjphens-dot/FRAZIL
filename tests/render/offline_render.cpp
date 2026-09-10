@@ -1,4 +1,5 @@
 #include "app/AudioEngine.h"
+#include "app/ParameterContract.h"
 
 #include <algorithm>
 #include <charconv>
@@ -17,23 +18,21 @@ namespace {
 constexpr int kDefaultBlockSize = 128;
 constexpr int kMaximumBlockSize = 8192;
 constexpr std::uint32_t kDefaultSeed = 20260908;
-constexpr float kMinimumGainDb = -24.0f;
-constexpr float kMaximumGainDb = 24.0f;
 
 struct RenderOptions final {
     std::optional<juce::File> input;
     std::optional<juce::File> output;
     int blockSize{kDefaultBlockSize};
     std::uint32_t seed{kDefaultSeed};
-    bool waterEnabled{true};
-    bool iceEnabled{true};
+    bool waterEnabled{frazil::parameter_contract::kDefaultWaterEnabled};
+    bool iceEnabled{frazil::parameter_contract::kDefaultIceEnabled};
     RoutingMode routing{RoutingMode::parallel};
-    float parallelBalance{0.5f};
-    float waterAmount{1.0f};
-    float iceAmount{1.0f};
-    float inputGainDb{};
-    float globalMix{1.0f};
-    float outputGainDb{};
+    float parallelBalance{frazil::parameter_contract::kDefaultParallelBalance};
+    float waterAmount{frazil::parameter_contract::kDefaultWaterAmount};
+    float iceAmount{frazil::parameter_contract::kDefaultIceAmount};
+    float inputGainDb{frazil::parameter_contract::kDefaultInputGainDb};
+    float globalMix{frazil::parameter_contract::kDefaultGlobalMix};
+    float outputGainDb{frazil::parameter_contract::kDefaultOutputGainDb};
 };
 
 enum class ParseResult {
@@ -176,42 +175,48 @@ ParseResult parseArguments(int argc, char** argv, RenderOptions& options) {
             options.routing = *parsed;
         } else if (argument == "--parallel-balance") {
             const auto parsed = parseNextArgument<float>(index, argc, argv, parseFloat);
-            if (!parsed.has_value() || *parsed < 0.0f || *parsed > 1.0f) {
+            if (!parsed.has_value() || *parsed < frazil::parameter_contract::kAmountRange.minimum ||
+                *parsed > frazil::parameter_contract::kAmountRange.maximum) {
                 std::cerr << "--parallel-balance must be between 0 and 1\n";
                 return ParseResult::failure;
             }
             options.parallelBalance = *parsed;
         } else if (argument == "--water-amount") {
             const auto parsed = parseNextArgument<float>(index, argc, argv, parseFloat);
-            if (!parsed.has_value() || *parsed < 0.0f || *parsed > 1.0f) {
+            if (!parsed.has_value() || *parsed < frazil::parameter_contract::kAmountRange.minimum ||
+                *parsed > frazil::parameter_contract::kAmountRange.maximum) {
                 std::cerr << "--water-amount must be between 0 and 1\n";
                 return ParseResult::failure;
             }
             options.waterAmount = *parsed;
         } else if (argument == "--ice-amount") {
             const auto parsed = parseNextArgument<float>(index, argc, argv, parseFloat);
-            if (!parsed.has_value() || *parsed < 0.0f || *parsed > 1.0f) {
+            if (!parsed.has_value() || *parsed < frazil::parameter_contract::kAmountRange.minimum ||
+                *parsed > frazil::parameter_contract::kAmountRange.maximum) {
                 std::cerr << "--ice-amount must be between 0 and 1\n";
                 return ParseResult::failure;
             }
             options.iceAmount = *parsed;
         } else if (argument == "--input-gain-db") {
             const auto parsed = parseNextArgument<float>(index, argc, argv, parseFloat);
-            if (!parsed.has_value() || *parsed < kMinimumGainDb || *parsed > kMaximumGainDb) {
+            if (!parsed.has_value() || *parsed < frazil::parameter_contract::kGainDbRange.minimum ||
+                *parsed > frazil::parameter_contract::kGainDbRange.maximum) {
                 std::cerr << "--input-gain-db must be between -24 and 24\n";
                 return ParseResult::failure;
             }
             options.inputGainDb = *parsed;
         } else if (argument == "--global-mix") {
             const auto parsed = parseNextArgument<float>(index, argc, argv, parseFloat);
-            if (!parsed.has_value() || *parsed < 0.0f || *parsed > 1.0f) {
+            if (!parsed.has_value() || *parsed < frazil::parameter_contract::kAmountRange.minimum ||
+                *parsed > frazil::parameter_contract::kAmountRange.maximum) {
                 std::cerr << "--global-mix must be between 0 and 1\n";
                 return ParseResult::failure;
             }
             options.globalMix = *parsed;
         } else if (argument == "--output-gain-db") {
             const auto parsed = parseNextArgument<float>(index, argc, argv, parseFloat);
-            if (!parsed.has_value() || *parsed < kMinimumGainDb || *parsed > kMaximumGainDb) {
+            if (!parsed.has_value() || *parsed < frazil::parameter_contract::kGainDbRange.minimum ||
+                *parsed > frazil::parameter_contract::kGainDbRange.maximum) {
                 std::cerr << "--output-gain-db must be between -24 and 24\n";
                 return ParseResult::failure;
             }

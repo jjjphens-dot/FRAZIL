@@ -8,7 +8,7 @@
 
 - `PluginProcessor` 的 bus、生命周期、APVTS 当前骨架、`processBlock` 和 versioned XML state round-trip；
 - `PluginEditor` 的当前 M0 占位界面与 JUCE editor lifecycle；
-- `src/plugin/ParameterLayout.*` 负责 Host/JUCE-facing 静态参数注册；`PluginProcessor` 缓存原子参数源并在 audio block 边界创建 Snapshot，再调用 app 层。
+- `src/plugin/ParameterLayout.*` 负责 Host/JUCE-facing 静态参数注册，并使用 app 层 `ParameterContract` 的共享数值合同；`PluginProcessor` 缓存原子参数源并在 audio block 边界创建 Snapshot，再调用 app 层。
 
 ## Non-responsibilities
 
