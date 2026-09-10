@@ -1,10 +1,12 @@
 # PERF-BASE-001 Reference Baseline
 
 - Status: measured Release engineering baseline; no formal CPU percentage threshold is defined.
-- Implementation commit: `e56664c8775f614e77004ac891d63a5c2fd2fa7a`
-- Configure provenance: `configured_commit=e56664c8775f614e77004ac891d63a5c2fd2fa7a`,
-  `source_state=clean`
-- Measurement date: 2026-09-10
+- Implementation commit: `6d4be8fe68214cd2f9ccd8204f0ca6cec81edfc2`
+- Configure/runtime provenance from the clean Release run:
+  `configured_commit=6d4be8fe68214cd2f9ccd8204f0ca6cec81edfc2`,
+  `configured_source_state=clean`, `runtime_commit=6d4be8fe68214cd2f9ccd8204f0ca6cec81edfc2`,
+  `runtime_source_state=clean`, `formal_provenance_status=PASS`
+- Measurement date: 2026-09-11
 - Reference machine: Windows 11 Home China 23H2, build 22631, x64; Intel Core i9-14900HX,
   32 logical CPUs, 16003 MiB RAM
 - Toolchain: MSVC `_MSC_VER=1943`, JUCE 9.0.1
@@ -46,14 +48,14 @@ ctest --preset windows-release
 
 | Scenario | Mean callback (us) | P95 (us) | P99 (us) | Worst (us) | Deadline (us) | Mean deadline use | Worst deadline use | Process CPU observation | Measured callback `operator new` | Finite output |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| steady-state | 1.058 | 1.300 | 1.400 | 37.300 | 2666.667 | 0.040% | 1.399% | 0.000% | 0 | PASS |
-| parameter-retarget | 0.970 | 1.000 | 1.700 | 218.100 | 2666.667 | 0.036% | 8.179% | 0.000% | 0 | PASS |
+| steady-state | 0.807 | 0.900 | 0.900 | 60.400 | 2666.667 | 0.030% | 2.265% | 29.507% | 0 | PASS |
+| parameter-retarget | 0.849 | 1.000 | 1.600 | 51.800 | 2666.667 | 0.032% | 1.943% | 59.382% | 0 | PASS |
 
 The process CPU observation is process-wide CPU time divided by wall time for each measurement
 window. The observed value rounded to `0.000%` because the Windows CPU-time clock resolution was
 coarser than these short windows; it is retained as an observation and is not a performance gate.
-Working-set observations were 3.938 MiB before and 4.094 MiB after/peak for steady-state, and
-4.094 MiB before and 4.094 MiB after/peak for parameter-retarget.
+Working-set observations were 3.957 MiB before and 4.102 MiB after/peak for steady-state, and
+3.953 MiB before and 4.102 MiB after/peak for parameter-retarget.
 
 `configured_commit` and `configured_source_state` are captured by CMake at configure time.
 `runtime_commit` and `runtime_source_state` are read by the executable before formal measurement.
@@ -84,6 +86,12 @@ is not complete `FRAZILAudioProcessor::processBlock` allocation-free evidence.
 
 - Release fresh configure, safe build and CTest: **7/7 PASS**. The manual benchmark is separate.
 - ASAN fresh configure, safe build and CTest: **7/7 PASS**.
+- Provenance regression cases: clean matching configure/runtime Git reported `PASS`; a tracked
+  source mutation after configure reported `runtime_source_state=dirty` and `NOT RUN`; execution
+  from a different clean Git repository reported a runtime commit mismatch and `NOT RUN`; and
+  execution with Git unavailable reported `runtime_commit=unknown`,
+  `runtime_source_state=unknown`, and `NOT RUN`. In each negative case the benchmark itself still
+  returned exit code 0 with finite output.
 - This evidence does not claim pluginval, real DAW, listening, offline render coverage beyond the
   existing RENDER-001 smoke, or a formal M1 Joint Exit.
 - Dirty or unknown `configured_source_state`/`runtime_source_state`, a runtime commit mismatch, or
