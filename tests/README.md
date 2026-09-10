@@ -28,7 +28,7 @@
   steady-state 与 parameter-retarget/smoothing 场景，记录 Reference
   Machine、OS、compiler/effective flags、build type、Reference DAW、measurement tool、
   thread/instance configuration、statistical method、mean/P95/P99/worst、callback deadline、
-  process CPU、working set、selected `AudioEngine::process` workload 的 measured-callback
+  `harness_process_cpu_percent`、working set、selected `AudioEngine::process` workload 的 measured-callback
   `operator new`、finite output 和 denormal probe；输出以
   `configured_commit`/`configured_source_state` 与 `runtime_commit`/`runtime_source_state`
   区分 configure-time/runtime provenance，只有两者 commit 一致且 source state 都为 `clean`
@@ -36,7 +36,9 @@
   provenance mismatch 不会让 benchmark 因此强制失败；allocation observation 不覆盖完整
   `FRAZILAudioProcessor::processBlock` callback path。denormal probe 输出
   `denormal_probe_status=OBSERVED`，finite output 单独由
-  `denormal_finite_output_status=PASS/FAIL` 表示；
+  `denormal_finite_output_status=PASS/FAIL` 表示；CPU 字段包含 benchmark harness 的 signal
+  generation 和 bookkeeping，不是 `AudioEngine::process` 单独的 CPU utilization，也不是 formal
+  CPU budget；
 - `frazil_render` + `tools/render_testdata.py`：RENDER-001 的离线 WAV smoke，固定 input/config/seed
   通过当前 AudioEngine 处理，检查 finite output、重复运行字节一致性，并生成完整当前配置、
   input/output metadata 与 SHA-256 manifest；CTest 产物写入 preset build tree 下的 ignored

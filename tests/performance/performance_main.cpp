@@ -179,7 +179,7 @@ struct BenchmarkResult final {
     double meanDeadlineUsagePercent{};
     double worstDeadlineUsagePercent{};
     double wallSeconds{};
-    double processCpuPercent{};
+    double harnessProcessCpuPercent{};
     bool finiteOutput{};
     std::uint64_t allocationCount{};
     ResourceSnapshot beforeResources{};
@@ -209,14 +209,27 @@ std::string configuredSourceState() {
 #endif
 }
 
-std::optional<std::string> runGitCommand(std::string_view command) {
+std::string configuredSourceDirectory() {
+#if defined(FRAZIL_SOURCE_DIR)
+    return FRAZIL_SOURCE_DIR;
+#else
+    return "unknown";
+#endif
+}
+
+std::optional<std::string> runGitCommandInSourceTree(std::string_view sourceDirectory,
+                                                     std::string_view command) {
+    if (sourceDirectory == "unknown")
+        return std::nullopt;
+
 #if defined(_WIN32)
     constexpr std::string_view nullDevice = "NUL";
 #else
     constexpr std::string_view nullDevice = "/dev/null";
 #endif
 
-    const auto commandWithRedirect = std::string(command) + " 2>" + std::string(nullDevice);
+    const auto commandWithRedirect = "git -C \"" + std::string(sourceDirectory) + "\" " +
+                                     std::string(command) + " 2>" + std::string(nullDevice);
 #if defined(_WIN32)
     auto* pipe = _popen(commandWithRedirect.c_str(), "r");
 #else
@@ -248,9 +261,10 @@ struct RuntimeProvenance final {
     std::string sourceState{"unknown"};
 };
 
-RuntimeProvenance captureRuntimeProvenance() {
-    const auto commit = runGitCommand("git rev-parse HEAD");
-    const auto status = runGitCommand("git status --porcelain");
+RuntimeProvenance captureRuntimeProvenance(std::string_view sourceDirectory) {
+    const auto commit = runGitCommandInSourceTree(sourceDirectory, "rev-parse HEAD");
+    const auto status =
+        runGitCommandInSourceTree(sourceDirectory, "status --porcelain --untracked-files=normal");
     if (!commit.has_value() || !status.has_value())
         return {};
 
@@ -260,8 +274,9 @@ RuntimeProvenance captureRuntimeProvenance() {
 bool hasFormalProvenance(std::string_view configuredCommitValue,
                          std::string_view configuredSourceStateValue,
                          const RuntimeProvenance& runtime) noexcept {
-    return configuredCommitValue != "unknown" && configuredCommitValue == runtime.commit &&
-           configuredSourceStateValue == "clean" && runtime.sourceState == "clean";
+    return configuredCommitValue != "unknown" && runtime.commit != "unknown" &&
+           configuredCommitValue == runtime.commit && configuredSourceStateValue == "clean" &&
+           runtime.sourceState == "clean";
 }
 
 std::string buildType() {
@@ -394,12 +409,11 @@ void applyScenarioParameters(EngineParameters& parameters, int block, bool retar
     parameters.outputGainLinear = firstTarget ? kRetargetHighGainLinear : kRetargetLowGainLinear;
 }
 
-double percentile(std::vector<double>& samples, double fraction) {
-    std::sort(samples.begin(), samples.end());
-    const auto rank = static_cast<std::size_t>(std::ceil(fraction * samples.size()));
+double percentileSorted(const std::vector<double>& sortedSamples, double fraction) {
+    const auto rank = static_cast<std::size_t>(std::ceil(fraction * sortedSamples.size()));
     const auto rankIndex = rank == 0 ? std::size_t{} : rank - 1;
-    const auto index = rankIndex < samples.size() ? rankIndex : samples.size() - 1;
-    return samples[index];
+    const auto index = rankIndex < sortedSamples.size() ? rankIndex : sortedSamples.size() - 1;
+    return sortedSamples[index];
 }
 
 BenchmarkResult measureScenario(std::string_view name, bool retarget) {
@@ -427,6 +441,8 @@ BenchmarkResult measureScenario(std::string_view name, bool retarget) {
     allocation_observer::enabled.store(true, std::memory_order_relaxed);
     bool finiteOutput = true;
 
+    // This process-wide window includes reference generation and benchmark bookkeeping around
+    // the separately timed AudioEngine::process call; it is not a callback-only CPU metric.
     for (int block = 0; block < kMeasuredBlocks; ++block) {
         applyScenarioParameters(parameters, block, retarget);
         reference.fill(work);
@@ -443,21 +459,22 @@ BenchmarkResult measureScenario(std::string_view name, bool retarget) {
     const auto wallEnd = std::chrono::steady_clock::now();
     const auto resourcesAfter = captureResources();
     const auto wallSeconds = std::chrono::duration<double>(wallEnd - wallStart).count();
+    std::sort(callbackMicroseconds.begin(), callbackMicroseconds.end());
     const auto mean =
         std::accumulate(callbackMicroseconds.begin(), callbackMicroseconds.end(), 0.0) /
         static_cast<double>(callbackMicroseconds.size());
-    const auto p95 = percentile(callbackMicroseconds, 0.95);
-    const auto p99 = percentile(callbackMicroseconds, 0.99);
+    const auto p95 = percentileSorted(callbackMicroseconds, 0.95);
+    const auto p99 = percentileSorted(callbackMicroseconds, 0.99);
     const auto worst = callbackMicroseconds.back();
     const auto deadlineMicroseconds =
         static_cast<double>(kReferenceBlockSizeSamples) / kReferenceSampleRateHz * 1.0e6;
 
-    double processCpuPercent = 0.0;
+    double harnessProcessCpuPercent = 0.0;
     if (resourcesBefore.cpuAvailable && resourcesAfter.cpuAvailable && wallSeconds > 0.0) {
         const auto cpuSeconds = static_cast<double>(resourcesAfter.cpuTime100Nanoseconds -
                                                     resourcesBefore.cpuTime100Nanoseconds) /
                                 1.0e7;
-        processCpuPercent = cpuSeconds / wallSeconds * 100.0;
+        harnessProcessCpuPercent = cpuSeconds / wallSeconds * 100.0;
     }
 
     return BenchmarkResult{name,
@@ -469,7 +486,7 @@ BenchmarkResult measureScenario(std::string_view name, bool retarget) {
                            mean / deadlineMicroseconds * 100.0,
                            worst / deadlineMicroseconds * 100.0,
                            wallSeconds,
-                           processCpuPercent,
+                           harnessProcessCpuPercent,
                            finiteOutput,
                            allocationCount,
                            resourcesBefore,
@@ -526,7 +543,7 @@ void printResult(const BenchmarkResult& result) {
               << "mean_deadline_usage_percent=" << result.meanDeadlineUsagePercent << '\n'
               << "worst_deadline_usage_percent=" << result.worstDeadlineUsagePercent << '\n'
               << "wall_seconds=" << result.wallSeconds << '\n'
-              << "process_cpu_percent=" << result.processCpuPercent << '\n'
+              << "harness_process_cpu_percent=" << result.harnessProcessCpuPercent << '\n'
               << "allocation_observation_measured_callback_operator_new_calls="
               << result.allocationCount << '\n'
               << "finite_output_status=" << (result.finiteOutput ? "PASS" : "FAIL") << '\n';
@@ -538,7 +555,7 @@ void printResult(const BenchmarkResult& result) {
 int main() {
     const auto configuredCommitValue = configuredCommit();
     const auto configuredSourceStateValue = configuredSourceState();
-    const auto runtimeProvenance = captureRuntimeProvenance();
+    const auto runtimeProvenance = captureRuntimeProvenance(configuredSourceDirectory());
     const auto formalProvenance =
         hasFormalProvenance(configuredCommitValue, configuredSourceStateValue, runtimeProvenance);
 

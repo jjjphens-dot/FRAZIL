@@ -371,8 +371,8 @@ parameter-retarget/smoothing 场景；同一个 oscillator state 连续贯穿 wa
 section，每个场景 warm up 2000 blocks，再测量 20000 blocks。
 报告必须同时记录 Reference Machine、OS、compiler、effective compiler flags、build type、
 Reference DAW、measurement tool、thread/instance configuration、statistical method、
-mean/P95/P99/worst、2.666 ms callback deadline、mean/worst deadline utilization、进程 CPU
-时间、Windows process working set、selected `AudioEngine::process` workload 的 measured-callback
+mean/P95/P99/worst、2.666 ms callback deadline、mean/worst deadline utilization、
+`harness_process_cpu_percent`、Windows process working set、selected `AudioEngine::process` workload 的 measured-callback
 allocation count、finite-output 结果和 denormal probe 结果。输出字段
 `configured_commit`/`configured_source_state` 是 CMake configure 时读取的 Git provenance，
 `runtime_commit`/`runtime_source_state` 是 benchmark 启动、正式 measurement 前读取的 Git
@@ -382,6 +382,10 @@ provenance；只有两次 commit 相同、两次 source state 都是 `clean` 时
 该 `AudioEngine::process` workload，不是完整 `FRAZILAudioProcessor::processBlock` callback
 allocation-free evidence。denormal 输出使用 `denormal_probe_status=OBSERVED` 和
 `denormal_finite_output_status=PASS/FAIL`；后者只表示输出 finite，不表示 FTZ/DAZ 已验证。
+`harness_process_cpu_percent` 是 benchmark 进程在整个 measurement window 内的 process-wide
+observation，包含 reference generation、parameter setup、timing calls、result bookkeeping
+和 finite-output scan；它不是 `AudioEngine::process` 单独的 CPU utilization metric，也不是
+formal CPU budget。
 measurement buffers/result storage 在 observation 开启前预分配，避免把 harness bookkeeping
 误报成 audio-thread allocation。该 work item 只提供 baseline，不把结果转换成正式 CPU 百分比
 门槛，也不替代 pluginval、DAW 或 listening evidence。

@@ -46,14 +46,16 @@ ctest --preset windows-release
 
 ## Benchmark results
 
-| Scenario | Mean callback (us) | P95 (us) | P99 (us) | Worst (us) | Deadline (us) | Mean deadline use | Worst deadline use | Process CPU observation | Measured callback `operator new` | Finite output |
+| Scenario | Mean callback (us) | P95 (us) | P99 (us) | Worst (us) | Deadline (us) | Mean deadline use | Worst deadline use | Harness process CPU observation | Measured callback `operator new` | Finite output |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | steady-state | 0.807 | 0.900 | 0.900 | 60.400 | 2666.667 | 0.030% | 2.265% | 29.507% | 0 | PASS |
 | parameter-retarget | 0.849 | 1.000 | 1.600 | 51.800 | 2666.667 | 0.032% | 1.943% | 59.382% | 0 | PASS |
 
-The process CPU observation is process-wide CPU time divided by wall time for each measurement
-window. The observed value rounded to `0.000%` because the Windows CPU-time clock resolution was
-coarser than these short windows; it is retained as an observation and is not a performance gate.
+`harness_process_cpu_percent` is process-wide CPU time divided by wall time for the complete
+benchmark measurement window. The window includes reference signal generation, parameter-retarget
+setup, timing calls, result bookkeeping, and finite-output scanning around the separately timed
+`AudioEngine::process` call. It is not an `AudioEngine::process`-only CPU utilization metric and
+is not a formal performance budget.
 Working-set observations were 3.957 MiB before and 4.102 MiB after/peak for steady-state, and
 3.953 MiB before and 4.102 MiB after/peak for parameter-retarget.
 
