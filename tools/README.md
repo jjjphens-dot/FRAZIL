@@ -40,10 +40,14 @@ Reference input corpus:
     python tools/verify_testdata.py
     python tools/test_testdata.py
 
-`generate_testdata.py` creates the ten deterministic DSP diagnostic WAV
-fixtures and their schema-v2 manifest. Its `SignalSpec` model keeps each
-signal's objective, mathematical parameters, expected properties, analysis
-windows, and target tests next to its renderer. The CLI supports
+`generate_testdata.py` remains the public CLI and orchestration entry point for
+the ten deterministic DSP diagnostic WAV fixtures and their schema-v2 manifest.
+Its implementation is split into `testdata_generation/specs.py` for auditable
+signal definitions, `renderers.py` for floating-point signal generation,
+`wav_io.py` for PCM24 encoding and file integrity, and `manifest.py` for
+schema-v2 metadata. The `SignalSpec` model keeps each signal's objective,
+mathematical parameters, expected properties, analysis windows, and target
+tests next to its renderer. The CLI supports
 `--sample-rate 44100|48000|96000`; only the 48 kHz PCM24 corpus is committed.
 `verify_testdata.py` checks those contracts, the repository MIT license,
 repository/no-LFS storage, PCM24 WAV metadata, strict input/manifest set
