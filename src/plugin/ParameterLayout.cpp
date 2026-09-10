@@ -5,26 +5,26 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout() {
     using Range = juce::NormalisableRange<float>;
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
-    layout.add(std::make_unique<juce::AudioParameterBool>(parameterIds::waterEnabled,
+    layout.add(std::make_unique<juce::AudioParameterBool>(parameterIds::kWaterEnabled,
                                                           "Water Enabled", true));
     layout.add(
-        std::make_unique<juce::AudioParameterBool>(parameterIds::iceEnabled, "Ice Enabled", true));
+        std::make_unique<juce::AudioParameterBool>(parameterIds::kIceEnabled, "Ice Enabled", true));
     layout.add(std::make_unique<juce::AudioParameterChoice>(
-        parameterIds::routingMode, "Routing Mode",
+        parameterIds::kRoutingMode, "Routing Mode",
         juce::StringArray{"Parallel", "Water -> Ice", "Ice -> Water"}, 0));
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        parameterIds::parallelBalance, "Parallel Balance", Range{0.0f, 1.0f, 0.001f}, 0.5f));
+        parameterIds::kParallelBalance, "Parallel Balance", Range{0.0f, 1.0f, 0.001f}, 0.5f));
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        parameterIds::waterAmount, "Water Amount", Range{0.0f, 1.0f, 0.001f}, 1.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>(parameterIds::iceAmount, "Ice Amount",
+        parameterIds::kWaterAmount, "Water Amount", Range{0.0f, 1.0f, 0.001f}, 1.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(parameterIds::kIceAmount, "Ice Amount",
                                                            Range{0.0f, 1.0f, 0.001f}, 1.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        parameterIds::inputGain, "Input Gain", Range{-24.0f, 24.0f, 0.01f}, 0.0f,
+        parameterIds::kInputGain, "Input Gain", Range{-24.0f, 24.0f, 0.01f}, 0.0f,
         juce::AudioParameterFloatAttributes{}.withLabel("dB")));
-    layout.add(std::make_unique<juce::AudioParameterFloat>(parameterIds::globalMix, "Global Mix",
+    layout.add(std::make_unique<juce::AudioParameterFloat>(parameterIds::kGlobalMix, "Global Mix",
                                                            Range{0.0f, 1.0f, 0.001f}, 1.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        parameterIds::outputGain, "Output Gain", Range{-24.0f, 24.0f, 0.01f}, 0.0f,
+        parameterIds::kOutputGain, "Output Gain", Range{-24.0f, 24.0f, 0.01f}, 0.0f,
         juce::AudioParameterFloatAttributes{}.withLabel("dB")));
 
     return layout;

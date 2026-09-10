@@ -5,15 +5,15 @@
 // Non-owning APVTS atomics cached by the plugin during construction. The owners outlive each
 // processBlock call and the pointers are read-only from the application layer.
 struct ParameterSourcePointers final {
-    std::atomic<float>* waterEnabled{};
-    std::atomic<float>* iceEnabled{};
-    std::atomic<float>* routingMode{};
-    std::atomic<float>* parallelBalance{};
-    std::atomic<float>* waterAmount{};
-    std::atomic<float>* iceAmount{};
-    std::atomic<float>* inputGainDb{};
-    std::atomic<float>* globalMix{};
-    std::atomic<float>* outputGainDb{};
+    const std::atomic<float>* waterEnabled{};
+    const std::atomic<float>* iceEnabled{};
+    const std::atomic<float>* routingMode{};
+    const std::atomic<float>* parallelBalance{};
+    const std::atomic<float>* waterAmount{};
+    const std::atomic<float>* iceAmount{};
+    const std::atomic<float>* inputGainDb{};
+    const std::atomic<float>* globalMix{};
+    const std::atomic<float>* outputGainDb{};
 };
 
 struct ParameterSnapshot final {

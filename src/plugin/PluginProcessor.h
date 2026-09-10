@@ -3,7 +3,6 @@
 #include "../app/AudioEngine.h"
 #include "../app/ParameterMapper.h"
 #include "../app/ParameterSnapshot.h"
-#include "../app/ProcessSpec.h"
 
 #include <JuceHeader.h>
 
@@ -42,7 +41,7 @@ class FRAZILAudioProcessor final : public juce::AudioProcessor {
   private:
     ParameterSourcePointers parameterSources_;
     ParameterMapper parameterMapper_;
-    AudioEngine audioEngine;
+    AudioEngine audioEngine_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FRAZILAudioProcessor)
 };

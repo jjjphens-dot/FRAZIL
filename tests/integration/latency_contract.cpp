@@ -8,7 +8,8 @@
 #include <string>
 
 namespace {
-constexpr int kBlockSize = 128;
+constexpr int kBlockSizeSamples = 128;
+constexpr int kChannelCount = 2;
 constexpr float kComparisonTolerance = 1.0e-6f;
 constexpr float kParameterValueTolerance = 1.0e-5f;
 
@@ -29,22 +30,22 @@ bool setParameterValue(FRAZILAudioProcessor& processor, const char* id, float va
 bool applyNeutralDryFixture(FRAZILAudioProcessor& processor) {
     // Match ADR-0005: unity input/output gain and global.mix=0 define neutral/dry.
     using namespace frazil::plugin::parameterIds;
-    return setParameterValue(processor, inputGain, 0.0f) &&
-           setParameterValue(processor, outputGain, 0.0f) &&
-           setParameterValue(processor, globalMix, 0.0f);
+    return setParameterValue(processor, kInputGain, 0.0f) &&
+           setParameterValue(processor, kOutputGain, 0.0f) &&
+           setParameterValue(processor, kGlobalMix, 0.0f);
 }
 
 bool loadInput(const juce::File& inputFile, juce::AudioBuffer<float>& buffer, double& sampleRate) {
     juce::AudioFormatManager formatManager;
     formatManager.registerBasicFormats();
     std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(inputFile));
-    if (reader == nullptr || reader->lengthInSamples <= 0 || reader->numChannels != 2 ||
+    if (reader == nullptr || reader->lengthInSamples <= 0 || reader->numChannels != kChannelCount ||
         !std::isfinite(reader->sampleRate) || reader->sampleRate <= 0.0) {
         return false;
     }
 
     const auto length = static_cast<int>(reader->lengthInSamples);
-    buffer.setSize(2, length, false, true, true);
+    buffer.setSize(kChannelCount, length, false, true, true);
     if (!reader->read(&buffer, 0, length, 0, true, true))
         return false;
     sampleRate = reader->sampleRate;
@@ -94,7 +95,7 @@ int main(int argc, char** argv) {
         printFailure("neutral/dry latency fixture could not set unity gain and global.mix=0");
         return 1;
     }
-    processor.prepareToPlay(sampleRate, kBlockSize);
+    processor.prepareToPlay(sampleRate, kBlockSizeSamples);
 
     if (processor.getLatencySamples() != 0) {
         printFailure("plugin reported non-zero processing latency");
@@ -106,18 +107,18 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    juce::AudioBuffer<float> output(2, input.getNumSamples());
-    juce::AudioBuffer<float> block(2, kBlockSize);
+    juce::AudioBuffer<float> output(kChannelCount, input.getNumSamples());
+    juce::AudioBuffer<float> block(kChannelCount, kBlockSizeSamples);
     juce::MidiBuffer midi;
     float maximumError = 0.0f;
-    for (int position = 0; position < input.getNumSamples(); position += kBlockSize) {
-        const auto samplesThisBlock = std::min(kBlockSize, input.getNumSamples() - position);
+    for (int position = 0; position < input.getNumSamples(); position += kBlockSizeSamples) {
+        const auto samplesThisBlock = std::min(kBlockSizeSamples, input.getNumSamples() - position);
         block.clear();
-        for (int channel = 0; channel < 2; ++channel)
+        for (int channel = 0; channel < kChannelCount; ++channel)
             block.copyFrom(channel, 0, input, channel, position, samplesThisBlock);
 
         processor.processBlock(block, midi);
-        for (int channel = 0; channel < 2; ++channel) {
+        for (int channel = 0; channel < kChannelCount; ++channel) {
             for (int sample = 0; sample < samplesThisBlock; ++sample) {
                 const auto value = block.getSample(channel, sample);
                 if (!std::isfinite(value)) {

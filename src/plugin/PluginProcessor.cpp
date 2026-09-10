@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 
+#include "../app/ProcessSpec.h"
 #include "ParameterLayout.h"
 #include "PluginEditor.h"
 #include "StateAdapter.h"
@@ -10,15 +11,15 @@ FRAZILAudioProcessor::FRAZILAudioProcessor()
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       parameters(*this, nullptr, "FRAZIL", createParameterLayout()) {
     parameterSources_ = {
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::waterEnabled),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::iceEnabled),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::routingMode),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::parallelBalance),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::waterAmount),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::iceAmount),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::inputGain),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::globalMix),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::outputGain)};
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::kWaterEnabled),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::kIceEnabled),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::kRoutingMode),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::kParallelBalance),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::kWaterAmount),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::kIceAmount),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::kInputGain),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::kGlobalMix),
+        parameters.getRawParameterValue(frazil::plugin::parameterIds::kOutputGain)};
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout FRAZILAudioProcessor::createParameterLayout() {
@@ -26,11 +27,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout FRAZILAudioProcessor::create
 }
 
 void FRAZILAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
-    audioEngine.prepare(ProcessSpec{sampleRate, samplesPerBlock, getTotalNumOutputChannels()});
+    audioEngine_.prepare(ProcessSpec{sampleRate, samplesPerBlock, getTotalNumOutputChannels()});
 }
 
 void FRAZILAudioProcessor::releaseResources() {
-    audioEngine.reset();
+    audioEngine_.reset();
 }
 
 bool FRAZILAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
@@ -47,7 +48,7 @@ void FRAZILAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     juce::ScopedNoDenormals noDenormals;
     const auto snapshot = ParameterSnapshot::capture(parameterSources_);
     const auto engineParameters = parameterMapper_.map(snapshot);
-    audioEngine.process(buffer, engineParameters);
+    audioEngine_.process(buffer, engineParameters);
 }
 
 juce::AudioProcessorEditor* FRAZILAudioProcessor::createEditor() {

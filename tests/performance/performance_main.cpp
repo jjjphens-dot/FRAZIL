@@ -27,6 +27,10 @@
 #include <vector>
 
 namespace allocation_observer {
+// Test-only benchmark observer: global new/delete interception needs process-visible state.
+// This has no production impact because this translation unit is not linked into product targets;
+// atomic state is enabled only during the measured callback window. Remove it if scoped external
+// allocation instrumentation becomes available.
 std::atomic<bool> enabled{false};
 std::atomic<std::uint64_t> count{0};
 
@@ -152,6 +156,8 @@ constexpr int kWarmupBlocks = 2000;
 constexpr int kMeasuredBlocks = 20000;
 constexpr double kReferenceFrequencyHz = 440.0;
 constexpr double kTwoPi = 6.283185307179586476925286766559;
+constexpr float kNegativeSixDbGainLinear = 0.5011872f;
+constexpr float kPositiveSixDbGainLinear = 1.9952623f;
 
 struct ResourceSnapshot final {
     bool memoryAvailable{};
@@ -319,9 +325,9 @@ void applyScenarioParameters(EngineParameters& parameters, int block, bool retar
         return;
 
     const auto firstTarget = (block % 2) == 0;
-    parameters.inputGainLinear = firstTarget ? 0.5011872f : 1.9952623f;
+    parameters.inputGainLinear = firstTarget ? kNegativeSixDbGainLinear : kPositiveSixDbGainLinear;
     parameters.globalMix = firstTarget ? 0.0f : 1.0f;
-    parameters.outputGainLinear = firstTarget ? 1.9952623f : 0.5011872f;
+    parameters.outputGainLinear = firstTarget ? kPositiveSixDbGainLinear : kNegativeSixDbGainLinear;
 }
 
 double percentile(std::vector<double>& samples, double fraction) {

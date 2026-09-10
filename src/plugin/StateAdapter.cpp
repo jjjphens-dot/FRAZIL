@@ -14,7 +14,8 @@ constexpr char kParameterNodeType[] = "PARAM";
 constexpr char kSchemaVersionProperty[] = "schemaVersion";
 constexpr char kParameterIdProperty[] = "id";
 constexpr char kParameterValueProperty[] = "value";
-constexpr std::size_t kKnownParameterCount = 9;
+constexpr char kLegacyWaterEnableId[] = "water.enable";
+constexpr char kLegacyIceEnableId[] = "ice.enable";
 
 enum class KnownParameter : std::uint8_t {
     none,
@@ -27,7 +28,10 @@ enum class KnownParameter : std::uint8_t {
     inputGain,
     globalMix,
     outputGain,
+    count,
 };
+
+constexpr auto kKnownParameterCount = static_cast<std::size_t>(KnownParameter::count) - 1U;
 
 bool isAsciiDigit(char character) noexcept {
     return character >= '0' && character <= '9';
@@ -96,23 +100,23 @@ bool readNumericValue(const juce::var& value, double& result) {
 }
 
 KnownParameter identifyParameter(const juce::String& id) {
-    if (id == parameterIds::waterEnabled || id == "water.enable")
+    if (id == parameterIds::kWaterEnabled || id == kLegacyWaterEnableId)
         return KnownParameter::waterEnabled;
-    if (id == parameterIds::iceEnabled || id == "ice.enable")
+    if (id == parameterIds::kIceEnabled || id == kLegacyIceEnableId)
         return KnownParameter::iceEnabled;
-    if (id == parameterIds::routingMode)
+    if (id == parameterIds::kRoutingMode)
         return KnownParameter::routingMode;
-    if (id == parameterIds::parallelBalance)
+    if (id == parameterIds::kParallelBalance)
         return KnownParameter::parallelBalance;
-    if (id == parameterIds::waterAmount)
+    if (id == parameterIds::kWaterAmount)
         return KnownParameter::waterAmount;
-    if (id == parameterIds::iceAmount)
+    if (id == parameterIds::kIceAmount)
         return KnownParameter::iceAmount;
-    if (id == parameterIds::inputGain)
+    if (id == parameterIds::kInputGain)
         return KnownParameter::inputGain;
-    if (id == parameterIds::globalMix)
+    if (id == parameterIds::kGlobalMix)
         return KnownParameter::globalMix;
-    if (id == parameterIds::outputGain)
+    if (id == parameterIds::kOutputGain)
         return KnownParameter::outputGain;
     return KnownParameter::none;
 }
@@ -137,17 +141,18 @@ juce::ValueTree makeValueTree(const StateModel::SerializedState& state) {
         tree.appendChild(parameter, nullptr);
     };
 
-    append(parameterIds::waterEnabled,
+    append(parameterIds::kWaterEnabled,
            state.waterEnabled.value_or(defaults.waterEnabled) ? 1.0f : 0.0f);
-    append(parameterIds::iceEnabled, state.iceEnabled.value_or(defaults.iceEnabled) ? 1.0f : 0.0f);
-    append(parameterIds::routingMode,
+    append(parameterIds::kIceEnabled, state.iceEnabled.value_or(defaults.iceEnabled) ? 1.0f : 0.0f);
+    append(parameterIds::kRoutingMode,
            static_cast<float>(state.routingMode.value_or(static_cast<int>(defaults.routing))));
-    append(parameterIds::parallelBalance, state.parallelBalance.value_or(defaults.parallelBalance));
-    append(parameterIds::waterAmount, state.waterAmount.value_or(defaults.waterAmount));
-    append(parameterIds::iceAmount, state.iceAmount.value_or(defaults.iceAmount));
-    append(parameterIds::inputGain, state.inputGainDb.value_or(defaults.inputGainDb));
-    append(parameterIds::globalMix, state.globalMix.value_or(defaults.globalMix));
-    append(parameterIds::outputGain, state.outputGainDb.value_or(defaults.outputGainDb));
+    append(parameterIds::kParallelBalance,
+           state.parallelBalance.value_or(defaults.parallelBalance));
+    append(parameterIds::kWaterAmount, state.waterAmount.value_or(defaults.waterAmount));
+    append(parameterIds::kIceAmount, state.iceAmount.value_or(defaults.iceAmount));
+    append(parameterIds::kInputGain, state.inputGainDb.value_or(defaults.inputGainDb));
+    append(parameterIds::kGlobalMix, state.globalMix.value_or(defaults.globalMix));
+    append(parameterIds::kOutputGain, state.outputGainDb.value_or(defaults.outputGainDb));
     return tree;
 }
 

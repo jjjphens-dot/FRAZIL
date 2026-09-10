@@ -8,6 +8,9 @@
 #include <juce_audio_basics/juce_audio_basics.h>
 
 namespace {
+constexpr double kCanonicalSampleRateHz = 48000.0;
+constexpr int kStereoChannelCount = 2;
+
 struct TestContext {
     int failures{};
 };
@@ -50,10 +53,10 @@ void fillBuffer(juce::AudioBuffer<float>& buffer, float value) {
 void testParameterAutomationReachesAudioPath(TestContext& context) {
     FRAZILAudioProcessor processor;
     constexpr int kBlockSize = 64;
-    processor.prepareToPlay(48000.0, kBlockSize);
+    processor.prepareToPlay(kCanonicalSampleRateHz, kBlockSize);
 
     juce::MidiBuffer midi;
-    juce::AudioBuffer<float> buffer(2, kBlockSize);
+    juce::AudioBuffer<float> buffer(kStereoChannelCount, kBlockSize);
     fillBuffer(buffer, 1.0f);
     processor.processBlock(buffer, midi);
     expectNear(context, buffer.getSample(0, kBlockSize - 1), 1.0f, 1.0e-6f,
@@ -61,7 +64,7 @@ void testParameterAutomationReachesAudioPath(TestContext& context) {
 
     constexpr float kTargetGainDb = 6.0f;
     const auto targetGain = std::pow(10.0f, kTargetGainDb / 20.0f);
-    setParameterValue(context, processor, frazil::plugin::parameterIds::inputGain, kTargetGainDb);
+    setParameterValue(context, processor, frazil::plugin::parameterIds::kInputGain, kTargetGainDb);
 
     fillBuffer(buffer, 1.0f);
     processor.processBlock(buffer, midi);
@@ -83,27 +86,27 @@ void testParameterAutomationReachesAudioPath(TestContext& context) {
 void testStateRestoreAfterPrepareReachesAudioPath(TestContext& context) {
     constexpr int kBlockSize = 64;
     FRAZILAudioProcessor source;
-    setParameterValue(context, source, frazil::plugin::parameterIds::inputGain, -4.0f);
-    setParameterValue(context, source, frazil::plugin::parameterIds::outputGain, 7.0f);
+    setParameterValue(context, source, frazil::plugin::parameterIds::kInputGain, -4.0f);
+    setParameterValue(context, source, frazil::plugin::parameterIds::kOutputGain, 7.0f);
 
     juce::MemoryBlock serializedState;
     source.getStateInformation(serializedState);
     expect(context, serializedState.getSize() > 0, "lifecycle state save produces an XML payload");
 
     FRAZILAudioProcessor restored;
-    restored.prepareToPlay(48000.0, kBlockSize);
+    restored.prepareToPlay(kCanonicalSampleRateHz, kBlockSize);
     restored.setStateInformation(serializedState.getData(),
                                  static_cast<int>(serializedState.getSize()));
 
     expectNear(context,
-               getParameterValue(context, restored, frazil::plugin::parameterIds::inputGain), -4.0f,
-               1.0e-6f, "state restore after prepare retains input gain");
+               getParameterValue(context, restored, frazil::plugin::parameterIds::kInputGain),
+               -4.0f, 1.0e-6f, "state restore after prepare retains input gain");
     expectNear(context,
-               getParameterValue(context, restored, frazil::plugin::parameterIds::outputGain), 7.0f,
-               1.0e-6f, "state restore after prepare retains output gain");
+               getParameterValue(context, restored, frazil::plugin::parameterIds::kOutputGain),
+               7.0f, 1.0e-6f, "state restore after prepare retains output gain");
 
     juce::MidiBuffer midi;
-    juce::AudioBuffer<float> buffer(2, kBlockSize);
+    juce::AudioBuffer<float> buffer(kStereoChannelCount, kBlockSize);
     fillBuffer(buffer, 1.0f);
     restored.processBlock(buffer, midi);
 
@@ -118,31 +121,31 @@ void testStateRestoreAfterPrepareReachesAudioPath(TestContext& context) {
 void testModeSwitchRetainsInactiveValuesAcrossStateReopen(TestContext& context) {
     constexpr int kBlockSize = 64;
     FRAZILAudioProcessor source;
-    source.prepareToPlay(48000.0, kBlockSize);
-    setParameterValue(context, source, frazil::plugin::parameterIds::waterEnabled, 0.0f);
-    setParameterValue(context, source, frazil::plugin::parameterIds::iceEnabled, 1.0f);
-    setParameterValue(context, source, frazil::plugin::parameterIds::parallelBalance, 0.2f);
-    setParameterValue(context, source, frazil::plugin::parameterIds::waterAmount, 0.35f);
-    setParameterValue(context, source, frazil::plugin::parameterIds::iceAmount, 0.8f);
-    setParameterValue(context, source, frazil::plugin::parameterIds::inputGain, -3.0f);
-    setParameterValue(context, source, frazil::plugin::parameterIds::globalMix, 0.6f);
-    setParameterValue(context, source, frazil::plugin::parameterIds::outputGain, 4.0f);
+    source.prepareToPlay(kCanonicalSampleRateHz, kBlockSize);
+    setParameterValue(context, source, frazil::plugin::parameterIds::kWaterEnabled, 0.0f);
+    setParameterValue(context, source, frazil::plugin::parameterIds::kIceEnabled, 1.0f);
+    setParameterValue(context, source, frazil::plugin::parameterIds::kParallelBalance, 0.2f);
+    setParameterValue(context, source, frazil::plugin::parameterIds::kWaterAmount, 0.35f);
+    setParameterValue(context, source, frazil::plugin::parameterIds::kIceAmount, 0.8f);
+    setParameterValue(context, source, frazil::plugin::parameterIds::kInputGain, -3.0f);
+    setParameterValue(context, source, frazil::plugin::parameterIds::kGlobalMix, 0.6f);
+    setParameterValue(context, source, frazil::plugin::parameterIds::kOutputGain, 4.0f);
 
     juce::MidiBuffer midi;
-    juce::AudioBuffer<float> buffer(2, kBlockSize);
-    constexpr std::array<float, 4> routingModes{0.0f, 1.0f, 2.0f, 0.0f};
+    juce::AudioBuffer<float> buffer(kStereoChannelCount, kBlockSize);
+    constexpr std::array<float, 4> kRoutingModes{0.0f, 1.0f, 2.0f, 0.0f};
     constexpr float kWaterAmount = 0.35f;
     constexpr float kIceAmount = 0.8f;
-    for (const auto routingMode : routingModes) {
-        setParameterValue(context, source, frazil::plugin::parameterIds::routingMode, routingMode);
+    for (const auto routingMode : kRoutingModes) {
+        setParameterValue(context, source, frazil::plugin::parameterIds::kRoutingMode, routingMode);
         fillBuffer(buffer, 1.0f);
         source.processBlock(buffer, midi);
 
         expectNear(context,
-                   getParameterValue(context, source, frazil::plugin::parameterIds::waterAmount),
+                   getParameterValue(context, source, frazil::plugin::parameterIds::kWaterAmount),
                    kWaterAmount, 1.0e-6f, "Water amount survives every routing mode switch");
         expectNear(context,
-                   getParameterValue(context, source, frazil::plugin::parameterIds::iceAmount),
+                   getParameterValue(context, source, frazil::plugin::parameterIds::kIceAmount),
                    kIceAmount, 1.0e-6f, "Ice amount survives every routing mode switch");
     }
 
@@ -154,34 +157,34 @@ void testModeSwitchRetainsInactiveValuesAcrossStateReopen(TestContext& context) 
     restored.setStateInformation(serializedState.getData(),
                                  static_cast<int>(serializedState.getSize()));
     expectNear(context,
-               getParameterValue(context, restored, frazil::plugin::parameterIds::waterEnabled),
+               getParameterValue(context, restored, frazil::plugin::parameterIds::kWaterEnabled),
                0.0f, 1.0e-6f, "state reopen retains Water enable");
     expectNear(context,
-               getParameterValue(context, restored, frazil::plugin::parameterIds::iceEnabled), 1.0f,
-               1.0e-6f, "state reopen retains Ice enable");
+               getParameterValue(context, restored, frazil::plugin::parameterIds::kIceEnabled),
+               1.0f, 1.0e-6f, "state reopen retains Ice enable");
     expectNear(context,
-               getParameterValue(context, restored, frazil::plugin::parameterIds::routingMode),
+               getParameterValue(context, restored, frazil::plugin::parameterIds::kRoutingMode),
                0.0f, 1.0e-6f, "state reopen retains the latest routing mode");
     expectNear(context,
-               getParameterValue(context, restored, frazil::plugin::parameterIds::parallelBalance),
+               getParameterValue(context, restored, frazil::plugin::parameterIds::kParallelBalance),
                0.2f, 1.0e-6f, "state reopen retains parallel balance");
     expectNear(context,
-               getParameterValue(context, restored, frazil::plugin::parameterIds::waterAmount),
+               getParameterValue(context, restored, frazil::plugin::parameterIds::kWaterAmount),
                0.35f, 1.0e-6f, "state reopen retains inactive Water amount");
     expectNear(context,
-               getParameterValue(context, restored, frazil::plugin::parameterIds::iceAmount), 0.8f,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::kIceAmount), 0.8f,
                1.0e-6f, "state reopen retains inactive Ice amount");
     expectNear(context,
-               getParameterValue(context, restored, frazil::plugin::parameterIds::inputGain), -3.0f,
-               1.0e-6f, "state reopen retains input gain");
+               getParameterValue(context, restored, frazil::plugin::parameterIds::kInputGain),
+               -3.0f, 1.0e-6f, "state reopen retains input gain");
     expectNear(context,
-               getParameterValue(context, restored, frazil::plugin::parameterIds::globalMix), 0.6f,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::kGlobalMix), 0.6f,
                1.0e-6f, "state reopen retains global mix");
     expectNear(context,
-               getParameterValue(context, restored, frazil::plugin::parameterIds::outputGain), 4.0f,
-               1.0e-6f, "state reopen retains output gain");
+               getParameterValue(context, restored, frazil::plugin::parameterIds::kOutputGain),
+               4.0f, 1.0e-6f, "state reopen retains output gain");
 
-    restored.prepareToPlay(48000.0, kBlockSize);
+    restored.prepareToPlay(kCanonicalSampleRateHz, kBlockSize);
     fillBuffer(buffer, 1.0f);
     restored.processBlock(buffer, midi);
     // M1's wet path is post-input pass-through, so global.mix does not change the identity here.
