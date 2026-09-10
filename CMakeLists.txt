@@ -103,9 +103,13 @@ set(FRAZIL_PLUGIN_ADAPTER_SOURCES
     src/plugin/StateAdapter.h
 )
 
-set(FRAZIL_PLUGIN_SOURCES
+set(FRAZIL_ENGINE_SOURCES
     ${FRAZIL_APP_SOURCES}
     ${FRAZIL_DSP_SOURCES}
+)
+
+set(FRAZIL_PLUGIN_SOURCES
+    ${FRAZIL_ENGINE_SOURCES}
     ${FRAZIL_PLUGIN_ADAPTER_SOURCES}
     src/plugin/PluginEditor.cpp
     src/plugin/PluginEditor.h
@@ -152,14 +156,7 @@ juce_add_console_app(frazil_render
 target_sources(frazil_render
     PRIVATE
     tests/render/offline_render.cpp
-    src/app/AudioEngine.cpp
-    src/app/AudioEngine.h
-    src/app/EngineParameters.h
-    src/app/ProcessSpec.h
-    src/dsp/DryWetMixer.cpp
-    src/dsp/DryWetMixer.h
-    src/dsp/primitives/LinearSmoother.cpp
-    src/dsp/primitives/LinearSmoother.h
+    ${FRAZIL_ENGINE_SOURCES}
 )
 target_compile_features(frazil_render PRIVATE cxx_std_20)
 target_include_directories(frazil_render PRIVATE src)
@@ -176,8 +173,7 @@ target_link_libraries(frazil_render
 
 add_executable(frazil_tests
     tests/unit/test_main.cpp
-    ${FRAZIL_APP_SOURCES}
-    ${FRAZIL_DSP_SOURCES}
+    ${FRAZIL_ENGINE_SOURCES}
     ${FRAZIL_PLUGIN_ADAPTER_SOURCES}
 )
 target_compile_features(frazil_tests PRIVATE cxx_std_20)
@@ -270,14 +266,7 @@ add_test(
 
 add_executable(frazil_performance
     tests/performance/performance_main.cpp
-    src/app/AudioEngine.cpp
-    src/app/AudioEngine.h
-    src/app/EngineParameters.h
-    src/app/ProcessSpec.h
-    src/dsp/DryWetMixer.cpp
-    src/dsp/DryWetMixer.h
-    src/dsp/primitives/LinearSmoother.cpp
-    src/dsp/primitives/LinearSmoother.h
+    ${FRAZIL_ENGINE_SOURCES}
 )
 target_compile_features(frazil_performance PRIVATE cxx_std_20)
 target_include_directories(frazil_performance PRIVATE src)
