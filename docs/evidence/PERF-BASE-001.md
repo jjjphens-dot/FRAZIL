@@ -1,10 +1,10 @@
 # PERF-BASE-001 Reference Baseline
 
 - Status: measured Release engineering baseline; no formal CPU percentage threshold is defined.
-- Implementation commit: `6d4be8fe68214cd2f9ccd8204f0ca6cec81edfc2`
+- Implementation commit: `98ea8c6a70edef917fc42cc48a25801fc613716b`
 - Configure/runtime provenance from the clean Release run:
-  `configured_commit=6d4be8fe68214cd2f9ccd8204f0ca6cec81edfc2`,
-  `configured_source_state=clean`, `runtime_commit=6d4be8fe68214cd2f9ccd8204f0ca6cec81edfc2`,
+  `configured_commit=98ea8c6a70edef917fc42cc48a25801fc613716b`,
+  `configured_source_state=clean`, `runtime_commit=98ea8c6a70edef917fc42cc48a25801fc613716b`,
   `runtime_source_state=clean`, `formal_provenance_status=PASS`
 - Measurement date: 2026-09-11
 - Reference machine: Windows 11 Home China 23H2, build 22631, x64; Intel Core i9-14900HX,
@@ -48,16 +48,16 @@ ctest --preset windows-release
 
 | Scenario | Mean callback (us) | P95 (us) | P99 (us) | Worst (us) | Deadline (us) | Mean deadline use | Worst deadline use | Harness process CPU observation | Measured callback `operator new` | Finite output |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| steady-state | 0.807 | 0.900 | 0.900 | 60.400 | 2666.667 | 0.030% | 2.265% | 29.507% | 0 | PASS |
-| parameter-retarget | 0.849 | 1.000 | 1.600 | 51.800 | 2666.667 | 0.032% | 1.943% | 59.382% | 0 | PASS |
+| steady-state | 0.842 | 0.900 | 1.100 | 52.300 | 2666.667 | 0.032% | 1.961% | 28.201% | 0 | PASS |
+| parameter-retarget | 0.877 | 0.900 | 1.600 | 125.800 | 2666.667 | 0.033% | 4.718% | 29.287% | 0 | PASS |
 
 `harness_process_cpu_percent` is process-wide CPU time divided by wall time for the complete
 benchmark measurement window. The window includes reference signal generation, parameter-retarget
 setup, timing calls, result bookkeeping, and finite-output scanning around the separately timed
 `AudioEngine::process` call. It is not an `AudioEngine::process`-only CPU utilization metric and
 is not a formal performance budget.
-Working-set observations were 3.957 MiB before and 4.102 MiB after/peak for steady-state, and
-3.953 MiB before and 4.102 MiB after/peak for parameter-retarget.
+Working-set observations were 3.969 MiB before and 4.113 MiB after/peak for steady-state, and
+3.965 MiB before and 4.113 MiB after/peak for parameter-retarget.
 
 `configured_commit` and `configured_source_state` are captured by CMake at configure time.
 `runtime_commit` and `runtime_source_state` are read by the executable before formal measurement.

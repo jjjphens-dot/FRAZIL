@@ -1,7 +1,7 @@
 # M1 Engineering Evidence
 
 - Tested implementation commit for TEST-002 and ARCH-LAT-001: `e56664c8775f614e77004ac891d63a5c2fd2fa7a`
-- PERF-BASE-001 harness follow-up validation commit: `6d4be8fe68214cd2f9ccd8204f0ca6cec81edfc2`
+- PERF-BASE-001 harness follow-up validation commit: `98ea8c6a70edef917fc42cc48a25801fc613716b`
 - Evidence provenance: the clean Release manual benchmark validates the PERF-BASE-001 harness commit above; current Release, Debug, and ASAN fresh configure/build/CTest runs each passed 7/7 for the final branch. Earlier supporting evidence was recorded in `c1aea641688397f80bec0996e8eb3375b5f60def`, with Hosted Debug run `34481193756` validating that earlier implementation/evidence head. The prior docs-only validation head `c3bfeab4d55c47e322cad6ef7cfc259f6542b6dd` was validated by run `34482138484`, and the provenance-fix head `b8918ec93fe696867e16712e67837173b6cfceb4` was validated by run `34490710722`.
 - Scope: TEST-002, PERF-BASE-001, ARCH-LAT-001, and bounded documentation/build wiring.
 - Status: engineering evidence established; M1 Joint Exit is not claimed.
