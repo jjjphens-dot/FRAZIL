@@ -1,5 +1,5 @@
-#include "plugin/PluginProcessor.h"
 #include "plugin/ParameterLayout.h"
+#include "plugin/PluginProcessor.h"
 
 #include <algorithm>
 #include <cmath>
@@ -21,8 +21,7 @@ bool setParameterValue(FRAZILAudioProcessor& processor, const char* id, float va
     if (parameter == nullptr)
         return false;
 
-    const auto normalizedValue =
-        processor.parameters.getParameterRange(id).convertTo0to1(value);
+    const auto normalizedValue = processor.parameters.getParameterRange(id).convertTo0to1(value);
     parameter->setValueNotifyingHost(normalizedValue);
     return std::abs(parameter->getValue() - normalizedValue) <= kParameterValueTolerance;
 }
@@ -112,8 +111,7 @@ int main(int argc, char** argv) {
     juce::MidiBuffer midi;
     float maximumError = 0.0f;
     for (int position = 0; position < input.getNumSamples(); position += kBlockSize) {
-        const auto samplesThisBlock =
-            std::min(kBlockSize, input.getNumSamples() - position);
+        const auto samplesThisBlock = std::min(kBlockSize, input.getNumSamples() - position);
         block.clear();
         for (int channel = 0; channel < 2; ++channel)
             block.copyFrom(channel, 0, input, channel, position, samplesThisBlock);
@@ -148,7 +146,8 @@ int main(int argc, char** argv) {
     }
 
     std::cout << "ARCH-LAT-001 neutral/dry latency contract passed: reported=0 samples, "
-              << "impulse_peak_sample=" << outputPeakSample << ", maximum_dry_error="
-              << maximumError << "; M1 skeleton tail regression passed: tail=0 seconds\n";
+              << "impulse_peak_sample=" << outputPeakSample
+              << ", maximum_dry_error=" << maximumError
+              << "; M1 skeleton tail regression passed: tail=0 seconds\n";
     return 0;
 }

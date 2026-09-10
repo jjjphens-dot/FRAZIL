@@ -19,17 +19,12 @@ void expect(TestContext& context, bool condition, const char* description) {
     }
 }
 
-void expectNear(TestContext& context,
-                float actual,
-                float expected,
-                float tolerance,
+void expectNear(TestContext& context, float actual, float expected, float tolerance,
                 const char* description) {
     expect(context, std::abs(actual - expected) <= tolerance, description);
 }
 
-void setParameterValue(TestContext& context,
-                       FRAZILAudioProcessor& processor,
-                       const char* id,
+void setParameterValue(TestContext& context, FRAZILAudioProcessor& processor, const char* id,
                        float value) {
     auto* parameter = processor.parameters.getParameter(id);
     expect(context, parameter != nullptr, "integration parameter exists");
@@ -39,8 +34,7 @@ void setParameterValue(TestContext& context,
     }
 }
 
-float getParameterValue(TestContext& context,
-                        const FRAZILAudioProcessor& processor,
+float getParameterValue(TestContext& context, const FRAZILAudioProcessor& processor,
                         const char* id) {
     const auto* value = processor.parameters.getRawParameterValue(id);
     expect(context, value != nullptr, "integration parameter value exists");
@@ -101,9 +95,11 @@ void testStateRestoreAfterPrepareReachesAudioPath(TestContext& context) {
     restored.setStateInformation(serializedState.getData(),
                                  static_cast<int>(serializedState.getSize()));
 
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::inputGain), -4.0f,
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::inputGain), -4.0f,
                1.0e-6f, "state restore after prepare retains input gain");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::outputGain), 7.0f,
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::outputGain), 7.0f,
                1.0e-6f, "state restore after prepare retains output gain");
 
     juce::MidiBuffer midi;
@@ -142,9 +138,11 @@ void testModeSwitchRetainsInactiveValuesAcrossStateReopen(TestContext& context) 
         fillBuffer(buffer, 1.0f);
         source.processBlock(buffer, midi);
 
-        expectNear(context, getParameterValue(context, source, frazil::plugin::parameterIds::waterAmount),
+        expectNear(context,
+                   getParameterValue(context, source, frazil::plugin::parameterIds::waterAmount),
                    kWaterAmount, 1.0e-6f, "Water amount survives every routing mode switch");
-        expectNear(context, getParameterValue(context, source, frazil::plugin::parameterIds::iceAmount),
+        expectNear(context,
+                   getParameterValue(context, source, frazil::plugin::parameterIds::iceAmount),
                    kIceAmount, 1.0e-6f, "Ice amount survives every routing mode switch");
     }
 
@@ -155,24 +153,33 @@ void testModeSwitchRetainsInactiveValuesAcrossStateReopen(TestContext& context) 
     FRAZILAudioProcessor restored;
     restored.setStateInformation(serializedState.getData(),
                                  static_cast<int>(serializedState.getSize()));
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::waterEnabled), 0.0f,
-               1.0e-6f, "state reopen retains Water enable");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::iceEnabled), 1.0f, 1.0e-6f,
-               "state reopen retains Ice enable");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::routingMode), 0.0f,
-               1.0e-6f, "state reopen retains the latest routing mode");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::parallelBalance), 0.2f,
-               1.0e-6f, "state reopen retains parallel balance");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::waterAmount), 0.35f,
-               1.0e-6f, "state reopen retains inactive Water amount");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::iceAmount), 0.8f, 1.0e-6f,
-               "state reopen retains inactive Ice amount");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::inputGain), -3.0f, 1.0e-6f,
-               "state reopen retains input gain");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::globalMix), 0.6f, 1.0e-6f,
-               "state reopen retains global mix");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::outputGain), 4.0f, 1.0e-6f,
-               "state reopen retains output gain");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::waterEnabled),
+               0.0f, 1.0e-6f, "state reopen retains Water enable");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::iceEnabled), 1.0f,
+               1.0e-6f, "state reopen retains Ice enable");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::routingMode),
+               0.0f, 1.0e-6f, "state reopen retains the latest routing mode");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::parallelBalance),
+               0.2f, 1.0e-6f, "state reopen retains parallel balance");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::waterAmount),
+               0.35f, 1.0e-6f, "state reopen retains inactive Water amount");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::iceAmount), 0.8f,
+               1.0e-6f, "state reopen retains inactive Ice amount");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::inputGain), -3.0f,
+               1.0e-6f, "state reopen retains input gain");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::globalMix), 0.6f,
+               1.0e-6f, "state reopen retains global mix");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::outputGain), 4.0f,
+               1.0e-6f, "state reopen retains output gain");
 
     restored.prepareToPlay(48000.0, kBlockSize);
     fillBuffer(buffer, 1.0f);

@@ -1,13 +1,12 @@
 #include "app/AudioEngine.h"
 
-#include <juce_audio_formats/juce_audio_formats.h>
-
 #include <algorithm>
 #include <charconv>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <juce_audio_formats/juce_audio_formats.h>
 #include <memory>
 #include <optional>
 #include <string>
@@ -61,8 +60,7 @@ void printUsage(const char* executable) {
                  "  --help                    Show this help\n";
 }
 
-template <typename Integer>
-std::optional<Integer> parseInteger(std::string_view text) {
+template <typename Integer> std::optional<Integer> parseInteger(std::string_view text) {
     Integer value{};
     const auto* begin = text.data();
     const auto* end = begin + text.size();
@@ -148,8 +146,8 @@ ParseResult parseArguments(int argc, char** argv, RenderOptions& options) {
             }
             options.blockSize = *parsed;
         } else if (argument == "--seed") {
-            const auto parsed = parseNextArgument<std::uint32_t>(
-                index, argc, argv, parseInteger<std::uint32_t>);
+            const auto parsed =
+                parseNextArgument<std::uint32_t>(index, argc, argv, parseInteger<std::uint32_t>);
             if (!parsed.has_value()) {
                 std::cerr << "--seed must be an unsigned integer\n";
                 return ParseResult::failure;
@@ -266,10 +264,10 @@ int runRender(const RenderOptions& options) {
     juce::AudioFormatManager formatManager;
     formatManager.registerBasicFormats();
     std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(inputFile));
-    if (reader == nullptr || reader->lengthInSamples <= 0 || reader->numChannels == 0
-        || !std::isfinite(reader->sampleRate) || reader->sampleRate <= 0.0) {
-        std::cerr << "Input is not a valid non-empty audio file: "
-                  << inputFile.getFullPathName() << "\n";
+    if (reader == nullptr || reader->lengthInSamples <= 0 || reader->numChannels == 0 ||
+        !std::isfinite(reader->sampleRate) || reader->sampleRate <= 0.0) {
+        std::cerr << "Input is not a valid non-empty audio file: " << inputFile.getFullPathName()
+                  << "\n";
         return 1;
     }
 
@@ -306,12 +304,12 @@ int runRender(const RenderOptions& options) {
     }
     std::unique_ptr<juce::OutputStream> outputStream = std::move(fileOutputStream);
     juce::WavAudioFormat wavFormat;
-    const auto writerOptions = juce::AudioFormatWriterOptions{}
-                                   .withSampleRate(reader->sampleRate)
-                                   .withNumChannels(numChannels)
-                                   .withBitsPerSample(32)
-                                   .withSampleFormat(
-                                       juce::AudioFormatWriterOptions::SampleFormat::floatingPoint);
+    const auto writerOptions =
+        juce::AudioFormatWriterOptions{}
+            .withSampleRate(reader->sampleRate)
+            .withNumChannels(numChannels)
+            .withBitsPerSample(32)
+            .withSampleFormat(juce::AudioFormatWriterOptions::SampleFormat::floatingPoint);
     auto writer = wavFormat.createWriterFor(outputStream, writerOptions);
     if (writer == nullptr) {
         std::cerr << "Cannot create output WAV writer\n";

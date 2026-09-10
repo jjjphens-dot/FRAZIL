@@ -66,14 +66,14 @@ constexpr float kParameterValueTolerance = 1.0e-5f;
 constexpr int kRepresentativeNominalBlockUpperBound = 1024;
 constexpr int kDeterministicFixtureChannels = 2;
 constexpr std::array<double, 3> sampleRates{44100.0, 48000.0, 96000.0};
-constexpr std::array<int, 6> representativeNominalBlockSizes{32, 64, 128, 256, 512,
-                                                              kRepresentativeNominalBlockUpperBound};
+constexpr std::array<int, 6> representativeNominalBlockSizes{
+    32, 64, 128, 256, 512, kRepresentativeNominalBlockUpperBound};
 constexpr std::array<int, 2> channelCounts{1, 2};
-constexpr std::array<int, 5> shortAndOddCallbackSizes{
-    0, 1, 7, 31, kRepresentativeNominalBlockUpperBound};
-constexpr std::array<InputCase, 4> inputCases{
-    InputCase::silence, InputCase::impulse, InputCase::deterministicNoise,
-    InputCase::extremeFinite};
+constexpr std::array<int, 5> shortAndOddCallbackSizes{0, 1, 7, 31,
+                                                      kRepresentativeNominalBlockUpperBound};
+constexpr std::array<InputCase, 4> inputCases{InputCase::silence, InputCase::impulse,
+                                              InputCase::deterministicNoise,
+                                              InputCase::extremeFinite};
 constexpr std::array<LifecycleCase, 6> lifecycleCases{
     LifecycleCase::prepareAndProcess,
     LifecycleCase::prepareProcessReprepareProcess,
@@ -114,55 +114,49 @@ const char* lifecycleName(LifecycleCase lifecycle) noexcept {
     return "unknown-lifecycle";
 }
 
-bool setParameterValue(TestContext& context,
-                       FRAZILAudioProcessor& processor,
-                       const char* id,
-                       float value,
-                       const std::string& caseName) {
+bool setParameterValue(TestContext& context, FRAZILAudioProcessor& processor, const char* id,
+                       float value, const std::string& caseName) {
     auto* parameter = processor.parameters.getParameter(id);
-    expect(context, parameter != nullptr,
-           caseName + ": parameter exists: " + id);
+    expect(context, parameter != nullptr, caseName + ": parameter exists: " + id);
     if (parameter == nullptr)
         return false;
 
-    const auto normalizedValue =
-        processor.parameters.getParameterRange(id).convertTo0to1(value);
+    const auto normalizedValue = processor.parameters.getParameterRange(id).convertTo0to1(value);
     parameter->setValueNotifyingHost(normalizedValue);
-    const auto applied = std::abs(parameter->getValue() - normalizedValue) <=
-                         kParameterValueTolerance;
+    const auto applied =
+        std::abs(parameter->getValue() - normalizedValue) <= kParameterValueTolerance;
     expect(context, applied, caseName + ": parameter applied: " + id);
     return applied;
 }
 
-bool applyParameters(TestContext& context,
-                     FRAZILAudioProcessor& processor,
-                     const ParameterCase& values,
-                     const std::string& caseName) {
+bool applyParameters(TestContext& context, FRAZILAudioProcessor& processor,
+                     const ParameterCase& values, const std::string& caseName) {
     using namespace frazil::plugin::parameterIds;
     bool allApplied = true;
-    allApplied = setParameterValue(context, processor, waterEnabled, values.waterEnabled,
-                                   caseName) && allApplied;
+    allApplied =
+        setParameterValue(context, processor, waterEnabled, values.waterEnabled, caseName) &&
+        allApplied;
     allApplied = setParameterValue(context, processor, iceEnabled, values.iceEnabled, caseName) &&
                  allApplied;
-    allApplied = setParameterValue(context, processor, routingMode, values.routingMode,
-                                   caseName) && allApplied;
-    allApplied = setParameterValue(context, processor, parallelBalance, values.parallelBalance,
-                                   caseName) && allApplied;
+    allApplied = setParameterValue(context, processor, routingMode, values.routingMode, caseName) &&
+                 allApplied;
+    allApplied =
+        setParameterValue(context, processor, parallelBalance, values.parallelBalance, caseName) &&
+        allApplied;
     allApplied = setParameterValue(context, processor, waterAmount, values.waterAmount, caseName) &&
                  allApplied;
-    allApplied = setParameterValue(context, processor, iceAmount, values.iceAmount, caseName) &&
-                 allApplied;
+    allApplied =
+        setParameterValue(context, processor, iceAmount, values.iceAmount, caseName) && allApplied;
     allApplied = setParameterValue(context, processor, inputGain, values.inputGainDb, caseName) &&
                  allApplied;
-    allApplied = setParameterValue(context, processor, globalMix, values.globalMix, caseName) &&
-                 allApplied;
+    allApplied =
+        setParameterValue(context, processor, globalMix, values.globalMix, caseName) && allApplied;
     allApplied = setParameterValue(context, processor, outputGain, values.outputGainDb, caseName) &&
                  allApplied;
     return allApplied;
 }
 
-bool applyNeutralDryFixture(TestContext& context,
-                            FRAZILAudioProcessor& processor,
+bool applyNeutralDryFixture(TestContext& context, FRAZILAudioProcessor& processor,
                             const std::string& caseName) {
     // ADR-0005 neutral/dry fixture: unity input/output gain and global.mix=0.
     using namespace frazil::plugin::parameterIds;
@@ -189,16 +183,14 @@ void fillInput(juce::AudioBuffer<float>& buffer, InputCase input) {
         state = state * 1664525U + 1013904223U;
         const auto normalized = static_cast<float>(state) /
                                 static_cast<float>(std::numeric_limits<std::uint32_t>::max());
-        const auto value = input == InputCase::extremeFinite
-                               ? (sample % 2 == 0 ? 1.0e6f : -1.0e6f)
-                               : (normalized * 2.0f - 1.0f);
+        const auto value = input == InputCase::extremeFinite ? (sample % 2 == 0 ? 1.0e6f : -1.0e6f)
+                                                             : (normalized * 2.0f - 1.0f);
         for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
             buffer.setSample(channel, sample, value);
     }
 }
 
-void expectFinite(TestContext& context,
-                  const juce::AudioBuffer<float>& buffer,
+void expectFinite(TestContext& context, const juce::AudioBuffer<float>& buffer,
                   const std::string& caseName) {
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel) {
         const auto* samples = buffer.getReadPointer(channel);
@@ -222,8 +214,7 @@ std::vector<float> snapshotBuffer(const juce::AudioBuffer<float>& buffer) {
     return snapshot;
 }
 
-void expectSilenceOutput(TestContext& context,
-                         const juce::AudioBuffer<float>& buffer,
+void expectSilenceOutput(TestContext& context, const juce::AudioBuffer<float>& buffer,
                          const std::string& caseName) {
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel) {
         double sum = 0.0;
@@ -234,9 +225,8 @@ void expectSilenceOutput(TestContext& context,
             maximumMagnitude = std::max(maximumMagnitude, std::abs(value));
         }
 
-        const auto measuredDc = buffer.getNumSamples() == 0
-                                    ? 0.0
-                                    : sum / static_cast<double>(buffer.getNumSamples());
+        const auto measuredDc =
+            buffer.getNumSamples() == 0 ? 0.0 : sum / static_cast<double>(buffer.getNumSamples());
         if (maximumMagnitude > kSilenceOutputTolerance ||
             std::abs(measuredDc) > static_cast<double>(kSilenceOutputTolerance)) {
             std::ostringstream description;
@@ -249,12 +239,10 @@ void expectSilenceOutput(TestContext& context,
     }
 }
 
-bool configureBusLayout(TestContext& context,
-                        FRAZILAudioProcessor& processor,
-                        int channelCount,
+bool configureBusLayout(TestContext& context, FRAZILAudioProcessor& processor, int channelCount,
                         const std::string& caseName) {
-    const auto channelSet = channelCount == 1 ? juce::AudioChannelSet::mono()
-                                               : juce::AudioChannelSet::stereo();
+    const auto channelSet =
+        channelCount == 1 ? juce::AudioChannelSet::mono() : juce::AudioChannelSet::stereo();
     juce::AudioProcessor::BusesLayout layout;
     layout.inputBuses.add(channelSet);
     layout.outputBuses.add(channelSet);
@@ -263,16 +251,12 @@ bool configureBusLayout(TestContext& context,
     return accepted;
 }
 
-void runPropertyCase(TestContext& context,
-                     double sampleRate,
-                     int blockSize,
-                     int channelCount,
-                     const ParameterCase& parameterValues,
-                     InputCase input,
+void runPropertyCase(TestContext& context, double sampleRate, int blockSize, int channelCount,
+                     const ParameterCase& parameterValues, InputCase input,
                      LifecycleCase lifecycle) {
     std::ostringstream caseName;
-    caseName << "rate=" << sampleRate << ", block=" << blockSize
-             << ", channels=" << channelCount << ", parameters="
+    caseName << "rate=" << sampleRate << ", block=" << blockSize << ", channels=" << channelCount
+             << ", parameters="
              << (lifecycle == LifecycleCase::neutralPrepareProcessReprepareProcessExact
                      ? "neutral/dry"
                      : parameterValues.name)
@@ -299,8 +283,9 @@ void runPropertyCase(TestContext& context,
         processor.processBlock(buffer, midi);
 
         const auto phaseName = name + ": " + phase;
-        expect(context, buffer.getNumChannels() == originalChannels &&
-                           buffer.getNumSamples() == originalSamples,
+        expect(context,
+               buffer.getNumChannels() == originalChannels &&
+                   buffer.getNumSamples() == originalSamples,
                phaseName + ": buffer dimensions remain valid after processBlock");
         expectFinite(context, buffer, phaseName);
         if (input == InputCase::silence)
@@ -325,7 +310,7 @@ void runPropertyCase(TestContext& context,
         const auto secondOutput = processOnce("neutral recovered process");
         expect(context, firstOutput == secondOutput,
                name + ": neutral/dry exact output repeats after release and reprepare; "
-                       "this is not a production-randomness contract");
+                      "this is not a production-randomness contract");
         break;
     }
     case LifecycleCase::repeatedPrepare:
@@ -342,8 +327,8 @@ void runPropertyCase(TestContext& context,
         juce::AudioBuffer<float> emptyBuffer(channelCount, 0);
         juce::MidiBuffer midi;
         processor.processBlock(emptyBuffer, midi);
-        expect(context, emptyBuffer.getNumChannels() == channelCount &&
-                           emptyBuffer.getNumSamples() == 0,
+        expect(context,
+               emptyBuffer.getNumChannels() == channelCount && emptyBuffer.getNumSamples() == 0,
                name + ": zero-length buffer dimensions remain valid");
         processOnce("process after zero-length callback");
         break;
@@ -356,8 +341,9 @@ void runShortAndOddCallbackCases(TestContext& context) {
     for (const auto actualBlockSize : shortAndOddCallbackSizes) {
         std::ostringstream caseName;
         caseName << "rate=48000, prepare nominal=" << kRepresentativeNominalBlockUpperBound
-                 << ", callback=" << actualBlockSize << ", channels=2, parameters="
-                 << parameters.name << ", input=deterministic-noise, lifecycle=single-prepare";
+                 << ", callback=" << actualBlockSize
+                 << ", channels=2, parameters=" << parameters.name
+                 << ", input=deterministic-noise, lifecycle=single-prepare";
         const auto name = caseName.str();
         ++context.cases;
 
@@ -372,15 +358,13 @@ void runShortAndOddCallbackCases(TestContext& context) {
         fillInput(buffer, InputCase::deterministicNoise);
         juce::MidiBuffer midi;
         processor.processBlock(buffer, midi);
-        expect(context, buffer.getNumChannels() == 2 &&
-                           buffer.getNumSamples() == actualBlockSize,
+        expect(context, buffer.getNumChannels() == 2 && buffer.getNumSamples() == actualBlockSize,
                name + ": actual callback dimensions remain valid");
         expectFinite(context, buffer, name);
     }
 }
 
-std::vector<float> runDeterministicCase(TestContext& context,
-                                        int blockSize,
+std::vector<float> runDeterministicCase(TestContext& context, int blockSize,
                                         const char* instanceName) {
     FRAZILAudioProcessor processor;
     juce::AudioProcessor::BusesLayout layout;
@@ -400,8 +384,7 @@ std::vector<float> runDeterministicCase(TestContext& context,
     juce::MidiBuffer midi;
     processor.processBlock(buffer, midi);
 
-    std::vector<float> result(
-        static_cast<std::size_t>(kDeterministicFixtureChannels * blockSize));
+    std::vector<float> result(static_cast<std::size_t>(kDeterministicFixtureChannels * blockSize));
     for (int channel = 0; channel < kDeterministicFixtureChannels; ++channel)
         for (int sample = 0; sample < blockSize; ++sample)
             result[static_cast<std::size_t>(channel * blockSize + sample)] =
@@ -412,8 +395,7 @@ std::vector<float> runDeterministicCase(TestContext& context,
 void testM1NeutralDeterministicOutput(TestContext& context) {
     const auto first = runDeterministicCase(context, 128, "first fresh processor");
     const auto second = runDeterministicCase(context, 128, "second fresh processor");
-    const auto expectedSize =
-        static_cast<std::size_t>(kDeterministicFixtureChannels * 128);
+    const auto expectedSize = static_cast<std::size_t>(kDeterministicFixtureChannels * 128);
     expect(context, first.size() == expectedSize && second.size() == expectedSize,
            "M1 neutral/deterministic path produced expected fixture output sizes");
     expect(context, first == second,
@@ -430,17 +412,16 @@ int main() {
     // dimensions are then exercised against a canonical 48 kHz/128/stereo configuration.
     const auto& defaultParameters = parameterCases.front();
     for (const auto sampleRate : sampleRates)
-    for (const auto blockSize : representativeNominalBlockSizes)
+        for (const auto blockSize : representativeNominalBlockSizes)
             for (const auto channelCount : channelCounts)
                 runPropertyCase(context, sampleRate, blockSize, channelCount, defaultParameters,
-                                InputCase::deterministicNoise,
-                                LifecycleCase::prepareAndProcess);
+                                InputCase::deterministicNoise, LifecycleCase::prepareAndProcess);
 
     for (const auto& parameterValues : parameterCases) {
-        runPropertyCase(context, 48000.0, 128, 2, parameterValues,
-                        InputCase::deterministicNoise, LifecycleCase::prepareAndProcess);
-        runPropertyCase(context, 48000.0, 128, 2, parameterValues,
-                        InputCase::extremeFinite, LifecycleCase::prepareAndProcess);
+        runPropertyCase(context, 48000.0, 128, 2, parameterValues, InputCase::deterministicNoise,
+                        LifecycleCase::prepareAndProcess);
+        runPropertyCase(context, 48000.0, 128, 2, parameterValues, InputCase::extremeFinite,
+                        LifecycleCase::prepareAndProcess);
     }
 
     for (const auto input : inputCases)
@@ -448,8 +429,8 @@ int main() {
                         LifecycleCase::prepareAndProcess);
 
     for (const auto lifecycle : lifecycleCases)
-        runPropertyCase(context, 48000.0, 128, 2, defaultParameters,
-                        InputCase::deterministicNoise, lifecycle);
+        runPropertyCase(context, 48000.0, 128, 2, defaultParameters, InputCase::deterministicNoise,
+                        lifecycle);
 
     runShortAndOddCallbackCases(context);
     testM1NeutralDeterministicOutput(context);
