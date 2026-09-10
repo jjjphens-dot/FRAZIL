@@ -4,7 +4,13 @@
 >
 > 本文中的 <repo-root> 表示开发者实际打开的 FRAZIL repository root，不是固定盘符或固定用户名。
 
+本文档是 procedural onboarding 指南。项目环境要求、可移植性边界、safe-build 约束和参考机证据的
+normative 定义见 [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)；本指南只提供逐步操作和问题排查。
+
 ## 1. 工具要求
+
+以下清单用于 onboarding；版本、路径可移植性和构建安全合同以
+[`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md) 为准。
 
 - Windows x64；
 - Git、PowerShell、CMake 3.25+、CTest 和 Ninja；
@@ -97,6 +103,9 @@ CMakePresets.json 使用 cl、rc、mt 的 tool discovery，不使用任何个人
 
 ## 8. Configure、build 和 test
 
+以下是从 checkout 到验证的 procedural sequence；命令的 normative environment contract 见
+[`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)。
+
     cmake --list-presets
     cmake --preset windows-debug
     python tools/build_safe.py --preset windows-debug
@@ -117,6 +126,9 @@ ASAN configure 从 C++ compiler 目录发现 MSVC runtime；构建时将 clang_r
 本地构建统一使用 tools/build_safe.py；默认 6 个 job、硬上限 8 个 job，并在低可用内存时拒绝启动。完整编译输出写入 ignored 的 build/safe-build 日志。 共享 configure preset 将 CMAKE_BUILD_PARALLEL_LEVEL 固定为 6，以约束 JUCE nested build；本机重型 configure/build/test pipeline 必须串行执行。
 
 ## 9. Portability scan
+
+本节只列出 onboarding 时应运行的命令；scanner 的范围、排除项和 tracked-path 规则由
+[`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md) 维护。
 
 提交前和本地验证时运行：
 

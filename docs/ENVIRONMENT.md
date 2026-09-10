@@ -2,6 +2,10 @@
 
 本文档区分 FRAZIL 项目要求与某一台参考机器的验证证据。除非明确标为参考证据，文中的路径均为 repository-relative path。
 
+本文档是 normative environment/portability contract；根目录的
+[`FRAZIL_ENVIRONMENT_SETUP.md`](../FRAZIL_ENVIRONMENT_SETUP.md) 负责 procedural onboarding
+和逐步安装说明，引用本文件的要求而不另行定义合同。
+
 ## Project Requirements
 
 - Windows x64 开发环境。

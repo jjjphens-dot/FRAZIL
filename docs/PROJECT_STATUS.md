@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-10<br>
+> 快照日期：2026-09-11<br>
 > 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -15,6 +15,8 @@
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
 `CODING_PLAN.md` v1.1 / Approved Development Baseline 已作为 M0→M7 的正式工程执行基线；这不代表 FRAZIL plugin v1.0 release，也不改变 M0/M1、Water/Ice/Routing 的实际完成状态。
+
+本文件的第 1 节和第 2 节资产表是当前状态速览；第 2.1 至 2.5 节保留带日期的历史 evidence-time snapshots，供追溯但不作为当前 HEAD 或当前 CI 状态。第 2.6 节链接 PR #18 合入前后的 M1 engineering evidence；新的验证结果应优先写入 `docs/evidence/`，并在此处只保留当前结论和链接。
 
 当前阻塞性差距：
 
@@ -203,7 +205,7 @@ PluginProcessor
 ## 5. 现状对应 milestone
 
 - M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
-- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration、TESTDATA-001 reproducibility infrastructure、RENDER-001 pass-through offline smoke、TEST-002、PERF-BASE-001 和 ARCH-LAT-001 已建立；当前 branch 的 Debug/Release/ASAN engineering evidence 见 `docs/evidence/`；仍缺完整 render regression matrix、真实 DAW 验证、current-artifact pluginval、正式参数 freeze 和 M1 Joint Exit；M5 EditHistoryManager 仍未开始。
+- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration、TESTDATA-001 reproducibility infrastructure、RENDER-001 pass-through offline smoke、TEST-002、PERF-BASE-001 和 ARCH-LAT-001 已建立；PR #18 tested implementation 的 Debug/Release/ASAN engineering evidence 见 `docs/evidence/`，不把本整改 branch 的局部验证写成 main 或 milestone evidence；仍缺完整 render regression matrix、真实 DAW 验证、current-artifact pluginval、正式参数 freeze 和 M1 Joint Exit；M5 EditHistoryManager 仍未开始。
 - M2 Water：**未开始**。
 - M3 Ice：**未开始**。
 - M4 Routing：**未开始**。
