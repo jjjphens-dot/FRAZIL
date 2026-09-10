@@ -31,7 +31,7 @@ PluginEditor -> plugin parameter interface
 
 ## Public Interfaces
 
-当前 `PluginProcessor` 暴露 JUCE lifecycle、`prepareToPlay`、`processBlock`、editor 和 state API；APVTS 仍为 public member，是后续需要收窄审查的技术债。参数 layout 已迁移到 `src/plugin/ParameterLayout.*`，并由 M1 合同测试固定顺序和 ID。`HostStateAdapter` 将 APVTS state 转换为带 `schemaVersion=1` 的稳定 envelope，并把 restore 留在非音频线程。
+当前 `PluginProcessor` 暴露 JUCE lifecycle、`prepareToPlay`、`processBlock`、editor 和 state API，并只提供 `parameter`、`rawParameterValue`、`parameterRange` 三个狭窄的 setup/integration accessor；APVTS 与 state tree 保持 private。参数 layout 已迁移到 `src/plugin/ParameterLayout.*`，并由 M1 合同测试固定顺序和 ID。`HostStateAdapter` 将 APVTS state 转换为带 `schemaVersion=1` 的稳定 envelope，并把 restore 留在非音频线程。
 
 `ParameterLayout` 只参与 Plugin construction/setup 的稳定 Host 参数注册，不参与 per-block audio runtime chain；runtime 从 Host Parameter Atomics 建立 `ParameterSnapshot` 开始。
 

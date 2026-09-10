@@ -9,21 +9,29 @@ FRAZILAudioProcessor::FRAZILAudioProcessor()
     : AudioProcessor(BusesProperties()
                          .withInput("Input", juce::AudioChannelSet::stereo(), true)
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-      parameters(*this, nullptr, "FRAZIL", createParameterLayout()) {
+      parameters_(*this, nullptr, "FRAZIL", frazil::plugin::createParameterLayout()) {
     parameterSources_ = {
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::kWaterEnabled),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::kIceEnabled),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::kRoutingMode),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::kParallelBalance),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::kWaterAmount),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::kIceAmount),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::kInputGain),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::kGlobalMix),
-        parameters.getRawParameterValue(frazil::plugin::parameterIds::kOutputGain)};
+        parameters_.getRawParameterValue(frazil::plugin::parameterIds::kWaterEnabled),
+        parameters_.getRawParameterValue(frazil::plugin::parameterIds::kIceEnabled),
+        parameters_.getRawParameterValue(frazil::plugin::parameterIds::kRoutingMode),
+        parameters_.getRawParameterValue(frazil::plugin::parameterIds::kParallelBalance),
+        parameters_.getRawParameterValue(frazil::plugin::parameterIds::kWaterAmount),
+        parameters_.getRawParameterValue(frazil::plugin::parameterIds::kIceAmount),
+        parameters_.getRawParameterValue(frazil::plugin::parameterIds::kInputGain),
+        parameters_.getRawParameterValue(frazil::plugin::parameterIds::kGlobalMix),
+        parameters_.getRawParameterValue(frazil::plugin::parameterIds::kOutputGain)};
 }
 
-juce::AudioProcessorValueTreeState::ParameterLayout FRAZILAudioProcessor::createParameterLayout() {
-    return frazil::plugin::createParameterLayout();
+juce::RangedAudioParameter* FRAZILAudioProcessor::parameter(const char* id) noexcept {
+    return parameters_.getParameter(id);
+}
+
+const std::atomic<float>* FRAZILAudioProcessor::rawParameterValue(const char* id) const noexcept {
+    return parameters_.getRawParameterValue(id);
+}
+
+juce::NormalisableRange<float> FRAZILAudioProcessor::parameterRange(const char* id) const noexcept {
+    return parameters_.getParameterRange(id);
 }
 
 void FRAZILAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
@@ -98,7 +106,7 @@ const juce::String FRAZILAudioProcessor::getProgramName(int) {
 void FRAZILAudioProcessor::changeProgramName(int, const juce::String&) {}
 
 void FRAZILAudioProcessor::getStateInformation(juce::MemoryBlock& destinationData) {
-    const auto state = frazil::plugin::HostStateAdapter::serialize(parameters);
+    const auto state = frazil::plugin::HostStateAdapter::serialize(parameters_);
     if (auto xml = state.createXml())
         copyXmlToBinary(*xml, destinationData);
 }
@@ -106,9 +114,9 @@ void FRAZILAudioProcessor::getStateInformation(juce::MemoryBlock& destinationDat
 void FRAZILAudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
     if (auto xml = getXmlFromBinary(data, sizeInBytes)) {
         const auto state = juce::ValueTree::fromXml(*xml);
-        frazil::plugin::HostStateAdapter::restore(parameters, state);
+        frazil::plugin::HostStateAdapter::restore(parameters_, state);
     } else {
-        frazil::plugin::HostStateAdapter::restore(parameters, juce::ValueTree{});
+        frazil::plugin::HostStateAdapter::restore(parameters_, juce::ValueTree{});
     }
 }
 

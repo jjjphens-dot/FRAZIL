@@ -34,11 +34,14 @@ class FRAZILAudioProcessor final : public juce::AudioProcessor {
     void getStateInformation(juce::MemoryBlock& destinationData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
-    static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-
-    juce::AudioProcessorValueTreeState parameters;
+    // Narrow setup/message-thread access for editor and integration boundaries. The APVTS and its
+    // state tree remain private; audio processing uses the cached atomics below.
+    juce::RangedAudioParameter* parameter(const char* id) noexcept;
+    const std::atomic<float>* rawParameterValue(const char* id) const noexcept;
+    juce::NormalisableRange<float> parameterRange(const char* id) const noexcept;
 
   private:
+    juce::AudioProcessorValueTreeState parameters_;
     ParameterSourcePointers parameterSources_;
     ParameterMapper parameterMapper_;
     AudioEngine audioEngine_;

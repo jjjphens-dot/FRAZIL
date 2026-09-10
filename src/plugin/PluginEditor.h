@@ -1,10 +1,10 @@
 #pragma once
 
-#include "PluginProcessor.h"
+#include <JuceHeader.h>
 
 class FRAZILAudioProcessorEditor final : public juce::AudioProcessorEditor {
   public:
-    explicit FRAZILAudioProcessorEditor(FRAZILAudioProcessor&);
+    explicit FRAZILAudioProcessorEditor(juce::AudioProcessor&);
     ~FRAZILAudioProcessorEditor() override = default;
 
     void paint(juce::Graphics&) override;

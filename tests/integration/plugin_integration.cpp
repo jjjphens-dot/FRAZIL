@@ -29,17 +29,16 @@ void expectNear(TestContext& context, float actual, float expected, float tolera
 
 void setParameterValue(TestContext& context, FRAZILAudioProcessor& processor, const char* id,
                        float value) {
-    auto* parameter = processor.parameters.getParameter(id);
+    auto* parameter = processor.parameter(id);
     expect(context, parameter != nullptr, "integration parameter exists");
     if (parameter != nullptr) {
-        parameter->setValueNotifyingHost(
-            processor.parameters.getParameterRange(id).convertTo0to1(value));
+        parameter->setValueNotifyingHost(processor.parameterRange(id).convertTo0to1(value));
     }
 }
 
 float getParameterValue(TestContext& context, const FRAZILAudioProcessor& processor,
                         const char* id) {
-    const auto* value = processor.parameters.getRawParameterValue(id);
+    const auto* value = processor.rawParameterValue(id);
     expect(context, value != nullptr, "integration parameter value exists");
     return value != nullptr ? value->load(std::memory_order_relaxed) : 0.0f;
 }

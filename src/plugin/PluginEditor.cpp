@@ -1,6 +1,6 @@
 #include "PluginEditor.h"
 
-FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& processor)
+FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(juce::AudioProcessor& processor)
     : AudioProcessorEditor(processor) {
     setSize(640, 360);
 }

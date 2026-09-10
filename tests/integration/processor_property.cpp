@@ -124,12 +124,12 @@ const char* lifecycleName(LifecycleCase lifecycle) noexcept {
 
 bool setParameterValue(TestContext& context, FRAZILAudioProcessor& processor, const char* id,
                        float value, const std::string& caseName) {
-    auto* parameter = processor.parameters.getParameter(id);
+    auto* parameter = processor.parameter(id);
     expect(context, parameter != nullptr, caseName + ": parameter exists: " + id);
     if (parameter == nullptr)
         return false;
 
-    const auto normalizedValue = processor.parameters.getParameterRange(id).convertTo0to1(value);
+    const auto normalizedValue = processor.parameterRange(id).convertTo0to1(value);
     parameter->setValueNotifyingHost(normalizedValue);
     const auto applied =
         std::abs(parameter->getValue() - normalizedValue) <= kParameterValueTolerance;
