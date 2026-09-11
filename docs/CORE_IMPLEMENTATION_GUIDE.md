@@ -358,85 +358,99 @@ old wet -> post-input dry -> switch topology -> new wet
 最终方案必须由 `ADR-R-001` 明确 processor state ownership、random state ownership、tail
 ownership 和 CPU upper bound。
 
-## 5. Water DSP 实验候选
+## 5. Water 双模式实验架构
 
-本节只用于 `experiments/water/` 的候选比较。生产采纳必须完成 `EXP-W-001..003`、双人听测和
-`ADR-W-001`。
+本节只用于 `experiments/water/`、M2 planning 和 `ADR-W-001` 的候选比较。Fluid A+B+D 与
+Resonant C 是已决定的产品方向，但具体 topology、mapping、范围、默认值、state evolution、性能预算
+和 production implementation 尚未被接受。生产采纳必须完成 `EXP-W-001..003`、双人 loudness-matched
+听测、工程 gate 和 Water ADR；本节不得直接触发 `ParameterLayout` 或 schema 修改。
 
-### 5.1 Flow Modulator：时变微延迟
+```text
+WaterProcessor
+  common source-preserving carrier/residual contract
+  Fluid mode
+    Bubble Ensemble
+    Droplet/Impact Exciter
+    Flow Modulator
+  Resonant mode
+    Liquid/Modal Resonator
+  shared Size mapping
+  shared Motion mapping
+  bounded mode transition
+  explicit random/seed and energy semantics
+```
 
-> EXPERIMENT CANDIDATE — NOT PRODUCTION REQUIREMENT
+### 5.1 科学依据与近似边界
 
-建立 `prepare()` 期间预分配的 circular delay。延迟时间：
+- Minnaert 的 bubble-acoustics 工作支持 bubble radius 与 resonance frequency 的强逆向关系，可作为
+  Fluid Size -> bubble scale -> resonance distribution 的物理依据；简单 Minnaert relation 不能被写成
+  对任意真实 bubble、边界和群体都完整准确的模型。
+- Pumphrey、Crum、Bjørnø 对 drop impacts/rainfall 的研究支持 drop impact 与随之产生的 bubble sound
+  可以形成可区分的声学机制，因此 Bubble Ensemble 与 Droplet/Impact 应在 `EXP-W-002` 分开 ablation。
+- van den Doel 给出基于单 bubble 与 stochastic population 的实时交互 liquid-sound synthesis 依据；
+  Zheng/James 的 Harmonic Fluids 进一步支持从 bubble oscillator population 和 physical fluid events
+  进行 procedural synthesis。
+- Langlois/Zheng/James 以及 Xue 等人的 complex/coupled bubble 工作说明 independent bubble oscillator
+  是实用近似，geometry、boundaries、bubble populations 和 inter-bubble coupling 会改变响应，尤其会
+  影响 low-frequency content。
+- Drioli/Rocchesso 支持把 fluid simulation 中声学相关 event/particle quantities 映射到较轻量的 audio
+  primitives。FRAZIL 因此研究 bounded event-to-audio approximation，而不是把 full fluid simulation、
+  FDTD、GPU wave solver 或数十万 bubbles 设为 v1 realtime callback 要求。
+
+这些论文只支持物理现象和近似策略；下面的 `W(x)`、macro 语义与 residual composition 是 FRAZIL
+自己的工程/产品推论。
+
+### 5.2 Source-preserving 与 residual ownership
+
+WaterProcessor 是 material transformation processor，不是 independent Water Foley generator：
 
 \[
-D[n]=D_0+D_L\sin(\phi[n])+D_N\eta[n]
+W(x)=x+E_{water}(x)
 \]
 
 \[
-\phi[n+1]=\phi[n]+\frac{2\pi f_L}{f_s}
-\]
-
-低通随机调制：
-
-\[
-\eta[n]=\rho\eta[n-1]+(1-\rho)u[n]
-\]
-
-延迟读取：
-
-\[
-x_d[n]=x[n-D[n]]
-\]
-
-使用线性或三次分数延迟插值。有效 delay interval 取决于所选 interpolation kernel；circular
-buffer 必须为所选 linear/cubic interpolation 提供足够的 guard samples。
-
-\[
-0\le D[n]\le D_{max}
-\]
-
-原理：缓慢变化的短延迟产生连续相位移动与轻微梳状结构，形成流动、折射和晃动感。
-`Dmax`、channel 数和 maximum block size 必须在 `prepare()` 后成为稳定 buffer invariant。
-这里的范围是 nominal delay domain；实现必须把 D[n] clamp 到 interpolation-safe readable interval，
-而不只是数学上的 [0, Dmax]。
-
-### 5.2 Liquid Resonator：输入激发模态
-
-> EXPERIMENT CANDIDATE — NOT PRODUCTION REQUIREMENT
-
-对第 `k` 个模态：
-
-\[
-r_k=e^{-1/(\tau_k f_s)}
+E_{fluid}=E_{bubble}+E_{droplet}+E_{flow}
 \]
 
 \[
-\omega_k=\frac{2\pi f_k}{f_s}
+E_{resonant}=\text{modal/resonant material residual}
 \]
 
-\[
-y_k[n]=2r_k\cos(\omega_k)y_k[n-1]-r_k^2y_k[n-2]+b_kx[n]
-\]
+`x` 是 WaterProcessor input carrier，`E_water(x)` 必须与输入存在明确 excitation/feature dependency。
+每个 sub-engine 的接口和 ADR 必须声明返回 material residual 还是 complete processed signal；preferred
+内部结构是 residual-oriented。若某 Resonant topology 已把 direct copy/feedthrough of `x` 包含在输出中，
+上层不得再次执行 `x + resonatorOutput`。测试必须能发现 duplicate carrier、unintended gain increase 和
+comb/filter artifact。
 
-原理：用若干稳定二阶共振模态产生被输入激发的液体、水滴或容器共振感。
+Source-preserving 不等于逐样本保留，也不能仅靠降低 `global.mix` 达成。在正常 Water 设置及代表性的
+`global.mix=100%` Water-only evaluation 下，输入应保持音乐可辨识性，除非明确评估 extreme setting。
+需要记录 input recognizability、Water identity、transient preservation、RMS/LUFS relationship、residual
+energy、peak growth、spectral change、DC 和 tail；实验前不设置 universal residual-to-input dB limit。
 
-稳定性要求：
+Water 不拥有 public stage/global mixing。`water.amount` 仍是 Serial stage amount，`parallel.balance` 仍是
+Parallel Water/Ice proportion，`global.mix` 仍是完整插件 dry/wet。不得添加 `water.dryWet`。
 
-- `0 < rk < 1`；
-- `fk` 始终低于带安全裕量的 Nyquist；
-- modulation 后重新 clamp；
-- 模态总 gain 有明确上界；
-- `reset()` clears all resonator/modal persistent state, including previous modal samples such as
-  `y[n-1]`/`y[n-2]` and any candidate-specific modulation/envelope state owned by the processor；
-- silence tail 应按算法定义衰减。
-- silence tail 必须检查 denormal/subnormal behavior，不能在长静音或 tail 期间出现 uncontrolled
-CPU spike；可由 production implementation 选择 `juce::ScopedNoDenormals` 或 mathematically
-appropriate state cleanup，未经 profiling 不得到处加入 arbitrary epsilon。
+### 5.3 Fluid mode（A+B+D）
 
-### 5.3 输入驱动的 Droplet Exciter
+Fluid 组合 Bubble Ensemble、Droplet/Impact Exciter 与 Flow Modulator，目标是明显但 source-preserving 的
+bubble/liquid identity、液体瞬态和持续非周期运动。三组件在集成前后都需要 ablation 和测量，避免某一
+组件只增加 loudness 或 artifact 而没有感知贡献。
 
-> EXPERIMENT CANDIDATE — NOT PRODUCTION REQUIREMENT
+#### 5.3.1 Bubble Ensemble（A）
+
+> EXPERIMENT CANDIDATE — NOT PRODUCTION IMPLEMENTATION
+
+使用 input envelope/transient/features 驱动有界 bubble voice population。对理想孤立 spherical bubble，
+Minnaert 关系可概括为 `f_res proportional to 1 / radius`；工程实现可据此设计 Size 到 radius/population
+scale 再到 frequency distribution 的单调候选，但必须通过 listening 与 measurement 确定范围和曲线。
+
+每个 voice 必须有固定容量、明确 excitation、frequency/decay/gain bounds、deterministic voice stealing、
+Nyquist margin、reset/tail 和 denormal policy。independent oscillators 是 v1 可评估的 approximation，不是
+对 coupled bubbles 的完整仿真。
+
+#### 5.3.2 Droplet/Impact Exciter（B）
+
+> EXPERIMENT CANDIDATE — NOT PRODUCTION IMPLEMENTATION
 
 事件率 `lambda` 对应每 sample 概率：
 
@@ -450,48 +464,174 @@ p=1-e^{-\lambda/f_s}
 trigger=(u<p)\land(e>\theta)
 \]
 
-事件幅度绑定输入：
+事件幅度绑定输入并有硬上界：
 
 \[
 A=\min(A_{max},ke^\gamma)
 \]
 
-事件用于激发短衰减 resonator，而不是播放独立采样。实现使用固定容量 voice pool，明确最大
-voice 数、幅度、事件密度和 deterministic voice stealing。
+事件用于激发短衰减 resonator，而不是播放独立采样。实现使用固定容量 voice pool，明确最大 voice
+数、幅度、事件密度和 deterministic voice stealing。Bubble 与 Droplet/Impact 在物理参考和感知贡献上
+不得被无证据合并为同一个“随机水声”旋钮。
 
-这样可以避免算法退化成与输入无关的水滴拟音层。
+#### 5.3.3 Flow Modulator（D）
 
-### 5.4 Water 输出与宏映射
+> EXPERIMENT CANDIDATE — NOT PRODUCTION IMPLEMENTATION
 
-> EXPERIMENT CANDIDATE — NOT PRODUCTION REQUIREMENT
-
-一个实验组合可写为：
-
-\[
-W(x)=x+\alpha_f(x_d-x)+\alpha_r\sum_k y_k+\alpha_d d
-\]
-
-先测量 DC/low-frequency drift。只有当所选 candidate 展现出 measurable/meaningful DC problem
-时才加入 DC blocker；若采用，必须记录 cutoff、phase/low-frequency impact 和 reset behavior。
-Gain compensation 同样必须 based on measured candidate behavior。禁止依赖最终 limiter 掩盖 resonator
-或 event generator 的不稳定。
-
-首批建议最多两个宏：
-
-- `water.motion`：delay depth/rate、随机调制与事件率；
-- `water.character`：共振混合量、频率、衰减和亮度。
-
-以上名称只是 candidate names，不得因此加入 `ParameterLayout`、Host registry 或 public state schema。
-必须先完成 experiment、listening、mapping design、automation stress、Water ADR 和 M2 evidence；
-`PARAM-FREEZE-001` 之前不得冻结 v1 Host API。
-
-频率、事件率或时间常数适合使用指数映射：
+可在 `prepare()` 期间预分配 circular delay，评估时变微延迟：
 
 \[
-f(m)=f_{min}\left(\frac{f_{max}}{f_{min}}\right)^m,\qquad m\in[0,1]
+D[n]=D_0+D_L\sin(\phi[n])+D_N\eta[n]
 \]
 
-具体范围、默认值和联动关系必须由 experiment、automation stress 和听测确定。
+\[
+\phi[n+1]=\phi[n]+\frac{2\pi f_L}{f_s},\qquad
+\eta[n]=\rho\eta[n-1]+(1-\rho)u[n]
+\]
+
+\[
+x_d[n]=x[n-D[n]],\qquad 0\le D[n]\le D_{max}
+\]
+
+线性或三次 fractional-delay interpolation 必须有足够 guard samples，并把读取位置 clamp 到 kernel-safe
+interval。`Dmax`、channel count 和 maximum block size 在 `prepare()` 后必须是稳定 invariant。周期 LFO 不能
+主导 Fluid identity；smoothed random 与 event variation 应共同形成 bounded、non-periodic motion。
+
+### 5.4 Resonant mode（C）
+
+> EXPERIMENT CANDIDATE — NOT PRODUCTION IMPLEMENTATION
+
+Resonant 使用输入激发的 Liquid/Modal Resonator，目标是稳定、凝聚、适合 tonal/pitched material 且相对
+低复杂度的 Water behavior。它不是 Fluid 的低质量替代，也不是独立发声器。
+
+对第 `k` 个候选模态：
+
+\[
+r_k=e^{-1/(\tau_k f_s)},\qquad
+\omega_k=\frac{2\pi f_k}{f_s}
+\]
+
+\[
+y_k[n]=2r_k\cos(\omega_k)y_k[n-1]-r_k^2y_k[n-2]+b_kx[n]
+\]
+
+稳定性要求：`0 < r_k < 1`；`f_k` 始终低于带裕量的 Nyquist；modulation 后重新 clamp；模态总 gain
+有明确上界；`reset()` 清除 modal、excitation、envelope 和 modulation persistent state；silence tail 按
+算法定义衰减并验证 denormal/subnormal behavior。
+
+Size 应 coherent scaling modal/root-frequency family：large/deep 通常映射较低 resonance scale，small/bright
+映射较高 scale。Motion 在 Resonant 中刻意更 subtle，只可评估 slow bounded modal drift、mild excitation-
+distribution variation 或小幅 decay/excitation movement；不得强烈随机化所有 resonator parameters。
+
+### 5.5 Size / Motion macro mapping
+
+候选 `water.model`、`water.size`、`water.motion` 不属于当前九参数 registry。每个正式 macro 必须形成：
+
+```text
+user perceptual intention
+  -> normalized product parameter
+  -> ParameterMapper responsibility
+  -> mode-specific engine mapping
+  -> bounded DSP quantities
+  -> expected audible consequence
+  -> smoothing/transition and automation
+  -> listening/property/state validation
+```
+
+| Candidate | Fluid mapping | Resonant mapping | Required invariant/evidence |
+|---|---|---|---|
+| `water.model` | 选择 A+B+D residual | 选择 C residual | deterministic choice ordering；click-free transition；state/value retention；rapid automation；两模式可辨识 |
+| `water.size` | bubble radius/population scale -> resonance-frequency distribution；可在证据支持时轻微联动 physically related droplet scale | modal/root frequency -> coherent mode-family scaling | high-level scale meaning 跨模式一致；适用 mapping 单调；不映射 Amount、general loudness、event density 或 Motion speed |
+| `water.motion` | bubble/droplet activity、Flow depth/rate、bounded stochastic variation | subtle modal drift、excitation distribution 或小幅 decay/excitation movement | temporal activity 随 Motion 增强；不得主要成为 gain/Amount；energy/loudness strategy 由测量决定 |
+
+频率、事件率或时间常数可实验指数映射：
+
+\[
+f(m)=f_{min}\left(\frac{f_{max}}{f_{min}}\right)^m,
+\qquad m\in[0,1]
+\]
+
+这不是最终 range/default/curve。每个 destination 必须有与 perceptual semantic 直接相关的理由；禁止
+Size 偷偷变成 Motion、Motion 偷偷变成 Amount，或任一 macro 主要变成 Gain。
+
+### 5.6 Internal modulation 与用户 LFO 边界
+
+Fluid 可以内部使用 per-instance `RandomSource`、probabilistic events、smoothed random process、LFO 和
+stochastic Flow modulation；Resonant 可以使用有依据的 bounded slow drift。这些都是 algorithm details，
+必须遵守 fixed test seed 与 production instance decorrelation 的区分。
+
+v1 当前不加入 general user-programmable LFO/modulation matrix。Host 已能对 automatable parameters 提供
+automation/modulation；完整内部 LFO 还会引入 waveform、rate、sync、phase、retrigger、depth、offset、
+destination、state 和 automation complexity。未来若真实用户证据支持，只研究可选的 constrained
+`Motion Mod` foldout：Source=LFO/Random、Rate、Depth、Smooth、destination fixed to Motion；这仍需新的
+parameter/state/automation review，不能进入当前 schemaVersion=1。
+
+### 5.7 Water mode transition candidate
+
+若两个 engine 都输出 residual，可评估：
+
+\[
+W=x+(1-c)E_{fluid}+cE_{resonant},\qquad c\in[0,1]
+\]
+
+这只是设计 candidate。`ADR-W-001` 必须决定 transition 时是否双引擎运行、state/tail ownership、random
+progression、transition duration、CPU upper bound、rapid repeated automation、reset/prepare 和 state-restore
+行为。不得在同一 block 用同一 stateful engine 错误推进两次，也不得在实验前硬编码 final duration。
+已有通用约 20 ms 只可作为测试 baseline，不能改写成 Water mode product contract。
+
+### 5.8 工业设计参考（只作 architecture/UX pattern）
+
+- IRCAM Modalys 的官方介绍以 `Exciter -> Interaction -> Resonator` 描述 physical-modeling roles，支持
+  把 excitation 与 resonant body 分开建模。
+- Ableton Corpus 的官方手册区分 `Bleed`（把 unprocessed signal 混入 resonated signal）与全局
+  `Dry/Wet`，支持 direct-source preservation 与外层 wet control 分责；这不是 Water 物理证据。
+- AAS Objeq Delay / Objeq Delay 2 的官方手册说明 incoming audio 通过 modeled acoustic resonators，
+  root frequency 对应 modeled object scale，较低频率对应较大 object，并把 dry/wet 与 internal resonator
+  分开。
+- AAS Chromaphone 3 的官方手册在 Home view 使用少量 high-level macro controls 映射多项 synthesis
+  parameters，支持 FRAZIL 主界面只呈现 Mode/Size/Motion，而把 radius、Q、modal count、event probability、
+  delay depth 和 seed 留在 engine/experiment 层。
+
+这些产品只提供成熟 effect 的 architecture/UX patterns，不能作为真实 water acoustics 的科学证据。
+
+### 5.9 参考文献与官方资料
+
+Scientific references：
+
+1. M. Minnaert, “On Musical Air-Bubbles and the Sounds of Running Water,” *Philosophical Magazine*,
+   16(104), 235–248, 1933. DOI: <https://doi.org/10.1080/14786443309462277>.
+2. H. C. Pumphrey, L. A. Crum, L. Bjørnø, “Underwater Sound Produced by Individual Drop Impacts and
+   Rainfall,” *Journal of the Acoustical Society of America*, 85(4), 1518–1526, 1989.
+   DOI: <https://doi.org/10.1121/1.397353>.
+3. K. van den Doel, “Physically Based Models for Liquid Sounds,” *ACM Transactions on Applied
+   Perception*, 2(4), 534–546, 2005. DOI: <https://doi.org/10.1145/1101530.1101554>.
+4. C. Zheng, D. L. James, “Harmonic Fluids,” *ACM Transactions on Graphics (SIGGRAPH 2009)*,
+   28(3), Article 37, 2009. <https://www.cs.cornell.edu/projects/HarmonicFluids/>.
+5. T. R. Langlois, C. Zheng, D. L. James, “Toward Animating Water with Complex Acoustic Bubbles,”
+   *ACM Transactions on Graphics (SIGGRAPH 2016)*, 35(4), 2016.
+   DOI: <https://doi.org/10.1145/2897824.2925904>.
+6. K. Xue, R. M. Aronson, J.-H. Wang, T. R. Langlois, D. L. James, “Improved Water Sound Synthesis
+   using Coupled Bubbles,” *ACM Transactions on Graphics (SIGGRAPH 2023)*, 42(4), Article 127, 2023.
+   DOI: <https://doi.org/10.1145/3592424>.
+7. C. Drioli, D. Rocchesso, “Acoustic Rendering of Particle-Based Simulation of Liquids in Motion,”
+   *Proceedings of DAFx-09*, 2009. <https://dafx.de/paper-archive/details/vPZGyhK54wyuDp960Uy5mQ>.
+
+Official product documentation：
+
+1. IRCAM, “An Introduction to Modalys.” <https://support.ircam.fr/docs/Modalys/current/Introduction.html>.
+2. Ableton, “Corpus,” *Live Audio Effect Reference*.
+   <https://www.ableton.com/en/manual/live-audio-effect-reference/#corpus>.
+3. Applied Acoustics Systems, *Objeq Delay Manual*, and “Objeq” / “Architecture and signal flow,”
+   *Objeq Delay 2 Manual*. <https://www.applied-acoustics.com/objeq-delay/manual/>,
+   <https://www.applied-acoustics.com/objeq-delay-2/manual/c-objeq/> and
+   <https://www.applied-acoustics.com/objeq-delay-2/manual/30-architecture-and-signal-flow/>.
+4. Applied Acoustics Systems, “The Home View,” *Chromaphone 3 Manual*.
+   <https://www.applied-acoustics.com/chromaphone-3/manual/>.
+5. Ableton, “LFO,” *Max for Live Devices*; Image-Line, “Automation Clips”; Cockos, *REAPER User Guide*,
+   parameter modulation sections. These support the Host-modulation product boundary, not Water acoustics:
+   <https://www.ableton.com/en/manual/max-for-live-devices/#lfo>,
+   <https://www.image-line.com/fl-studio-learning/fl-studio-online-manual/html/playlist_automationclip.htm>,
+   <https://www.reaper.fm/userguide.php>.
 
 ## 6. Ice DSP 实验候选
 
@@ -979,7 +1119,7 @@ dead code、buffer invariant、finite output 和 realtime safety。
 | 阶段 | 主要完成证据 |
 |---|---|
 | M1-C | versioned state、migration/fallback、inactive retention、licensed testdata、deterministic render、property harness、performance baseline、Host evidence |
-| M2 Water | 至少两候选、统一素材 A/B、Water ADR、有限/可重复输出、click-free enable、automation、performance、listening |
+| M2 Water | Fluid A+B+D / Resonant C 分组件与集成 evidence、loudness-matched 双模式对照、Water ADR、source recognizability、Size/Motion consistency、有限/可重复输出、click-free mode/enable、automation/state、performance、listening |
 | M3 Ice | 与 Water 同级证据，并证明 Water/Ice 可稳定区分，crack event 有硬上界 |
 | Parameter Freeze | 最终 ID/order/index/range/default/unit/smoothing/inactive/state fixtures 全部冻结 |
 | M4 Routing | ADR-R-001、完整 routing matrix、state/random/tail ownership、click-free transition、0 reported latency、性能增量 |

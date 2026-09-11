@@ -197,8 +197,8 @@ M2/M3 使用 pipeline-level parallelism，而不是 isolated Water-vs-Ice develo
 |---|---|---|---|---|
 | `LISTENING-001` | Sound & Host Lead | Engineering Lead | `testdata/listening/**`、listening corpus metadata、license/provenance evidence、directly related listening docs | `testdata/input/**`、TESTDATA generator/verifier、production Water/Ice DSP、HOST-001 DAW evidence、parameter/state contracts |
 
-`LISTENING-001` 可以在 M1 期间开始准备，但不阻塞 M1 Exit。它必须在 `EXP-W-003` / `EXP-I-003`
-perceptual candidate selection 以及 `WATER-006` / `ICE-006` listening pack 或 final listening evidence
+`LISTENING-001` 可以在 M1 期间开始准备，但不阻塞 M1 Exit。它必须在 `EXP-W-003` Water dual-mode
+validation/refinement、`EXP-I-003` perceptual candidate selection，以及 `WATER-006` / `ICE-006` listening pack 或 final listening evidence
 之前 ready；`EXP-W-002` / `EXP-I-002` engineering experiments 可以直接使用 `TESTDATA-001`，不需
 等待 listening corpus 完成。DAW compatibility/automation/save-reopen evidence 始终归 `HOST-001`。
 
@@ -208,7 +208,7 @@ perceptual candidate selection 以及 `WATER-006` / `ICE-006` listening pack 或
 |---|---|---|---|
 | `EXP-W-001` / `EXP-I-001` perceptual brief | Sound & Host Lead | Engineering Lead feasibility review | brief、references、anti-examples、reject criteria、listening dimensions |
 | `EXP-W-002` / `EXP-I-002` candidate experiment | Engineering Lead | Sound & Host Lead owns question/target/fixtures/A-B/rubric inputs | experiment-only DSP、fixed seed、render、engineering measurements |
-| `EXP-W-003` / `EXP-I-003` candidate selection | Sound & Host Lead | Engineering Lead realtime/latency/CPU/random/maintainability gate；final adoption = Joint Gate | loudness-matched review、rubric、accept/revise/reject、macro direction |
+| `EXP-W-003` Water dual-mode validation / `EXP-I-003` candidate selection | Sound & Host Lead | Engineering Lead realtime/latency/CPU/random/maintainability gate；final adoption = Joint Gate | loudness-matched review、rubric、accept/revise/reject、macro direction |
 | Water/Ice algorithm ADR | Engineering Lead records technical decision | Joint Gate | production structure、mapping、latency/tail/random/performance/failure modes |
 
 禁止两位开发者在没有显式 experiment scope 时，各自实现竞争的 production candidate。实验 code 必须留在

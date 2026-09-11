@@ -237,7 +237,7 @@ Sound / Host lane
 Both evidence lanes
   -> M1 Joint Exit Review
   -> EXP-W-002 / EXP-I-002 engineering experiments using TESTDATA-001
-  -> EXP-W-003 / EXP-I-003 selection only after LISTENING-001 is ready
+  -> EXP-W-003 Water dual-mode validation/refinement and EXP-I-003 selection only after LISTENING-001 is ready
   -> WATER-006 / ICE-006 listening evidence only after LISTENING-001 is ready
   -> Water production only after experiment and Joint Gate
 ```

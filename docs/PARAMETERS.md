@@ -24,7 +24,55 @@
 | `global.mix` | Global Mix | 0..1 | 1.0 | post-input dry reference 与完整 wet path 混合 | 全部 | block snapshot -> sample-aware DSP smoother |
 | `output.gain` | Output Gain | -24..+24 dB | 0 dB | Global Mix 后最终 trim | 全部 | block target -> sample-aware linear smoother |
 
-计划中的声音 macro 仅在实验验证后加入，例如 `water.character`、`water.motion`、`ice.character`、`ice.fracture`。加入前必须定义用户听感语义、范围、默认值、mapping、smoothing、automation test 和 state behavior。
+计划中的声音 macro 仅在实验验证后加入。Water 的 M2 candidate controls 见下节；Ice candidate
+仍保持 `ice.character`、`ice.fracture`，且本次 Water-focused revision 不改变 Ice。任何 candidate
+加入正式 registry 前必须定义用户听感语义、范围、默认值、mapping、smoothing、automation test 和
+state behavior。
+
+### 1.1 M2 Water candidate controls（未注册、未冻结）
+
+Water 的产品方向已确定为双模式 `Fluid` / `Resonant`，但下列 ID、类型和语义仍是 M2 candidate
+contract，不是当前九参数生产 registry、`ParameterLayout`、`schemaVersion=1` 或已冻结 v1 Host API
+的一部分：
+
+| Candidate ID | Candidate status / expected type | User semantic | Mode relevance | Planned automation / transition | Adoption prerequisite |
+|---|---|---|---|---|---|
+| `water.model` | M2 candidate；离散 choice，working order `Fluid`, `Resonant` | 选择两种有意区分的 Water material behavior；不是“real/fake”或质量档位 | 两模式选择器 | 若正式采用，需静态注册、确定 choice order、block snapshot、click-free bounded transition、rapid automation 与最终值测试 | Water ADR、transition/state ownership、range/default/choice freeze、save/restore 和 compatibility fixtures |
+| `water.size` | M2 candidate；normalized continuous product macro | `Fine / Small / Bright <-> Large / Deep / Full`；回答“Water material 的尺度是什么” | 两模式共享同一高层语义 | 连续 Host automation；sample-aware smoothing；映射在合适处保持单调、可感知一致 | 两模式 mapping、范围/default、非线性曲线、listening/property evidence 和 state evolution review |
+| `water.motion` | M2 candidate；normalized continuous product macro | `Calm / Stable <-> Active / Flowing`；回答“Water material 的时间活动度是什么” | 两模式共享语义；Resonant 的变化应刻意比 Fluid 更 subtle | 连续 Host automation；sample-aware smoothing；快速 automation 不得 click/zipper，能量变化须有界 | mode-specific mapping、loudness/energy strategy、范围/default、listening/property evidence 和 state evolution review |
+
+这些 candidate 的完整责任链必须在 M2 evidence 中逐项闭环：
+
+```text
+user perceptual intention
+  -> normalized product parameter
+  -> ParameterMapper responsibility
+  -> mode-specific engine parameter mapping
+  -> bounded DSP quantities
+  -> expected audible consequence
+  -> automation/smoothing or transition requirements
+  -> listening/property/state validation
+```
+
+- `water.model`：Mapper 将稳定 choice 映射为 Water engine mode；engine/ADR 决定 residual ownership
+  和 transition。预期结果是可辨识且可切换的 Fluid/Resonant 行为，不改变 routing mode。
+- `water.size`：Fluid 主要映射 bubble radius/population scale -> resonance-frequency distribution；
+  Resonant 映射 modal/root frequency scale -> coherent mode-family scaling。较大尺度通常对应较低
+  resonance scale，较小尺度对应较高 resonance scale。Size 不映射 overall amount、general loudness、
+  event density 或 Motion speed；最终频率范围和曲线必须由实验决定。
+- `water.motion`：Fluid 可协调映射 bubble/droplet event activity、Flow micro-delay depth/rate 和
+  bounded stochastic variation；Resonant 只允许更轻微的 modal-frequency drift、excitation
+  distribution 或 decay/excitation movement。预期方向是 Motion 越高，时间活动与流动感越强，
+  但不得主要变成 loudness、Amount 或任意 random depth；补偿策略必须基于测量，不能预先编造固定 dB。
+
+`water.amount` 仍只表示 Serial Water stage amount，`parallel.balance` 仍只表示 Parallel 的 Water/Ice
+比例，`global.mix` 仍是完整插件 dry/wet。Water source-preserving carrier 是内部架构属性，不新增
+`water.dryWet`，以免形成 Water internal mix × Water Amount × Global Mix 的重叠用户语义。
+
+内部 algorithmic LFO、smoothed random process 和 probabilistic events 可以由 Water engine 使用，
+但不是用户参数。v1 当前不加入通用用户 LFO/modulation matrix；未来只有在真实用户证据支持时，
+才可研究 destination 固定为 Motion 的受限 `Motion Mod`（LFO/Random、Rate、Depth、Smooth），且需
+新的参数/state/automation review。
 
 ### Contract freeze stages
 
@@ -157,7 +205,9 @@ edit history: 永不序列化
 
 Current schemaVersion=1 contains the nine canonical STATE-001 Host parameters.
 This is the current schema contract, not a declaration that FRAZIL v1.0 will always expose exactly nine Host parameters.
-Future Water/Ice macros adopted during M2/M3 must not be silently added as new required fields to schemaVersion=1.
+This Water documentation revision does not change schemaVersion=1. Candidate `water.model`, `water.size` and
+`water.motion` must not be silently added as new required fields. Future Water/Ice macros adopted during M2/M3
+must not be silently added as new required fields to schemaVersion=1.
 Adding a new persistent Host parameter requires explicit state compatibility review, migration/default fixtures and an
 agreed schema evolution strategy before registry/state changes are merged. This guard does not create schemaVersion=2.
 
