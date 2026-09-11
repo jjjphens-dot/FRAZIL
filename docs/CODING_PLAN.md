@@ -1,7 +1,7 @@
 # FRAZIL 分阶段 Coding Plan
 
 > 版本：1.2<br>
-> 状态：Proposed Development Baseline Revision<br>
+> 状态：Approval Candidate → formal approval + merge 后成为 Approved Development Baseline<br>
 > 日期：2026-09-11
 > 输入：`FRAZIL_PROJECT_ARCHITECTURE_v0.3.md` + 当前源码/构建/远端审计  
 > 目标：把产品语义转化为可排序、可分工、可验收、可在 GitHub 追踪的工程工作。
@@ -10,10 +10,11 @@
 
 本计划是 CONTROLLED 工程合同。工作项、依赖、验收标准和 exit gate 的修改必须通过 issue/review，并同步受影响的架构、测试、参数或治理文档；本文件不记录实时 issue 状态，也不以状态文字替代验证证据。
 
-本 `CODING_PLAN.md` 是当前 FRAZIL M0 到 M7 的 Proposed Development Baseline Revision，不等于
-FRAZIL plugin v1.0 release。只有对应 issue/PR review evidence 完成后，才可通过受控修订将其提升为
-Approved Development Baseline 并合入获批版本；单个 commit 不构成 Joint Review 或 approval evidence。插件当前
-仍处于 M1 阶段，本文的 Water 目标不表示 M2 已开始或实现。
+本 `CODING_PLAN.md` v1.2 是 FRAZIL M0 到 M7 的 Approval Candidate，不等于 FRAZIL plugin v1.0
+release。在承载本 revision 的 PR 获得 required formal approval 并合入前，`main` 上的 v1.1 继续作为
+当前 Approved Development Baseline；当且仅当同一 reviewed revision 获得批准并合入时，v1.2
+成为新的 Approved Development Baseline。单个 commit、Issue 或 `REQUEST_CHANGES` 不构成 approval
+evidence。插件当前仍处于 M1 阶段，本文的 Water 目标不表示 M2 已开始或实现。
 
 ## 1. 计划使用方式
 
