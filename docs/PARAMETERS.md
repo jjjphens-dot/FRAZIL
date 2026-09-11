@@ -38,7 +38,7 @@ contract，不是当前九参数生产 registry、`ParameterLayout`、`schemaVer
 | Candidate ID | Candidate status / expected type | User semantic | Mode relevance | Planned automation / transition | Adoption prerequisite |
 |---|---|---|---|---|---|
 | `water.model` | M2 candidate；离散 choice，working order `Fluid`, `Resonant` | 选择两种有意区分的 Water material behavior；不是“real/fake”或质量档位 | 两模式选择器 | 若正式采用，需静态注册、确定 choice order、block snapshot、click-free bounded transition、rapid automation 与最终值测试 | Water ADR、transition/state ownership、range/default/choice freeze、save/restore 和 compatibility fixtures |
-| `water.size` | M2 candidate；normalized continuous product macro | `Fine / Small / Bright <-> Large / Deep / Full`；回答“Water material 的尺度是什么” | 两模式共享同一高层语义 | 连续 Host automation；sample-aware smoothing；映射在合适处保持单调、可感知一致 | 两模式 mapping、范围/default、非线性曲线、listening/property evidence 和 state evolution review |
+| `water.size` | M2 candidate；normalized continuous product macro | `Fine / Small / Bright <-> Large / Deep`；回答“Water material 的尺度是什么”，不表示 loudness、Amount、density 或 energy | 两模式共享同一高层语义 | 连续 Host automation；sample-aware smoothing；映射在合适处保持单调、可感知一致 | 两模式 mapping、范围/default、非线性曲线、listening/property evidence 和 state evolution review |
 | `water.motion` | M2 candidate；normalized continuous product macro | `Calm / Stable <-> Active / Flowing`；回答“Water material 的时间活动度是什么” | 两模式共享语义；Resonant 的变化应刻意比 Fluid 更 subtle | 连续 Host automation；sample-aware smoothing；快速 automation 不得 click/zipper，能量变化须有界 | mode-specific mapping、loudness/energy strategy、范围/default、listening/property evidence 和 state evolution review |
 
 这些 candidate 的完整责任链必须在 M2 evidence 中逐项闭环：
@@ -64,6 +64,10 @@ user perceptual intention
   bounded stochastic variation；Resonant 只允许更轻微的 modal-frequency drift、excitation
   distribution 或 decay/excitation movement。预期方向是 Motion 越高，时间活动与流动感越强，
   但不得主要变成 loudness、Amount 或任意 random depth；补偿策略必须基于测量，不能预先编造固定 dB。
+
+`water.size` 的 compact UI display direction 候选为 `Fine <-> Deep`；tooltip/help 可以解释
+small/bright 到 large/deep 的 material-scale 含义。最终 label、数值范围、默认值和曲线仍由
+UX/listening/property evidence 决定，当前 candidate contract 不冻结这些选择。
 
 `water.amount` 仍只表示 Serial Water stage amount，`parallel.balance` 仍只表示 Parallel 的 Water/Ice
 比例，`global.mix` 仍是完整插件 dry/wet。Water source-preserving carrier 是内部架构属性，不新增

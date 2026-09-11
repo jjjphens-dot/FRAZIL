@@ -1,7 +1,7 @@
 # FRAZIL 分阶段 Coding Plan
 
 > 版本：1.2<br>
-> 状态：Approved Development Baseline<br>
+> 状态：Proposed Development Baseline Revision<br>
 > 日期：2026-09-11
 > 输入：`FRAZIL_PROJECT_ARCHITECTURE_v0.3.md` + 当前源码/构建/远端审计  
 > 目标：把产品语义转化为可排序、可分工、可验收、可在 GitHub 追踪的工程工作。
@@ -10,7 +10,10 @@
 
 本计划是 CONTROLLED 工程合同。工作项、依赖、验收标准和 exit gate 的修改必须通过 issue/review，并同步受影响的架构、测试、参数或治理文档；本文件不记录实时 issue 状态，也不以状态文字替代验证证据。
 
-`CODING_PLAN.md v1.1` 是当前 FRAZIL M0 到 M7 的 Approved Development Baseline，不等于 FRAZIL plugin v1.0 release。文中较早的 v1.0 表述属于历史文字，不覆盖当前 v1.1 合同；插件当前仍处于 M0/M1 早期开发阶段。
+本 `CODING_PLAN.md` 是当前 FRAZIL M0 到 M7 的 Proposed Development Baseline Revision，不等于
+FRAZIL plugin v1.0 release。只有对应 issue/PR review evidence 完成后，才可通过受控修订将其提升为
+Approved Development Baseline 并合入获批版本；单个 commit 不构成 Joint Review 或 approval evidence。插件当前
+仍处于 M1 阶段，本文的 Water 目标不表示 M2 已开始或实现。
 
 ## 1. 计划使用方式
 
@@ -376,6 +379,28 @@ processed signal，优先采用 residual-oriented architecture，避免 Resonant
 | EXP-W-002 | P0 | 分组件工程实验与集成 | 使用 `TESTDATA-001` 分别测量 Bubble Ensemble、Droplet/Impact、Flow Modulator、Liquid/Modal Resonator 及集成；Fluid 最终目标仍为 A+B+D，但要求 A/B/D ablation；C 作为 Resonant baseline/mode；随机路径使用 fixed seed；记录参数空间、finite/DC/peak/tail 和 CPU 初测，不把 diagnostic WAV 当作 musical acceptance |
 | EXP-W-003 | P0 | 双模式方向验证与 refinement | 使用 `LISTENING-001` 做 Fluid vs Resonant loudness-matched 双人 review；验证模式区分、两模式 Size/Motion 语义一致性、input recognizability、musical usefulness、最终 mapping 理由、风险与 tradeoff；不再以“只选一个 vertical slice”为目标 |
 | ADR-W-001 | P0 | Water 双模式算法 ADR | 在 Joint Gate 后记录 Fluid A+B+D、Resonant C、source-preserving/residual 语义、macro mapping、random、latency/tail、mode transition、state implications、performance 与 failure modes；证据不足时保持 Proposed，不得标记 Accepted |
+
+### EXP-W-001 Water UX acceptance dimensions（planned）
+
+`EXP-W-001` 的 perceptual/product brief 必须明确记录以下 UX 维度；这些是计划验收标准，不表示 UI、
+Host 参数或用户测试已经实现：
+
+- **Semantic Predictability**：不解释内部 DSP 时，用户能否预测 Size 与 Motion 的听感方向；Size 向右或
+  提高应表示更大、更深的 material scale，Motion 向右或提高应表示更活跃、更流动的 temporal behavior；
+- **Cross-Mode Consistency**：Fluid 与 Resonant 的具体 mapping 可以不同，但切换模式后 Size/Motion 的
+  高层感知方向必须保持一致；
+- **Orthogonality**：用户应能区分 Size、Motion、`water.amount`、`global.mix` 和
+  `parallel.balance`；Motion 不得主要表现为 Amount，Size 不得主要表现为 loudness，Water Mode 不得
+  表现为 quality switch；
+- **Discoverability**：Fluid 与 Resonant 应被理解为两种 Water behavior，而不是 real/fake、good/bad 或
+  high/low quality；必要时规划简短描述或 tooltip；
+- **Interaction Cost**：常用 Water sound design 应能由 Enable、Mode、Size、Motion 的小型控制集完成，
+  不强迫用户理解 bubble radius、resonator Q、delay depth 或 event probability；
+- **Automation Readability**：Host lane 中的 Water Model、Water Size、Water Motion 应保持产品概念可读性，
+  不要求用户理解内部工程参数。
+
+Size 的 compact UI display direction 候选为 `Fine <-> Deep`，帮助文字可解释其 small/bright 到
+large/deep 的 material-scale 含义；最终 label 仍由 UX/listening review 决定，不在本计划冻结。
 
 工程实验必须把 high-fidelity coupled-bubble/full-fluid/FDTD literature 当作研究依据和近似误差提示，
 不得把完整流体模拟或数十万气泡处理设为 v1 realtime callback 要求。可将声学相关 fluid events

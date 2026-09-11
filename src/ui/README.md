@@ -44,6 +44,10 @@ Size/Motion 在两模式保持同一位置和高层语义。bubble radius、Q、
 delay depth 和 PRNG seed 等 engineering controls 不属于 first-pass main UI。以上均为 planned behavior，
 当前占位 editor 未实现。
 
+Size 的 compact display direction 候选为 `Fine <-> Deep`，tooltip/help 可解释 small/bright 到
+large/deep 的 material-scale 含义；最终 label 仍待 UX/listening review。Fluid/Resonant 的简短描述应帮助
+用户把它们理解为两种 Water behavior，而不是 real/fake、good/bad 或 quality levels。
+
 ## Tests
 
 未来需要 interaction、resize、attachment、automation display 和 pluginval/DAW evidence；当前无正式 UI 测试，具体 gate 见 [TESTING.md](../../docs/TESTING.md)。

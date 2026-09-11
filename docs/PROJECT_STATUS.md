@@ -14,7 +14,10 @@
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
-`CODING_PLAN.md` v1.1 / Approved Development Baseline 已作为 M0→M7 的正式工程执行基线；这不代表 FRAZIL plugin v1.0 release，也不改变 M0/M1、Water/Ice/Routing 的实际完成状态。
+`CODING_PLAN.md` v1.2 Water 修订的状态仍是 Proposed Development Baseline Revision；只有完成所需
+issue/PR review evidence，并经受控修订提升状态及合入获批版本后，才构成 Approved Development Baseline。
+这不代表 FRAZIL plugin v1.0 release，也不改变 M1、Water/Ice/Routing 的实际完成状态：Water production
+DSP、candidate controls 和 model transition 均未实现或注册。
 
 当前阻塞性差距：
 

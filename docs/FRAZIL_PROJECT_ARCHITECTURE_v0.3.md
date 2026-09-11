@@ -1655,11 +1655,12 @@ Input / Output meter 可作为 P1，不是 gain control 的前置条件。
 WATER
   Enable
   Mode: Fluid / Resonant
-  Size: Fine / Small / Bright -> Large / Deep / Full
+  Size: Fine / Small / Bright -> Large / Deep
   Motion: Calm / Stable -> Active / Flowing
 ```
 
-Mode 切换不替换完整 Water panel；Size 和 Motion 在两模式中位置不变、高层含义不变。tooltip 可以说明
+Mode 切换不替换完整 Water panel；Size 和 Motion 在两模式中位置不变、高层含义不变。compact display
+direction 可候选为 `Fine <-> Deep`，但 exact label 仍待 UX/listening review。tooltip 可以说明
 Fluid Size 映射 small/bright -> large/deep bubble population，Resonant Size 映射 small/bright ->
 large/deep resonant body，Motion 表示 temporal activity/fluid movement 而不是 Amount 或 loudness。
 主界面不暴露 bubble radius、Q、modal count、droplet probability、Flow delay depth 或 PRNG seed 等

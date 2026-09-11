@@ -298,11 +298,21 @@ Resonant，并分别记录：
   这不是 sample-equality assertion，也不能只靠降低 Global Mix 通过；
 - transient preservation、RMS/LUFS relationship、residual energy、peak growth、spectral change、DC 和
   tail behavior；实验前不设 universal residual-to-input dB threshold；
-- `water.size` 从 Fine/Small/Bright 到 Large/Deep/Full 的方向和两模式语义一致性；
-- `water.motion` 从 Calm/Stable 到 Active/Flowing 的方向和两模式语义一致性，且 Resonant 的 Motion
-  明显比 Fluid subtle；
-- Motion 不得主要表现为 output gain、Water Amount 或简单 loudness increase；任何 energy/loudness
-  compensation 以测量和 loudness-matched review 决定，不能预填固定 dB；
+- **Semantic Predictability**：不解释内部 DSP 时，用户能预测 `water.size` 从 Fine/Small/Bright 到
+  Large/Deep 表示尺度更大、更深，`water.motion` 从 Calm/Stable 到 Active/Flowing 表示时间行为更
+  活跃、更流动；Size 的 compact display 可候选 `Fine <-> Deep`，exact label 不在本测试计划冻结；
+- **Cross-Mode Consistency**：Fluid/Resonant mapping 可以不同，但切换后 Size/Motion 保持同一高层
+  感知方向，且 Resonant 的 Motion 变化刻意比 Fluid subtle；
+- **Orthogonality**：用户能区分 Size、Motion、`water.amount`、`global.mix` 和
+  `parallel.balance`；Motion 不得主要表现为 Amount/output gain/simple loudness increase，Size 不得
+  主要表现为 loudness，Mode 不得表现为 quality switch；任何 compensation 由测量和 loudness-matched
+  review 决定，不能预填固定 dB；
+- **Discoverability**：Fluid 与 Resonant 被理解为两种 Water behavior，而不是 real/fake、good/bad 或
+  high/low quality；记录是否需要简短描述或 tooltip；
+- **Interaction Cost**：评估常用 Water sound design 是否能用 Enable、Mode、Size、Motion 完成，而不
+  暴露 bubble radius、resonator Q、delay depth、event probability 等 engineering controls；
+- **Automation Readability**：Host lane 的 Water Model、Water Size、Water Motion 无需内部 DSP 知识即可
+  理解；
 - musical usefulness、artifact severity、最终 mapping 理由、risk 和 tradeoff。
 
 #### Engineering/property evidence (`EXP-W-002`, `WATER-001..005/008`)

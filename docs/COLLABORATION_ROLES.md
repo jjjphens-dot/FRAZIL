@@ -218,7 +218,7 @@ validation/refinement、`EXP-I-003` perceptual candidate selection，以及 `WAT
 
 | Work items | Implementation DRI | Acceptance DRI |
 |---|---|---|
-| `WATER-001/002/003/004/005/007` | Engineering Lead | Sound & Host Lead |
+| `WATER-001/002/003/004/005/007/008` | Engineering Lead | Sound & Host Lead |
 | `WATER-006` listening pack | Sound & Host Lead | Engineering Lead evidence review；final algorithm remains Joint Gate |
 | `ICE-001/002/003/004/005/007` | Engineering Lead | Sound & Host Lead |
 | `ICE-006` listening/differentiation pack | Sound & Host Lead | Engineering Lead evidence review；final algorithm remains Joint Gate |
