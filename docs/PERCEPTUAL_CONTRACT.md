@@ -1,6 +1,8 @@
 # FRAZIL Perceptual Contract
 
-> Status: PLANNED experiment contract for `EXP-W-001`; it does not accept a DSP algorithm or register parameters.
+> Framework status: Approval Candidate in this v1.3 revision; CURRENT/CONTROLLED after approval and merge.<br>
+> Water instance status: `EXP-W-001` Water Perceptual Contract is PLANNED until produced and accepted.<br>
+> This framework does not accept a DSP algorithm or register parameters.
 
 ## 1. Purpose
 
@@ -61,12 +63,18 @@ solely to prove that the two models are perceptually distant.
 
 ## 5. Lifecycle and agent rules
 
-The authoritative lifecycle is:
+The authoritative lifecycle distinguishes definition from downstream consumption:
 
 ```text
-Question -> Perceptual Contract -> Experiment -> Evidence -> Review -> ADR -> Production
+Human Water Intent
+  -> EXP-W-001 perceptual-definition work
+  -> Water Perceptual Contract
+  -> EXP-W-002+ downstream DSP experiment/refinement
+  -> Evidence -> Review -> ADR -> Production
 ```
 
-An agent must find or request the relevant Perceptual Contract before proposing subjective sound changes, and must
-check its positive, negative, preserve and reject sections. Experiment controls remain outside the production Host
-registry until evidence, Joint Gate and the applicable ADR/state compatibility work approve adoption.
+Perceptual-definition work creates the contract and does not require a pre-existing instance of that same contract.
+An agent performing downstream subjective DSP experiment/refinement must find the applicable accepted contract and
+check its positive, negative, preserve and reject sections before proposing sound changes. Experiment controls remain
+outside the production Host registry until evidence, Joint Gate and the applicable ADR/state compatibility work
+approve adoption.

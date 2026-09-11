@@ -101,9 +101,11 @@ trigger 时才执行完整 Documentation Synchronization Gate。必要更新与�
 
 ## 8. 例外与修改规则
 
-声音 experiment 必须先有对应 Perceptual Contract；Agent/Engineering 不得把主观形容词直接映射成固定
-DSP change。Objective audio metrics 只能作为 proxy，不能代替 human listening decision。Developer/Experiment
-controls 在 evidence、Joint Gate、ADR 和 compatibility work 前不得进入 production Host registry/state；
+Perceptual-definition work（例如 `EXP-W-001`）创建 contract，不要求预先存在同一 contract。下游主观 DSP
+experiment/refinement（`EXP-W-002+`）必须先消费适用的 Perceptual Contract；Agent/Engineering 不得把主观
+形容词直接映射成固定 DSP change。Objective audio metrics 只能作为 proxy，不能代替 human listening
+decision。Developer/Experiment controls 在 evidence、Joint Gate、ADR 和 compatibility work 前不得进入
+production Host registry/state；
 Developer Control Surface 也不得被复用成未经产品验收的 Production UI。详细合同见
 [`PERCEPTUAL_CONTRACT.md`](PERCEPTUAL_CONTRACT.md) 与
 [`DEVELOPER_SOUND_TOOLS.md`](DEVELOPER_SOUND_TOOLS.md)。

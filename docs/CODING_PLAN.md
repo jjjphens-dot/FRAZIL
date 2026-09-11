@@ -82,8 +82,8 @@ M1 late-stage closure
   +-> HOST-001 real DAW / Host Evidence
   |          + Engineering Evidence -> M1 Joint Exit Review --------+
   |                                                                  |
-  +-> DEV-UI-001 Developer Control Surface (PLANNED/usable) ---------+
-  +-> EXP-W-001 Water Perceptual Contract (PLANNED/complete) -------+
+  +-> DEV-UI-001 Developer Control Surface (PLANNED -> usable) ------+
+  +-> Human Water Intent -> EXP-W-001 -> Water Perceptual Contract -+
                                                                      v
                                                           Water M2 Readiness
                                                              |
@@ -104,7 +104,8 @@ M1 late-stage closure
                                                              v
                                                           M2 Exit
                                                              |
-                           Water method stable ---------------+
+                                            Explicit Joint Gate
+                 (confirm Water workflow is reusable for Ice) |
                                                              v
                                                   M3 Ice (DEFERRED now)
                                                              |
@@ -154,9 +155,10 @@ Current Water listening side dependency:
 `DEV-UI-001` 必须在大规模 `EXP-W-002` 声音探索前可用，`EXP-W-001` 必须先给出 Perceptual Contract。
 `HOST-001` 不依赖 Developer UI，且可以在它完成前继续。
 
-Ice 的既有 M3 contract、work item 和长期 exit gate 保留，但当前为 DEFERRED；在 Water 的 Perceptual
-Contract -> experiment -> evidence -> ADR 方法稳定前，不启动 `EXP-I-*`、Ice 参数重设计或 production
-implementation。该排序不是删除 Ice，也不改变 M2/M3 完成后才进入 `PARAM-FREEZE-001` 的长期 gate。
+Ice 的既有 M3 contract、work item 和长期 exit gate 保留，但当前为 DEFERRED。Ice resume prerequisite
+明确为 `M2 Exit + Explicit Joint Gate`：M2 Exit 后，双方必须通过受控 planning decision 确认 Water workflow
+可复用于 Ice，才可启动 `EXP-I-*`、Ice 参数重设计或 production implementation。该排序不是删除 Ice，也不
+改变 M2/M3 完成后才进入 `PARAM-FREEZE-001` 的长期 gate。
 M1 期间不授权 production Water/Ice DSP 或 candidate production integration。Engineering candidate work
 从 M1 Joint Exit 后开始。
 `PARAM-FREEZE-001` 必须在 M2/M3 完成后、M4 开始前完成；`ADR-R-001` 必须在任何 `ROUTE-006`
@@ -311,7 +313,7 @@ implementation responsibility 换人时才记录 Implementation DRI Transfer。
 | ID | P | Owner / acceptance | Scope and gate |
 |---|---:|---|---|
 | `DEV-UI-001` | P0 (Water M2 readiness) | Engineering Lead implements；Sound & Host Lead accepts workflow usability | Create a minimal Developer Control Surface using current parameter boundaries, realtime-safe diagnostics and experiment-config export. It is not Production UI, does not change the current Host registry/state schema, and must be usable before large-scale `EXP-W-002`. See [`DEVELOPER_SOUND_TOOLS.md`](DEVELOPER_SOUND_TOOLS.md). |
-| `EXP-W-001` | P0 (Water M2 readiness) | Sound & Host Lead owns；Engineering Lead feasibility review | Define Water intent, positive/negative behavior, preserve/reject conditions and objective proxies using [`PERCEPTUAL_CONTRACT.md`](PERCEPTUAL_CONTRACT.md). No candidate or production DSP is authorized. |
+| `EXP-W-001` | P0 (Water M2 readiness) | Sound & Host Lead owns；Engineering Lead feasibility review | Perceptual-definition work creates `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md` from Human Water Intent using [`PERCEPTUAL_CONTRACT.md`](PERCEPTUAL_CONTRACT.md). It does not require a pre-existing Water contract and authorizes no candidate or production DSP. |
 
 The exact Developer/Release build-isolation mechanism, diagnostics transport and experiment-config schema remain
 implementation candidates. This plan does not freeze a build macro or preset name.
@@ -322,8 +324,10 @@ implementation candidates. This plan does not freeze a build macro or preset nam
 测试目标；manifest schema v2 的 signal definition、provenance、license、redistribution、hash
 和 storage audit 完整；generator 支持 per-signal duration、PCM24、stable per-signal seed 和
 44.1/48/96 kHz temporary generation；每个 canonical signal 有 standard-library semantic
-verification；analysisMethods 已为未来 measurement tooling 记录。FFT/PSD/STFT 等大型分析基础
-仍不是本 follow-up 的实现目标。M1 不要求
+verification；analysisMethods 已记录。现有 `tools/analyze_testdata.py` 已提供 waveform、FFT、Welch PSD、
+RMS、DC、stereo correlation 和 STFT/spectrogram optional analysis，且应优先扩展复用；它不是
+TESTDATA-001 exit blocker。LUFS/true peak/spectral flux/onset/pitch/tail 等扩展和 automated review-pack
+generation 仍为 PLANNED。M1 不要求
 final Water/Ice probes、algorithm-specific acceptance thresholds 或真实 listening corpus；这些
 随 `EXP-W-*`、`EXP-I-*`、`ADR-W-001` 和 `ADR-I-001` 推进。
 
@@ -392,9 +396,9 @@ Lab 继续负责可重复 render/evidence。二者都不能替代 Perceptual Con
 
 | ID | P | 工作 | 交付/验收 |
 |---|---:|---|---|
-| EXP-W-001 | P0 | Water dual-mode perceptual/product brief | 定义 common Water identity、Fluid identity、Resonant identity、Size/Motion 语义、正常设置及 `global.mix=100%` Water-only 下的 input recognizability、反例、Motion 与 Amount 区别，以及双模式可用性评价表 |
-| EXP-W-002 | P0 | 分组件工程实验与集成 | 使用 `TESTDATA-001` 分别测量 Bubble Ensemble、Droplet/Impact、Flow Modulator、Liquid/Modal Resonator 及集成；Fluid 最终目标仍为 A+B+D，但要求 A/B/D ablation；C 作为 Resonant baseline/mode；随机路径使用 fixed seed；记录参数空间、finite/DC/peak/tail 和 CPU 初测，不把 diagnostic WAV 当作 musical acceptance |
-| EXP-W-003 | P0 | 双模式方向验证与 refinement | 使用 `LISTENING-001` 做 Fluid vs Resonant loudness-matched 双人 review；验证模式区分、两模式 Size/Motion 语义一致性、input recognizability、musical usefulness、最终 mapping 理由、风险与 tradeoff；不再以“只选一个 vertical slice”为目标 |
+| EXP-W-001 | P0 | Water dual-mode perceptual/product brief | 从 Human Water Intent 创建 `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`；定义 common Water identity、Fluid/Resonant 各自职责、Size/Motion 语义、input recognizability、positive/negative/preserve/reject 和 objective proxies；本 definition stage 不要求预先存在同一 contract |
+| EXP-W-002 | P0 | 分组件工程实验与集成 | 必须消费已产出并验收的 Water Perceptual Contract；使用 `TESTDATA-001` 分别测量 Bubble Ensemble、Droplet/Impact、Flow Modulator、Liquid/Modal Resonator 及集成；Fluid 要求 A/B/D ablation，C 作为 Resonant baseline/mode；固定 test seed；记录参数空间、finite/DC/peak/tail 和 CPU 初测，不把 diagnostic WAV 当作 musical acceptance |
+| EXP-W-003 | P0 | 双模式方向验证与 refinement | 必须消费 Water Perceptual Contract 并使用 `LISTENING-001` 做 loudness-matched 双人 review；Fluid/Resonant 分别按各自 mode-specific responsibilities 验收，并定性确认二者均为 intentional Water models 而非 good/bad switch；不要求 perceptual-distance metric、classification threshold 或 mode-separation score；同时验证 Size/Motion 语义、input recognizability、musical usefulness、mapping 理由、风险与 tradeoff |
 | ADR-W-001 | P0 | Water 双模式算法 ADR | 在 Joint Gate 后记录 Fluid A+B+D、Resonant C、source-preserving/residual 语义、macro mapping、random、latency/tail、mode transition、state implications、performance 与 failure modes；证据不足时保持 Proposed，不得标记 Accepted |
 
 ### EXP-W-001 Water UX acceptance dimensions（planned）
@@ -450,8 +454,10 @@ large/deep 的 material-scale 含义；最终 label 仍由 UX/listening review �
 
 ### M2 Exit gate
 
-Water-only 的 Fluid 与 Resonant 在 `LISTENING-001` 代表性素材上各自具有一致 Water identity 且可明确
-区分；正常产品设置及代表性的 `global.mix=100%` Water-only 评估中输入仍具音乐可辨识性；Size/Motion
+Water-only 的 Fluid 与 Resonant 在 `LISTENING-001` 代表性素材上分别满足各自 mode-specific Water
+responsibilities，并定性确认两者不是 good/bad 或 quality switch；不要求 perceptual-distance metric、
+classification threshold 或 mode-separation score。正常产品设置及代表性的 `global.mix=100%` Water-only
+评估中输入仍具音乐可辨识性；Size/Motion
 在两模式保持一致高层语义且 Motion 不主要表现为增益。工程诊断在 `TESTDATA-001` 上通过；所有正式
 宏符合 `AUTO-001` 且无明显 zipper；mode/enable transition、state/seed/render/property/performance/
 pluginval 通过；Water listening rubric 和 Reject Criteria 通过；
@@ -628,7 +634,7 @@ Release gate：`CI PASS && validators PASS && DAW matrix acceptable && state com
 | Current M1 late-stage | DEV-UI-001 implementation；HOST findings | HOST-001；EXP-W-001；Developer UI usability acceptance | M1 Joint Exit + Water M2 readiness |
 | M2 Water experiment | Water candidate engineering、offline tools and findings | Water rubric、listening and Developer UI workflow review | Water experiment/ADR gate |
 | M2 Water production | Accepted Water implementation | Water final acceptance | M2 Exit |
-| M3 Ice (deferred now) | Ice work resumes only after Water method is stable | Ice perceptual/listening inputs resume at the same gate | M3 Exit |
+| M3 Ice (deferred now) | Ice work resumes only after M2 Exit + Explicit Joint Gate | Ice perceptual/listening inputs resume after the controlled reuse decision | M3 Exit |
 | M4 | RoutingEngine/state/automation integration | routing sound/loudness/DAW acceptance | full matrix gate |
 | M5 | attachments/history/layout | material-control UX/audio feedback | UI acceptance |
 | M6 | validators/state/fuzz/performance measurement | DAW/listening regression/product workload | beta sign-off |
@@ -685,7 +691,7 @@ P2 只有在用户研究/真实声音问题证明价值、且通过新的 ADR �
 | M1 | APP-001 / RENDER-001 / HOST-001 | `[M1][APP-001] Route EngineParameters through AudioEngine` | PARAM-002/003 |
 | DEV | DEV-UI-001 | `[DEV][DEV-UI-001] Create developer control surface for sound design and debugging` | current M1 parameter path；required before large-scale EXP-W-002 |
 | M2 | EXP-W-* / WATER-* | `[M2][EXP-W-001] Define Water dual-mode perceptual brief` | TESTDATA-001；M1 Joint Exit；DEV-UI-001 before large-scale EXP-W-002 |
-| M3 (deferred) | EXP-I-* / ICE-* | `[M3][EXP-I-001] Define Ice perceptual brief` | Water method stable；M2 sequencing decision |
+| M3 (deferred) | EXP-I-* / ICE-* | `[M3][EXP-I-001] Define Ice perceptual brief` | M2 Exit + Explicit Joint Gate confirming Water workflow reuse |
 | M4 | PARAM-FREEZE-001 / ADR-R-001 | `[M4][PARAM-FREEZE-001] Freeze v1 host parameter contract` | M2 + M3 exit gates |
 | M4 | ROUTE-001..011 | `[M4][ROUTE-006] Implement routing transition policy` | ADR-R-001 |
 

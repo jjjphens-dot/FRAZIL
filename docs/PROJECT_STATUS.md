@@ -219,7 +219,8 @@ PluginProcessor
 - M1 Audio Skeleton & Parameter Contract：**late-stage closure / 进行中**。M1 engineering foundation/evidence 已建立并进入 `main`；仍缺完整 render regression matrix、真实 DAW 验证、current-artifact pluginval 和 M1 Joint Exit。`PARAM-FREEZE-001` 仍是 M2/M3 后续 gate；M5 EditHistoryManager 仍未开始。
 - Developer Sound/Debug Tooling：**PLANNED / newly prioritized**。`DEV-UI-001` 是大规模 `EXP-W-002` 前的 Water M2 effective-development-readiness prerequisite，但不是 M1 Exit hard gate。
 - M2 Water：**未开始**；`EXP-W-001` Perceptual Contract preparation 为 PLANNED，不表示 M2 或 Water DSP 已开始。
-- M3 Ice：**DEFERRED**；长期 milestone 保留，Water 方法论稳定前不启动 Ice experiment、perceptual/parameter redesign 或 production implementation。
+- Perceptual Contract framework/template：本 v1.3 branch 为 **Approval Candidate**；经 required approval + merge 后成为 **CURRENT / CONTROLLED**。`EXP-W-001` Water contract instance 仍为 **PLANNED**，尚未产出或验收。
+- M3 Ice：**DEFERRED**；长期 milestone 保留，在 `M2 Exit + Explicit Joint Gate` 确认 Water workflow 可复用于 Ice 前，不启动 Ice experiment、perceptual/parameter redesign 或 production implementation。
 - M4 Routing：**未开始**。
 - M5 UI & Edit History：**未开始**。
 - M6 Beta Hardening：**未开始**。
@@ -255,10 +256,11 @@ M1 closure and Water readiness
   -> EXP-W-003 Water dual-mode validation/refinement after LISTENING-001 is ready
   -> WATER-006 listening evidence
   -> Water production only after experiment and Joint Gate
-  -> resume Ice planning only after Water method is stable
+  -> after M2 Exit, use an Explicit Joint Gate before resuming M3 Ice
 ```
 
 HOST-000 产品目标已冻结，support classification 仍需满足 Engineering Lead review 与 HOST-001 evidence 条件。
 已进入 `main` 的 M1 foundation/evidence 只按 regression/finding ownership 维护，不得建立平行实现。
-Developer UI、diagnostics、Perceptual Contract tooling、Water/Ice/Routing 均不得从本状态文档推断为已实现；
+Developer UI、diagnostics 和 Water-specific Perceptual Contract instance 均不得从本状态文档推断为已实现；
+Perceptual Contract framework/template 只在 v1.3 approval + merge 后成为 CURRENT/CONTROLLED。
 Water/Ice/Routing 仍未开始 production。

@@ -1881,8 +1881,8 @@ Header 应：
 
 当前执行顺序以 [`CODING_PLAN.md`](CODING_PLAN.md) 为准：M1 late-stage closure 期间并行推进
 `HOST-001`、`DEV-UI-001` 和 `EXP-W-001`，随后 Water-first；Ice 的以下长期 M3 architecture 保留，但当前
-DEFERRED，待 Water 的 Perceptual Contract -> experiment -> evidence -> ADR 方法稳定后再启动。该阶段排序
-不改变 Water/Ice 模块边界或已接受的 Host/state/routing contract。
+DEFERRED。只有完成 M2 Exit，并通过 Explicit Joint Gate/controlled planning decision 确认 Water workflow
+可复用于 Ice 后，才恢复 M3。该阶段排序不改变 Water/Ice 模块边界或已接受的 Host/state/routing contract。
 
 # M0 — Product Contract & Repository Bootstrap
 

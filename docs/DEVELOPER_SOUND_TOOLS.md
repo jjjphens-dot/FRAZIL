@@ -22,13 +22,19 @@ experimentation. It is not an M1 architecture-correctness exit gate, and `HOST-0
 ## 2. Status model
 
 - **CURRENT**: the nine static Host parameters, M1 parameter/snapshot/engine path, TESTDATA-001 diagnostic corpus,
-  RENDER-001 offline smoke and the manual performance harness.
+  RENDER-001 offline smoke, manual performance harness, and `tools/analyze_testdata.py` using the
+  `requirements-dsp.txt` Python environment. The analyzer already provides waveform diagnostics, FFT, Welch PSD,
+  RMS, DC, stereo correlation and STFT/spectrogram analysis.
+- **CURRENT after v1.3 approval/merge**: the Perceptual Contract framework, template and Agent usage rules.
 - **PLANNED**: `DEV-UI-001`, a minimal diagnostics snapshot/bridge, realtime A/B workflow, experiment-config export,
-  richer Offline Sound Lab review packs and reproducible debug bundles.
+  richer Offline Sound Lab review packs, reproducible debug bundles, automated review-pack generation, LUFS/true
+  peak, spectral flux, onset, pitch/harmonic-retention and extended tail analysis. The `EXP-W-001` Water Perceptual
+  Contract instance remains PLANNED until produced and accepted.
 - **CANDIDATE**: exact developer-build isolation, diagnostic transport, UI layout, A/B storage lifetime, exported JSON
   schema and Water experimental-control mapping.
-- **DEFERRED**: Production UI, production presets, generic modulation, a large logging framework and Ice tooling until
-  the Water-first method is stable.
+- **DEFERRED**: Production UI, production presets, generic modulation and a large logging framework remain at their
+  existing later-plan gates. Ice tooling remains deferred until `M2 Exit + Explicit Joint Gate` confirms that the
+  Water workflow is reusable for Ice.
 
 ## 3. DEV-UI-001 minimum scope
 
@@ -56,7 +62,12 @@ The first version should provide:
 - export of the current experiment configuration for the Offline Sound Lab.
 
 Water-specific event/voice counts, tail energy, transition state/peak and diagnostic overflow are PLANNED
-extensions once a concrete experiment needs them. Temporary A/B states are development state, not release presets.
+extensions once a concrete experiment needs them.
+
+Temporary Developer A/B state is not a Production preset, Host saved state or Host automation state. Developer
+Dry/Processed, A/B and Reset actions must not silently write DAW automation or redefine production plugin state.
+Developer-only comparison state may enter reproducible experiment evidence only through an explicit export/apply
+handoff. The exact internal storage and transaction design remains a `DEV-UI-001` implementation decision.
 
 ## 4. Realtime-to-offline handoff
 
@@ -78,6 +89,8 @@ agree on one boundary.
 A standard review pack is PLANNED to contain dry, baseline and candidate WAVs, a manifest, per-candidate analysis,
 waveform/spectrum/spectrogram plots and `LISTENING_REVIEW.md`. Objective measurements are proxies; no scalar
 "quality score" may replace the per-dimension engineering, source-preservation, perceptual and decision record.
+New analysis requirements must extend or reuse `tools/analyze_testdata.py` unless a reviewed, concrete limitation
+justifies another tool; do not create a parallel analyzer by default.
 
 ## 5. Diagnostics and realtime safety
 
@@ -104,6 +117,16 @@ A Developer Build and Release Build should be distinguishable so developer contr
 shipped accidentally. The mechanism is CANDIDATE: a build option, dedicated preset or another bounded approach may
 be selected by the Engineering Lead in the `DEV-UI-001` implementation issue. This document intentionally does not
 freeze a macro name or preset.
+
+The result invariant is CONTROLLED even while the mechanism remains CANDIDATE:
+
+- a Developer build makes the Developer Control Surface available;
+- a Release artifact must not expose the Developer Control Surface, experiment-only controls, debug-only
+  diagnostics UI or temporary Developer A/B state;
+- the Release Host parameter registry must remain identical to the approved production registry.
+
+`DEV-UI-001` acceptance must verify those Developer/Release outcomes without freezing the option, macro, preset or
+internal implementation used to achieve them.
 
 ## 7. Ownership and acceptance
 

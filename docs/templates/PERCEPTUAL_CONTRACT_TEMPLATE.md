@@ -44,6 +44,9 @@
 
 ## Human review
 
+This section reviews the Perceptual Contract itself. Candidate listening validation is separate: follow
+[`docs/TESTING.md`](../TESTING.md) and retain independent reviewer conclusions wherever that contract requires them.
+
 - Reviewer:
 - Material and environment:
 - Evidence reviewed:

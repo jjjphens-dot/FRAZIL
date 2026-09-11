@@ -24,8 +24,8 @@
 - 已有：`TESTDATA-001` 可复现 engineering corpus 与 `RENDER-001` pass-through offline smoke 已进入 `main`；这些能力只按 regression/finding 维护，不另建平行实现。
 - 已有：`TEST-002` processor property、`PERF-BASE-001` 和 `ARCH-LAT-001` engineering evidence 已进入 `main`。
 - 尚缺：真实 Host/DAW validation、current-artifact plugin validation、M1 Joint Exit、编辑历史、Water/Ice/Routing DSP 和正式 UI；公开参数 freeze 与完整兼容性 evidence 仍待完成。
-- `DEV-UI-001`、DiagnosticsSnapshot/debug bundle workflow 与 Perceptual Contract tooling 均为 PLANNED，不得写成已实现；Developer Control Surface 不是当前 placeholder，也不是 M5 Production UI。
-- 当前 Water-first；Ice 的长期 M3 合同保留，但在 Water 方法稳定前，Ice experiment、perceptual/parameter redesign 和 production implementation 均为 DEFERRED。
+- `DEV-UI-001` 与 DiagnosticsSnapshot/debug bundle workflow 均为 PLANNED，不得写成已实现；Developer Control Surface 不是当前 placeholder，也不是 M5 Production UI。Perceptual Contract framework/template 在本 v1.3 revision approval + merge 后成为 CURRENT/CONTROLLED；`EXP-W-001` Water contract instance 在实际产出并验收前仍为 PLANNED。
+- 当前 Water-first；Ice 的长期 M3 合同保留，但在 `M2 Exit + Explicit Joint Gate` 前，Ice experiment、perceptual/parameter redesign 和 production implementation 均为 DEFERRED。
 - 当前参数合同已将历史 `water.enable` / `ice.enable` 迁移为 `water.enabled` / `ice.enabled`；现有 state migration evidence 已建立，公开兼容性基线前仍需完整 compatibility evidence 与正式参数 freeze。
 - GitHub 远端为 `https://github.com/jjjphens-dot/FRAZIL`。开始产品代码前必须确认工作目录是该仓库的 Git 工作树，且 `origin` 指向该地址。
 
@@ -169,10 +169,12 @@ tests -> 被测模块
 
 ## 6. 实验进入生产的门槛
 
-Agent 不得把“自然”“柔和”“更流动”等主观形容词直接翻译成某个 DSP 参数或实现。先查找或请求
-[`docs/PERCEPTUAL_CONTRACT.md`](docs/PERCEPTUAL_CONTRACT.md)，确认 positive、negative、must-preserve 和
-reject 条件，再提出 candidate。Objective measurement 只能作为 proxy，不得写成 perceptual truth，也不得
-用单一 quality score 替代 human listening decision。
+Perceptual-definition work（例如 `EXP-W-001`）负责从 Human Intent 创建 Perceptual Contract，不要求预先
+存在同一 contract。下游主观 DSP experiment/refinement（`EXP-W-002+`）不得把“自然”“柔和”“更流动”等
+形容词直接翻译成某个 DSP 参数或实现；必须先读取已产出并适用的
+[`docs/PERCEPTUAL_CONTRACT.md`](docs/PERCEPTUAL_CONTRACT.md) instance，确认 positive、negative、
+must-preserve 和 reject 条件，再提出 candidate。Objective measurement 只能作为 proxy，不得写成
+perceptual truth，也不得用单一 quality score 替代 human listening decision。
 
 Developer/Experiment control 不等于 production Host parameter。`water.model`、`water.size`、
 `water.motion` 在正式 evidence、Joint Gate、Water ADR 与 state/compatibility review 前，不得因 Developer UI

@@ -196,10 +196,10 @@ generic parameter interface、automation lane、state restore 和 save/reopen �
 
 ## 6. Water-first experiment and production ownership
 
-当前采用 Water-first：先稳定 Perceptual Contract、Developer Control Surface、Offline Sound Lab、Water
-experiment/evidence/ADR 方法，再恢复 Ice。Ice 的长期 M3 ownership 和 gate 保留，但当前不并行启动
-Ice experiment、perceptual/parameter redesign 或 production implementation。production C++ ownership 仍不按
-材质拆给两人各自孤立实现。
+当前采用 Water-first。Ice 的长期 M3 ownership 和 gate 保留，但当前不并行启动 Ice experiment、
+perceptual/parameter redesign 或 production implementation。恢复 Ice 的显式 prerequisite 是
+`M2 Exit + Explicit Joint Gate`：M2 Exit 后，双方以受控 planning decision 确认 Water workflow 可复用于 Ice。
+production C++ ownership 仍不按材质拆给两人各自孤立实现。
 
 ### 6.0 LISTENING-001 shared preparation
 
@@ -220,7 +220,7 @@ DAW compatibility/automation/save-reopen evidence 始终归 `HOST-001`。
 | `EXP-W-002` candidate experiment | Engineering Lead | Sound & Host Lead owns question/target/fixtures/A-B/rubric inputs | experiment-only DSP、fixed seed、render、engineering measurements |
 | `EXP-W-003` Water dual-mode validation | Sound & Host Lead | Engineering Lead realtime/latency/CPU/random/maintainability gate；final adoption = Joint Gate | loudness-matched review、rubric、accept/revise/reject、macro direction |
 | Water algorithm ADR | Engineering Lead records technical decision | Joint Gate | production structure、mapping、latency/tail/random/performance/failure modes |
-| `EXP-I-*` / Ice ADR | Same role split when resumed | Joint Gate | DEFERRED until the Water method is stable |
+| `EXP-I-*` / Ice ADR | Same role split when resumed | Joint Gate | DEFERRED until M2 Exit + Explicit Joint Gate confirms Water workflow reuse |
 
 禁止两位开发者在没有显式 experiment scope 时，各自实现竞争的 production candidate。实验 code 必须留在
 `experiments/`，通过 Joint Gate 和 ADR 后才进入 production work item。
@@ -255,7 +255,7 @@ Water production
   Sound & Host Lead: Water final acceptance
 
 Ice resume (deferred now)
-  Apply the same contract -> experiment -> evidence -> ADR -> production method
+  M2 Exit -> Explicit Joint Gate -> apply the confirmed reusable workflow
 ```
 
 团队 WIP <= 2；同一时间最多一个高风险 production DSP implementation。能力交叉通过 review、复现和

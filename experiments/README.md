@@ -7,15 +7,17 @@
 
 ```text
 Human intent
-  -> Perceptual Contract
-  -> Experiment
+  -> perceptual-definition work (for Water: EXP-W-001)
+  -> Perceptual Contract instance
+  -> downstream experiment (EXP-W-002+)
   -> Evidence
   -> Review
   -> ADR
   -> Production
 ```
 
-Agent 不得把主观声音形容词直接翻译成 DSP 修改。先查找或请求对应的
+Perceptual-definition work 不要求预先存在它要创建的 contract。下游 experiment/refinement 不得把主观声音
+形容词直接翻译成 DSP 修改；必须先读取对应的
 [`docs/PERCEPTUAL_CONTRACT.md`](../docs/PERCEPTUAL_CONTRACT.md) 实例，确认 positive、negative、preserve 和
 reject 条件，再提出 candidate。Objective measurement 是 proxy，不是 perceptual truth；最终产品价值由人耳
 review 决定。
@@ -35,10 +37,13 @@ review 决定。
 
 ```text
 experiments/water/
-  EXP-W-001/  perceptual brief, references and review
+  EXP-W-001_PERCEPTUAL_BRIEF.md
   EXP-W-002/  candidates, configs, renders and analysis
   EXP-W-003/  review protocol, results and recommendation
 ```
 
-不要为了目录整洁预建大量空文件。当前 Water-first；Ice experiment、Ice perceptual/parameter redesign 和
-Ice production work 均 DEFERRED，待 Water 方法稳定后再按同一生命周期启动。
+`EXP-W-001_PERCEPTUAL_BRIEF.md` 是当前 GitHub Issue #17 已定义的 planned deliverable；不要另建并行的
+`EXP-W-001/` 路径。`EXP-W-002` / `EXP-W-003` 只有在实际需要 configs/renders/analysis/review 时才目录化，
+不要为了整洁预建大量空文件。当前 Water-first；Ice experiment、Ice perceptual/parameter redesign 和 Ice
+production work 均 DEFERRED，只有在 M2 Exit 后通过 Explicit Joint Gate 确认 Water workflow 可复用于 Ice，
+才恢复 M3 planning/work。

@@ -325,7 +325,9 @@ Resonant，并分别记录：
   和 non-periodic behavior；
 - Resonant Water identity：stable/cohesive liquid resonance、tonal/pitched-material compatibility、
   predictable musical response；
-- Fluid 与 Resonant 的 perceptual distinction；不得以“real/fake”或质量高低描述；
+- Fluid 与 Resonant 分别按各自 mode-specific responsibilities 验收；qualitative review 只需确认二者都是
+  intentional Water models 且不被理解为 real/fake、good/bad 或 quality switch。当前不要求
+  perceptual-distance metric、classification threshold 或 mode-separation score；
 - normal product settings 下的 input recognizability，包含代表性的 `global.mix=100%` Water-only case；
   这不是 sample-equality assertion，也不能只靠降低 Global Mix 通过；
 - transient preservation、RMS/LUFS relationship、residual energy、peak growth、spectral change、DC 和
@@ -551,8 +553,9 @@ pluginval 路径与完整 MSVC 环境初始化见 `docs/ENVIRONMENT.md`。CI 命
 - M1：`HOST-000` target DAW matrix、`TESTDATA-001` manifest、`PERF-BASE-001` report、`AUTO-001` automation contract、`ARCH-LAT-001` 的 0-sample Host reporting 与 latency policy、参数枚举/state/automation smoke、gain skeleton、finite output、offline render、pluginval PASS。
 - `DEV-UI-001`：Developer interactive controls/diagnostics/config export 的 usability gate；是大规模
   `EXP-W-002` 前的 Water M2 readiness prerequisite，不是 M1 Exit gate，且不替代 Host/offline evidence。
-- M2：Fluid/Resonant 双模式的 component ablation、property/render、mode differentiation、Size/Motion
-  semantic consistency、normal setting 与代表性 `global.mix=100%` input recognizability、click-free mode
+- M2：Fluid/Resonant 双模式分别满足各自 mode-specific responsibilities，完成 component ablation、
+  property/render、qualitative non-quality-switch review、Size/Motion semantic consistency、normal setting 与
+  代表性 `global.mix=100%` input recognizability、click-free mode
   transition、state/automation、performance increment、Water rubric/Reject Criteria 和 pluginval PASS；
   引用 `TESTDATA-001`、`LISTENING-001` 与 `PERF-BASE-001`，且 Host-reported processing latency 保持 0。
 - M3：Ice vertical slice 的 property/render/listening rubric/Reject Criteria/pluginval PASS，并引用同一 reference corpus 与 performance baseline；本次 Water revision 不改变 Ice gate。
