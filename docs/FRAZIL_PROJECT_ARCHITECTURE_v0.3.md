@@ -527,6 +527,12 @@ UI 的任务是：
 
 UI 只通过 narrow plugin parameter interface 表达 Host 参数，并通过 narrow app edit/history command interface 发起 begin/end gesture、discrete edit、undo 和 redo。UI 不直接持有 AudioEngine 或任何 DSP object。
 
+Developer Control Surface 与本节的 Production UI 必须区分。计划中的 `DEV-UI-001` 可以使用工程术语、
+diagnostics 和临时 experiment controls 来提高 realtime exploration 效率，但仍须遵守 narrow parameter/
+diagnostics boundary，不得直接持有 DSP object。它不构成 M5 Product UI、不改变 Host parameter registry，
+也不能替代 DAW acceptance 或 deterministic offline evidence。权威工具边界见
+[`DEVELOPER_SOUND_TOOLS.md`](DEVELOPER_SOUND_TOOLS.md)。
+
 ---
 
 ## 3.2 Application / Orchestration 层
@@ -1873,6 +1879,11 @@ Header 应：
 
 # 11. 开发阶段
 
+当前执行顺序以 [`CODING_PLAN.md`](CODING_PLAN.md) 为准：M1 late-stage closure 期间并行推进
+`HOST-001`、`DEV-UI-001` 和 `EXP-W-001`，随后 Water-first；Ice 的以下长期 M3 architecture 保留，但当前
+DEFERRED，待 Water 的 Perceptual Contract -> experiment -> evidence -> ADR 方法稳定后再启动。该阶段排序
+不改变 Water/Ice 模块边界或已接受的 Host/state/routing contract。
+
 # M0 — Product Contract & Repository Bootstrap
 
 ## 目标
@@ -1954,6 +1965,9 @@ plugin works
 
 # M2 — Water Dual-Mode Material Processor
 
+大规模 `EXP-W-002` 前必须具备可用的 `DEV-UI-001` realtime exploration entry point；Offline Sound Lab
+继续提供可重复证据。二者职责和隔离规则见 [`DEVELOPER_SOUND_TOOLS.md`](DEVELOPER_SOUND_TOOLS.md)。
+
 ## P0
 
 - [ ] WaterProcessor 生命周期
@@ -1981,6 +1995,8 @@ water.amount
 ---
 
 # M3 — Ice Vertical Slice
+
+> 当前执行状态：DEFERRED；以下内容是长期架构目标，不是当前已启动工作。
 
 ## P0
 

@@ -101,6 +101,13 @@ trigger 时才执行完整 Documentation Synchronization Gate。必要更新与�
 
 ## 8. 例外与修改规则
 
+声音 experiment 必须先有对应 Perceptual Contract；Agent/Engineering 不得把主观形容词直接映射成固定
+DSP change。Objective audio metrics 只能作为 proxy，不能代替 human listening decision。Developer/Experiment
+controls 在 evidence、Joint Gate、ADR 和 compatibility work 前不得进入 production Host registry/state；
+Developer Control Surface 也不得被复用成未经产品验收的 Production UI。详细合同见
+[`PERCEPTUAL_CONTRACT.md`](PERCEPTUAL_CONTRACT.md) 与
+[`DEVELOPER_SOUND_TOOLS.md`](DEVELOPER_SOUND_TOOLS.md)。
+
 违反本规范的例外必须可定位到 issue/PR；`experiments/` 中的 candidate、A/B 和 prototype 可以先不建 ADR。若候选被采纳为 production architecture/core DSP decision，或改变既有架构决策、依赖方向、公共职责或其他 ADR trigger 合同，才必须有 ADR 和测试。实现既有 accepted contract、补已有测试或不改变公共行为/依赖边界的 refactor 不自动要求 ADR。禁止为了赶 milestone 默默降低实时、所有权、模块边界或文档要求。
 
 ## Modification Policy

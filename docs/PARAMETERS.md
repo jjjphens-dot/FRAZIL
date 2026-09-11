@@ -78,6 +78,22 @@ UX/listening/property evidence 决定，当前 candidate contract 不冻结这�
 才可研究 destination 固定为 Motion 的受限 `Motion Mod`（LFO/Random、Rate、Depth、Smooth），且需
 新的参数/state/automation review。
 
+### 1.2 Developer/Experiment controls are not Host parameters
+
+`DEV-UI-001` may operate the nine current Host parameters through the existing narrow parameter interface. During
+Water experiments it may also display Developer/Experiment controls named Water Model, Water Size and Water Motion
+before their possible Host adoption. In that state:
+
+- a developer control is not evidence of Host parameter adoption;
+- `water.model`, `water.size` and `water.motion` must not be added to `ParameterLayout` or `schemaVersion=1`;
+- no stable ID/order/range/default/automation/state compatibility promise is created;
+- export to an experiment config is a Sound Lab handoff, not a plugin state/preset format;
+- only evidence, Joint Gate, the applicable Water ADR and explicit state/compatibility work may promote a control
+  into the static Host registry.
+
+Developer UI visibility never changes the Host-visible parameter set. The complete tooling boundary is maintained
+in [`DEVELOPER_SOUND_TOOLS.md`](DEVELOPER_SOUND_TOOLS.md).
+
 ### Contract freeze stages
 
 M1 是 `core contract stabilization`：建立静态参数注册、Snapshot、mapping、state、automation granularity 和基础 smoothing 合同，但允许 Water/Ice 实验在 v1 API 范围内提出经过验证的 product macros。M2 Water 与 M3 Ice 完成后，`PARAM-FREEZE-001` 才是 `v1 host API freeze`：它冻结最终 Parameter ID、order、choice index、range、default、unit、smoothing、inactive-mode behavior，并要求 automation tests 与 state compatibility fixtures。此后 M4/M5 不得随意修改 Host Parameter ID；变更必须有 ADR 与 migration/compatibility review。

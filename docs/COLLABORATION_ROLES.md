@@ -89,6 +89,7 @@ typo、小型 bounded fix、test-only correction 或 documentation correction �
 - ParameterLayout、ParameterSnapshot、ParameterMapper、StateModel 与 AudioEngine；
 - production Water/Ice/Routing DSP 的工程实现；
 - unit/property/integration/render harness、ASAN、pluginval 和性能测量；
+- `DEV-UI-001` Developer Control Surface、realtime-safe diagnostics bridge 和 experiment-config export；
 - production code quality、公共 API 注释、module README 与 MODULE_INDEX 同步。
 
 Engineering Lead 不单独决定最终听感、macro 产品语义、DAW 工作流或 UI 产品优先级，也不能为实现方便
@@ -103,6 +104,8 @@ Engineering Lead 不单独决定最终听感、macro 产品语义、DAW 工作�
 - Ableton、FL Studio、REAPER 中的 scan/load、参数枚举、automation、save/reopen 和 offline render；
 - routing、enable、Global Mix、Input/Output Gain 的真实制作体验；
 - UI 信息层级、操作速度、视觉信号流和产品验收；
+- `DEV-UI-001` 的 workflow/product usability acceptance，包括参数可发现性、A/B、Reset、diagnostics 和
+  offline experiment handoff；
 - 用户文档、已知限制和音乐制作示例。
 
 Sound & Host Lead 不单独决定 production audio-thread 安全、跨模块依赖、对象生命周期或 state migration
@@ -123,6 +126,7 @@ ACL。高风险 Issue 可以用 Allowed/Forbidden paths 收窄写入边界；普
 | `tests/integration/**` | Engineering Lead | Host scenario input / review |
 | `tests/render/**` | Engineering Lead | Consume / review |
 | `tools/*render*`, `tools/*perf*` | Engineering Lead | Consume / usability finding |
+| Developer Control Surface、diagnostics bridge、experiment-config export | Engineering Lead | Sound & Host Lead owns workflow/product usability acceptance |
 | CMake、build scripts、`.github/workflows/**` | Engineering Lead | Reproduction review |
 | `testdata/input/**`、`testdata/manifest.json`、`tools/*testdata*` engineering corpus | Engineering Lead；accepted 后冻结 | 修改需显式 Issue；Sound & Host Lead 提供需求/许可 review |
 | `testdata/listening/**` | Sound & Host Lead | Engineering validation |
@@ -167,6 +171,7 @@ reproducibility/provenance infrastructure 已进入 `main`。`RENDER-001` 的 pa
 | `PERF-BASE-001` | Engineering Lead | Sound & Host Lead 提供实际 workload、素材、block size、制作场景 | performance harness、reports、必要 build/test wiring | 正式性能预算、Water/Ice/Routing/UI |
 | `ARCH-LAT-001` | Engineering Lead | Sound & Host Lead 验收 intentional delay/tail 产品语义 | latency metadata、impulse/automated evidence、相关 ADR/docs | 引入 lookahead/FFT/convolution 或更改 routing 实现 |
 | `HOST-001` | Sound & Host Lead | Engineering Lead 提供 build/plugin 与 finding 修复 | Host evidence、DAW matrix/results、Issue findings | 直接修改 StateModel、Mapper、Snapshot、AudioEngine、PluginProcessor |
+| `DEV-UI-001` | Engineering Lead | Sound & Host Lead 提供 workflow/product usability acceptance | developer controls、safe parameter binding、diagnostics bridge、experiment-config export、相关 docs/tests | Production UI、preset system、Host registry/state adoption、Water production DSP |
 | M1 Joint Exit Review | Sound & Host Lead 维护 Host evidence；Engineering Lead 维护 engineering evidence | 双方 Joint Gate | exit evidence 和 review record | 用单条证据链替代另一条 |
 
 ### 5.4 HOST-001 handoff
@@ -186,10 +191,15 @@ value、lane behavior、retention 和 reopen。发现 engine/state/plugin 问题
 M1 只有在 Engineering Evidence 与 Sound / Host Evidence 两条链均满足后，才能进入 Joint Exit Review。
 工程测试不能替代 DAW acceptance，DAW 中“听起来正常”也不能替代自动化工程证据。
 
-## 6. M2/M3 pipeline ownership
+`HOST-001` 不依赖 `DEV-UI-001`。即使 Developer Control Surface 已可用，Host acceptance 仍必须从 DAW
+generic parameter interface、automation lane、state restore 和 save/reopen 取得证据。
 
-M2/M3 使用 pipeline-level parallelism，而不是 isolated Water-vs-Ice developer silos。Water 和 Ice 可以
-处于不同流水线阶段，但 production C++ ownership 不按材质拆给两人各自孤立实现。
+## 6. Water-first experiment and production ownership
+
+当前采用 Water-first：先稳定 Perceptual Contract、Developer Control Surface、Offline Sound Lab、Water
+experiment/evidence/ADR 方法，再恢复 Ice。Ice 的长期 M3 ownership 和 gate 保留，但当前不并行启动
+Ice experiment、perceptual/parameter redesign 或 production implementation。production C++ ownership 仍不按
+材质拆给两人各自孤立实现。
 
 ### 6.0 LISTENING-001 shared preparation
 
@@ -197,19 +207,20 @@ M2/M3 使用 pipeline-level parallelism，而不是 isolated Water-vs-Ice develo
 |---|---|---|---|---|
 | `LISTENING-001` | Sound & Host Lead | Engineering Lead | `testdata/listening/**`、listening corpus metadata、license/provenance evidence、directly related listening docs | `testdata/input/**`、TESTDATA generator/verifier、production Water/Ice DSP、HOST-001 DAW evidence、parameter/state contracts |
 
-`LISTENING-001` 可以在 M1 期间开始准备，但不阻塞 M1 Exit。它必须在 `EXP-W-003` Water dual-mode
-validation/refinement、`EXP-I-003` perceptual candidate selection，以及 `WATER-006` / `ICE-006` listening pack 或 final listening evidence
-之前 ready；`EXP-W-002` / `EXP-I-002` engineering experiments 可以直接使用 `TESTDATA-001`，不需
-等待 listening corpus 完成。DAW compatibility/automation/save-reopen evidence 始终归 `HOST-001`。
+`LISTENING-001` 可以在 M1 期间开始准备，但不阻塞 M1 Exit。当前必须在 `EXP-W-003` Water dual-mode
+validation/refinement 与 `WATER-006` listening evidence 前 ready；`EXP-W-002` engineering experiments
+可以直接使用 `TESTDATA-001`，不需等待 listening corpus 完成。Ice 对应使用要求在 M3 恢复时仍成立。
+DAW compatibility/automation/save-reopen evidence 始终归 `HOST-001`。
 
 ### 6.1 Experiment pipeline
 
 | Stage / work item | Implementation DRI | Acceptance / Joint Gate | Output boundary |
 |---|---|---|---|
-| `EXP-W-001` / `EXP-I-001` perceptual brief | Sound & Host Lead | Engineering Lead feasibility review | brief、references、anti-examples、reject criteria、listening dimensions |
-| `EXP-W-002` / `EXP-I-002` candidate experiment | Engineering Lead | Sound & Host Lead owns question/target/fixtures/A-B/rubric inputs | experiment-only DSP、fixed seed、render、engineering measurements |
-| `EXP-W-003` Water dual-mode validation / `EXP-I-003` candidate selection | Sound & Host Lead | Engineering Lead realtime/latency/CPU/random/maintainability gate；final adoption = Joint Gate | loudness-matched review、rubric、accept/revise/reject、macro direction |
-| Water/Ice algorithm ADR | Engineering Lead records technical decision | Joint Gate | production structure、mapping、latency/tail/random/performance/failure modes |
+| `EXP-W-001` Perceptual Contract | Sound & Host Lead | Engineering Lead feasibility review | intent、positive/negative、preserve/reject、references、objective proxies and listening dimensions |
+| `EXP-W-002` candidate experiment | Engineering Lead | Sound & Host Lead owns question/target/fixtures/A-B/rubric inputs | experiment-only DSP、fixed seed、render、engineering measurements |
+| `EXP-W-003` Water dual-mode validation | Sound & Host Lead | Engineering Lead realtime/latency/CPU/random/maintainability gate；final adoption = Joint Gate | loudness-matched review、rubric、accept/revise/reject、macro direction |
+| Water algorithm ADR | Engineering Lead records technical decision | Joint Gate | production structure、mapping、latency/tail/random/performance/failure modes |
+| `EXP-I-*` / Ice ADR | Same role split when resumed | Joint Gate | DEFERRED until the Water method is stable |
 
 禁止两位开发者在没有显式 experiment scope 时，各自实现竞争的 production candidate。实验 code 必须留在
 `experiments/`，通过 Joint Gate 和 ADR 后才进入 production work item。
@@ -228,20 +239,23 @@ Sound & Host Lead 默认不修改 WaterProcessor/IceProcessor production impleme
 这不禁止 Sound & Host Lead 在 `experiments/**`、small scripts、parameter sweeps、fixtures 和 prototype
 exploration 中学习或试验 DSP；只禁止未经 scope/Joint Gate 进入平行 production implementation。
 
-### 6.3 推荐并行波次
+### 6.3 当前执行波次
 
 ```text
-Wave A
-  Engineering Lead: Water candidate engineering
-  Sound & Host Lead: Water rubric + Ice perceptual brief
+Current M1 late-stage
+  Engineering Lead: DEV-UI-001 + handed-back HOST findings
+  Sound & Host Lead: HOST-001 + EXP-W-001 + Developer UI usability acceptance
 
-Wave B
-  Engineering Lead: Water findings + Ice experiment prototype
-  Sound & Host Lead: Water listening/DAW acceptance + Ice selection inputs
+Water experiment
+  Engineering Lead: Water candidates + Offline Sound Lab evidence
+  Sound & Host Lead: Water rubric + listening decision
 
-Wave C
-  Engineering Lead: Ice production implementation
-  Sound & Host Lead: Water final acceptance + Ice listening preparation
+Water production
+  Engineering Lead: accepted Water implementation
+  Sound & Host Lead: Water final acceptance
+
+Ice resume (deferred now)
+  Apply the same contract -> experiment -> evidence -> ADR -> production method
 ```
 
 团队 WIP <= 2；同一时间最多一个高风险 production DSP implementation。能力交叉通过 review、复现和
