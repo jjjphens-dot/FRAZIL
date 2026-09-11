@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-09<br>
+> 快照日期：2026-09-11<br>
 > 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -132,7 +132,7 @@ non-goals 标记为 NOT RUN。
 
 ## 2.6 M1 engineering follow-up evidence
 
-当前 follow-up implementation commit `e56664c8775f614e77004ac891d63a5c2fd2fa7a` 的 TEST-002、PERF-BASE-001 和 ARCH-LAT-001 结果见 [`docs/evidence/M1_ENGINEERING_EVIDENCE.md`](evidence/M1_ENGINEERING_EVIDENCE.md) 与 [`docs/evidence/PERF-BASE-001.md`](evidence/PERF-BASE-001.md)。Release、ASAN 均通过 fresh configure、safe build 和 7/7 CTest；canonical `frazil_performance` manual Release benchmark 的 `configuredCommit` 与 implementation commit 一致、`sourceState=clean`，并记录 steady-state/parameter-retarget、CPU、memory、allocation、finite-output 和 denormal observations；focused mutation verification 也证明 active lifecycle corruption、active valid-but-different output 和 neutral exact-repeatability corruption 能被分别验证。实现/证据 head `c1aea641688397f80bec0996e8eb3375b5f60def` 的 Hosted Windows Debug run `34481193756` 已通过 Configure、Build 和 7/7 Test；此前 docs-only validation head `c3bfeab4d55c47e322cad6ef7cfc259f6542b6dd` 的 run `34482138484`，以及 provenance-fix head `b8918ec93fe696867e16712e67837173b6cfceb4` 的 run `34490710722`，也均已通过 Configure、Build 和 7/7 Test。pluginval、真实 DAW、listening 和 M1 Joint Exit 不在本地/Hosted Debug 证据范围内，需后续 acceptance。
+当前 TEST-002 与 ARCH-LAT-001 的 implementation commit 为 `e56664c8775f614e77004ac891d63a5c2fd2fa7a`；PERF-BASE-001 harness follow-up implementation commit 为 `98ea8c6a70edef917fc42cc48a25801fc613716b`。结果见 [`docs/evidence/M1_ENGINEERING_EVIDENCE.md`](evidence/M1_ENGINEERING_EVIDENCE.md) 与 [`docs/evidence/PERF-BASE-001.md`](evidence/PERF-BASE-001.md)。当前分支的 Release、Debug、ASAN 均通过 fresh configure、safe build 和 7/7 CTest；canonical `frazil_performance` manual Release benchmark 的 `configured_commit`/`configured_source_state` 与 `runtime_commit`/`runtime_source_state` 均为 clean matching，`formal_provenance_status=PASS`，并记录 steady-state/parameter-retarget、CPU、memory、allocation、finite-output 和 denormal observations；focused mutation verification 也证明 active lifecycle corruption、active valid-but-different output 和 neutral exact-repeatability corruption 能被分别验证。早期实现/证据 head `c1aea641688397f80bec0996e8eb3375b5f60def` 的 Hosted Windows Debug run `34481193756` 已通过 Configure、Build 和 7/7 Test；此前 docs-only validation head `c3bfeab4d55c47e322cad6ef7cfc259f6542b6dd` 的 run `34482138484`，以及 provenance-fix head `b8918ec93fe696867e16712e67837173b6cfceb4` 的 run `34490710722`，也均已通过 Configure、Build 和 7/7 Test。pluginval、真实 DAW、listening 和 M1 Joint Exit 不在本地/Hosted Debug 证据范围内，需后续 acceptance。
 
 ## 3. 当前源码映射
 

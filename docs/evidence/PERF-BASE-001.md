@@ -1,10 +1,12 @@
 # PERF-BASE-001 Reference Baseline
 
 - Status: measured Release engineering baseline; no formal CPU percentage threshold is defined.
-- Implementation commit: `e56664c8775f614e77004ac891d63a5c2fd2fa7a`
-- Configure provenance: `configured_commit=e56664c8775f614e77004ac891d63a5c2fd2fa7a`,
-  `source_state=clean`
-- Measurement date: 2026-09-10
+- Implementation commit: `98ea8c6a70edef917fc42cc48a25801fc613716b`
+- Configure/runtime provenance from the clean Release run:
+  `configured_commit=98ea8c6a70edef917fc42cc48a25801fc613716b`,
+  `configured_source_state=clean`, `runtime_commit=98ea8c6a70edef917fc42cc48a25801fc613716b`,
+  `runtime_source_state=clean`, `formal_provenance_status=PASS`
+- Measurement date: 2026-09-11
 - Reference machine: Windows 11 Home China 23H2, build 22631, x64; Intel Core i9-14900HX,
   32 logical CPUs, 16003 MiB RAM
 - Toolchain: MSVC `_MSC_VER=1943`, JUCE 9.0.1
@@ -24,7 +26,8 @@ block size: 128 samples
 channels: 2
 warm-up: 2000 blocks per scenario
 measurement window: 20000 blocks per scenario
-input: deterministic 440 Hz stereo reference block, generated in the benchmark
+input: deterministic 440 Hz stereo reference oscillator with continuous phase across blocks,
+  generated in the benchmark; the oscillator state is continuous across warm-up and measurement
 Reference DAW: N/A; headless AudioEngine benchmark
 measurement tool: std::chrono::steady_clock around AudioEngine::process
 thread configuration: one benchmark process thread
@@ -43,16 +46,24 @@ ctest --preset windows-release
 
 ## Benchmark results
 
-| Scenario | Mean callback (us) | P95 (us) | P99 (us) | Worst (us) | Deadline (us) | Mean deadline use | Worst deadline use | Process CPU observation | Measured callback `operator new` | Finite output |
+| Scenario | Mean callback (us) | P95 (us) | P99 (us) | Worst (us) | Deadline (us) | Mean deadline use | Worst deadline use | Harness process CPU observation | Measured callback `operator new` | Finite output |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| steady-state | 1.058 | 1.300 | 1.400 | 37.300 | 2666.667 | 0.040% | 1.399% | 0.000% | 0 | PASS |
-| parameter-retarget | 0.970 | 1.000 | 1.700 | 218.100 | 2666.667 | 0.036% | 8.179% | 0.000% | 0 | PASS |
+| steady-state | 0.842 | 0.900 | 1.100 | 52.300 | 2666.667 | 0.032% | 1.961% | 28.201% | 0 | PASS |
+| parameter-retarget | 0.877 | 0.900 | 1.600 | 125.800 | 2666.667 | 0.033% | 4.718% | 29.287% | 0 | PASS |
 
-The process CPU observation is process-wide CPU time divided by wall time for each measurement
-window. The observed value rounded to `0.000%` because the Windows CPU-time clock resolution was
-coarser than these short windows; it is retained as an observation and is not a performance gate.
-Working-set observations were 3.938 MiB before and 4.094 MiB after/peak for steady-state, and
-4.094 MiB before and 4.094 MiB after/peak for parameter-retarget.
+`harness_process_cpu_percent` is process-wide CPU time divided by wall time for the complete
+benchmark measurement window. The window includes reference signal generation, parameter-retarget
+setup, timing calls, result bookkeeping, and finite-output scanning around the separately timed
+`AudioEngine::process` call. It is not an `AudioEngine::process`-only CPU utilization metric and
+is not a formal performance budget.
+Working-set observations were 3.969 MiB before and 4.113 MiB after/peak for steady-state, and
+3.965 MiB before and 4.113 MiB after/peak for parameter-retarget.
+
+`configured_commit` and `configured_source_state` are captured by CMake at configure time.
+`runtime_commit` and `runtime_source_state` are read by the executable before formal measurement.
+`formal_provenance_status=PASS` requires matching commits and `clean` for both source states;
+dirty, unknown, or mismatched provenance is `NOT RUN` and does not force the benchmark process to
+fail.
 
 ## Denormal and finite-output observation
 
@@ -63,18 +74,29 @@ The benchmark runs a separate prepared `AudioEngine` probe with 256 subnormal in
 input_subnormal_samples: 256
 output_subnormal_samples: 256
 output_nonfinite_samples: 0
-denormal_probe_status: PASS
+denormal_probe_status: OBSERVED
+denormal_finite_output_status: PASS
 ```
 
-The probe records observed handling; it does not claim a platform-independent flush-to-zero mode.
+The probe records observed handling; `denormal_finite_output_status=PASS` means only that the
+processed output remained finite. It does not claim a platform-independent flush-to-zero mode.
 Both benchmark scenarios also reported finite output, and the measured callback allocation
-observer recorded zero `operator new` calls.
+observer recorded zero `operator new` calls for the selected `AudioEngine::process` workload; it
+is not complete `FRAZILAudioProcessor::processBlock` allocation-free evidence.
 
 ## Validation boundary
 
 - Release fresh configure, safe build and CTest: **7/7 PASS**. The manual benchmark is separate.
 - ASAN fresh configure, safe build and CTest: **7/7 PASS**.
+- Provenance regression cases: Case A clean matching configure/runtime Git reported `PASS`; Case B
+  a tracked source mutation after configure reported `runtime_source_state=dirty` and `NOT RUN`;
+  Case C a configure/runtime commit mismatch reported `NOT RUN`; Case D execution with Git
+  unavailable reported `runtime_commit=unknown`, `runtime_source_state=unknown`, and `NOT RUN`;
+  and Case E execution from a clean Repo B CWD while the configured Repo A was dirty still reported
+  Repo A's `runtime_source_state=dirty` and `NOT RUN`. In each negative case the benchmark itself
+  still returned exit code 0 with finite output.
 - This evidence does not claim pluginval, real DAW, listening, offline render coverage beyond the
   existing RENDER-001 smoke, or a formal M1 Joint Exit.
-- Dirty or unknown `source_state` is visibly reported by the executable and is not formal baseline
-  evidence; only this clean fresh-configure run is recorded above.
+- Dirty or unknown `configured_source_state`/`runtime_source_state`, a runtime commit mismatch, or
+  unavailable Git is visibly reported by the executable and is not formal baseline evidence; only
+  a clean fresh-configure run with `formal_provenance_status=PASS` is recorded above.
