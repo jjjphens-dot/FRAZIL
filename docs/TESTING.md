@@ -279,6 +279,80 @@ LISTENING_NOTES.md
 
 Rubric 不规定总分公式。评审必须保留每个维度的分数、简短理由和两位评审的独立结论，再记录 accepted、revise 或 reject；不得只用一个总分替代听感判断。
 
+### Water dual-mode planned acceptance
+
+本节定义 M2/`ADR-W-001` 的计划证据，不表示 Fluid、Resonant 或候选参数已经实现。Ice 的算法、参数、
+work item 和测试在本次 Water-focused revision 中保持不变。
+
+#### Product/listening evidence (`LISTENING-001`, `EXP-W-003`, `WATER-006`)
+
+同一 representative material、输入片段和 matched-loudness procedure 至少比较 dry、baseline、Fluid 和
+Resonant，并分别记录：
+
+- Fluid Water identity：bubble/liquid character、droplet/transient response、continuous irregular motion
+  和 non-periodic behavior；
+- Resonant Water identity：stable/cohesive liquid resonance、tonal/pitched-material compatibility、
+  predictable musical response；
+- Fluid 与 Resonant 的 perceptual distinction；不得以“real/fake”或质量高低描述；
+- normal product settings 下的 input recognizability，包含代表性的 `global.mix=100%` Water-only case；
+  这不是 sample-equality assertion，也不能只靠降低 Global Mix 通过；
+- transient preservation、RMS/LUFS relationship、residual energy、peak growth、spectral change、DC 和
+  tail behavior；实验前不设 universal residual-to-input dB threshold；
+- **Semantic Predictability**：不解释内部 DSP 时，用户能预测 `water.size` 从 Fine/Small/Bright 到
+  Large/Deep 表示尺度更大、更深，`water.motion` 从 Calm/Stable 到 Active/Flowing 表示时间行为更
+  活跃、更流动；Size 的 compact display 可候选 `Fine <-> Deep`，exact label 不在本测试计划冻结；
+- **Cross-Mode Consistency**：Fluid/Resonant mapping 可以不同，但切换后 Size/Motion 保持同一高层
+  感知方向，且 Resonant 的 Motion 变化刻意比 Fluid subtle；
+- **Orthogonality**：用户能区分 Size、Motion、`water.amount`、`global.mix` 和
+  `parallel.balance`；Motion 不得主要表现为 Amount/output gain/simple loudness increase，Size 不得
+  主要表现为 loudness，Mode 不得表现为 quality switch；任何 compensation 由测量和 loudness-matched
+  review 决定，不能预填固定 dB；
+- **Discoverability**：Fluid 与 Resonant 被理解为两种 Water behavior，而不是 real/fake、good/bad 或
+  high/low quality；记录是否需要简短描述或 tooltip；
+- **Interaction Cost**：评估常用 Water sound design 是否能用 Enable、Mode、Size、Motion 完成，而不
+  暴露 bubble radius、resonator Q、delay depth、event probability 等 engineering controls；
+- **Automation Readability**：Host lane 的 Water Model、Water Size、Water Motion 无需内部 DSP 知识即可
+  理解；
+- musical usefulness、artifact severity、最终 mapping 理由、risk 和 tradeoff。
+
+#### Engineering/property evidence (`EXP-W-002`, `WATER-001..005/008`)
+
+- 分别测量 Bubble Ensemble、Droplet/Impact、Flow Modulator 和 Liquid/Modal Resonator；Fluid A+B+D
+  集成仍保留 A/B/D component ablation，C 作为 Resonant baseline/mode；
+- 每个 sub-engine 明确输出 residual 或 complete processed signal；若 Resonant 已含 direct feedthrough，
+  验证 higher-level composition 不重复 `x`，并检查 unintended gain/comb artifact；
+- fixed test seed 下可重复；production instances 不因 mutable global/shared seed 同步；production seed、
+  offline determinism、save/reopen persistence 和 transition progression 由 Water ADR 定义；
+- finite input、silence、input/parameter extremes、prepare/reset/reprepare、short/odd/zero callbacks 下无
+  NaN/Inf、out-of-range access 或 unexplained state corruption；
+- 记录 DC、peak、tail decay/termination、denormal behavior、residual energy 和 bounded event/voice count；
+- sample rates 至少覆盖 44.1/48/96 kHz；representative blocks 覆盖 32/64/128/256/512/1024 的风险相关
+  子矩阵，并按算法语义验证 block-partition consistency；
+- Size：Fluid 的 bubble scale -> resonance distribution 与 Resonant 的 root/mode-family scale 在适用区间
+  保持预期单调方向；Size 不改变 event density、Motion speed、Amount 或 general gain；
+- Motion：Fluid 的 event/Flow/stochastic destinations 与 Resonant 的 subtle drift/excitation destinations
+  保持预期 temporal-activity 方向；检查 loudness correlation，防止 Motion 主要成为 gain；
+- Water mode transition 检查 click/zipper、异常 peak、rapid repeated automation、最终 mode、tail/state
+  ownership、random progression、reset/prepare/state restore 和 transition CPU upper bound；不把通用
+  约 20 ms 测试 baseline 当作 final Water duration；
+- `water.enabled` transition 继续单独验证 pass-through、macro value retention 和 click-free behavior；
+- 相对 `PERF-BASE-001` 分别记录 Fluid、Resonant 和 transition 的 mean/P95/P99/worst；M2 只做增量
+  regression tracking，不提前冻结最终 performance budget；
+- plugin `getLatencySamples()` 仍为 0，Water 不引入需要 lookahead/FFT block latency/linear-phase/
+  convolution/Host PDC 的 production dependency；intentional effect delay/tail 单独描述和测试。
+
+#### Candidate Host parameter evidence (`WATER-003/007`)
+
+`water.model`、`water.size`、`water.motion` 只有在正式采纳后才进入 ParameterLayout/Host/state tests。采纳
+前必须定义并验证：稳定静态注册与 deterministic choice ordering、range/default、ParameterMapper 的
+mode-specific mapping、smoothing/transition、automation lane/record/edit/playback、inactive value retention、
+save/reopen、schema evolution/default/migration fixtures 和 compatibility fallback。当前
+`schemaVersion=1` 与九参数 registry 不因本测试计划扩展。
+
+不增加 `water.dryWet` 测试或参数。责任保持为：`water.amount`=Serial stage amount，
+`parallel.balance`=Parallel proportion，`global.mix`=完整插件 dry/wet。内部 algorithmic LFO/random tests
+不构成 public LFO/modulation-matrix contract；通用用户 LFO 和可选 `Motion Mod` 均为 deferred。
+
 ### Reject criteria
 
 Water/Ice candidate 至少在以下任一情况发生时 reject 或退回 experiment：
@@ -346,6 +420,9 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 - gains: -24 -> +24 dB，检查 click、zipper、峰值和恢复；
 - routing/enable: 播放中切换，检查 click 和参数值保留；
 - 模式切换后 inactive automation 继续写值，再切回时使用最新值。
+- 若 M2 正式采纳 Water candidates：`water.model` 的 Fluid/Resonant rapid switching/final value、
+  `water.size` 与 `water.motion` 的快慢曲线、跨模式 value retention 和 save/reopen；采纳前不把这些
+  candidate 写成当前 Host acceptance 项。
 
 所有 automation stress 至少检查：无 click、无 zipper、无 NaN/Inf、block size 改变后行为稳定、参数最终值正确；不得把“sample/block ramp”写成 Host sample-accurate 保证。
 
@@ -401,7 +478,7 @@ python tools/build_safe.py --preset windows-release
 | Milestone / work item | 允许测量的场景 | 目的 |
 |---|---|---|
 | M1 / `PERF-BASE-001` | pass-through AudioEngine、Parameter Snapshot/Mapper overhead、Input Gain、Global Mix、Output Gain、automation/smoothing baseline | 建立 48 kHz/128 samples 的 baseline；此时不得依赖尚未实现的 Water/Ice/Routing/UI |
-| M2 / `WATER-005` | Water only | 相对 M1 baseline 记录 Water vertical slice 的增量与 mean/P95/P99/worst |
+| M2 / `WATER-005` | Fluid only、Resonant only、Water mode transition | 相对 M1 baseline 分别记录双模式 steady-state 与 transition 的增量、mean/P95/P99/worst；不在 M2 预设最终硬预算 |
 | M3 / `ICE-005` | Ice only | 相对 M1 baseline 记录 Ice vertical slice 的增量与 mean/P95/P99/worst |
 | M4 | Parallel、Water -> Ice、Ice -> Water、routing transition | 相对 baseline 记录完整 routing 的增量和 transition 峰值；不得出现未解释的严重 realtime regression |
 | M5 | editor closed、editor idle、editor animated | 记录 UI 生命周期/动画对 callback 的影响，不将 UI 状态混入 DSP baseline |
@@ -440,7 +517,11 @@ pluginval 路径与完整 MSVC 环境初始化见 `docs/ENVIRONMENT.md`。CI 命
 
 - M0：fresh clone 可配置/构建/测试，CI PASS，模板和 branch protection 就绪。
 - M1：`HOST-000` target DAW matrix、`TESTDATA-001` manifest、`PERF-BASE-001` report、`AUTO-001` automation contract、`ARCH-LAT-001` 的 0-sample Host reporting 与 latency policy、参数枚举/state/automation smoke、gain skeleton、finite output、offline render、pluginval PASS。
-- M2/M3：各自 vertical slice 的 property/render/listening rubric/Reject Criteria/pluginval PASS，并引用同一 reference corpus 与 performance baseline。
+- M2：Fluid/Resonant 双模式的 component ablation、property/render、mode differentiation、Size/Motion
+  semantic consistency、normal setting 与代表性 `global.mix=100%` input recognizability、click-free mode
+  transition、state/automation、performance increment、Water rubric/Reject Criteria 和 pluginval PASS；
+  引用 `TESTDATA-001`、`LISTENING-001` 与 `PERF-BASE-001`，且 Host-reported processing latency 保持 0。
+- M3：Ice vertical slice 的 property/render/listening rubric/Reject Criteria/pluginval PASS，并引用同一 reference corpus 与 performance baseline；本次 Water revision 不改变 Ice gate。
 - M4：`PARAM-FREEZE-001` 已完成，`ADR-R-001` Accepted，`ROUTE-011` 的 routing infrastructure latency 检查通过；inactive-control routing invariants、完整 routing matrix、mode retention、click-free automation、loudness A/B PASS。
 - M5：UI attachment、gesture/history、resize/accessibility 基线 PASS。
 - M6：全矩阵、ASAN、长稳、多实例、DAW、CPU/memory、listening regression PASS。

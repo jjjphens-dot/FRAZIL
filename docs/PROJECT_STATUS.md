@@ -14,7 +14,11 @@
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
-`CODING_PLAN.md` v1.1 / Approved Development Baseline 已作为 M0→M7 的正式工程执行基线；这不代表 FRAZIL plugin v1.0 release，也不改变 M0/M1、Water/Ice/Routing 的实际完成状态。
+`CODING_PLAN.md` v1.2 使用受控的 baseline transition：在同一 revision 获得 required formal approval
+并合入前，`main` 上的 v1.1 继续作为当前 Approved Development Baseline；经批准的 v1.2
+revision 合入时成为新的 Approved Development Baseline。feature commit、Issue 或 `REQUEST_CHANGES`
+本身不构成 approval。这不代表 FRAZIL plugin v1.0 release，也不改变 M1、Water/Ice/Routing 的实际完成
+状态：Water production DSP、candidate controls 和 model transition 均未实现或注册。
 
 当前阻塞性差距：
 
@@ -237,7 +241,7 @@ Sound / Host lane
 Both evidence lanes
   -> M1 Joint Exit Review
   -> EXP-W-002 / EXP-I-002 engineering experiments using TESTDATA-001
-  -> EXP-W-003 / EXP-I-003 selection only after LISTENING-001 is ready
+  -> EXP-W-003 Water dual-mode validation/refinement and EXP-I-003 selection only after LISTENING-001 is ready
   -> WATER-006 / ICE-006 listening evidence only after LISTENING-001 is ready
   -> Water production only after experiment and Joint Gate
 ```

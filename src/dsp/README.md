@@ -38,6 +38,11 @@ DSP 状态由 AudioEngine/对应 DSP 实例拥有；delay、FFT、scratch buffer
 
 M1 `DSP-002`/`DSP-004`/`DSP-005` 已建立 `DryWetMixer`、sample-rate-aware `LinearSmoother` 和可注入 `RandomSource`；smoothing regression 覆盖 repeated target、retarget、多个 block size 和 sample rate。M2 Water、M3 Ice 只使用并补 algorithm-specific random semantics；Routing/Gain M4 和其他 primitives 按 [CODING_PLAN.md](../../docs/CODING_PLAN.md) 实现。实验算法只有完成 `AGENTS.md` 的 production gate 后才能移入此目录。
 
+M2 Water 当前规划为 dual-mode、input-driven、source-preserving material processor：Fluid 研究
+Bubble Ensemble + Droplet/Impact Exciter + Flow Modulator，Resonant 研究 Liquid/Modal Resonator；两者
+优先使用明确的 residual semantics。该方向仍无 production source，candidate Mode/Size/Motion 也未加入
+Host registry 或 state。技术闭环见 Proposed [ADR-0006](../../docs/adr/0006-water-dual-mode-architecture.md)。
+
 ## State / Tail / Latency
 
 DSP 可以拥有声音设计所需的 intentional effect delay/tail，但不得把它伪装为 Host processing latency。v1 Host-reported latency 为 0 samples；正式边界见 [ADR-0005](../../docs/adr/0005-zero-sample-processing-latency.md)。当前 `frazil_latency_contract` 使用 neutral/dry fixture 验证 infrastructure alignment 与 metadata，并单独记录 M1 skeleton 的 zero-tail regression；未来 Water/Ice algorithm tail 和 routing infrastructure latency 由各自 ADR/tests（含 `ROUTE-011`）验证。
@@ -48,7 +53,7 @@ DSP 可以拥有声音设计所需的 intentional effect delay/tail，但不得�
 
 ## Related ADRs
 
-[ADR-0001](../../docs/adr/0001-routing-and-control-model.md)、[ADR-0003](../../docs/adr/0003-realtime-processing-boundary.md)、[ADR-0005](../../docs/adr/0005-zero-sample-processing-latency.md)，以及未来各算法/transition ADR。
+[ADR-0001](../../docs/adr/0001-routing-and-control-model.md)、[ADR-0003](../../docs/adr/0003-realtime-processing-boundary.md)、[ADR-0005](../../docs/adr/0005-zero-sample-processing-latency.md)、Proposed [ADR-0006](../../docs/adr/0006-water-dual-mode-architecture.md)，以及未来已接受的各算法/transition ADR。
 
 ## Files
 

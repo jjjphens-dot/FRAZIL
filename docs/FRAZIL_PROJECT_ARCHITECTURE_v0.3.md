@@ -307,12 +307,17 @@ InputGain
 GlobalMix
 OutputGain
 
-WaterCharacter
+WaterModel
+WaterSize
 WaterMotion
 IceCharacter
 IceFracture
 ...
 ```
+
+Water 的当前 M2 candidate vocabulary 已收敛为 `water.model`、`water.size` 和
+`water.motion`；它们在实验、Water ADR、state compatibility 和 `PARAM-FREEZE-001` 完成前
+仍不是当前九参数 Host registry。上面的通用示例不构成已注册或冻结参数清单。
 
 ### 引擎参数（Engine Parameters）
 
@@ -393,15 +398,44 @@ WaterProcessor
 
 为了 Parallel / Serial 两种 UI 逻辑承担额外职责。
 
-如果未来 Water 算法确实需要内部“强度”参数，应另设清晰参数，例如：
+Water 的产品 macro 必须使用清晰、可验证的感知语义。当前候选是 `water.size` 与
+`water.motion`；不得用模糊的 `character`/`intensity` 偷偷同时控制 scale、activity、gain 和
+Serial stage mix。任何未来内部强度概念也不能与 `water.amount` 的 stage Dry/Wet 语义混为一谈。
+
+Water 不新增独立 public Dry/Wet。`water.amount`、`parallel.balance` 和 `global.mix` 继续分别拥有
+Serial stage amount、Parallel branch proportion 和完整插件 dry/wet 语义；Water 内部保留 source
+carrier 属于算法/架构性质，不能再叠加一个 `water.dryWet` 形成三层重叠 mix responsibility。
+
+## 1.5 Water 双模式产品方向（M2 planned）
+
+Water 规划为两个有意区分、同属 Water material transformation 的模式：
+
+- `Fluid`：A（input-driven Bubble Ensemble）+ B（input-driven Droplet/Impact Exciter）+
+  D（Flow Modulator），强调 bubble/liquid identity、水滴瞬态、持续不规则流动和非周期运动；
+- `Resonant`：C（input-driven Liquid/Modal Resonator），强调稳定凝聚的液体共振、对 tonal/pitched
+  material 的兼容性、较低算法复杂度和可预测音乐响应。
+
+二者都必须由输入驱动并在正常设置下保留 source identity；不能把 Fluid 描述为“真实”、Resonant
+描述为“虚假”。WaterProcessor 是 material transformation processor，不是独立 Water Foley generator。
+概念合同为：
 
 ```text
-water.character
-water.motion
-water.intensity
+W(x) = x + E_water(x)
+E_fluid = E_bubble + E_droplet + E_flow
+E_resonant = modal/resonant material residual
 ```
 
-不能无意中把“算法特征强度”和“串联阶段 Dry/Wet”混为一谈。
+这是 FRAZIL 的工程/产品设计推论，不是 Minnaert 或其他研究论文确立的通用物理公式。每个 Water
+sub-engine 必须明确输出 material residual 还是 complete processed signal；preferred architecture 是
+residual-oriented。若 Resonant 输出已经包含 direct feedthrough，不得再由 WaterProcessor 盲目执行
+`x + resonatorOutput`，以免重复 carrier、抬升增益或产生 comb/filter artifact。最终 residual extraction、
+resonator topology 和 mode transition 由 Water experiment 与 Proposed Water ADR 决定。
+
+`water.size` 与 `water.motion` 是跨两模式稳定的产品语义，详细 bubble radius、modal frequency、event
+density、micro-delay、drift 等属于 ParameterMapper 后的 engine quantities。WaterProcessor 不拥有
+Parallel/Serial routing、stage amount 或 Global Mix；Host/global routing responsibility 保持不变。
+
+本次 Water-focused revision 不改变 Ice architecture；Ice 将在后续独立修订中评审。
 
 ---
 
@@ -761,12 +795,19 @@ AudioEngine 不包含 Water / Ice 的具体算法。
 
 ## 5.3 WaterProcessor
 
-公开接口保持小：
+WaterProcessor 是计划中的双模式 input-driven material processor，公开接口保持小：
 
 ```cpp
+enum class WaterModel
+{
+    fluid,
+    resonant
+};
+
 struct WaterParameters
 {
-    float character {};
+    WaterModel model {};
+    float size {};
     float motion {};
 };
 
@@ -782,21 +823,43 @@ public:
 };
 ```
 
-候选内部机制：
+以上类型只表达 planned engine interface shape，不是当前源码、Host registry 或 state schema。
+ParameterMapper 负责把 normalized product controls 映射到 mode-specific engine quantities；
+WaterProcessor 不读取 APVTS，也不拥有 `water.amount`、`parallel.balance`、`global.mix` 或 RoutingMode。
+
+候选内部结构：
 
 ```text
-FlowModulator
-DropletExciter
-LiquidResonator
-SpectralShaper
-MicroDelayNetwork
+WaterProcessor
+  source-preserving carrier/residual contract
+  Fluid
+    Bubble Ensemble
+    Droplet/Impact Exciter
+    Flow Modulator
+  Resonant
+    Liquid/Modal Resonator
+  shared Size/Motion product semantics
+  bounded mode transition
 ```
 
-这些名称在算法未验证前只是候选。
+Fluid 的目标组合 A+B+D 与 Resonant 的 C 是已决定的 product direction；具体 DSP topology、数值 mapping、
+residual extraction、random persistence、tail 和 transition 仍是实验/ADR 决策。内部 algorithmic random/LFO
+允许存在，但 v1 不因此新增 general user-programmable LFO 或 modulation matrix。
 
 原则：
 
 > **先用 experiments 证明算法值得留下，再进入生产 DSP。**
+
+若两个 mode 都输出 residual，可评估：
+
+```text
+W = x + (1 - c) * E_fluid + c * E_resonant
+```
+
+其中 `c` 必须 bounded 且 click-free。该公式只是 transition candidate；Water ADR 必须决定是否双引擎
+同时运行、state/tail/random progression、transition duration、CPU upper bound、rapid automation 与
+prepare/reset/state-restore 行为。已有通用约 20 ms 仅可保留为测试基线，不能被解释为最终 Water mode
+product contract。
 
 ---
 
@@ -1248,12 +1311,16 @@ output.gain
 后续核心 macro 示例：
 
 ```text
-water.character
+water.model
+water.size
 water.motion
 
 ice.character
 ice.fracture
 ```
+
+Water 三项是 M2 candidate product controls，不是当前注册表；采用前必须完成 Water ADR、范围/default/
+choice ordering、mapping、smoothing/transition、automation、state evolution/compatibility 和测试证据。
 
 一旦进入公开版本并被 DAW automation / preset / session 使用，应把这些 ID 视为稳定 API。
 
@@ -1580,6 +1647,25 @@ Input / Output meter 可作为 P1，不是 gain control 的前置条件。
 - 可选 tooltip 显示下一步动作名；
 - Editor 有键盘焦点时，可在 P1 支持 Cmd/Ctrl+Z 及平台常见 Redo 快捷键。
 
+## 7.7 Water 双模式 UI（planned）
+
+在候选参数经 Water ADR 与 `PARAM-FREEZE-001` 正式采纳后，Water 主区保持同一控制层级：
+
+```text
+WATER
+  Enable
+  Mode: Fluid / Resonant
+  Size: Fine / Small / Bright -> Large / Deep
+  Motion: Calm / Stable -> Active / Flowing
+```
+
+Mode 切换不替换完整 Water panel；Size 和 Motion 在两模式中位置不变、高层含义不变。compact display
+direction 可候选为 `Fine <-> Deep`，但 exact label 仍待 UX/listening review。tooltip 可以说明
+Fluid Size 映射 small/bright -> large/deep bubble population，Resonant Size 映射 small/bright ->
+large/deep resonant body，Motion 表示 temporal activity/fluid movement 而不是 Amount 或 loudness。
+主界面不暴露 bubble radius、Q、modal count、droplet probability、Flow delay depth 或 PRNG seed 等
+engineering controls。当前占位 UI 不实现上述控件。
+
 ---
 
 # 8. 实时线程规则
@@ -1866,19 +1952,20 @@ plugin works
 
 ---
 
-# M2 — Water Vertical Slice
+# M2 — Water Dual-Mode Material Processor
 
 ## P0
 
 - [ ] WaterProcessor 生命周期
-- [ ] 第一版真正可听的 Water 算法
+- [ ] Fluid A+B+D 与 Resonant C 的实验、验证和 production cores
 - [ ] Water enable
-- [ ] Water 用户 macro
+- [ ] candidate Water Mode / Size / Motion 的 mapping、automation 与 state compatibility
+- [ ] Fluid / Resonant click-free mode transition
 - [ ] parameter smoothing
 - [ ] click-free bypass
 - [ ] state restore
 - [ ] render tests
-- [ ] Listening Review
+- [ ] loudness-matched dual-mode Listening Review 与 input recognizability
 - [ ] pluginval
 
 注意：
@@ -2132,7 +2219,7 @@ known blockers = 0
 - AAX；
 - preset cloud；
 - 用户账户；
-- modulation matrix；
+- 通用 modulation matrix；Water 的 future constrained `Motion Mod` 仅在真实用户证据支持后另行评审；
 - 多频段；
 - MIDI modulation；
 - skin system；
@@ -2833,7 +2920,7 @@ parameterChanged(any source) → push Undo
 15. pluginval
 16. Reference Pack
 17. Water experiment
-18. Water vertical slice
+18. Water dual-mode material processor
 19. Ice experiment
 20. Ice vertical slice
 21. Parallel routing
@@ -2899,8 +2986,11 @@ TEST-006 Add automation acceptance tests
 ## Water
 
 ```text
-EXP-WATER-001 Research candidate Water algorithms
-DSP-WATER-001 Implement Water vertical slice
+EXP-W-001 Define Water dual-mode perceptual/product brief
+EXP-W-002 Measure Bubble/Droplet/Flow/Resonant candidates and integration
+EXP-W-003 Validate and refine Fluid/Resonant product direction
+ADR-W-001 Record Water dual-mode architecture after Joint Gate
+WATER-001..008 Implement lifecycle, cores, macros, transitions, evidence and integration
 ```
 
 ## Ice

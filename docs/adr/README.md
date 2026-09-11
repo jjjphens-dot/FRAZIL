@@ -15,3 +15,4 @@ ADR 的 Accepted Decision 是 LOCKED 历史合同；Context、Consequences 和 V
 | [0003](0003-realtime-processing-boundary.md) | Accepted | 实时线程与层级依赖边界 |
 | [0004](0004-juce-and-ci-dependency-strategy.md) | Proposed | JUCE 固定、补丁和可移植 CI 获取方式 |
 | [0005](0005-zero-sample-processing-latency.md) | Accepted | v1 零采样 Host processing latency 与 intentional effect delay/tail 边界 |
+| [0006](0006-water-dual-mode-architecture.md) | Proposed | Water Fluid/Resonant 双模式架构、source-preserving residual 与候选 macro/transition 边界（`ADR-W-001`） |
