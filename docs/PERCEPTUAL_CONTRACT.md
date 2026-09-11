@@ -68,13 +68,18 @@ The authoritative lifecycle distinguishes definition from downstream consumption
 ```text
 Human Water Intent
   -> EXP-W-001 perceptual-definition work
-  -> Water Perceptual Contract
+  -> accepted Water Perceptual Contract instance
   -> EXP-W-002+ downstream DSP experiment/refinement
   -> Evidence -> Review -> ADR -> Production
 ```
 
-Perceptual-definition work creates the contract and does not require a pre-existing instance of that same contract.
-An agent performing downstream subjective DSP experiment/refinement must find the applicable accepted contract and
-check its positive, negative, preserve and reject sections before proposing sound changes. Experiment controls remain
-outside the production Host registry until evidence, Joint Gate and the applicable ADR/state compatibility work
-approve adoption.
+Perceptual-definition work creates the project-specific contract instance and does not require a pre-existing
+instance of that same contract. Downstream subjective DSP experiment/refinement must both:
+
+1. follow the framework and agent rules in this document; and
+2. read the applicable accepted project-specific instance and check its positive, negative, preserve and reject
+   sections before proposing sound changes.
+
+For current Water work, that instance is `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`. Reading only this
+framework document does not satisfy the Perceptual Contract prerequisite. Experiment controls remain outside the
+production Host registry until evidence, Joint Gate and the applicable ADR/state compatibility work approve adoption.

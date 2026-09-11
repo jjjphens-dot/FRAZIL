@@ -1,6 +1,8 @@
 # FRAZIL Developer Sound Tools
 
-> Status: PLANNED development-enablement contract; no Developer Control Surface or diagnostics bridge is implemented by this document.
+> Document status: Approval Candidate in v1.3; CURRENT/CONTROLLED after approval and merge.<br>
+> Capability implementation status: tracked individually as CURRENT / PLANNED / CANDIDATE / DEFERRED below.<br>
+> No Developer Control Surface or diagnostics bridge is implemented by this document.
 
 ## 1. Purpose and boundaries
 

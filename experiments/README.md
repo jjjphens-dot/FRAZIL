@@ -8,7 +8,7 @@
 ```text
 Human intent
   -> perceptual-definition work (for Water: EXP-W-001)
-  -> Perceptual Contract instance
+  -> accepted project-specific Perceptual Contract instance
   -> downstream experiment (EXP-W-002+)
   -> Evidence
   -> Review
@@ -16,11 +16,13 @@ Human intent
   -> Production
 ```
 
-Perceptual-definition work 不要求预先存在它要创建的 contract。下游 experiment/refinement 不得把主观声音
-形容词直接翻译成 DSP 修改；必须先读取对应的
-[`docs/PERCEPTUAL_CONTRACT.md`](../docs/PERCEPTUAL_CONTRACT.md) 实例，确认 positive、negative、preserve 和
-reject 条件，再提出 candidate。Objective measurement 是 proxy，不是 perceptual truth；最终产品价值由人耳
-review 决定。
+Perceptual-definition work 不要求预先存在它要创建的 contract instance。下游 experiment/refinement 不得把
+主观声音形容词直接翻译成 DSP 修改；必须先遵守
+[`docs/PERCEPTUAL_CONTRACT.md`](../docs/PERCEPTUAL_CONTRACT.md) 定义的 framework/rules，并读取适用且已验收的
+project-specific instance。当前 Water instance 是 `water/EXP-W-001_PERCEPTUAL_BRIEF.md`；提出 candidate 前
+必须确认其中的 positive、negative、preserve 和 reject 条件。只读取 framework 文档不满足 Perceptual
+Contract prerequisite。Objective measurement 是 proxy，不是 perceptual truth；最终产品价值由人耳 review
+决定。
 
 ## Development entry points
 

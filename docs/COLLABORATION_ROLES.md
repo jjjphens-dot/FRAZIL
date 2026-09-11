@@ -199,6 +199,8 @@ generic parameter interface、automation lane、state restore 和 save/reopen �
 当前采用 Water-first。Ice 的长期 M3 ownership 和 gate 保留，但当前不并行启动 Ice experiment、
 perceptual/parameter redesign 或 production implementation。恢复 Ice 的显式 prerequisite 是
 `M2 Exit + Explicit Joint Gate`：M2 Exit 后，双方以受控 planning decision 确认 Water workflow 可复用于 Ice。
+该 joint decision 必须在已批准的 controlled-plan revision，或对应 planning issue/PR 中留下明确、可审查的
+repository/GitHub evidence；除非决定本身命中既有 ADR trigger，否则不自动新增 ADR。
 production C++ ownership 仍不按材质拆给两人各自孤立实现。
 
 ### 6.0 LISTENING-001 shared preparation
