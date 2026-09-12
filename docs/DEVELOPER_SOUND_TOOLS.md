@@ -71,9 +71,13 @@ acceptance and does not provide the full debug-bundle workflow required for fina
 
 The editor also reconciles an external Host/APVTS state restore: if the Processor clears a Developer override while
 attachments are detached, the next bounded editor reconciliation reattaches Host controls, syncs restored values and
-updates the Dry/Processed selection from the Processor comparison mode. The temporary override transport keeps its
-audio read/apply path lock-free; non-realtime set/clear operations are serialized because Editor edits and Host state
-restore may arrive on different threads.
+updates the Dry/Processed selection from the Processor comparison mode. Editing an already active override captures an
+active-publication token and commits conditionally; if Host restore or another control transaction wins first, the stale
+edit is discarded and the visible state is reconciled without reactivating it. The temporary override transport keeps
+its audio read/apply path lock-free and bounded; a primed reader may use the last coherent snapshot only within the same
+active session, while clear/session epoch invalidation permits Host values at the normal block boundary. Non-realtime
+set/clear/conditional-commit operations are serialized because Editor edits and Host state restore may arrive on
+different threads.
 
 The first version should provide:
 

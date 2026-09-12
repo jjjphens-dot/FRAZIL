@@ -66,12 +66,14 @@ The detailed boundary, diagnostics rules and realtime-to-offline config handoff 
 
 The follow-up feature-branch candidate for `DEV-UI-001` is available only in Debug/ASAN builds and is covered by
 the corresponding compile/runtime CTest paths, including effective-state ownership while the developer override is
-active, Host-change/state-restore transitions, Dry/Processed path, bounded A/B slot round-trips and coherent
-latest-callback telemetry. This is engineering evidence, not GUI automation. Interactive usability/listening
-acceptance and Offline Sound Lab handoff remain acceptance work. Release builds intentionally retain the
-non-developer editor placeholder; the current development baseline remains planned until the candidate is reviewed
-and accepted. The current candidate status is Engineering Ready for Sound & Host Lead usability acceptance, not
-`Done`.
+active, conditional token rejection of stale Editor edits after Host clear, same-session last-coherent fallback under
+continuous set-only publication, clear/session cache invalidation, Host-change/state-restore transitions,
+Dry/Processed path, bounded A/B slot round-trips and coherent latest-callback telemetry. Concurrent regressions
+require reader participation and coherent observations; the exact Editor/attachment lifecycle is still not automated.
+This is engineering evidence, not GUI automation. Interactive usability/listening acceptance and Offline Sound Lab
+handoff remain acceptance work. Release builds intentionally retain the non-developer editor placeholder; the current
+development baseline remains planned until the candidate is reviewed and accepted. The current candidate status is
+Engineering Ready for Sound & Host Lead usability acceptance, not `Done`.
 
 ## 2. 自动化测试必须覆盖
 
