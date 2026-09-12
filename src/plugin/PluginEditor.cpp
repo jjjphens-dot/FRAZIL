@@ -340,25 +340,26 @@ void FRAZILAudioProcessorEditor::returnToHost() {
 
 void FRAZILAudioProcessorEditor::ensureHostParameterAttachmentMode() {
     const auto overrideActive = processor_.isDeveloperHostParameterOverrideActive();
-    if (overrideActive == hostParameterControlsAttached()) {
-        if (!overrideActive)
-            return;
-
-        const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
-        detachHostParameterControls();
-        syncHostControls(processor_.getDeveloperHostParameterSnapshot());
-        return;
-    }
-
-    if (overrideActive) {
-        const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
-        detachHostParameterControls();
-        syncHostControls(processor_.getDeveloperHostParameterSnapshot());
-    } else {
+    const auto action = frazil::plugin::developerEditorAttachmentAction(
+        overrideActive, hostParameterControlsAttached());
+    switch (action) {
+    case frazil::plugin::DeveloperEditorAttachmentAction::noChange:
+        break;
+    case frazil::plugin::DeveloperEditorAttachmentAction::attachHost: {
         const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
         attachHostParameterControls();
         syncHostControls(processor_.getDeveloperHostParameterSnapshot());
+        break;
     }
+    case frazil::plugin::DeveloperEditorAttachmentAction::detachHost: {
+        const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
+        detachHostParameterControls();
+        syncHostControls(processor_.getDeveloperHostParameterSnapshot());
+        break;
+    }
+    }
+
+    updateComparisonButtons();
 }
 
 void FRAZILAudioProcessorEditor::setComparisonMode(frazil::plugin::DeveloperComparisonMode mode) {

@@ -42,6 +42,22 @@ struct DeveloperExperimentSnapshot final {
     DeveloperComparisonMode comparisonMode{DeveloperComparisonMode::processed};
 };
 
+enum class DeveloperEditorAttachmentAction : std::uint8_t {
+    noChange,
+    attachHost,
+    detachHost,
+};
+
+constexpr DeveloperEditorAttachmentAction
+developerEditorAttachmentAction(bool overrideActive, bool attachmentsAttached) noexcept {
+    const auto shouldAttach = !overrideActive;
+    if (attachmentsAttached == shouldAttach)
+        return DeveloperEditorAttachmentAction::noChange;
+
+    return shouldAttach ? DeveloperEditorAttachmentAction::attachHost
+                        : DeveloperEditorAttachmentAction::detachHost;
+}
+
 class DeveloperExperimentSlots final {
   public:
     static constexpr std::size_t kSlotCount = 2;

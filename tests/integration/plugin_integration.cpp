@@ -187,6 +187,20 @@ void testDeveloperExperimentSlotWorkflow(TestContext& context) {
            "B restores complete Host, Water and comparison state");
 }
 
+void testDeveloperEditorAttachmentReconciliation(TestContext& context) {
+    using Action = frazil::plugin::DeveloperEditorAttachmentAction;
+    const auto action = frazil::plugin::developerEditorAttachmentAction;
+
+    expect(context, action(false, true) == Action::noChange,
+           "Host mode keeps existing Host attachments");
+    expect(context, action(false, false) == Action::attachHost,
+           "Host mode reattaches controls after external state restore");
+    expect(context, action(true, true) == Action::detachHost,
+           "Developer mode detaches Host controls before effective-state sync");
+    expect(context, action(true, false) == Action::noChange,
+           "Developer mode keeps detached controls without repeated detach");
+}
+
 void testDeveloperComparisonBoundary(TestContext& context) {
     constexpr int kBlockSize = 64;
     FRAZILAudioProcessor processor;
@@ -387,6 +401,7 @@ int main() {
 #if FRAZIL_ENABLE_DEVELOPER_UI
     testDeveloperDiagnosticsPublication(context);
     testDeveloperExperimentSlotWorkflow(context);
+    testDeveloperEditorAttachmentReconciliation(context);
     testDeveloperComparisonBoundary(context);
 #endif
     testStateRestoreAfterPrepareReachesAudioPath(context);
@@ -396,7 +411,7 @@ int main() {
         return 1;
 
 #if FRAZIL_ENABLE_DEVELOPER_UI
-    std::cout << "FRAZIL plugin integration tests passed (6 groups)\n";
+    std::cout << "FRAZIL plugin integration tests passed (7 groups)\n";
 #else
     std::cout << "FRAZIL plugin integration tests passed (3 groups)\n";
 #endif
