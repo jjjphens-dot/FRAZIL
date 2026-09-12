@@ -154,7 +154,7 @@ non-goals 标记为 NOT RUN。
 
 ## 2.7 DEV-UI-001 follow-up candidate validation
 
-2026-09-12 本地工作树 evidence：Debug、Release 和 ASAN 均通过仓库 `tools/vscode_msvc_env.cmd` 初始化
+2026-09-12 final engineering follow-up 本地工作树 evidence：Debug、Release 和 ASAN 均通过仓库 `tools/vscode_msvc_env.cmd` 初始化
 MSVC 环境、`tools/vscode_build_safe.cmd --preset <name> --jobs 6` safe wrapper build，以及对应的
 `ctest --preset <name> --output-on-failure` 7/7 CTest。ASAN 的默认 6-job preflight 在内存被清理前曾因
 可用物理内存 2.76 GiB 而拒绝；清理内存后 6-job preflight/build 通过，未绕过安全检查。
@@ -165,9 +165,13 @@ MSVC 环境、`tools/vscode_build_safe.cmd --preset <name> --jobs 6` safe wrappe
 Debug、Release、ASAN 均 7/7 通过。当前证据支持“无复现的栈越界”，不把这次结果写成完整 UI usability 或
 Host/DAW acceptance。
 
-本 follow-up 还通过 developer boundary regression、`python tools/check_portability.py` 与 `git diff --check`；
-Dry/Processed 的代码路径和 finite/serialization boundary 已有 CTest evidence，但未执行当前变更后的 pluginval、
-真实 DAW/Host matrix、interactive usability review、Dry/Processed listening comparison 或完整 debug bundle。
+Final engineering follow-up 还通过 effective-state ownership、Host-change-under-override、state-restore、
+coherent diagnostics publication/readback 和 complete temporary A/B slot regression；并通过
+`python tools/check_markdown_links.py`、`python tools/check_portability.py` 与 `git diff --check`。Release
+isolation audit 确认 Debug/ASAN 使用 `FRAZIL_ENABLE_DEVELOPER_UI=1`，Release 使用 `0`，且
+`ParameterLayout` 不包含 Water candidate IDs。Dry/Processed 的代码路径和 finite/serialization boundary
+已有 CTest evidence，但未执行当前变更后的 pluginval、真实 DAW/Host matrix、interactive usability review、
+Dry/Processed listening comparison 或完整 debug bundle。
 该 section 只记录 feature-branch candidate evidence，不提升 current main 的 DEV-UI-001 baseline status。
 
 ## 3. 当前源码映射
