@@ -22,8 +22,10 @@ struct DeveloperDiagnosticsSnapshot final {
     bool finite{true};
 };
 
-// A bounded, lock-free transport from processBlock() to the developer editor. It intentionally
-// carries only the latest block summary; it is not a logging queue or a persistent state store.
+// A bounded, lock-free transport from processBlock() to the developer editor. The producer is
+// single-writer (the processor lifecycle/audio path) and the consumer is single-reader (the
+// editor/message thread). It intentionally carries only the latest block summary; it is not a
+// logging queue or a persistent state store.
 class DeveloperDiagnostics final {
   public:
     void setPrepared(float sampleRateHz, int blockSize, int channelCount) noexcept {
@@ -60,6 +62,17 @@ class DeveloperDiagnostics final {
     }
 
   private:
+    static_assert(std::atomic<std::uint64_t>::is_always_lock_free,
+                  "Developer diagnostics publication token must be lock-free");
+    static_assert(std::atomic<std::uint32_t>::is_always_lock_free,
+                  "Developer diagnostics sequence must be lock-free");
+    static_assert(std::atomic<float>::is_always_lock_free,
+                  "Developer diagnostics float fields must be lock-free");
+    static_assert(std::atomic<int>::is_always_lock_free,
+                  "Developer diagnostics integer fields must be lock-free");
+    static_assert(std::atomic<bool>::is_always_lock_free,
+                  "Developer diagnostics finite flag must be lock-free");
+
     struct AtomicSnapshot final {
         std::atomic<std::uint32_t> sequence{};
         std::atomic<float> sampleRateHz{};
@@ -74,48 +87,48 @@ class DeveloperDiagnostics final {
     };
 
     void publishWriterState() noexcept {
-        const auto active = activeSlot_.load(std::memory_order_relaxed);
-        const auto target = active == 0 ? 1 : 0;
+        const auto activePublication = activePublication_.load(std::memory_order_seq_cst);
+        const auto target = static_cast<int>((activePublication + 1u) & 1u);
         auto& slot = slots_[target];
-        slot.sequence.fetch_add(1, std::memory_order_release);
-        slot.sampleRateHz.store(writerState_.sampleRateHz, std::memory_order_relaxed);
-        slot.preparedBlockSize.store(writerState_.preparedBlockSize, std::memory_order_relaxed);
-        slot.latestBlockSize.store(writerState_.latestBlockSize, std::memory_order_relaxed);
-        slot.channelCount.store(writerState_.channelCount, std::memory_order_relaxed);
-        slot.inputPeak.store(writerState_.inputPeak, std::memory_order_relaxed);
-        slot.outputPeak.store(writerState_.outputPeak, std::memory_order_relaxed);
-        slot.inputRms.store(writerState_.inputRms, std::memory_order_relaxed);
-        slot.outputRms.store(writerState_.outputRms, std::memory_order_relaxed);
-        slot.finite.store(writerState_.finite, std::memory_order_relaxed);
-        slot.sequence.fetch_add(1, std::memory_order_release);
-        activeSlot_.store(target, std::memory_order_release);
+        // A single total order for the marker and active index prevents accepting an ABA reuse.
+        slot.sequence.fetch_add(1, std::memory_order_seq_cst);
+        slot.sampleRateHz.store(writerState_.sampleRateHz, std::memory_order_seq_cst);
+        slot.preparedBlockSize.store(writerState_.preparedBlockSize, std::memory_order_seq_cst);
+        slot.latestBlockSize.store(writerState_.latestBlockSize, std::memory_order_seq_cst);
+        slot.channelCount.store(writerState_.channelCount, std::memory_order_seq_cst);
+        slot.inputPeak.store(writerState_.inputPeak, std::memory_order_seq_cst);
+        slot.outputPeak.store(writerState_.outputPeak, std::memory_order_seq_cst);
+        slot.inputRms.store(writerState_.inputRms, std::memory_order_seq_cst);
+        slot.outputRms.store(writerState_.outputRms, std::memory_order_seq_cst);
+        slot.finite.store(writerState_.finite, std::memory_order_seq_cst);
+        slot.sequence.fetch_add(1, std::memory_order_seq_cst);
+        activePublication_.store(activePublication + 1u, std::memory_order_seq_cst);
     }
 
     bool readPublishedSnapshot(DeveloperDiagnosticsSnapshot& destination) const noexcept {
         for (int attempt = 0; attempt < 2; ++attempt) {
-            const auto active = activeSlot_.load(std::memory_order_acquire);
-            if (active < 0 || active > 1)
-                continue;
+            const auto activePublication = activePublication_.load(std::memory_order_seq_cst);
+            const auto active = static_cast<int>(activePublication & 1u);
 
-            const auto sequenceBefore = slots_[active].sequence.load(std::memory_order_acquire);
+            const auto sequenceBefore = slots_[active].sequence.load(std::memory_order_seq_cst);
             if ((sequenceBefore & 1u) != 0u)
                 continue;
 
-            destination.sampleRateHz = slots_[active].sampleRateHz.load(std::memory_order_relaxed);
+            destination.sampleRateHz = slots_[active].sampleRateHz.load(std::memory_order_seq_cst);
             destination.preparedBlockSize =
-                slots_[active].preparedBlockSize.load(std::memory_order_relaxed);
+                slots_[active].preparedBlockSize.load(std::memory_order_seq_cst);
             destination.latestBlockSize =
-                slots_[active].latestBlockSize.load(std::memory_order_relaxed);
-            destination.channelCount = slots_[active].channelCount.load(std::memory_order_relaxed);
-            destination.inputPeak = slots_[active].inputPeak.load(std::memory_order_relaxed);
-            destination.outputPeak = slots_[active].outputPeak.load(std::memory_order_relaxed);
-            destination.inputRms = slots_[active].inputRms.load(std::memory_order_relaxed);
-            destination.outputRms = slots_[active].outputRms.load(std::memory_order_relaxed);
-            destination.finite = slots_[active].finite.load(std::memory_order_relaxed);
+                slots_[active].latestBlockSize.load(std::memory_order_seq_cst);
+            destination.channelCount = slots_[active].channelCount.load(std::memory_order_seq_cst);
+            destination.inputPeak = slots_[active].inputPeak.load(std::memory_order_seq_cst);
+            destination.outputPeak = slots_[active].outputPeak.load(std::memory_order_seq_cst);
+            destination.inputRms = slots_[active].inputRms.load(std::memory_order_seq_cst);
+            destination.outputRms = slots_[active].outputRms.load(std::memory_order_seq_cst);
+            destination.finite = slots_[active].finite.load(std::memory_order_seq_cst);
 
-            const auto sequenceAfter = slots_[active].sequence.load(std::memory_order_acquire);
+            const auto sequenceAfter = slots_[active].sequence.load(std::memory_order_seq_cst);
             if (sequenceBefore == sequenceAfter && (sequenceAfter & 1u) == 0u &&
-                activeSlot_.load(std::memory_order_acquire) == active)
+                activePublication_.load(std::memory_order_seq_cst) == activePublication)
                 return true;
         }
 
@@ -123,7 +136,7 @@ class DeveloperDiagnostics final {
     }
 
     std::array<AtomicSnapshot, 2> slots_{};
-    std::atomic<int> activeSlot_{};
+    std::atomic<std::uint64_t> activePublication_{};
     DeveloperDiagnosticsSnapshot writerState_{};
     mutable DeveloperDiagnosticsSnapshot lastSnapshot_{};
 };

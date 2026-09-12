@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include <juce_audio_basics/juce_audio_basics.h>
+#include <thread>
 
 namespace {
 struct TestContext {
@@ -55,8 +56,12 @@ void fillBuffer(juce::AudioBuffer<float>& buffer, float value) {
 
 #if FRAZIL_ENABLE_DEVELOPER_UI
 struct ParameterEventListener final : juce::AudioProcessorParameter::Listener {
-    void parameterValueChanged(int, float) override { ++valueChanges; }
-    void parameterGestureChanged(int, bool) override { ++gestureChanges; }
+    void parameterValueChanged(int, float) override {
+        ++valueChanges;
+    }
+    void parameterGestureChanged(int, bool) override {
+        ++gestureChanges;
+    }
 
     int valueChanges{};
     int gestureChanges{};
@@ -84,8 +89,9 @@ void testParameterAutomationReachesAudioPath(TestContext& context) {
     const auto diagnostics = processor.getDeveloperDiagnosticsSnapshot();
     expectNear(context, diagnostics.sampleRateHz, 48000.0f, 1.0e-6f,
                "developer diagnostics retain prepared sample rate");
-    expect(context, diagnostics.preparedBlockSize == kBlockSize &&
-                       diagnostics.latestBlockSize == kBlockSize && diagnostics.channelCount == 2,
+    expect(context,
+           diagnostics.preparedBlockSize == kBlockSize &&
+               diagnostics.latestBlockSize == kBlockSize && diagnostics.channelCount == 2,
            "developer diagnostics distinguish prepared and latest block dimensions");
     expectNear(context, diagnostics.inputPeak, 1.0f, 1.0e-6f,
                "developer diagnostics measure input peak");
@@ -119,8 +125,9 @@ void testParameterAutomationReachesAudioPath(TestContext& context) {
     fillBuffer(shortBuffer, 1.0f);
     processor.processBlock(shortBuffer, midi);
     const auto shortDiagnostics = processor.getDeveloperDiagnosticsSnapshot();
-    expect(context, shortDiagnostics.preparedBlockSize == kBlockSize &&
-                       shortDiagnostics.latestBlockSize == kBlockSize / 2,
+    expect(context,
+           shortDiagnostics.preparedBlockSize == kBlockSize &&
+               shortDiagnostics.latestBlockSize == kBlockSize / 2,
            "developer diagnostics publish the latest callback block size");
 #endif
 }
@@ -154,6 +161,126 @@ void testDeveloperDiagnosticsPublication(TestContext& context) {
            reset.sampleRateHz == 0.0f && reset.preparedBlockSize == 0 &&
                reset.latestBlockSize == 0 && reset.channelCount == 0 && reset.finite,
            "diagnostics reset publishes a complete neutral snapshot");
+}
+
+void testDeveloperDiagnosticsConcurrentPublication(TestContext& context) {
+    constexpr int kIterations = 10000;
+    frazil::plugin::DeveloperDiagnostics diagnostics;
+    diagnostics.setPrepared(48000.0f, 64, 2);
+
+    std::atomic<bool> start{false};
+    std::atomic<bool> writerDone{false};
+    std::atomic<int> invalidSnapshots{0};
+    std::atomic<int> observedSnapshots{0};
+
+    std::thread writer([&] {
+        while (!start.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        for (int generation = 1; generation <= kIterations; ++generation) {
+            diagnostics.publish(generation, generation % 4 + 1, static_cast<float>(generation),
+                                static_cast<float>(100000 + generation),
+                                static_cast<float>(200000 + generation),
+                                static_cast<float>(300000 + generation), (generation & 1) == 0);
+            if ((generation & 31) == 0)
+                std::this_thread::yield();
+        }
+        writerDone.store(true, std::memory_order_release);
+    });
+
+    std::thread reader([&] {
+        start.store(true, std::memory_order_release);
+        while (!writerDone.load(std::memory_order_acquire)) {
+            const auto snapshot = diagnostics.snapshot();
+            if (snapshot.latestBlockSize == 0)
+                continue;
+
+            ++observedSnapshots;
+            const auto generation = snapshot.latestBlockSize;
+            const auto coherent = generation >= 1 && generation <= kIterations &&
+                                  snapshot.channelCount == generation % 4 + 1 &&
+                                  snapshot.inputPeak == static_cast<float>(generation) &&
+                                  snapshot.outputPeak == static_cast<float>(100000 + generation) &&
+                                  snapshot.inputRms == static_cast<float>(200000 + generation) &&
+                                  snapshot.outputRms == static_cast<float>(300000 + generation) &&
+                                  snapshot.finite == ((generation & 1) == 0);
+            if (!coherent)
+                ++invalidSnapshots;
+        }
+    });
+
+    writer.join();
+    reader.join();
+    const auto finalSnapshot = diagnostics.snapshot();
+    expect(context, observedSnapshots.load() > 0,
+           "concurrent diagnostics reader observes published snapshots");
+    expect(context, invalidSnapshots.load() == 0,
+           "concurrent diagnostics reads remain generation-coherent");
+    expect(context, finalSnapshot.latestBlockSize == kIterations,
+           "diagnostics retains the final published generation");
+}
+
+void testDeveloperOverrideConcurrentPublication(TestContext& context) {
+    constexpr int kIterations = 10000;
+    frazil::plugin::DeveloperParameterOverride override;
+    std::atomic<bool> start{false};
+    std::atomic<bool> writerDone{false};
+    std::atomic<int> invalidSnapshots{0};
+    std::atomic<int> observedSnapshots{0};
+
+    std::thread writer([&] {
+        while (!start.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        for (int generation = 1; generation <= kIterations; ++generation) {
+            frazil::plugin::DeveloperHostParameterSnapshot values;
+            values.rawValues = {
+                static_cast<float>(generation & 1),      static_cast<float>((generation + 1) & 1),
+                static_cast<float>(generation % 3),      static_cast<float>(100000 + generation),
+                static_cast<float>(200000 + generation), static_cast<float>(300000 + generation),
+                static_cast<float>(400000 + generation), static_cast<float>(500000 + generation),
+                static_cast<float>(600000 + generation)};
+            override.set(values);
+            if ((generation & 1) == 0)
+                override.clear();
+            if ((generation & 31) == 0)
+                std::this_thread::yield();
+        }
+        writerDone.store(true, std::memory_order_release);
+    });
+
+    std::thread reader([&] {
+        start.store(true, std::memory_order_release);
+        while (!writerDone.load(std::memory_order_acquire)) {
+            ParameterSnapshot snapshot;
+            snapshot.inputGainDb = -1.0f;
+            snapshot.globalMix = -2.0f;
+            snapshot.outputGainDb = -3.0f;
+            override.applyTo(snapshot);
+            if (snapshot.inputGainDb < 0.0f)
+                continue;
+
+            ++observedSnapshots;
+            const auto generation = static_cast<int>(snapshot.inputGainDb - 400000.0f);
+            const auto coherent =
+                generation >= 1 && generation <= kIterations &&
+                snapshot.waterEnabled == ((generation & 1) != 0) &&
+                snapshot.iceEnabled == (((generation + 1) & 1) != 0) &&
+                snapshot.routingModeIndex == generation % 3 &&
+                snapshot.parallelBalance == static_cast<float>(100000 + generation) &&
+                snapshot.waterAmount == static_cast<float>(200000 + generation) &&
+                snapshot.iceAmount == static_cast<float>(300000 + generation) &&
+                snapshot.globalMix == static_cast<float>(500000 + generation) &&
+                snapshot.outputGainDb == static_cast<float>(600000 + generation);
+            if (!coherent)
+                ++invalidSnapshots;
+        }
+    });
+
+    writer.join();
+    reader.join();
+    expect(context, observedSnapshots.load() > 0,
+           "concurrent override reader observes active publications");
+    expect(context, invalidSnapshots.load() == 0,
+           "concurrent override reads remain generation-coherent");
 }
 
 void testDeveloperExperimentSlotWorkflow(TestContext& context) {
@@ -369,18 +496,24 @@ void testModeSwitchRetainsInactiveValuesAcrossStateReopen(TestContext& context) 
                "state reopen retains Ice enable");
     expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::routingMode), 0.0f,
                1.0e-6f, "state reopen retains the latest routing mode");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::parallelBalance), 0.2f,
-               1.0e-6f, "state reopen retains parallel balance");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::waterAmount), 0.35f,
-               1.0e-6f, "state reopen retains inactive Water amount");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::iceAmount), 0.8f, 1.0e-6f,
-               "state reopen retains inactive Ice amount");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::inputGain), -3.0f, 1.0e-6f,
-               "state reopen retains input gain");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::globalMix), 0.6f, 1.0e-6f,
-               "state reopen retains global mix");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::outputGain), 4.0f, 1.0e-6f,
-               "state reopen retains output gain");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::parallelBalance),
+               0.2f, 1.0e-6f, "state reopen retains parallel balance");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::waterAmount),
+               0.35f, 1.0e-6f, "state reopen retains inactive Water amount");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::iceAmount), 0.8f,
+               1.0e-6f, "state reopen retains inactive Ice amount");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::inputGain), -3.0f,
+               1.0e-6f, "state reopen retains input gain");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::globalMix), 0.6f,
+               1.0e-6f, "state reopen retains global mix");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::outputGain), 4.0f,
+               1.0e-6f, "state reopen retains output gain");
 
     restored.prepareToPlay(48000.0, kBlockSize);
     fillBuffer(buffer, 1.0f);
@@ -400,6 +533,8 @@ int main() {
     testParameterAutomationReachesAudioPath(context);
 #if FRAZIL_ENABLE_DEVELOPER_UI
     testDeveloperDiagnosticsPublication(context);
+    testDeveloperDiagnosticsConcurrentPublication(context);
+    testDeveloperOverrideConcurrentPublication(context);
     testDeveloperExperimentSlotWorkflow(context);
     testDeveloperEditorAttachmentReconciliation(context);
     testDeveloperComparisonBoundary(context);
@@ -411,7 +546,7 @@ int main() {
         return 1;
 
 #if FRAZIL_ENABLE_DEVELOPER_UI
-    std::cout << "FRAZIL plugin integration tests passed (7 groups)\n";
+    std::cout << "FRAZIL plugin integration tests passed (9 groups)\n";
 #else
     std::cout << "FRAZIL plugin integration tests passed (3 groups)\n";
 #endif

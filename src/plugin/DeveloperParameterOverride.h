@@ -7,14 +7,18 @@
 #include <atomic>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 
 namespace frazil::plugin {
 
-// Debug/ASAN-only latest-state transport for temporary developer comparisons. The APVTS remains
-// untouched, so applying or resetting a comparison cannot serialize the temporary state or emit
-// Host parameter/gesture notifications.
+// Debug/ASAN-only latest-state transport for temporary developer comparisons. The set/clear side
+// is single-writer (the editor/message thread) and read/apply is single-reader (the audio thread).
+// The APVTS remains untouched, so applying or resetting a comparison cannot serialize the
+// temporary state or emit Host parameter/gesture notifications.
 class DeveloperParameterOverride final {
   public:
+    static constexpr auto kInactivePublication = std::numeric_limits<std::uint64_t>::max();
+
     DeveloperParameterOverride() noexcept {
         for (auto& slot : slots_)
             for (auto& value : slot.values)
@@ -22,41 +26,48 @@ class DeveloperParameterOverride final {
     }
 
     void set(const DeveloperHostParameterSnapshot& snapshot) noexcept {
-        const auto active = activeSlot_.load(std::memory_order_relaxed);
+        const auto activePublication = activePublication_.load(std::memory_order_seq_cst);
+        const auto active = activePublication == kInactivePublication
+                                ? 1
+                                : static_cast<int>(activePublication & 1u);
         const auto targetSlot = active == 0 ? 1 : 0;
         auto& slot = slots_[targetSlot];
-        slot.sequence.fetch_add(1, std::memory_order_release);
+        // A single total order for the marker and active index prevents accepting an ABA reuse.
+        slot.sequence.fetch_add(1, std::memory_order_seq_cst);
         for (std::size_t index = 0; index < kDeveloperHostParameterCount; ++index)
-            slot.values[index].store(snapshot.rawValues[index], std::memory_order_relaxed);
-        slot.sequence.fetch_add(1, std::memory_order_release);
-        activeSlot_.store(targetSlot, std::memory_order_release);
+            slot.values[index].store(snapshot.rawValues[index], std::memory_order_seq_cst);
+        slot.sequence.fetch_add(1, std::memory_order_seq_cst);
+        activePublication_.store((nextPublication_++ << 1u) |
+                                     static_cast<std::uint64_t>(targetSlot),
+                                 std::memory_order_seq_cst);
     }
 
     void clear() noexcept {
-        activeSlot_.store(-1, std::memory_order_release);
+        activePublication_.store(kInactivePublication, std::memory_order_seq_cst);
     }
 
     bool isActive() const noexcept {
-        return activeSlot_.load(std::memory_order_acquire) >= 0;
+        return activePublication_.load(std::memory_order_seq_cst) != kInactivePublication;
     }
 
     bool read(DeveloperHostParameterSnapshot& destination) const noexcept {
-        const auto active = activeSlot_.load(std::memory_order_acquire);
-        if (active < 0 || active > 1)
+        const auto activePublication = activePublication_.load(std::memory_order_seq_cst);
+        if (activePublication == kInactivePublication)
             return false;
+        const auto active = static_cast<int>(activePublication & 1u);
 
         for (int attempt = 0; attempt < 2; ++attempt) {
-            const auto sequenceBefore = slots_[active].sequence.load(std::memory_order_acquire);
+            const auto sequenceBefore = slots_[active].sequence.load(std::memory_order_seq_cst);
             if ((sequenceBefore & 1u) != 0u)
                 continue;
 
             for (std::size_t index = 0; index < kDeveloperHostParameterCount; ++index)
                 destination.rawValues[index] =
-                    slots_[active].values[index].load(std::memory_order_relaxed);
+                    slots_[active].values[index].load(std::memory_order_seq_cst);
 
-            const auto sequenceAfter = slots_[active].sequence.load(std::memory_order_acquire);
+            const auto sequenceAfter = slots_[active].sequence.load(std::memory_order_seq_cst);
             if (sequenceBefore == sequenceAfter && (sequenceAfter & 1u) == 0u &&
-                activeSlot_.load(std::memory_order_acquire) == active)
+                activePublication_.load(std::memory_order_seq_cst) == activePublication)
                 return true;
         }
 
@@ -84,6 +95,12 @@ class DeveloperParameterOverride final {
     }
 
   private:
+    static_assert(std::atomic<std::uint64_t>::is_always_lock_free,
+                  "Developer override publication token must be lock-free");
+    static_assert(std::atomic<std::uint32_t>::is_always_lock_free,
+                  "Developer override sequence must be lock-free");
+    static_assert(std::atomic<float>::is_always_lock_free,
+                  "Developer override values must be lock-free");
     static float value(const DeveloperHostParameterSnapshot& snapshot,
                        DeveloperHostParameter parameter) noexcept {
         return snapshot.rawValues[static_cast<std::size_t>(parameter)];
@@ -95,7 +112,8 @@ class DeveloperParameterOverride final {
     };
 
     std::array<Slot, 2> slots_{};
-    std::atomic<int> activeSlot_{-1};
+    std::atomic<std::uint64_t> activePublication_{kInactivePublication};
+    std::uint64_t nextPublication_{};
 };
 
 } // namespace frazil::plugin
