@@ -24,11 +24,6 @@ class FRAZILAudioProcessorEditor final : public juce::AudioProcessorEditor
 
   private:
 #if FRAZIL_ENABLE_DEVELOPER_UI
-    struct ABState final {
-        frazil::plugin::DeveloperExperimentSnapshot state{};
-        bool captured{};
-    };
-
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
     using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
@@ -100,7 +95,7 @@ class FRAZILAudioProcessorEditor final : public juce::AudioProcessorEditor
     juce::TextButton copyConfigButton_{"Copy Config"};
     juce::TextButton exportConfigButton_{"Export Config"};
     std::unique_ptr<juce::FileChooser> configFileChooser_;
-    std::array<ABState, 2> abStates_;
+    frazil::plugin::DeveloperExperimentSlots abStates_;
     bool syncingDeveloperView_{};
     int currentAppliedSlot_{-1};
 #else

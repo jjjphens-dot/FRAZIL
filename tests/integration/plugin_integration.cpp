@@ -153,6 +153,38 @@ void testDeveloperDiagnosticsPublication(TestContext& context) {
            "diagnostics reset publishes a complete neutral snapshot");
 }
 
+void testDeveloperExperimentSlotWorkflow(TestContext& context) {
+    const auto sameSnapshot = [](const frazil::plugin::DeveloperExperimentSnapshot& left,
+                                 const frazil::plugin::DeveloperExperimentSnapshot& right) {
+        return left.host.rawValues == right.host.rawValues &&
+               left.water.model == right.water.model && left.water.size == right.water.size &&
+               left.water.motion == right.water.motion &&
+               left.comparisonMode == right.comparisonMode;
+    };
+
+    frazil::plugin::DeveloperExperimentSnapshot a;
+    a.host.rawValues = {1.0f, 0.0f, 0.0f, 0.2f, 0.3f, 0.4f, -3.0f, 0.5f, 2.0f};
+    a.water = {frazil::plugin::DeveloperWaterModel::fluid, 0.25f, 0.75f};
+    a.comparisonMode = frazil::plugin::DeveloperComparisonMode::dry;
+
+    frazil::plugin::DeveloperExperimentSnapshot b;
+    b.host.rawValues = {0.0f, 1.0f, 2.0f, 0.8f, 0.7f, 0.6f, 4.0f, 0.9f, -2.0f};
+    b.water = {frazil::plugin::DeveloperWaterModel::resonant, 0.85f, 0.15f};
+    b.comparisonMode = frazil::plugin::DeveloperComparisonMode::processed;
+
+    frazil::plugin::DeveloperExperimentSlots slots;
+    frazil::plugin::DeveloperExperimentSnapshot applied;
+    expect(context, !slots.apply(0, applied), "empty A slot is safe to apply");
+    slots.capture(0, a);
+    slots.capture(1, b);
+    expect(context, slots.isCaptured(0) && slots.isCaptured(1),
+           "A/B slots report captured state");
+    expect(context, slots.apply(0, applied) && sameSnapshot(applied, a),
+           "A restores complete Host, Water and comparison state");
+    expect(context, slots.apply(1, applied) && sameSnapshot(applied, b),
+           "B restores complete Host, Water and comparison state");
+}
+
 void testDeveloperComparisonBoundary(TestContext& context) {
     constexpr int kBlockSize = 64;
     FRAZILAudioProcessor processor;
@@ -351,6 +383,7 @@ int main() {
     testParameterAutomationReachesAudioPath(context);
 #if FRAZIL_ENABLE_DEVELOPER_UI
     testDeveloperDiagnosticsPublication(context);
+    testDeveloperExperimentSlotWorkflow(context);
     testDeveloperComparisonBoundary(context);
 #endif
     testStateRestoreAfterPrepareReachesAudioPath(context);
@@ -360,7 +393,7 @@ int main() {
         return 1;
 
 #if FRAZIL_ENABLE_DEVELOPER_UI
-    std::cout << "FRAZIL plugin integration tests passed (5 groups)\n";
+    std::cout << "FRAZIL plugin integration tests passed (6 groups)\n";
 #else
     std::cout << "FRAZIL plugin integration tests passed (3 groups)\n";
 #endif

@@ -42,4 +42,33 @@ struct DeveloperExperimentSnapshot final {
     DeveloperComparisonMode comparisonMode{DeveloperComparisonMode::processed};
 };
 
+class DeveloperExperimentSlots final {
+  public:
+    static constexpr std::size_t kSlotCount = 2;
+
+    void capture(std::size_t slotIndex, const DeveloperExperimentSnapshot& snapshot) noexcept {
+        if (slotIndex >= kSlotCount)
+            return;
+
+        snapshots_[slotIndex] = snapshot;
+        captured_[slotIndex] = true;
+    }
+
+    bool apply(std::size_t slotIndex, DeveloperExperimentSnapshot& destination) const noexcept {
+        if (slotIndex >= kSlotCount || !captured_[slotIndex])
+            return false;
+
+        destination = snapshots_[slotIndex];
+        return true;
+    }
+
+    bool isCaptured(std::size_t slotIndex) const noexcept {
+        return slotIndex < kSlotCount && captured_[slotIndex];
+    }
+
+  private:
+    std::array<DeveloperExperimentSnapshot, kSlotCount> snapshots_{};
+    std::array<bool, kSlotCount> captured_{};
+};
+
 } // namespace frazil::plugin

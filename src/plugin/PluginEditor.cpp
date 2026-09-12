@@ -379,8 +379,8 @@ void FRAZILAudioProcessorEditor::updateWorkflowSummary() {
     if (currentAppliedSlot_ >= 0 && !processor_.isDeveloperHostParameterOverrideActive())
         currentAppliedSlot_ = -1;
 
-    const auto slotState = [](const ABState& state) {
-        return state.captured ? "Captured" : "Empty";
+    const auto slotState = [this](std::size_t slotIndex) {
+        return abStates_.isCaptured(slotIndex) ? "Captured" : "Empty";
     };
     juce::String current = "Host";
     if (currentAppliedSlot_ >= 0)
@@ -392,21 +392,20 @@ void FRAZILAudioProcessorEditor::updateWorkflowSummary() {
     const auto stateBoundary = processor_.isDeveloperHostParameterOverrideActive()
                                    ? "  |  Host/APVTS remains underlying"
                                    : "";
-    workflowStateLabel_.setText(
-        juce::String("A: ") + slotState(abStates_[0]) + "  |  B: " + slotState(abStates_[1]) +
-            "  |  Current: " + current + "  |  " +
-            comparisonModeName(processor_.getDeveloperComparisonMode()) + stateBoundary +
-            "  |  temporary / not serialized / not a preset",
-        juce::dontSendNotification);
+    workflowStateLabel_.setText(juce::String("A: ") + slotState(0) + "  |  B: " + slotState(1) +
+                                    "  |  Current: " + current + "  |  " +
+                                    comparisonModeName(processor_.getDeveloperComparisonMode()) +
+                                    stateBoundary +
+                                    "  |  temporary / not serialized / not a preset",
+                                juce::dontSendNotification);
 }
 
 void FRAZILAudioProcessorEditor::captureSlot(int slotIndex) {
-    if (slotIndex < 0 || slotIndex >= static_cast<int>(abStates_.size()))
+    if (slotIndex < 0 ||
+        slotIndex >= static_cast<int>(frazil::plugin::DeveloperExperimentSlots::kSlotCount))
         return;
 
-    auto& slot = abStates_[static_cast<std::size_t>(slotIndex)];
-    slot.state = captureCurrentExperiment();
-    slot.captured = true;
+    abStates_.capture(static_cast<std::size_t>(slotIndex), captureCurrentExperiment());
     updateWorkflowSummary();
     setWorkflowStatus("Captured temporary A/B slot " +
                       juce::String::charToString(static_cast<juce_wchar>('A' + slotIndex)) +
@@ -414,18 +413,19 @@ void FRAZILAudioProcessorEditor::captureSlot(int slotIndex) {
 }
 
 void FRAZILAudioProcessorEditor::applySlot(int slotIndex) {
-    if (slotIndex < 0 || slotIndex >= static_cast<int>(abStates_.size()))
+    if (slotIndex < 0 ||
+        slotIndex >= static_cast<int>(frazil::plugin::DeveloperExperimentSlots::kSlotCount))
         return;
 
-    const auto& slot = abStates_[static_cast<std::size_t>(slotIndex)];
-    if (!slot.captured) {
+    frazil::plugin::DeveloperExperimentSnapshot snapshot;
+    if (!abStates_.apply(static_cast<std::size_t>(slotIndex), snapshot)) {
         setWorkflowStatus("Slot " +
                           juce::String::charToString(static_cast<juce_wchar>('A' + slotIndex)) +
                           " is empty; capture it before applying.");
         return;
     }
 
-    applyExperimentSnapshot(slot.state, slotIndex);
+    applyExperimentSnapshot(snapshot, slotIndex);
     setWorkflowStatus("Applied temporary slot " +
                       juce::String::charToString(static_cast<juce_wchar>('A' + slotIndex)) +
                       " including Host, Water experiment and comparison state.");
