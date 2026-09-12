@@ -167,7 +167,7 @@ Host/DAW acceptance。
 
 Final engineering follow-up 还通过 effective-state ownership、Host-change-under-override、state-restore、Editor
 attachment/comparison-button decision-helper reconciliation、coherent diagnostics publication/readback、并发
-publish/read pressure 和 complete temporary A/B slot regression；其中 Editor attachment 回归是纯决策 helper
+publish/read、set-only、set/clear pressure 和 complete temporary A/B slot regression；其中 Editor attachment 回归是纯决策 helper
 覆盖，不是实际 JUCE Editor/attachment 生命周期自动化。并通过
 `python tools/check_markdown_links.py`、`python tools/check_portability.py` 与 `git diff --check`。Release
 isolation audit 确认 Debug/ASAN 使用 `FRAZIL_ENABLE_DEVELOPER_UI=1`，Release 使用 `0`，且

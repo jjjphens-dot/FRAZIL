@@ -71,7 +71,9 @@ acceptance and does not provide the full debug-bundle workflow required for fina
 
 The editor also reconciles an external Host/APVTS state restore: if the Processor clears a Developer override while
 attachments are detached, the next bounded editor reconciliation reattaches Host controls, syncs restored values and
-updates the Dry/Processed selection from the Processor comparison mode.
+updates the Dry/Processed selection from the Processor comparison mode. The temporary override transport keeps its
+audio read/apply path lock-free; non-realtime set/clear operations are serialized because Editor edits and Host state
+restore may arrive on different threads.
 
 The first version should provide:
 

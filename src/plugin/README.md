@@ -49,7 +49,7 @@ PluginProcessor 拥有 APVTS、AudioEngine 和 editor 生命周期；JUCE factor
 
 ## Threading / Realtime Rules
 
-`processBlock` 是实时入口：不得 I/O、logging、阻塞锁、UI/history 访问或不可控分配。Host 参数在 block 开始形成一致 Snapshot；Debug/ASAN candidate 可在同一边界应用双缓冲 atomic developer override；state restore 在非音频线程执行，并清空未来的内部 history。Debug/ASAN candidate 额外计算当前 block 的 peak/RMS、finite 状态和 latest block size 并写入 bounded atomic diagnostics；Release 构建选择静态占位 editor 并编译掉 callback diagnostics publication path。
+`processBlock` 是实时入口：不得 I/O、logging、阻塞锁、UI/history 访问或不可控分配。Host 参数在 block 开始形成一致 Snapshot；Debug/ASAN candidate 可在同一边界应用双缓冲 atomic developer override，audio read/apply 路径保持无锁；set/clear 只发生在非实时控制路径，并由控制 mutex 串行化，以覆盖 Editor 与 Host state restore 的跨线程顺序。state restore 在非音频线程执行，并清空未来的内部 history。Debug/ASAN candidate 额外计算当前 block 的 peak/RMS、finite 状态和 latest block size 并写入 bounded atomic diagnostics；Release 构建选择静态占位 editor 并编译掉 callback diagnostics publication path。
 
 ## Implementation Overview
 

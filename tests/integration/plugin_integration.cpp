@@ -169,13 +169,15 @@ void testDeveloperDiagnosticsConcurrentPublication(TestContext& context) {
     diagnostics.setPrepared(48000.0f, 64, 2);
 
     std::atomic<bool> start{false};
+    std::atomic<bool> readerReady{false};
     std::atomic<bool> writerDone{false};
     std::atomic<int> invalidSnapshots{0};
     std::atomic<int> observedSnapshots{0};
 
     std::thread writer([&] {
-        while (!start.load(std::memory_order_acquire))
+        while (!readerReady.load(std::memory_order_acquire))
             std::this_thread::yield();
+        start.store(true, std::memory_order_release);
         for (int generation = 1; generation <= kIterations; ++generation) {
             diagnostics.publish(generation, generation % 4 + 1, static_cast<float>(generation),
                                 static_cast<float>(100000 + generation),
@@ -188,8 +190,10 @@ void testDeveloperDiagnosticsConcurrentPublication(TestContext& context) {
     });
 
     std::thread reader([&] {
-        start.store(true, std::memory_order_release);
-        while (!writerDone.load(std::memory_order_acquire)) {
+        readerReady.store(true, std::memory_order_release);
+        while (!start.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        do {
             const auto snapshot = diagnostics.snapshot();
             if (snapshot.latestBlockSize == 0)
                 continue;
@@ -205,7 +209,7 @@ void testDeveloperDiagnosticsConcurrentPublication(TestContext& context) {
                                   snapshot.finite == ((generation & 1) == 0);
             if (!coherent)
                 ++invalidSnapshots;
-        }
+        } while (!writerDone.load(std::memory_order_acquire));
     });
 
     writer.join();
@@ -223,13 +227,15 @@ void testDeveloperOverrideConcurrentPublication(TestContext& context) {
     constexpr int kIterations = 10000;
     frazil::plugin::DeveloperParameterOverride override;
     std::atomic<bool> start{false};
+    std::atomic<bool> readerReady{false};
     std::atomic<bool> writerDone{false};
     std::atomic<int> invalidSnapshots{0};
     std::atomic<int> observedSnapshots{0};
 
     std::thread writer([&] {
-        while (!start.load(std::memory_order_acquire))
+        while (!readerReady.load(std::memory_order_acquire))
             std::this_thread::yield();
+        start.store(true, std::memory_order_release);
         for (int generation = 1; generation <= kIterations; ++generation) {
             frazil::plugin::DeveloperHostParameterSnapshot values;
             values.rawValues = {
@@ -239,8 +245,6 @@ void testDeveloperOverrideConcurrentPublication(TestContext& context) {
                 static_cast<float>(400000 + generation), static_cast<float>(500000 + generation),
                 static_cast<float>(600000 + generation)};
             override.set(values);
-            if ((generation & 1) == 0)
-                override.clear();
             if ((generation & 31) == 0)
                 std::this_thread::yield();
         }
@@ -248,8 +252,10 @@ void testDeveloperOverrideConcurrentPublication(TestContext& context) {
     });
 
     std::thread reader([&] {
-        start.store(true, std::memory_order_release);
-        while (!writerDone.load(std::memory_order_acquire)) {
+        readerReady.store(true, std::memory_order_release);
+        while (!start.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        do {
             ParameterSnapshot snapshot;
             snapshot.inputGainDb = -1.0f;
             snapshot.globalMix = -2.0f;
@@ -272,7 +278,7 @@ void testDeveloperOverrideConcurrentPublication(TestContext& context) {
                 snapshot.outputGainDb == static_cast<float>(600000 + generation);
             if (!coherent)
                 ++invalidSnapshots;
-        }
+        } while (!writerDone.load(std::memory_order_acquire));
     });
 
     writer.join();
@@ -281,6 +287,70 @@ void testDeveloperOverrideConcurrentPublication(TestContext& context) {
            "concurrent override reader observes active publications");
     expect(context, invalidSnapshots.load() == 0,
            "concurrent override reads remain generation-coherent");
+}
+
+void testDeveloperOverrideConcurrentSetAndClear(TestContext& context) {
+    constexpr int kIterations = 10000;
+    frazil::plugin::DeveloperParameterOverride override;
+    frazil::plugin::DeveloperHostParameterSnapshot values;
+    values.rawValues = {1.0f, 1.0f, 0.0f, 0.25f, 0.4f, 0.8f, 6.0f, 0.3f, -3.0f};
+
+    std::atomic<bool> start{false};
+    std::atomic<bool> setStarted{false};
+    std::atomic<bool> setDone{false};
+    std::atomic<bool> clearDone{false};
+    std::atomic<int> invalidSnapshots{0};
+
+    std::thread setter([&] {
+        while (!start.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        setStarted.store(true, std::memory_order_release);
+        for (int iteration = 0; iteration < kIterations; ++iteration) {
+            values.rawValues[static_cast<std::size_t>(
+                frazil::plugin::DeveloperHostParameter::inputGainDb)] =
+                static_cast<float>(iteration);
+            override.set(values);
+            if ((iteration & 31) == 0)
+                std::this_thread::yield();
+        }
+        setDone.store(true, std::memory_order_release);
+    });
+
+    std::thread clearer([&] {
+        while (!start.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        while (!setStarted.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        for (int iteration = 0; iteration < kIterations; ++iteration) {
+            override.clear();
+            if ((iteration & 31) == 0)
+                std::this_thread::yield();
+        }
+        clearDone.store(true, std::memory_order_release);
+    });
+
+    std::thread reader([&] {
+        start.store(true, std::memory_order_release);
+        while (!setDone.load(std::memory_order_acquire) ||
+               !clearDone.load(std::memory_order_acquire)) {
+            frazil::plugin::DeveloperHostParameterSnapshot snapshot;
+            if (!override.read(snapshot))
+                continue;
+            const auto inputGain = snapshot.rawValues[static_cast<std::size_t>(
+                frazil::plugin::DeveloperHostParameter::inputGainDb)];
+            if (!std::isfinite(inputGain) || inputGain < 0.0f || inputGain >= kIterations)
+                ++invalidSnapshots;
+        }
+    });
+
+    setter.join();
+    clearer.join();
+    reader.join();
+    override.clear();
+    expect(context, !override.isActive(),
+           "Host restore clear wins after concurrent Developer set operations");
+    expect(context, invalidSnapshots.load() == 0,
+           "concurrent Developer set/clear reads remain valid");
 }
 
 void testDeveloperExperimentSlotWorkflow(TestContext& context) {
@@ -535,6 +605,7 @@ int main() {
     testDeveloperDiagnosticsPublication(context);
     testDeveloperDiagnosticsConcurrentPublication(context);
     testDeveloperOverrideConcurrentPublication(context);
+    testDeveloperOverrideConcurrentSetAndClear(context);
     testDeveloperExperimentSlotWorkflow(context);
     testDeveloperEditorAttachmentReconciliation(context);
     testDeveloperComparisonBoundary(context);
@@ -546,7 +617,7 @@ int main() {
         return 1;
 
 #if FRAZIL_ENABLE_DEVELOPER_UI
-    std::cout << "FRAZIL plugin integration tests passed (9 groups)\n";
+    std::cout << "FRAZIL plugin integration tests passed (10 groups)\n";
 #else
     std::cout << "FRAZIL plugin integration tests passed (3 groups)\n";
 #endif

@@ -8,13 +8,15 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <mutex>
 
 namespace frazil::plugin {
 
-// Debug/ASAN-only latest-state transport for temporary developer comparisons. The set/clear side
-// is single-writer (the editor/message thread) and read/apply is single-reader (the audio thread).
-// The APVTS remains untouched, so applying or resetting a comparison cannot serialize the
-// temporary state or emit Host parameter/gesture notifications.
+// Debug/ASAN-only latest-state transport for temporary developer comparisons. The non-realtime
+// set/clear control operations are serialized because Host state restore may arrive on a different
+// thread from the editor. The audio read/apply path remains lock-free. The APVTS remains untouched,
+// so applying or resetting a comparison cannot serialize the temporary state or emit Host
+// parameter/gesture notifications.
 class DeveloperParameterOverride final {
   public:
     static constexpr auto kInactivePublication = std::numeric_limits<std::uint64_t>::max();
@@ -26,6 +28,7 @@ class DeveloperParameterOverride final {
     }
 
     void set(const DeveloperHostParameterSnapshot& snapshot) noexcept {
+        const std::lock_guard controlLock(controlMutex_);
         const auto activePublication = activePublication_.load(std::memory_order_seq_cst);
         const auto active = activePublication == kInactivePublication
                                 ? 1
@@ -43,6 +46,7 @@ class DeveloperParameterOverride final {
     }
 
     void clear() noexcept {
+        const std::lock_guard controlLock(controlMutex_);
         activePublication_.store(kInactivePublication, std::memory_order_seq_cst);
     }
 
@@ -51,12 +55,11 @@ class DeveloperParameterOverride final {
     }
 
     bool read(DeveloperHostParameterSnapshot& destination) const noexcept {
-        const auto activePublication = activePublication_.load(std::memory_order_seq_cst);
-        if (activePublication == kInactivePublication)
-            return false;
-        const auto active = static_cast<int>(activePublication & 1u);
-
-        for (int attempt = 0; attempt < 2; ++attempt) {
+        for (int attempt = 0; attempt < 4; ++attempt) {
+            const auto activePublication = activePublication_.load(std::memory_order_seq_cst);
+            if (activePublication == kInactivePublication)
+                return false;
+            const auto active = static_cast<int>(activePublication & 1u);
             const auto sequenceBefore = slots_[active].sequence.load(std::memory_order_seq_cst);
             if ((sequenceBefore & 1u) != 0u)
                 continue;
@@ -112,6 +115,7 @@ class DeveloperParameterOverride final {
     };
 
     std::array<Slot, 2> slots_{};
+    mutable std::mutex controlMutex_;
     std::atomic<std::uint64_t> activePublication_{kInactivePublication};
     std::uint64_t nextPublication_{};
 };
