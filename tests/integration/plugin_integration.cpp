@@ -132,14 +132,16 @@ void testDeveloperDiagnosticsPublication(TestContext& context) {
     const auto prepared = diagnostics.snapshot();
     expectNear(context, prepared.sampleRateHz, 48000.0f, 1.0e-6f,
                "diagnostics publish prepared sample rate coherently");
-    expect(context, prepared.preparedBlockSize == 64 && prepared.latestBlockSize == 0 &&
-                       prepared.channelCount == 2 && prepared.finite,
+    expect(context,
+           prepared.preparedBlockSize == 64 && prepared.latestBlockSize == 0 &&
+               prepared.channelCount == 2 && prepared.finite,
            "diagnostics publish prepared dimensions as one snapshot");
 
     diagnostics.publish(32, 1, 0.1f, 0.2f, 0.3f, 0.4f, false);
     const auto latest = diagnostics.snapshot();
-    expect(context, latest.preparedBlockSize == 64 && latest.latestBlockSize == 32 &&
-                       latest.channelCount == 1 && !latest.finite,
+    expect(context,
+           latest.preparedBlockSize == 64 && latest.latestBlockSize == 32 &&
+               latest.channelCount == 1 && !latest.finite,
            "diagnostics publish latest dimensions and finite status together");
     expectNear(context, latest.inputPeak, 0.1f, 1.0e-6f,
                "diagnostics snapshot retains input peak from one publication");
@@ -148,8 +150,9 @@ void testDeveloperDiagnosticsPublication(TestContext& context) {
 
     diagnostics.reset();
     const auto reset = diagnostics.snapshot();
-    expect(context, reset.sampleRateHz == 0.0f && reset.preparedBlockSize == 0 &&
-                       reset.latestBlockSize == 0 && reset.channelCount == 0 && reset.finite,
+    expect(context,
+           reset.sampleRateHz == 0.0f && reset.preparedBlockSize == 0 &&
+               reset.latestBlockSize == 0 && reset.channelCount == 0 && reset.finite,
            "diagnostics reset publishes a complete neutral snapshot");
 }
 
@@ -177,8 +180,7 @@ void testDeveloperExperimentSlotWorkflow(TestContext& context) {
     expect(context, !slots.apply(0, applied), "empty A slot is safe to apply");
     slots.capture(0, a);
     slots.capture(1, b);
-    expect(context, slots.isCaptured(0) && slots.isCaptured(1),
-           "A/B slots report captured state");
+    expect(context, slots.isCaptured(0) && slots.isCaptured(1), "A/B slots report captured state");
     expect(context, slots.apply(0, applied) && sameSnapshot(applied, a),
            "A restores complete Host, Water and comparison state");
     expect(context, slots.apply(1, applied) && sameSnapshot(applied, b),
@@ -214,8 +216,8 @@ void testDeveloperComparisonBoundary(TestContext& context) {
            "developer override emits no Host value or gesture notifications");
 
     setParameterValue(context, processor, frazil::plugin::parameterIds::inputGain, -3.0f);
-    expectNear(context, getParameterValue(context, processor,
-                                          frazil::plugin::parameterIds::inputGain),
+    expectNear(context,
+               getParameterValue(context, processor, frazil::plugin::parameterIds::inputGain),
                -3.0f, 1.0e-6f, "Host/APVTS accepts automation while Developer override is active");
     const auto effectiveDuringHostChange = processor.getDeveloperHostParameterSnapshot();
     expectNear(context,
@@ -228,15 +230,15 @@ void testDeveloperComparisonBoundary(TestContext& context) {
 
     juce::MemoryBlock serializedState;
     processor.getStateInformation(serializedState);
-    const auto stateText = juce::String::fromUTF8(
-        static_cast<const char*>(serializedState.getData()),
-        static_cast<int>(serializedState.getSize()));
+    const auto stateText =
+        juce::String::fromUTF8(static_cast<const char*>(serializedState.getData()),
+                               static_cast<int>(serializedState.getSize()));
     expect(context, !stateText.contains("waterExperiment"),
            "developer experiment state is absent from production state XML");
 
     processor.setDeveloperComparisonMode(frazil::plugin::DeveloperComparisonMode::dry);
-    expect(context, processor.getDeveloperComparisonMode() ==
-                       frazil::plugin::DeveloperComparisonMode::dry,
+    expect(context,
+           processor.getDeveloperComparisonMode() == frazil::plugin::DeveloperComparisonMode::dry,
            "developer Dry comparison mode is selected without a Host parameter");
     juce::MidiBuffer midi;
     juce::AudioBuffer<float> buffer(2, kBlockSize);
@@ -249,8 +251,9 @@ void testDeveloperComparisonBoundary(TestContext& context) {
                                   static_cast<int>(serializedState.getSize()));
     expect(context, !processor.isDeveloperHostParameterOverrideActive(),
            "state restore clears the temporary Developer override");
-    expect(context, processor.getDeveloperComparisonMode() ==
-                       frazil::plugin::DeveloperComparisonMode::processed,
+    expect(context,
+           processor.getDeveloperComparisonMode() ==
+               frazil::plugin::DeveloperComparisonMode::processed,
            "state restore returns comparison mode to Processed");
     const auto effectiveAfterStateRestore = processor.getDeveloperHostParameterSnapshot();
     expectNear(context,
@@ -268,8 +271,8 @@ void testDeveloperComparisonBoundary(TestContext& context) {
                hostAfter.rawValues[static_cast<std::size_t>(
                    frazil::plugin::DeveloperHostParameter::inputGainDb)],
                -3.0f, 1.0e-6f, "clearing override restores the current APVTS Host snapshot");
-    expect(context, listener.valueChanges == notificationsBeforeClear &&
-                       listener.gestureChanges == 0,
+    expect(context,
+           listener.valueChanges == notificationsBeforeClear && listener.gestureChanges == 0,
            "clearing developer override emits no Host notifications");
 
     if (inputGain != nullptr)
