@@ -126,6 +126,33 @@ void testParameterAutomationReachesAudioPath(TestContext& context) {
 }
 
 #if FRAZIL_ENABLE_DEVELOPER_UI
+void testDeveloperDiagnosticsPublication(TestContext& context) {
+    frazil::plugin::DeveloperDiagnostics diagnostics;
+    diagnostics.setPrepared(48000.0f, 64, 2);
+    const auto prepared = diagnostics.snapshot();
+    expectNear(context, prepared.sampleRateHz, 48000.0f, 1.0e-6f,
+               "diagnostics publish prepared sample rate coherently");
+    expect(context, prepared.preparedBlockSize == 64 && prepared.latestBlockSize == 0 &&
+                       prepared.channelCount == 2 && prepared.finite,
+           "diagnostics publish prepared dimensions as one snapshot");
+
+    diagnostics.publish(32, 1, 0.1f, 0.2f, 0.3f, 0.4f, false);
+    const auto latest = diagnostics.snapshot();
+    expect(context, latest.preparedBlockSize == 64 && latest.latestBlockSize == 32 &&
+                       latest.channelCount == 1 && !latest.finite,
+           "diagnostics publish latest dimensions and finite status together");
+    expectNear(context, latest.inputPeak, 0.1f, 1.0e-6f,
+               "diagnostics snapshot retains input peak from one publication");
+    expectNear(context, latest.outputRms, 0.4f, 1.0e-6f,
+               "diagnostics snapshot retains output RMS from one publication");
+
+    diagnostics.reset();
+    const auto reset = diagnostics.snapshot();
+    expect(context, reset.sampleRateHz == 0.0f && reset.preparedBlockSize == 0 &&
+                       reset.latestBlockSize == 0 && reset.channelCount == 0 && reset.finite,
+           "diagnostics reset publishes a complete neutral snapshot");
+}
+
 void testDeveloperComparisonBoundary(TestContext& context) {
     constexpr int kBlockSize = 64;
     FRAZILAudioProcessor processor;
@@ -323,6 +350,7 @@ int main() {
     TestContext context;
     testParameterAutomationReachesAudioPath(context);
 #if FRAZIL_ENABLE_DEVELOPER_UI
+    testDeveloperDiagnosticsPublication(context);
     testDeveloperComparisonBoundary(context);
 #endif
     testStateRestoreAfterPrepareReachesAudioPath(context);
@@ -332,7 +360,7 @@ int main() {
         return 1;
 
 #if FRAZIL_ENABLE_DEVELOPER_UI
-    std::cout << "FRAZIL plugin integration tests passed (4 groups)\n";
+    std::cout << "FRAZIL plugin integration tests passed (5 groups)\n";
 #else
     std::cout << "FRAZIL plugin integration tests passed (3 groups)\n";
 #endif
