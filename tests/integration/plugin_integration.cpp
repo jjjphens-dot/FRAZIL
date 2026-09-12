@@ -154,6 +154,19 @@ void testDeveloperComparisonBoundary(TestContext& context) {
     expect(context, listener.valueChanges == 0 && listener.gestureChanges == 0,
            "developer override emits no Host value or gesture notifications");
 
+    setParameterValue(context, processor, frazil::plugin::parameterIds::inputGain, -3.0f);
+    expectNear(context, getParameterValue(context, processor,
+                                          frazil::plugin::parameterIds::inputGain),
+               -3.0f, 1.0e-6f, "Host/APVTS accepts automation while Developer override is active");
+    const auto effectiveDuringHostChange = processor.getDeveloperHostParameterSnapshot();
+    expectNear(context,
+               effectiveDuringHostChange.rawValues[static_cast<std::size_t>(
+                   frazil::plugin::DeveloperHostParameter::inputGainDb)],
+               6.0f, 1.0e-6f,
+               "Developer effective input gain remains active during Host automation");
+    expect(context, listener.valueChanges == 1 && listener.gestureChanges == 0,
+           "Host automation emits its value notification but no gesture notification");
+
     juce::MemoryBlock serializedState;
     processor.getStateInformation(serializedState);
     const auto stateText = juce::String::fromUTF8(
@@ -173,6 +186,21 @@ void testDeveloperComparisonBoundary(TestContext& context) {
     expect(context, std::isfinite(buffer.getSample(0, kBlockSize - 1)),
            "developer Dry comparison produces finite audio");
 
+    processor.setStateInformation(serializedState.getData(),
+                                  static_cast<int>(serializedState.getSize()));
+    expect(context, !processor.isDeveloperHostParameterOverrideActive(),
+           "state restore clears the temporary Developer override");
+    expect(context, processor.getDeveloperComparisonMode() ==
+                       frazil::plugin::DeveloperComparisonMode::processed,
+           "state restore returns comparison mode to Processed");
+    const auto effectiveAfterStateRestore = processor.getDeveloperHostParameterSnapshot();
+    expectNear(context,
+               effectiveAfterStateRestore.rawValues[static_cast<std::size_t>(
+                   frazil::plugin::DeveloperHostParameter::inputGainDb)],
+               -3.0f, 1.0e-6f, "state restore makes the current Host value effective");
+
+    processor.setDeveloperHostParameterOverride(developerState);
+    const auto notificationsBeforeClear = listener.valueChanges;
     processor.clearDeveloperHostParameterOverride();
     expect(context, !processor.isDeveloperHostParameterOverrideActive(),
            "developer override can be cleared");
@@ -180,8 +208,9 @@ void testDeveloperComparisonBoundary(TestContext& context) {
     expectNear(context,
                hostAfter.rawValues[static_cast<std::size_t>(
                    frazil::plugin::DeveloperHostParameter::inputGainDb)],
-               0.0f, 1.0e-6f, "clearing override restores the APVTS Host snapshot");
-    expect(context, listener.valueChanges == 0 && listener.gestureChanges == 0,
+               -3.0f, 1.0e-6f, "clearing override restores the current APVTS Host snapshot");
+    expect(context, listener.valueChanges == notificationsBeforeClear &&
+                       listener.gestureChanges == 0,
            "clearing developer override emits no Host notifications");
 
     if (inputGain != nullptr)
