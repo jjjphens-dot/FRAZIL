@@ -53,6 +53,22 @@ void fillBuffer(juce::AudioBuffer<float>& buffer, float value) {
             buffer.setSample(channel, sample, value);
 }
 
+#if FRAZIL_ENABLE_DEVELOPER_UI
+struct ParameterEventListener final : juce::AudioProcessorParameter::Listener {
+    void parameterValueChanged(int, float) override { ++valueChanges; }
+    void parameterGestureChanged(int, bool) override { ++gestureChanges; }
+
+    int valueChanges{};
+    int gestureChanges{};
+};
+
+frazil::plugin::DeveloperHostParameterSnapshot makeDeveloperHostSnapshot() {
+    frazil::plugin::DeveloperHostParameterSnapshot snapshot;
+    snapshot.rawValues = {1.0f, 1.0f, 0.0f, 0.25f, 0.4f, 0.8f, 6.0f, 0.3f, -3.0f};
+    return snapshot;
+}
+#endif
+
 void testParameterAutomationReachesAudioPath(TestContext& context) {
     FRAZILAudioProcessor processor;
     constexpr int kBlockSize = 64;
@@ -68,8 +84,9 @@ void testParameterAutomationReachesAudioPath(TestContext& context) {
     const auto diagnostics = processor.getDeveloperDiagnosticsSnapshot();
     expectNear(context, diagnostics.sampleRateHz, 48000.0f, 1.0e-6f,
                "developer diagnostics retain prepared sample rate");
-    expect(context, diagnostics.blockSize == kBlockSize && diagnostics.channelCount == 2,
-           "developer diagnostics retain prepared block and channel dimensions");
+    expect(context, diagnostics.preparedBlockSize == kBlockSize &&
+                       diagnostics.latestBlockSize == kBlockSize && diagnostics.channelCount == 2,
+           "developer diagnostics distinguish prepared and latest block dimensions");
     expectNear(context, diagnostics.inputPeak, 1.0f, 1.0e-6f,
                "developer diagnostics measure input peak");
     expectNear(context, diagnostics.outputPeak, 1.0f, 1.0e-6f,
@@ -96,7 +113,81 @@ void testParameterAutomationReachesAudioPath(TestContext& context) {
     }
     expectNear(context, buffer.getSample(0, kBlockSize - 1), targetGain, 1.0e-5f,
                "automated input gain reaches its final value without restarting the ramp");
+
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    juce::AudioBuffer<float> shortBuffer(2, kBlockSize / 2);
+    fillBuffer(shortBuffer, 1.0f);
+    processor.processBlock(shortBuffer, midi);
+    const auto shortDiagnostics = processor.getDeveloperDiagnosticsSnapshot();
+    expect(context, shortDiagnostics.preparedBlockSize == kBlockSize &&
+                       shortDiagnostics.latestBlockSize == kBlockSize / 2,
+           "developer diagnostics publish the latest callback block size");
+#endif
 }
+
+#if FRAZIL_ENABLE_DEVELOPER_UI
+void testDeveloperComparisonBoundary(TestContext& context) {
+    constexpr int kBlockSize = 64;
+    FRAZILAudioProcessor processor;
+    processor.prepareToPlay(48000.0, kBlockSize);
+
+    auto* inputGain = processor.parameters.getParameter(frazil::plugin::parameterIds::inputGain);
+    expect(context, inputGain != nullptr, "developer boundary parameter exists");
+    ParameterEventListener listener;
+    if (inputGain != nullptr)
+        inputGain->addListener(&listener);
+
+    const auto hostBefore = processor.getDeveloperHostParameterSnapshot();
+    const auto developerState = makeDeveloperHostSnapshot();
+    processor.setDeveloperHostParameterOverride(developerState);
+    expect(context, processor.isDeveloperHostParameterOverrideActive(),
+           "developer override becomes active");
+    const auto effective = processor.getDeveloperHostParameterSnapshot();
+    expectNear(context,
+               effective.rawValues[static_cast<std::size_t>(
+                   frazil::plugin::DeveloperHostParameter::inputGainDb)],
+               6.0f, 1.0e-6f, "developer override changes the effective audio snapshot");
+    expectNear(context,
+               hostBefore.rawValues[static_cast<std::size_t>(
+                   frazil::plugin::DeveloperHostParameter::inputGainDb)],
+               0.0f, 1.0e-6f, "developer override leaves the APVTS Host value untouched");
+    expect(context, listener.valueChanges == 0 && listener.gestureChanges == 0,
+           "developer override emits no Host value or gesture notifications");
+
+    juce::MemoryBlock serializedState;
+    processor.getStateInformation(serializedState);
+    const auto stateText = juce::String::fromUTF8(
+        static_cast<const char*>(serializedState.getData()),
+        static_cast<int>(serializedState.getSize()));
+    expect(context, !stateText.contains("waterExperiment"),
+           "developer experiment state is absent from production state XML");
+
+    processor.setDeveloperComparisonMode(frazil::plugin::DeveloperComparisonMode::dry);
+    expect(context, processor.getDeveloperComparisonMode() ==
+                       frazil::plugin::DeveloperComparisonMode::dry,
+           "developer Dry comparison mode is selected without a Host parameter");
+    juce::MidiBuffer midi;
+    juce::AudioBuffer<float> buffer(2, kBlockSize);
+    fillBuffer(buffer, 1.0f);
+    processor.processBlock(buffer, midi);
+    expect(context, std::isfinite(buffer.getSample(0, kBlockSize - 1)),
+           "developer Dry comparison produces finite audio");
+
+    processor.clearDeveloperHostParameterOverride();
+    expect(context, !processor.isDeveloperHostParameterOverrideActive(),
+           "developer override can be cleared");
+    const auto hostAfter = processor.getDeveloperHostParameterSnapshot();
+    expectNear(context,
+               hostAfter.rawValues[static_cast<std::size_t>(
+                   frazil::plugin::DeveloperHostParameter::inputGainDb)],
+               0.0f, 1.0e-6f, "clearing override restores the APVTS Host snapshot");
+    expect(context, listener.valueChanges == 0 && listener.gestureChanges == 0,
+           "clearing developer override emits no Host notifications");
+
+    if (inputGain != nullptr)
+        inputGain->removeListener(&listener);
+}
+#endif
 
 void testStateRestoreAfterPrepareReachesAudioPath(TestContext& context) {
     constexpr int kBlockSize = 64;
@@ -202,12 +293,19 @@ void testModeSwitchRetainsInactiveValuesAcrossStateReopen(TestContext& context) 
 int main() {
     TestContext context;
     testParameterAutomationReachesAudioPath(context);
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    testDeveloperComparisonBoundary(context);
+#endif
     testStateRestoreAfterPrepareReachesAudioPath(context);
     testModeSwitchRetainsInactiveValuesAcrossStateReopen(context);
 
     if (context.failures != 0)
         return 1;
 
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    std::cout << "FRAZIL plugin integration tests passed (4 groups)\n";
+#else
     std::cout << "FRAZIL plugin integration tests passed (3 groups)\n";
+#endif
     return 0;
 }

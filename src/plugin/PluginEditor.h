@@ -25,7 +25,7 @@ class FRAZILAudioProcessorEditor final : public juce::AudioProcessorEditor
   private:
 #if FRAZIL_ENABLE_DEVELOPER_UI
     struct ABState final {
-        std::array<float, 9> values{};
+        frazil::plugin::DeveloperExperimentSnapshot state{};
         bool captured{};
     };
 
@@ -35,7 +35,14 @@ class FRAZILAudioProcessorEditor final : public juce::AudioProcessorEditor
 
     void configureLabel(juce::Label&, const juce::String& text, bool heading = false);
     void configureSlider(juce::Slider&);
-    void setParameterNormalizedValue(const char* id, float normalizedValue);
+    frazil::plugin::DeveloperExperimentSnapshot captureCurrentExperiment() const;
+    void syncHostControls(const frazil::plugin::DeveloperHostParameterSnapshot&);
+    void syncExperimentControls(const frazil::plugin::DeveloperWaterExperimentSnapshot&);
+    void applyExperimentSnapshot(const frazil::plugin::DeveloperExperimentSnapshot&, int slotIndex);
+    void clearDeveloperOverrideForUserEdit();
+    void setComparisonMode(frazil::plugin::DeveloperComparisonMode);
+    void updateComparisonButtons();
+    void updateWorkflowSummary();
     void captureSlot(int slotIndex);
     void applySlot(int slotIndex);
     void resetHostParameters();
@@ -55,6 +62,7 @@ class FRAZILAudioProcessorEditor final : public juce::AudioProcessorEditor
     juce::Label workflowLabel_;
     juce::Label diagnosticsLabel_;
     juce::Label workflowStatusLabel_;
+    juce::Label workflowStateLabel_;
 
     juce::ToggleButton waterEnabledButton_;
     juce::ToggleButton iceEnabledButton_;
@@ -77,12 +85,16 @@ class FRAZILAudioProcessorEditor final : public juce::AudioProcessorEditor
     juce::TextButton applyAButton_{"Apply A"};
     juce::TextButton captureBButton_{"Capture B"};
     juce::TextButton applyBButton_{"Apply B"};
+    juce::TextButton dryButton_{"Dry"};
+    juce::TextButton processedButton_{"Processed"};
     juce::TextButton resetHostButton_{"Reset Host"};
     juce::TextButton resetExperimentButton_{"Reset Exp"};
     juce::TextButton copyConfigButton_{"Copy Config"};
     juce::TextButton exportConfigButton_{"Export Config"};
     std::unique_ptr<juce::FileChooser> configFileChooser_;
     std::array<ABState, 2> abStates_;
+    bool syncingDeveloperView_{};
+    int currentAppliedSlot_{-1};
 #else
     FRAZILAudioProcessor& processor_;
 #endif

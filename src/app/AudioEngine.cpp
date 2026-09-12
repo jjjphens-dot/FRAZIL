@@ -29,6 +29,11 @@ void AudioEngine::reset() noexcept {
 
 void AudioEngine::process(juce::AudioBuffer<float>& buffer,
                           const EngineParameters& parameters) noexcept {
+    process(buffer, parameters, false);
+}
+
+void AudioEngine::process(juce::AudioBuffer<float>& buffer, const EngineParameters& parameters,
+                          bool dryReferenceOnly) noexcept {
     if (!prepared_ || buffer.getNumSamples() <= 0 || buffer.getNumChannels() <= 0)
         return;
 
@@ -71,9 +76,9 @@ void AudioEngine::process(juce::AudioBuffer<float>& buffer,
         const auto outputGain = outputGainSmoother_.getNextValue();
 
         for (int channel = 0; channel < numChannels; ++channel) {
-            const auto wetSample = buffer.getSample(channel, sample);
-            const auto drySample =
-                canStoreDryReference ? dryReference_.getSample(channel, sample) : wetSample;
+            const auto drySample = canStoreDryReference ? dryReference_.getSample(channel, sample)
+                                                        : buffer.getSample(channel, sample);
+            const auto wetSample = dryReferenceOnly ? drySample : buffer.getSample(channel, sample);
             const auto mixedSample = DryWetMixer::mix(drySample, wetSample, globalMix);
             buffer.setSample(channel, sample, mixedSample * outputGain);
         }

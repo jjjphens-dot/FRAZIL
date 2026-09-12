@@ -36,8 +36,9 @@ UI 只在 message thread 工作，不阻塞 audio thread；UI 不能读取或写
 
 ## Implementation Overview
 
-M5 才实现正式 `src/ui/` 组件；当前 `src/plugin/PluginEditor.*` 在 Debug/ASAN 提供 DEV-UI-001 开发面板，
-在 Release 保留静态非开发占位界面。该面板不是产品 UI；不得因 README 中的规划内容提前创建生产依赖。
+M5 才实现正式 `src/ui/` 组件；当前 follow-up feature branch 在 Debug/ASAN 提供 DEV-UI-001 开发面板
+candidate，Release 保留静态非开发占位界面。该 candidate 不是产品 UI，也不改变当前 baseline 的 planned
+状态；不得因 README 中的规划内容提前创建生产依赖。
 
 若 M2 candidate controls 经 Water ADR、state compatibility 和 parameter freeze 正式采纳，planned Water
 主区保持 Enable、Mode（Fluid/Resonant）、Size 与 Motion 的固定层级；切换 mode 不替换完整 panel，

@@ -2,8 +2,9 @@
 
 > Document status: Approval Candidate in v1.3; CURRENT/CONTROLLED after approval and merge.<br>
 > Capability implementation status: tracked individually as CURRENT / PLANNED / CANDIDATE / DEFERRED below.<br>
-> Initial Debug/ASAN Developer Control Surface and bounded diagnostics bridge are implemented; full
-> `DEV-UI-001` usability acceptance and Offline Sound Lab handoff remain in progress.
+> A Debug/ASAN Developer Control Surface candidate exists on the follow-up feature branch; the current
+> development baseline remains PLANNED until review, merge and usability acceptance. Offline Sound Lab handoff
+> remains in progress.
 
 ## 1. Purpose and boundaries
 
@@ -29,11 +30,12 @@ experimentation. It is not an M1 architecture-correctness exit gate, and `HOST-0
   `requirements-dsp.txt` Python environment. The analyzer already provides waveform diagnostics, FFT, Welch PSD,
   RMS, DC, stereo correlation and STFT/spectrogram analysis.
 - **CURRENT after v1.3 approval/merge**: the Perceptual Contract framework, template and Agent usage rules.
-- **CURRENT (initial slice)**: a Debug/ASAN-only `DEV-UI-001` surface in `src/plugin/PluginEditor.*` that binds
-  the nine current Host parameters, exposes Water Model/Size/Motion as experiment-only controls, provides
-  temporary A/B/reset actions, exports a draft experiment config, and displays a bounded latest-block diagnostic
-  snapshot. The surface is not the Production UI and has not yet received workflow usability acceptance.
-- **PLANNED**: Dry/Processed comparison, richer Offline Sound Lab review packs, reproducible debug bundles,
+- **CANDIDATE (follow-up feature branch)**: a Debug/ASAN-only `DEV-UI-001` surface in `src/plugin/PluginEditor.*`
+  binds the nine current Host parameters, keeps Water Model/Size/Motion experiment-only, uses a temporary
+  non-APVTS A/B/reset override, provides Dry/Processed comparison, exports the complete draft experiment state,
+  and displays prepared/latest block diagnostics. It is not the Production UI and has not received workflow
+  usability acceptance; this candidate is not the current main baseline.
+- **PLANNED**: final `DEV-UI-001` acceptance, richer Offline Sound Lab review packs, reproducible debug bundles,
   automated review-pack generation, LUFS/true peak, spectral flux, onset, pitch/harmonic-retention and extended
   tail analysis. The `EXP-W-001` Water Perceptual Contract instance remains PLANNED until produced and accepted.
 - **CANDIDATE**: final developer-build isolation, diagnostic transport/schema hardening, UI layout acceptance,
@@ -58,10 +60,11 @@ Motion. Before explicit parameter adoption, these controls are not Host paramete
 internal transport is a `DEV-UI-001` implementation decision and must preserve the repository dependency and
 realtime boundaries.
 
-The initial slice implements the listed Host controls through APVTS attachments and keeps Water Model/Size/Motion
-outside the Host registry and plugin state. Its A/B/reset actions are explicit UI actions; the current
-implementation does not yet provide the Dry/Processed comparison or full debug-bundle workflow required for final
-DEV-UI-001 acceptance.
+The follow-up feature-branch candidate keeps normal user Host controls on APVTS attachments but applies temporary
+A/B/Reset values through a bounded developer-only override. Water Model/Size/Motion remain outside the Host registry,
+automation and plugin state. Dry/Processed comparison reuses the preallocated dry reference and does not change
+`global.mix`; the candidate still requires workflow usability acceptance and does not provide the full debug-bundle
+workflow required for final DEV-UI-001 acceptance.
 
 The first version should provide:
 
@@ -121,10 +124,10 @@ Audio thread
 The audio thread must not perform disk/network/console I/O, string formatting, dynamic diagnostic allocation,
 blocking locks or unbounded queue growth. A complex logging framework is explicitly out of scope.
 
-The initial implementation uses `DeveloperDiagnostics` as a bounded latest-block transport. Debug/ASAN builds
-publish input/output peak and RMS, finite status, and prepared runtime metadata; the editor polls the snapshot on
-the message thread. Release builds select the non-developer placeholder and compile out the callback
-diagnostics publication path.
+The candidate uses `DeveloperDiagnostics` as a bounded latest-block transport. Debug/ASAN builds publish input/output
+peak and RMS, finite status, prepared maximum block size and latest callback block size; the editor polls the snapshot
+on the message thread. Release builds select the non-developer placeholder and compile out the callback diagnostics
+publication path.
 
 A future reproducible debug bundle may contain input/output audio, experiment parameters, engine state, diagnostics,
 analysis, performance observations, plots, build provenance and a short README. Raw machine-specific paths and

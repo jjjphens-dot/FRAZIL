@@ -11,6 +11,10 @@ class AudioEngine {
     bool prepare(const ProcessSpec&) noexcept;
     void reset() noexcept;
     void process(juce::AudioBuffer<float>& buffer, const EngineParameters&) noexcept;
+    // When dryReferenceOnly is true, use the prepared reference path instead of the wet path.
+    // This is a developer comparison hook; the default preserves the production processing path.
+    void process(juce::AudioBuffer<float>& buffer, const EngineParameters&,
+                 bool dryReferenceOnly) noexcept;
 
   private:
     static constexpr double kParameterRampSeconds = 0.010;

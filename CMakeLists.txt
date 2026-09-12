@@ -110,6 +110,8 @@ set(FRAZIL_PLUGIN_SOURCES
     src/plugin/PluginEditor.cpp
     src/plugin/PluginEditor.h
     src/plugin/DeveloperDiagnostics.h
+    src/plugin/DeveloperExperimentState.h
+    src/plugin/DeveloperParameterOverride.h
     src/plugin/PluginProcessor.cpp
     src/plugin/PluginProcessor.h
 )

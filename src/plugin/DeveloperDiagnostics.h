@@ -10,7 +10,8 @@ namespace frazil::plugin {
 
 struct DeveloperDiagnosticsSnapshot final {
     float sampleRateHz{};
-    int blockSize{};
+    int preparedBlockSize{};
+    int latestBlockSize{};
     int channelCount{};
     float inputPeak{};
     float outputPeak{};
@@ -25,13 +26,15 @@ class DeveloperDiagnostics final {
   public:
     void setPrepared(float sampleRateHz, int blockSize, int channelCount) noexcept {
         sampleRateHz_.store(sampleRateHz, std::memory_order_relaxed);
-        blockSize_.store(blockSize, std::memory_order_relaxed);
+        preparedBlockSize_.store(blockSize, std::memory_order_relaxed);
+        latestBlockSize_.store(0, std::memory_order_relaxed);
         channelCount_.store(channelCount, std::memory_order_relaxed);
     }
 
     void reset() noexcept {
         sampleRateHz_.store(0.0f, std::memory_order_relaxed);
-        blockSize_.store(0, std::memory_order_relaxed);
+        preparedBlockSize_.store(0, std::memory_order_relaxed);
+        latestBlockSize_.store(0, std::memory_order_relaxed);
         channelCount_.store(0, std::memory_order_relaxed);
         inputPeak_.store(0.0f, std::memory_order_relaxed);
         outputPeak_.store(0.0f, std::memory_order_relaxed);
@@ -40,8 +43,10 @@ class DeveloperDiagnostics final {
         finite_.store(true, std::memory_order_relaxed);
     }
 
-    void publish(float inputPeak, float outputPeak, float inputRms, float outputRms,
-                 bool finite) noexcept {
+    void publish(int latestBlockSize, int channelCount, float inputPeak, float outputPeak,
+                 float inputRms, float outputRms, bool finite) noexcept {
+        latestBlockSize_.store(latestBlockSize, std::memory_order_relaxed);
+        channelCount_.store(channelCount, std::memory_order_relaxed);
         inputPeak_.store(inputPeak, std::memory_order_relaxed);
         outputPeak_.store(outputPeak, std::memory_order_relaxed);
         inputRms_.store(inputRms, std::memory_order_relaxed);
@@ -51,7 +56,8 @@ class DeveloperDiagnostics final {
 
     DeveloperDiagnosticsSnapshot snapshot() const noexcept {
         return {sampleRateHz_.load(std::memory_order_relaxed),
-                blockSize_.load(std::memory_order_relaxed),
+                preparedBlockSize_.load(std::memory_order_relaxed),
+                latestBlockSize_.load(std::memory_order_relaxed),
                 channelCount_.load(std::memory_order_relaxed),
                 inputPeak_.load(std::memory_order_relaxed),
                 outputPeak_.load(std::memory_order_relaxed),
@@ -62,7 +68,8 @@ class DeveloperDiagnostics final {
 
   private:
     std::atomic<float> sampleRateHz_{};
-    std::atomic<int> blockSize_{};
+    std::atomic<int> preparedBlockSize_{};
+    std::atomic<int> latestBlockSize_{};
     std::atomic<int> channelCount_{};
     std::atomic<float> inputPeak_{};
     std::atomic<float> outputPeak_{};

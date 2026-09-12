@@ -37,26 +37,20 @@ void styleButton(juce::Button& button) {
     button.setTooltip("Explicit developer action; not a preset or experiment state file.");
 }
 
-void setParameterNormalizedValue(FRAZILAudioProcessor& processor, const char* id,
-                                 float normalizedValue) {
-    if (auto* parameter = processor.parameters.getParameter(id)) {
-        parameter->beginChangeGesture();
-        parameter->setValueNotifyingHost(normalizedValue);
-        parameter->endChangeGesture();
-    }
+juce::String comparisonModeName(frazil::plugin::DeveloperComparisonMode mode) {
+    return mode == frazil::plugin::DeveloperComparisonMode::dry ? "Dry" : "Processed";
 }
 
-void setParameterValue(FRAZILAudioProcessor& processor, const char* id, float value) {
-    setParameterNormalizedValue(processor, id,
-                                processor.parameters.getParameterRange(id).convertTo0to1(value));
+juce::String waterModelName(frazil::plugin::DeveloperWaterModel model) {
+    return model == frazil::plugin::DeveloperWaterModel::resonant ? "Resonant" : "Fluid";
 }
 } // namespace
 
 FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& processor)
     : AudioProcessorEditor(processor), processor_(processor) {
-    setSize(1000, 660);
+    setSize(1000, 720);
     setResizable(true, true);
-    setResizeLimits(820, 620, 1440, 960);
+    setResizeLimits(820, 680, 1440, 960);
 
     configureLabel(titleLabel_, "FRAZIL / DEV-UI-001", true);
     configureLabel(subtitleLabel_,
@@ -66,6 +60,8 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
     configureLabel(workflowLabel_, "TEMPORARY WORKFLOW", true);
     configureLabel(diagnosticsLabel_, "RUNTIME DIAGNOSTICS", true);
     configureLabel(workflowStatusLabel_, "Ready. A/B slots are empty; actions are explicit.");
+    configureLabel(workflowStateLabel_, "A: Empty  |  B: Empty  |  Current: Host  |  Processed");
+    workflowStateLabel_.setJustificationType(juce::Justification::centredLeft);
 
     addAndMakeVisible(titleLabel_);
     addAndMakeVisible(subtitleLabel_);
@@ -74,6 +70,7 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
     addAndMakeVisible(workflowLabel_);
     addAndMakeVisible(diagnosticsLabel_);
     addAndMakeVisible(workflowStatusLabel_);
+    addAndMakeVisible(workflowStateLabel_);
 
     waterEnabledButton_.setButtonText("Water Enabled");
     iceEnabledButton_.setButtonText("Ice Enabled");
@@ -81,12 +78,15 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
     iceEnabledButton_.setTooltip("Current Host parameter: ice.enabled");
     addAndMakeVisible(waterEnabledButton_);
     addAndMakeVisible(iceEnabledButton_);
+    waterEnabledButton_.onClick = [this] { clearDeveloperOverrideForUserEdit(); };
+    iceEnabledButton_.onClick = [this] { clearDeveloperOverrideForUserEdit(); };
 
     routingModeBox_.addItem("Parallel", 1);
     routingModeBox_.addItem("Water -> Ice", 2);
     routingModeBox_.addItem("Ice -> Water", 3);
     routingModeBox_.setTooltip("Current Host parameter: routing.mode");
     addAndMakeVisible(routingModeBox_);
+    routingModeBox_.onChange = [this] { clearDeveloperOverrideForUserEdit(); };
 
     waterEnabledAttachment_ = std::make_unique<ButtonAttachment>(
         processor_.parameters, frazil::plugin::parameterIds::waterEnabled, waterEnabledButton_);
@@ -104,6 +104,7 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
         addAndMakeVisible(parameterSliders_[index]);
         parameterAttachments_[index] = std::make_unique<SliderAttachment>(
             processor_.parameters, kSliderParameterIds[index], parameterSliders_[index]);
+        parameterSliders_[index].onDragStart = [this] { clearDeveloperOverrideForUserEdit(); };
     }
 
     configureLabel(waterModelLabel_, "Model");
@@ -132,10 +133,29 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
     addAndMakeVisible(waterModelBox_);
     addAndMakeVisible(waterSizeSlider_);
     addAndMakeVisible(waterMotionSlider_);
+    waterModelBox_.onChange = [this] {
+        if (!syncingDeveloperView_) {
+            currentAppliedSlot_ = -1;
+            updateWorkflowSummary();
+        }
+    };
+    waterSizeSlider_.onValueChange = [this] {
+        if (!syncingDeveloperView_) {
+            currentAppliedSlot_ = -1;
+            updateWorkflowSummary();
+        }
+    };
+    waterMotionSlider_.onValueChange = [this] {
+        if (!syncingDeveloperView_) {
+            currentAppliedSlot_ = -1;
+            updateWorkflowSummary();
+        }
+    };
 
     for (auto* button :
          {static_cast<juce::Button*>(&captureAButton_), static_cast<juce::Button*>(&applyAButton_),
           static_cast<juce::Button*>(&captureBButton_), static_cast<juce::Button*>(&applyBButton_),
+          static_cast<juce::Button*>(&dryButton_), static_cast<juce::Button*>(&processedButton_),
           static_cast<juce::Button*>(&resetHostButton_),
           static_cast<juce::Button*>(&resetExperimentButton_),
           static_cast<juce::Button*>(&copyConfigButton_),
@@ -148,11 +168,19 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
     applyAButton_.onClick = [this] { applySlot(0); };
     captureBButton_.onClick = [this] { captureSlot(1); };
     applyBButton_.onClick = [this] { applySlot(1); };
+    dryButton_.onClick = [this] {
+        setComparisonMode(frazil::plugin::DeveloperComparisonMode::dry);
+    };
+    processedButton_.onClick = [this] {
+        setComparisonMode(frazil::plugin::DeveloperComparisonMode::processed);
+    };
     resetHostButton_.onClick = [this] { resetHostParameters(); };
     resetExperimentButton_.onClick = [this] { resetExperimentControls(); };
     copyConfigButton_.onClick = [this] { copyExperimentConfig(); };
     exportConfigButton_.onClick = [this] { exportExperimentConfig(); };
 
+    updateComparisonButtons();
+    updateWorkflowSummary();
     startTimerHz(10);
 }
 
@@ -177,9 +205,110 @@ void FRAZILAudioProcessorEditor::configureSlider(juce::Slider& slider) {
     slider.setColour(juce::Slider::textBoxOutlineColourId, kPanelBorder);
 }
 
-void FRAZILAudioProcessorEditor::setParameterNormalizedValue(const char* id,
-                                                             float normalizedValue) {
-    ::setParameterNormalizedValue(processor_, id, normalizedValue);
+frazil::plugin::DeveloperExperimentSnapshot
+FRAZILAudioProcessorEditor::captureCurrentExperiment() const {
+    frazil::plugin::DeveloperExperimentSnapshot snapshot;
+    snapshot.host = processor_.getDeveloperHostParameterSnapshot();
+    snapshot.water.model = waterModelBox_.getSelectedId() == 2
+                               ? frazil::plugin::DeveloperWaterModel::resonant
+                               : frazil::plugin::DeveloperWaterModel::fluid;
+    snapshot.water.size = static_cast<float>(waterSizeSlider_.getValue());
+    snapshot.water.motion = static_cast<float>(waterMotionSlider_.getValue());
+    snapshot.comparisonMode = processor_.getDeveloperComparisonMode();
+    return snapshot;
+}
+
+void FRAZILAudioProcessorEditor::syncHostControls(
+    const frazil::plugin::DeveloperHostParameterSnapshot& snapshot) {
+    const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
+    waterEnabledButton_.setToggleState(snapshot.rawValues[static_cast<std::size_t>(
+                                           frazil::plugin::DeveloperHostParameter::waterEnabled)] >=
+                                           0.5f,
+                                       juce::dontSendNotification);
+    iceEnabledButton_.setToggleState(snapshot.rawValues[static_cast<std::size_t>(
+                                         frazil::plugin::DeveloperHostParameter::iceEnabled)] >=
+                                         0.5f,
+                                     juce::dontSendNotification);
+    const auto routing = static_cast<int>(std::lround(snapshot.rawValues[static_cast<std::size_t>(
+        frazil::plugin::DeveloperHostParameter::routingMode)]));
+    routingModeBox_.setSelectedItemIndex(juce::jlimit(0, 2, routing), juce::dontSendNotification);
+
+    constexpr std::array indices{frazil::plugin::DeveloperHostParameter::parallelBalance,
+                                 frazil::plugin::DeveloperHostParameter::waterAmount,
+                                 frazil::plugin::DeveloperHostParameter::iceAmount,
+                                 frazil::plugin::DeveloperHostParameter::inputGainDb,
+                                 frazil::plugin::DeveloperHostParameter::globalMix,
+                                 frazil::plugin::DeveloperHostParameter::outputGainDb};
+    for (std::size_t index = 0; index < parameterSliders_.size(); ++index)
+        parameterSliders_[index].setValue(
+            snapshot.rawValues[static_cast<std::size_t>(indices[index])],
+            juce::dontSendNotification);
+}
+
+void FRAZILAudioProcessorEditor::syncExperimentControls(
+    const frazil::plugin::DeveloperWaterExperimentSnapshot& snapshot) {
+    const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
+    waterModelBox_.setSelectedId(
+        snapshot.model == frazil::plugin::DeveloperWaterModel::resonant ? 2 : 1,
+        juce::dontSendNotification);
+    waterSizeSlider_.setValue(snapshot.size, juce::dontSendNotification);
+    waterMotionSlider_.setValue(snapshot.motion, juce::dontSendNotification);
+}
+
+void FRAZILAudioProcessorEditor::applyExperimentSnapshot(
+    const frazil::plugin::DeveloperExperimentSnapshot& snapshot, int slotIndex) {
+    processor_.setDeveloperHostParameterOverride(snapshot.host);
+    syncHostControls(snapshot.host);
+    syncExperimentControls(snapshot.water);
+    setComparisonMode(snapshot.comparisonMode);
+    currentAppliedSlot_ = slotIndex;
+    updateWorkflowSummary();
+}
+
+void FRAZILAudioProcessorEditor::clearDeveloperOverrideForUserEdit() {
+    if (syncingDeveloperView_ || !processor_.isDeveloperHostParameterOverrideActive())
+        return;
+
+    processor_.clearDeveloperHostParameterOverride();
+    currentAppliedSlot_ = -1;
+    syncHostControls(processor_.getDeveloperHostParameterSnapshot());
+    updateWorkflowSummary();
+    setWorkflowStatus("Developer comparison cleared; Host controls are live again.");
+}
+
+void FRAZILAudioProcessorEditor::setComparisonMode(frazil::plugin::DeveloperComparisonMode mode) {
+    processor_.setDeveloperComparisonMode(mode);
+    updateComparisonButtons();
+    updateWorkflowSummary();
+}
+
+void FRAZILAudioProcessorEditor::updateComparisonButtons() {
+    const auto mode = processor_.getDeveloperComparisonMode();
+    dryButton_.setToggleState(mode == frazil::plugin::DeveloperComparisonMode::dry,
+                              juce::dontSendNotification);
+    processedButton_.setToggleState(mode == frazil::plugin::DeveloperComparisonMode::processed,
+                                    juce::dontSendNotification);
+}
+
+void FRAZILAudioProcessorEditor::updateWorkflowSummary() {
+    if (currentAppliedSlot_ >= 0 && !processor_.isDeveloperHostParameterOverrideActive())
+        currentAppliedSlot_ = -1;
+
+    const auto slotState = [](const ABState& state) {
+        return state.captured ? "Captured" : "Empty";
+    };
+    juce::String current = "Host";
+    if (currentAppliedSlot_ >= 0)
+        current = juce::String("Developer ") +
+                  juce::String::charToString(static_cast<juce_wchar>('A' + currentAppliedSlot_));
+    else if (processor_.isDeveloperHostParameterOverrideActive())
+        current = "Developer override";
+
+    workflowStateLabel_.setText(juce::String("A: ") + slotState(abStates_[0]) + "  |  B: " +
+                                    slotState(abStates_[1]) + "  |  Current: " + current + "  |  " +
+                                    comparisonModeName(processor_.getDeveloperComparisonMode()) +
+                                    "  |  temporary / not serialized / not a preset",
+                                juce::dontSendNotification);
 }
 
 void FRAZILAudioProcessorEditor::captureSlot(int slotIndex) {
@@ -187,15 +316,12 @@ void FRAZILAudioProcessorEditor::captureSlot(int slotIndex) {
         return;
 
     auto& slot = abStates_[static_cast<std::size_t>(slotIndex)];
-    for (std::size_t index = 0; index < kHostParameterIds.size(); ++index) {
-        if (const auto* parameter =
-                processor_.parameters.getRawParameterValue(kHostParameterIds[index]))
-            slot.values[index] = parameter->load(std::memory_order_relaxed);
-    }
+    slot.state = captureCurrentExperiment();
     slot.captured = true;
+    updateWorkflowSummary();
     setWorkflowStatus("Captured temporary A/B slot " +
                       juce::String::charToString(static_cast<juce_wchar>('A' + slotIndex)) +
-                      ". It is not serialized.");
+                      " including Host and Water experiment state. It is not serialized.");
 }
 
 void FRAZILAudioProcessorEditor::applySlot(int slotIndex) {
@@ -210,26 +336,34 @@ void FRAZILAudioProcessorEditor::applySlot(int slotIndex) {
         return;
     }
 
-    for (std::size_t index = 0; index < kHostParameterIds.size(); ++index)
-        setParameterValue(processor_, kHostParameterIds[index], slot.values[index]);
-
+    applyExperimentSnapshot(slot.state, slotIndex);
     setWorkflowStatus("Applied temporary slot " +
                       juce::String::charToString(static_cast<juce_wchar>('A' + slotIndex)) +
-                      " to current Host parameters by explicit action.");
+                      " including Host, Water experiment and comparison state.");
 }
 
 void FRAZILAudioProcessorEditor::resetHostParameters() {
-    for (const auto* id : kHostParameterIds) {
+    frazil::plugin::DeveloperHostParameterSnapshot defaults;
+    for (std::size_t parameterIndex = 0; parameterIndex < kHostParameterIds.size();
+         ++parameterIndex) {
+        const auto* id = kHostParameterIds[parameterIndex];
         if (const auto* parameter = processor_.parameters.getParameter(id))
-            setParameterNormalizedValue(id, parameter->getDefaultValue());
+            defaults.rawValues[parameterIndex] =
+                processor_.parameters.getParameterRange(id).convertFrom0to1(
+                    parameter->getDefaultValue());
     }
-    setWorkflowStatus("Reset all nine current Host parameters to their declared defaults.");
+    processor_.setDeveloperHostParameterOverride(defaults);
+    syncHostControls(defaults);
+    currentAppliedSlot_ = -1;
+    updateWorkflowSummary();
+    setWorkflowStatus(
+        "Developer-reset all nine Host values to defaults; APVTS and Host were not edited.");
 }
 
 void FRAZILAudioProcessorEditor::resetExperimentControls() {
-    waterModelBox_.setSelectedId(1, juce::sendNotificationSync);
-    waterSizeSlider_.setValue(0.5, juce::sendNotificationSync);
-    waterMotionSlider_.setValue(0.5, juce::sendNotificationSync);
+    syncExperimentControls({});
+    currentAppliedSlot_ = -1;
+    updateWorkflowSummary();
     setWorkflowStatus("Reset Water experiment controls; no Host parameter was changed.");
 }
 
@@ -241,26 +375,35 @@ juce::String FRAZILAudioProcessorEditor::createExperimentConfig() const {
     rootObject->setProperty("source", "DEV-UI-001");
     rootObject->setProperty("stateBoundary", "not plugin state, preset, or Host automation");
 
+    const auto current = captureCurrentExperiment();
     juce::var parameters = new juce::DynamicObject();
     auto* parametersObject = parameters.getDynamicObject();
-    for (const auto* id : kHostParameterIds) {
-        if (const auto* parameter = processor_.parameters.getRawParameterValue(id))
-            parametersObject->setProperty(id, parameter->load(std::memory_order_relaxed));
-    }
+    for (std::size_t index = 0; index < kHostParameterIds.size(); ++index)
+        parametersObject->setProperty(kHostParameterIds[index], current.host.rawValues[index]);
     rootObject->setProperty("hostParameters", parameters);
 
     juce::var water = new juce::DynamicObject();
     auto* waterObject = water.getDynamicObject();
-    waterObject->setProperty("model", waterModelBox_.getText());
-    waterObject->setProperty("size", waterSizeSlider_.getValue());
-    waterObject->setProperty("motion", waterMotionSlider_.getValue());
+    waterObject->setProperty("model", waterModelName(current.water.model));
+    waterObject->setProperty("size", current.water.size);
+    waterObject->setProperty("motion", current.water.motion);
     rootObject->setProperty("waterExperiment", water);
+
+    juce::var workflow = new juce::DynamicObject();
+    auto* workflowObject = workflow.getDynamicObject();
+    workflowObject->setProperty("comparisonMode", comparisonModeName(current.comparisonMode));
+    workflowObject->setProperty(
+        "hostStateSource",
+        processor_.isDeveloperHostParameterOverrideActive() ? "developer-override" : "apvts");
+    workflowObject->setProperty("temporary", true);
+    rootObject->setProperty("developerWorkflow", workflow);
 
     const auto runtime = processor_.getDeveloperDiagnosticsSnapshot();
     juce::var runtimeObject = new juce::DynamicObject();
     auto* runtimeProperties = runtimeObject.getDynamicObject();
     runtimeProperties->setProperty("sampleRateHz", runtime.sampleRateHz);
-    runtimeProperties->setProperty("blockSize", runtime.blockSize);
+    runtimeProperties->setProperty("preparedBlockSize", runtime.preparedBlockSize);
+    runtimeProperties->setProperty("latestBlockSize", runtime.latestBlockSize);
     runtimeProperties->setProperty("channelCount", runtime.channelCount);
     rootObject->setProperty("runtime", runtimeObject);
 
@@ -303,23 +446,22 @@ void FRAZILAudioProcessorEditor::setWorkflowStatus(const juce::String& text) {
 
 void FRAZILAudioProcessorEditor::timerCallback() {
     const auto diagnostics = processor_.getDeveloperDiagnosticsSnapshot();
-    const auto* routingParameter =
-        processor_.parameters.getRawParameterValue(frazil::plugin::parameterIds::routingMode);
-    const auto routingIndex =
-        routingParameter != nullptr
-            ? static_cast<int>(std::lround(routingParameter->load(std::memory_order_relaxed)))
-            : 0;
+    const auto host = processor_.getDeveloperHostParameterSnapshot();
+    const auto routingIndex = static_cast<int>(std::lround(host.rawValues[static_cast<std::size_t>(
+        frazil::plugin::DeveloperHostParameter::routingMode)]));
     const juce::StringArray routingNames{"Parallel", "Water -> Ice", "Ice -> Water"};
     const auto routing = routingNames[juce::jlimit(0, routingNames.size() - 1, routingIndex)];
     diagnosticsLabel_.setText(
-        juce::String::formatted("RUNTIME  %.1f kHz  |  block %d  |  %d ch  |  route %s\n"
-                                "Input  peak %.4f  RMS %.4f   |   Output  peak %.4f  RMS %.4f\n"
-                                "Finite: %s  |  Host snapshot is represented by the controls above",
-                                diagnostics.sampleRateHz / 1000.0f, diagnostics.blockSize,
-                                diagnostics.channelCount, routing.toRawUTF8(),
-                                diagnostics.inputPeak, diagnostics.inputRms, diagnostics.outputPeak,
-                                diagnostics.outputRms, diagnostics.finite ? "yes" : "NO"),
+        juce::String::formatted(
+            "RUNTIME  %.1f kHz  |  prepared max %d  |  latest %d  |  %d ch  |  route %s\n"
+            "Input  peak %.4f  RMS %.4f   |   Output  peak %.4f  RMS %.4f\n"
+            "Finite: %s  |  Host snapshot is represented by the controls above",
+            diagnostics.sampleRateHz / 1000.0f, diagnostics.preparedBlockSize,
+            diagnostics.latestBlockSize, diagnostics.channelCount, routing.toRawUTF8(),
+            diagnostics.inputPeak, diagnostics.inputRms, diagnostics.outputPeak,
+            diagnostics.outputRms, diagnostics.finite ? "yes" : "NO"),
         juce::dontSendNotification);
+    updateWorkflowSummary();
 }
 
 void FRAZILAudioProcessorEditor::paint(juce::Graphics& graphics) {
@@ -386,12 +528,15 @@ void FRAZILAudioProcessorEditor::resized() {
     waterMotionSlider_.setBounds(motionRow);
 
     workflowLabel_.setBounds(right.removeFromTop(24));
-    auto workflow = right.removeFromTop(74);
+    auto workflowState = right.removeFromTop(40);
+    workflowStateLabel_.setBounds(workflowState.reduced(2));
+    auto workflow = right.removeFromTop(96);
     const auto buttonWidth = workflow.getWidth() / 4;
-    const auto buttonHeight = workflow.getHeight() / 2;
-    std::array<juce::Button*, 8> buttons{
-        &captureAButton_,  &applyAButton_,          &captureBButton_,   &applyBButton_,
-        &resetHostButton_, &resetExperimentButton_, &copyConfigButton_, &exportConfigButton_};
+    const auto buttonHeight = workflow.getHeight() / 3;
+    std::array<juce::Button*, 10> buttons{
+        &captureAButton_,   &applyAButton_,      &captureBButton_,  &applyBButton_,
+        &dryButton_,        &processedButton_,   &resetHostButton_, &resetExperimentButton_,
+        &copyConfigButton_, &exportConfigButton_};
     for (std::size_t index = 0; index < buttons.size(); ++index) {
         const auto row = static_cast<int>(index / 4);
         const auto column = static_cast<int>(index % 4);

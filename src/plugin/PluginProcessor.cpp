@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 
 namespace {
 struct BufferMetrics final {
@@ -93,12 +94,19 @@ void FRAZILAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
 #if FRAZIL_ENABLE_DEVELOPER_UI
     const auto inputMetrics = measureBuffer(buffer);
 #endif
-    const auto snapshot = ParameterSnapshot::capture(parameterSources_);
+    auto snapshot = ParameterSnapshot::capture(parameterSources_);
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    developerParameterOverride_.applyTo(snapshot);
+    const auto dryReferenceOnly = developerDryComparison_.load(std::memory_order_acquire);
+#else
+    constexpr auto dryReferenceOnly = false;
+#endif
     const auto engineParameters = parameterMapper_.map(snapshot);
-    audioEngine.process(buffer, engineParameters);
+    audioEngine.process(buffer, engineParameters, dryReferenceOnly);
 #if FRAZIL_ENABLE_DEVELOPER_UI
     const auto outputMetrics = measureBuffer(buffer);
-    developerDiagnostics_.publish(inputMetrics.peak, outputMetrics.peak, inputMetrics.rms,
+    developerDiagnostics_.publish(buffer.getNumSamples(), buffer.getNumChannels(),
+                                  inputMetrics.peak, outputMetrics.peak, inputMetrics.rms,
                                   outputMetrics.rms, inputMetrics.finite && outputMetrics.finite);
 #endif
 }
@@ -107,6 +115,72 @@ frazil::plugin::DeveloperDiagnosticsSnapshot
 FRAZILAudioProcessor::getDeveloperDiagnosticsSnapshot() const noexcept {
     return developerDiagnostics_.snapshot();
 }
+
+#if FRAZIL_ENABLE_DEVELOPER_UI
+namespace {
+frazil::plugin::DeveloperHostParameterSnapshot
+toDeveloperHostSnapshot(const ParameterSnapshot& snapshot) noexcept {
+    frazil::plugin::DeveloperHostParameterSnapshot result;
+    result
+        .rawValues[static_cast<std::size_t>(frazil::plugin::DeveloperHostParameter::waterEnabled)] =
+        snapshot.waterEnabled ? 1.0f : 0.0f;
+    result.rawValues[static_cast<std::size_t>(frazil::plugin::DeveloperHostParameter::iceEnabled)] =
+        snapshot.iceEnabled ? 1.0f : 0.0f;
+    result
+        .rawValues[static_cast<std::size_t>(frazil::plugin::DeveloperHostParameter::routingMode)] =
+        static_cast<float>(snapshot.routingModeIndex);
+    result.rawValues[static_cast<std::size_t>(
+        frazil::plugin::DeveloperHostParameter::parallelBalance)] = snapshot.parallelBalance;
+    result
+        .rawValues[static_cast<std::size_t>(frazil::plugin::DeveloperHostParameter::waterAmount)] =
+        snapshot.waterAmount;
+    result.rawValues[static_cast<std::size_t>(frazil::plugin::DeveloperHostParameter::iceAmount)] =
+        snapshot.iceAmount;
+    result
+        .rawValues[static_cast<std::size_t>(frazil::plugin::DeveloperHostParameter::inputGainDb)] =
+        snapshot.inputGainDb;
+    result.rawValues[static_cast<std::size_t>(frazil::plugin::DeveloperHostParameter::globalMix)] =
+        snapshot.globalMix;
+    result
+        .rawValues[static_cast<std::size_t>(frazil::plugin::DeveloperHostParameter::outputGainDb)] =
+        snapshot.outputGainDb;
+    return result;
+}
+} // namespace
+
+frazil::plugin::DeveloperHostParameterSnapshot
+FRAZILAudioProcessor::getDeveloperHostParameterSnapshot() const noexcept {
+    auto snapshot = ParameterSnapshot::capture(parameterSources_);
+    developerParameterOverride_.applyTo(snapshot);
+    return toDeveloperHostSnapshot(snapshot);
+}
+
+void FRAZILAudioProcessor::setDeveloperHostParameterOverride(
+    const frazil::plugin::DeveloperHostParameterSnapshot& snapshot) noexcept {
+    developerParameterOverride_.set(snapshot);
+}
+
+void FRAZILAudioProcessor::clearDeveloperHostParameterOverride() noexcept {
+    developerParameterOverride_.clear();
+}
+
+bool FRAZILAudioProcessor::isDeveloperHostParameterOverrideActive() const noexcept {
+    return developerParameterOverride_.isActive();
+}
+
+void FRAZILAudioProcessor::setDeveloperComparisonMode(
+    frazil::plugin::DeveloperComparisonMode mode) noexcept {
+    developerDryComparison_.store(mode == frazil::plugin::DeveloperComparisonMode::dry,
+                                  std::memory_order_release);
+}
+
+frazil::plugin::DeveloperComparisonMode
+FRAZILAudioProcessor::getDeveloperComparisonMode() const noexcept {
+    return developerDryComparison_.load(std::memory_order_acquire)
+               ? frazil::plugin::DeveloperComparisonMode::dry
+               : frazil::plugin::DeveloperComparisonMode::processed;
+}
+#endif
 
 juce::AudioProcessorEditor* FRAZILAudioProcessor::createEditor() {
     return new FRAZILAudioProcessorEditor(*this);
@@ -159,6 +233,10 @@ void FRAZILAudioProcessor::getStateInformation(juce::MemoryBlock& destinationDat
 }
 
 void FRAZILAudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    clearDeveloperHostParameterOverride();
+    developerDryComparison_.store(false, std::memory_order_release);
+#endif
     if (auto xml = getXmlFromBinary(data, sizeInBytes)) {
         const auto state = juce::ValueTree::fromXml(*xml);
         frazil::plugin::HostStateAdapter::restore(parameters, state);
