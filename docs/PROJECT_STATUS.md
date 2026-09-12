@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-11<br>
+> 快照日期：2026-09-12<br>
 > 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -10,7 +10,7 @@
 
 ## 1. 结论
 
-项目处于 **M1 late-stage closure + Water pre-M2 preparation + Developer Sound/Debug Tooling planning**。
+项目处于 **M1 late-stage closure + Water pre-M2 preparation + Developer Sound/Debug Tooling initial-slice follow-up review**。
 M1-A/M1-B foundation、STATE-001/002、AUTO-001、TESTDATA-001、RENDER-001、TEST-002、PERF-BASE-001 和
 ARCH-LAT-001 engineering evidence 已进入 `main`；M1 仍因真实 Host/DAW acceptance、current-artifact
 plugin validation 和 Joint Exit 未完成而保持进行中。Water/Ice、Routing、完整 render regression matrix 和
@@ -22,7 +22,8 @@ plugin validation 和 Joint Exit 未完成而保持进行中。Water/Ice、Routi
 并合入前，`main` 上的 v1.2 继续作为当前 Approved Development Baseline；经批准的 v1.3
 revision 合入时成为新的 Approved Development Baseline。feature commit、Issue 或 `REQUEST_CHANGES`
 本身不构成 approval。这不代表 FRAZIL plugin v1.0 release，也不改变 M1、Water/Ice/Routing 的实际完成
-状态：Water production DSP、candidate controls 和 model transition 均未实现或注册。
+状态：Water production DSP、production candidate controls 和 model transition 均未实现或注册；Debug/ASAN
+开发面板中的 experiment-only controls 不属于该 production scope。
 
 当前阻塞性差距：
 
@@ -31,11 +32,15 @@ revision 合入时成为新的 Approved Development Baseline。feature commit、
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；STATE-001 已建立已知 pre-v1 ID migration fixture，公开版本兼容性仍需后续 freeze/evidence；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
 5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；`frazil_render` + `tools/render_testdata.py` 已提供 M1 pass-through offline smoke，固定 input/config/seed 两次运行并检查 finite output、输出字节一致和完整当前配置/input/output hash manifest；`frazil_render_cli` 覆盖 help 成功路径、enable/routing/balance/amount 非法值拒绝、非默认完整配置 manifest 转发，以及同一 output path 重复渲染覆盖而非追加 WAV；CTest render artifacts 已隔离到 preset build tree；现有 Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；完整 render matrix 和真实 DAW automation 仍待执行；
-6. `DEV-UI-001` Developer Control Surface、DiagnosticsSnapshot/debug bundle workflow 均为 PLANNED，尚未实现；
-   它们不是当前 640x360 placeholder，也不是 M5 Production UI。Water、Ice、Routing、EditHistoryManager、
-   完整 render regression matrix、离散 enable/routing transition 和正式 UI 仍未实现；真实 Host/DAW restore
-   matrix、M5 EditHistoryManager integration、pluginval current-artifact validation 和公开兼容性仍待执行；
-   `PARAM-FREEZE-001` 保持为 M2/M3 -> M4 gate，不是 M1 Exit blocker。
+6. 当前开发 baseline 仍将 `DEV-UI-001` 视为 PLANNED；follow-up feature branch 包含一个仅 Debug/ASAN 可用的
+   engineering-ready candidate：它绑定当前 9 个 Host 参数，保持 Water experiment-only controls，在 override
+   active 时让 effective developer state 拥有可见 controls，并提供显式 Return Host；它还覆盖不触碰 APVTS
+   的临时 A/B/Reset override、developer-only Dry/Processed comparison、完整 draft experiment-config export
+   和 coherent prepared/latest block diagnostics。该 candidate 不是 M5 Production UI，也不改变 Host registry
+   或 plugin state schema；interactive usability、pluginval、真实 Host/DAW、listening 和 Offline Sound Lab
+   handoff 仍待完成。Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、离散
+   enable/routing transition 和正式 UI 仍未实现；`PARAM-FREEZE-001` 保持为 M2/M3 -> M4 gate，不是 M1 Exit
+   blocker。
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug。PR #9 的人工 review 进一步暴露了角色 ownership、PR creator、commit authorship 和 reviewer evidence 被混为同一账号 gate 的问题；当时提出的“必须由 Implementation DRI account 创建 PR/预绑定不同 reviewer account”属于历史纠正方案，现已由更简单的规则取代：职责和 review evidence 分别真实记录，需要第二人 review 时保留独立 evidence；已有 PR 的后续 push account 必须等于 PR creator；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
@@ -51,8 +56,8 @@ revision 合入时成为新的 Approved Development Baseline。feature commit、
 | Plugin shell | mono/stereo bus check、editor、versioned state XML adapter | M1-C state boundary 已接入；XML createXml/fromXml restore path 已验证；真实 Host/DAW restore 证据仍待执行 |
 | Parameters | 9 个集中式 APVTS 参数静态注册；enabled ID 已使用 `.enabled` | M1 参数路径已接入；`PARAM-FREEZE-001` 是后续 M2/M3 -> M4 gate，不是 M1 Exit blocker |
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration verified；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
-| UI | 640x360 M0 占位界面 | 非产品 UI；不是计划中的 Developer Control Surface |
-| Developer sound tools | 当前 RENDER-001、TESTDATA-001 和 manual performance harness 可作为离线/工程入口 | `DEV-UI-001` realtime control surface、diagnostics bridge、config export 和 richer Sound Lab workflow 均为 PLANNED，未实现 |
+| UI | follow-up feature branch 的 Debug/ASAN DEV-UI-001 engineering-ready candidate；Release 保留静态占位界面 | 非产品 UI；当前 baseline 仍 planned；interactive usability、pluginval、DAW 和 M5 Production UI 未完成 |
+| Developer sound tools | RENDER-001、TESTDATA-001、manual performance harness，以及 candidate 的 effective controls、developer override、Dry/Processed、coherent bounded diagnostics、A/B slots 和 draft config export | branch candidate 的工程收口已完成；正式 acceptance、debug bundle、Offline Sound Lab handoff 仍为 PLANNED |
 | Product identity | `docs/PRODUCT_IDENTITY.md` | FRAZIL adopted working/product name；命名词汇不改变参数合同；法律/商标 clearance 不属于当前工程范围 |
 | Tests | `frazil_smoke` + `frazil_unit` + `frazil_plugin_integration` + `frazil_processor_property` + `frazil_latency_contract` + `frazil_render` + `frazil_render_cli` CTest；`frazil_performance` manual benchmark | Release/ASAN 各 7/7 PASS；canonical PERF-BASE-001 的 steady-state、parameter-retarget、CPU/memory/allocation、finite-output 和 denormal evidence 已记录；真实 DAW 测试未完成 |
 | Local validation | PR #18 follow-up 的 Release、ASAN fresh configure、6-job safe build、7/7 CTest 和 Release manual benchmark 结果见 2.6，并按该节记录 exact tested implementation commit；当前 branch HEAD 与最新 CI 以 GitHub live query 为准 | 已验证；本机绝对路径仅在 ignored local configuration/build output，仓库 preset 保持可移植 |
@@ -147,6 +152,33 @@ non-goals 标记为 NOT RUN。
 
 当前 TEST-002 与 ARCH-LAT-001 的 implementation commit 为 `e56664c8775f614e77004ac891d63a5c2fd2fa7a`；PERF-BASE-001 harness follow-up implementation commit 为 `98ea8c6a70edef917fc42cc48a25801fc613716b`。结果见 [`docs/evidence/M1_ENGINEERING_EVIDENCE.md`](evidence/M1_ENGINEERING_EVIDENCE.md) 与 [`docs/evidence/PERF-BASE-001.md`](evidence/PERF-BASE-001.md)。当前分支的 Release、Debug、ASAN 均通过 fresh configure、safe build 和 7/7 CTest；canonical `frazil_performance` manual Release benchmark 的 `configured_commit`/`configured_source_state` 与 `runtime_commit`/`runtime_source_state` 均为 clean matching，`formal_provenance_status=PASS`，并记录 steady-state/parameter-retarget、CPU、memory、allocation、finite-output 和 denormal observations；focused mutation verification 也证明 active lifecycle corruption、active valid-but-different output 和 neutral exact-repeatability corruption 能被分别验证。早期实现/证据 head `c1aea641688397f80bec0996e8eb3375b5f60def` 的 Hosted Windows Debug run `34481193756` 已通过 Configure、Build 和 7/7 Test；此前 docs-only validation head `c3bfeab4d55c47e322cad6ef7cfc259f6542b6dd` 的 run `34482138484`，以及 provenance-fix head `b8918ec93fe696867e16712e67837173b6cfceb4` 的 run `34490710722`，也均已通过 Configure、Build 和 7/7 Test。pluginval、真实 DAW、listening 和 M1 Joint Exit 不在本地/Hosted Debug 证据范围内，需后续 acceptance。
 
+## 2.7 DEV-UI-001 follow-up candidate validation
+
+2026-09-13 DEV-UI-001 closeout follow-up 本地工作树 evidence：Debug、Release 和 ASAN 均通过仓库 `tools/vscode_msvc_env.cmd` 初始化
+MSVC 环境、`tools/vscode_build_safe.cmd --preset <name> --jobs 6` safe wrapper build，以及对应的
+`ctest --preset <name> --output-on-failure` 7/7 CTest。ASAN 的默认 6-job preflight 在内存被清理前曾因
+可用物理内存 2.76 GiB 而拒绝；清理内存后 6-job preflight/build 通过，未绕过安全检查。
+
+初次增量测试运行触发 Debug CRT 的 `midi` 栈破坏提示；ASAN 随后定位为测试 translation unit 使用旧的
+`FRAZILAudioProcessor` 类布局，而 `PluginProcessor.cpp` 已包含新增 `DeveloperDiagnostics` 成员。该构建
+依赖失配在三个 processor 集成目标中强制重编后消失；重新配置并让 Debug/ASAN 测试目标显式使用开发宏后，
+Debug、Release、ASAN 均 7/7 通过；新增的 `frazil_plugin_integration` targeted regression 在 Debug 连续 20 次、ASAN 连续 10 次运行均通过。当前证据支持“无复现的栈越界”，不把这次结果写成完整 UI usability 或
+Host/DAW acceptance。
+
+Final engineering follow-up 还通过 effective-state ownership、Host-change-under-override、state-restore、Editor
+attachment/comparison-button decision-helper reconciliation、coherent diagnostics publication/readback、并发
+publish/read、conditional active-publication token、确定性 stale-edit/Host-clear rejection、continuous set-only
+no-Host-fallback、clear/session cache invalidation、reader-ready handshake、set/clear coherence pressure 和 complete
+temporary A/B slot regression；其中 Editor attachment 回归是纯决策 helper 覆盖，不是实际 JUCE Editor/attachment
+生命周期自动化。`DeveloperParameterOverride` 的 control-side set/clear/conditional commit 使用非实时 mutex 串行化，
+audio read/apply 保持 lock-free、bounded，并使用 Processor-owned same-session last coherent fallback；clear/session
+epoch 不允许旧缓存跨越 Host boundary。并通过 `python tools/check_markdown_links.py`、`python tools/check_portability.py`
+与 `git diff --check`。Release isolation audit 确认 Debug/ASAN 使用 `FRAZIL_ENABLE_DEVELOPER_UI=1`，Release 使用 `0`，
+且 `ParameterLayout` 不包含 Water candidate IDs。Dry/Processed 的代码路径和 finite/serialization boundary 已有
+CTest evidence，但未执行当前变更后的 pluginval、真实 DAW/Host matrix、interactive usability review、实际 GUI
+attachment lifecycle、Dry/Processed listening comparison 或完整 debug bundle。
+该 section 只记录 feature-branch candidate evidence，不提升 current main 的 DEV-UI-001 baseline status。
+
 ## 3. 当前源码映射
 
 ```text
@@ -157,14 +189,16 @@ PluginProcessor
   ├─ captures one ParameterSnapshot per processBlock
   ├─ maps to EngineParameters
   ├─ saves/restores versioned state through Host State Adapter -> StateModel
-  └─ calls AudioEngine::process(buffer, engineParameters)
+  └─ Debug/ASAN candidate may apply a developer-only override and Dry/Processed mode before AudioEngine
+     `process(buffer, engineParameters, dryReferenceOnly)`
 
 AudioEngine
   ├─ input gain -> dry reference/wet skeleton -> global mix -> output gain
   └─ owns prepare-time dry scratch and continuous smoothers
 
 PluginEditor
-  └─ static M0 label
+  ├─ Debug/ASAN candidate: Host/Water experiment controls, non-APVTS A/B/reset, Dry/Processed and draft config export
+  └─ Release: static non-developer placeholder
 ```
 
 目标映射应在 M1 后变为：
@@ -192,9 +226,12 @@ PluginProcessor
 
 本次代码审计只记录当前源码事实，不把计划模块当成实现：
 
-- 正向事实：`src/plugin`、`src/app`、`src/dsp`、`src/ui` 目录边界已经存在；当前未发现 mutable global runtime state；AudioEngine 的运行状态由实例成员持有；`JuceHeader.h` 目前局限在插件适配层。
+- 正向事实：`src/plugin`、`src/app`、`src/dsp`、`src/ui` 目录边界已经存在；当前未发现 mutable global runtime state；AudioEngine 的运行状态由实例成员持有；`JuceHeader.h` 目前局限在插件适配层；Debug/ASAN 的开发 editor 通过 bounded atomic diagnostics snapshot 读取 runtime 信息，Release 编译掉 callback diagnostics publication path。
 - 已确认技术债：`PluginProcessor` 仍公开 APVTS，后续需要收窄 Host parameter interface；完整 Host/DAW state compatibility 与 history integration 尚未完成；wet path 仍为 pass-through，Water/Ice/Routing 尚未实现。
-- 有意保留的未实现项：Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、正式 UI 和离散 transition 均仍按 Coding Plan 处于计划阶段；当前 RENDER-001 只覆盖 M1 pass-through offline smoke；本次状态工作不提前创建声音算法或 history 生产依赖。
+- 有意保留的未实现项：Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、DEV-UI usability
+  acceptance、正式 UI 和离散 transition 均仍按 Coding Plan 处于计划阶段；feature-branch Dry/Processed 仅是
+  developer workflow infrastructure，不是 production semantics；当前 RENDER-001 只覆盖 M1 pass-through offline
+  smoke；本次状态工作不提前创建声音算法或 history 生产依赖。
 - 当前验证边界：CTest 已提供当前列出的 unit/lifecycle/invariant、processor property、latency 和 render smoke 证据；PERF-BASE-001 是独立 manual benchmark，不是 CTest gate。以上不能据此宣称完整 realtime safety、真实 DAW、完整 render/listening 或公开兼容性已完成。
 
 ## 4. 参数差异审计
@@ -217,7 +254,11 @@ PluginProcessor
 
 - M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
 - M1 Audio Skeleton & Parameter Contract：**late-stage closure / 进行中**。M1 engineering foundation/evidence 已建立并进入 `main`；仍缺完整 render regression matrix、真实 DAW 验证、current-artifact pluginval 和 M1 Joint Exit。`PARAM-FREEZE-001` 仍是 M2/M3 后续 gate；M5 EditHistoryManager 仍未开始。
-- Developer Sound/Debug Tooling：**PLANNED / newly prioritized**。`DEV-UI-001` 是大规模 `EXP-W-002` 前的 Water M2 effective-development-readiness prerequisite，但不是 M1 Exit hard gate。
+- Developer Sound/Debug Tooling：**follow-up candidate review / 进行中**。current baseline 仍将 `DEV-UI-001` 视为
+  PLANNED；feature branch candidate 已覆盖当前 9 参数控制、Water experiment-only controls、non-APVTS A/B/reset、
+  developer Dry/Processed path、prepared/latest diagnostics 和完整 draft config representation。usability acceptance、
+  pluginval、DAW/listening evidence 和 Offline Sound Lab handoff 仍未完成。它是大规模 `EXP-W-002` 前的 Water M2
+  effective-development-readiness prerequisite，但不是 M1 Exit hard gate。
 - M2 Water：**未开始**；`EXP-W-001` Perceptual Contract preparation 为 PLANNED，不表示 M2 或 Water DSP 已开始。
 - Perceptual Contract framework/template：本 v1.3 branch 为 **Approval Candidate**；经 required approval + merge 后成为 **CURRENT / CONTROLLED**。`EXP-W-001` Water contract instance 仍为 **PLANNED**，尚未产出或验收。
 - M3 Ice：**DEFERRED**；长期 milestone 保留，在 `M2 Exit + Explicit Joint Gate` 确认 Water workflow 可复用于 Ice 前，不启动 Ice experiment、perceptual/parameter redesign 或 production implementation。

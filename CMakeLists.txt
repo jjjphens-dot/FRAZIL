@@ -109,9 +109,18 @@ set(FRAZIL_PLUGIN_SOURCES
     ${FRAZIL_PLUGIN_ADAPTER_SOURCES}
     src/plugin/PluginEditor.cpp
     src/plugin/PluginEditor.h
+    src/plugin/DeveloperDiagnostics.h
+    src/plugin/DeveloperExperimentState.h
+    src/plugin/DeveloperParameterOverride.h
     src/plugin/PluginProcessor.cpp
     src/plugin/PluginProcessor.h
 )
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(FRAZIL_DEVELOPER_BUILD 1)
+else()
+    set(FRAZIL_DEVELOPER_BUILD 0)
+endif()
 
 target_sources(FRAZIL
     PRIVATE
@@ -127,6 +136,7 @@ target_compile_definitions(FRAZIL
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
+        FRAZIL_ENABLE_DEVELOPER_UI=${FRAZIL_DEVELOPER_BUILD}
 )
 
 target_link_libraries(FRAZIL
@@ -202,6 +212,7 @@ target_compile_definitions(frazil_plugin_integration
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
+        FRAZIL_ENABLE_DEVELOPER_UI=${FRAZIL_DEVELOPER_BUILD}
 )
 target_link_libraries(frazil_plugin_integration
     PRIVATE
@@ -228,6 +239,7 @@ target_compile_definitions(frazil_processor_property
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
+        FRAZIL_ENABLE_DEVELOPER_UI=${FRAZIL_DEVELOPER_BUILD}
 )
 target_link_libraries(frazil_processor_property
     PRIVATE
@@ -254,6 +266,7 @@ target_compile_definitions(frazil_latency_contract
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
+        FRAZIL_ENABLE_DEVELOPER_UI=${FRAZIL_DEVELOPER_BUILD}
 )
 target_link_libraries(frazil_latency_contract
     PRIVATE

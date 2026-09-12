@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include <juce_audio_basics/juce_audio_basics.h>
+#include <thread>
 
 namespace {
 struct TestContext {
@@ -53,6 +54,37 @@ void fillBuffer(juce::AudioBuffer<float>& buffer, float value) {
             buffer.setSample(channel, sample, value);
 }
 
+#if FRAZIL_ENABLE_DEVELOPER_UI
+struct ParameterEventListener final : juce::AudioProcessorParameter::Listener {
+    void parameterValueChanged(int, float) override {
+        ++valueChanges;
+    }
+    void parameterGestureChanged(int, bool) override {
+        ++gestureChanges;
+    }
+
+    int valueChanges{};
+    int gestureChanges{};
+};
+
+frazil::plugin::DeveloperHostParameterSnapshot makeDeveloperHostSnapshot() {
+    frazil::plugin::DeveloperHostParameterSnapshot snapshot;
+    snapshot.rawValues = {1.0f, 1.0f, 0.0f, 0.25f, 0.4f, 0.8f, 6.0f, 0.3f, -3.0f};
+    return snapshot;
+}
+
+frazil::plugin::DeveloperHostParameterSnapshot makeDeveloperGeneration(int generation) {
+    frazil::plugin::DeveloperHostParameterSnapshot values;
+    values.rawValues = {
+        static_cast<float>(generation & 1),      static_cast<float>((generation + 1) & 1),
+        static_cast<float>(generation % 3),      static_cast<float>(100000 + generation),
+        static_cast<float>(200000 + generation), static_cast<float>(300000 + generation),
+        static_cast<float>(400000 + generation), static_cast<float>(500000 + generation),
+        static_cast<float>(600000 + generation)};
+    return values;
+}
+#endif
+
 void testParameterAutomationReachesAudioPath(TestContext& context) {
     FRAZILAudioProcessor processor;
     constexpr int kBlockSize = 64;
@@ -64,6 +96,20 @@ void testParameterAutomationReachesAudioPath(TestContext& context) {
     processor.processBlock(buffer, midi);
     expectNear(context, buffer.getSample(0, kBlockSize - 1), 1.0f, 1.0e-6f,
                "default plugin block is unity pass-through");
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    const auto diagnostics = processor.getDeveloperDiagnosticsSnapshot();
+    expectNear(context, diagnostics.sampleRateHz, 48000.0f, 1.0e-6f,
+               "developer diagnostics retain prepared sample rate");
+    expect(context,
+           diagnostics.preparedBlockSize == kBlockSize &&
+               diagnostics.latestBlockSize == kBlockSize && diagnostics.channelCount == 2,
+           "developer diagnostics distinguish prepared and latest block dimensions");
+    expectNear(context, diagnostics.inputPeak, 1.0f, 1.0e-6f,
+               "developer diagnostics measure input peak");
+    expectNear(context, diagnostics.outputPeak, 1.0f, 1.0e-6f,
+               "developer diagnostics measure output peak");
+    expect(context, diagnostics.finite, "developer diagnostics report finite audio");
+#endif
 
     constexpr float kTargetGainDb = 6.0f;
     const auto targetGain = std::pow(10.0f, kTargetGainDb / 20.0f);
@@ -84,7 +130,476 @@ void testParameterAutomationReachesAudioPath(TestContext& context) {
     }
     expectNear(context, buffer.getSample(0, kBlockSize - 1), targetGain, 1.0e-5f,
                "automated input gain reaches its final value without restarting the ramp");
+
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    juce::AudioBuffer<float> shortBuffer(2, kBlockSize / 2);
+    fillBuffer(shortBuffer, 1.0f);
+    processor.processBlock(shortBuffer, midi);
+    const auto shortDiagnostics = processor.getDeveloperDiagnosticsSnapshot();
+    expect(context,
+           shortDiagnostics.preparedBlockSize == kBlockSize &&
+               shortDiagnostics.latestBlockSize == kBlockSize / 2,
+           "developer diagnostics publish the latest callback block size");
+#endif
 }
+
+#if FRAZIL_ENABLE_DEVELOPER_UI
+void testDeveloperDiagnosticsPublication(TestContext& context) {
+    frazil::plugin::DeveloperDiagnostics diagnostics;
+    diagnostics.setPrepared(48000.0f, 64, 2);
+    const auto prepared = diagnostics.snapshot();
+    expectNear(context, prepared.sampleRateHz, 48000.0f, 1.0e-6f,
+               "diagnostics publish prepared sample rate coherently");
+    expect(context,
+           prepared.preparedBlockSize == 64 && prepared.latestBlockSize == 0 &&
+               prepared.channelCount == 2 && prepared.finite,
+           "diagnostics publish prepared dimensions as one snapshot");
+
+    diagnostics.publish(32, 1, 0.1f, 0.2f, 0.3f, 0.4f, false);
+    const auto latest = diagnostics.snapshot();
+    expect(context,
+           latest.preparedBlockSize == 64 && latest.latestBlockSize == 32 &&
+               latest.channelCount == 1 && !latest.finite,
+           "diagnostics publish latest dimensions and finite status together");
+    expectNear(context, latest.inputPeak, 0.1f, 1.0e-6f,
+               "diagnostics snapshot retains input peak from one publication");
+    expectNear(context, latest.outputRms, 0.4f, 1.0e-6f,
+               "diagnostics snapshot retains output RMS from one publication");
+
+    diagnostics.reset();
+    const auto reset = diagnostics.snapshot();
+    expect(context,
+           reset.sampleRateHz == 0.0f && reset.preparedBlockSize == 0 &&
+               reset.latestBlockSize == 0 && reset.channelCount == 0 && reset.finite,
+           "diagnostics reset publishes a complete neutral snapshot");
+}
+
+void testDeveloperDiagnosticsConcurrentPublication(TestContext& context) {
+    constexpr int kIterations = 10000;
+    frazil::plugin::DeveloperDiagnostics diagnostics;
+    diagnostics.setPrepared(48000.0f, 64, 2);
+
+    std::atomic<bool> start{false};
+    std::atomic<bool> readerReady{false};
+    std::atomic<bool> writerDone{false};
+    std::atomic<int> invalidSnapshots{0};
+    std::atomic<int> observedSnapshots{0};
+
+    std::thread writer([&] {
+        while (!readerReady.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        start.store(true, std::memory_order_release);
+        for (int generation = 1; generation <= kIterations; ++generation) {
+            diagnostics.publish(generation, generation % 4 + 1, static_cast<float>(generation),
+                                static_cast<float>(100000 + generation),
+                                static_cast<float>(200000 + generation),
+                                static_cast<float>(300000 + generation), (generation & 1) == 0);
+            if ((generation & 31) == 0)
+                std::this_thread::yield();
+        }
+        writerDone.store(true, std::memory_order_release);
+    });
+
+    std::thread reader([&] {
+        readerReady.store(true, std::memory_order_release);
+        while (!start.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        do {
+            const auto snapshot = diagnostics.snapshot();
+            if (snapshot.latestBlockSize == 0)
+                continue;
+
+            ++observedSnapshots;
+            const auto generation = snapshot.latestBlockSize;
+            const auto coherent = generation >= 1 && generation <= kIterations &&
+                                  snapshot.channelCount == generation % 4 + 1 &&
+                                  snapshot.inputPeak == static_cast<float>(generation) &&
+                                  snapshot.outputPeak == static_cast<float>(100000 + generation) &&
+                                  snapshot.inputRms == static_cast<float>(200000 + generation) &&
+                                  snapshot.outputRms == static_cast<float>(300000 + generation) &&
+                                  snapshot.finite == ((generation & 1) == 0);
+            if (!coherent)
+                ++invalidSnapshots;
+        } while (!writerDone.load(std::memory_order_acquire));
+    });
+
+    writer.join();
+    reader.join();
+    const auto finalSnapshot = diagnostics.snapshot();
+    expect(context, observedSnapshots.load() > 0,
+           "concurrent diagnostics reader observes published snapshots");
+    expect(context, invalidSnapshots.load() == 0,
+           "concurrent diagnostics reads remain generation-coherent");
+    expect(context, finalSnapshot.latestBlockSize == kIterations,
+           "diagnostics retains the final published generation");
+}
+
+void testDeveloperOverrideRejectsStaleEditAfterClear(TestContext& context) {
+    frazil::plugin::DeveloperParameterOverride override;
+    const auto initial = makeDeveloperHostSnapshot();
+    override.set(initial);
+
+    const auto editToken = override.getActiveControlToken();
+    expect(context, override.isActive(), "stale-edit regression starts with an active override");
+    expect(context, editToken.has_value(), "stale-edit regression captures an active token");
+    if (!editToken)
+        return;
+
+    std::atomic<bool> editReady{false};
+    std::atomic<bool> clearCompleted{false};
+    std::atomic<bool> staleCommitAccepted{false};
+
+    std::thread editor([&] {
+        auto edited = initial;
+        edited.rawValues[static_cast<std::size_t>(
+            frazil::plugin::DeveloperHostParameter::inputGainDb)] = 18.0f;
+        editReady.store(true, std::memory_order_release);
+        while (!clearCompleted.load(std::memory_order_acquire))
+            std::this_thread::yield();
+
+        staleCommitAccepted.store(override.trySetIfCurrent(edited, *editToken),
+                                  std::memory_order_release);
+    });
+
+    std::thread hostRestore([&] {
+        while (!editReady.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        override.clear();
+        clearCompleted.store(true, std::memory_order_release);
+    });
+
+    editor.join();
+    hostRestore.join();
+    expect(context, clearCompleted.load(std::memory_order_acquire),
+           "stale-edit regression observes completed Host restore clear");
+    expect(context, !staleCommitAccepted.load(std::memory_order_acquire),
+           "stale Developer edit is rejected after Host restore clear");
+    expect(context, !override.isActive(),
+           "rejected stale Developer edit cannot reactivate the override");
+}
+
+void testDeveloperOverrideConcurrentPublication(TestContext& context) {
+    constexpr int kIterations = 10000;
+    frazil::plugin::DeveloperParameterOverride override;
+    auto initial = makeDeveloperGeneration(1);
+    override.set(initial);
+    frazil::plugin::DeveloperParameterOverride::AudioReadState readerState;
+    ParameterSnapshot primed;
+    primed.inputGainDb = -777777.0f;
+    primed.globalMix = -777777.0f;
+    primed.outputGainDb = -777777.0f;
+    override.applyTo(primed, readerState);
+    expect(context, primed.inputGainDb == 400001.0f,
+           "continuous Developer publication primes the audio reader cache");
+
+    std::atomic<bool> start{false};
+    std::atomic<bool> readerReady{false};
+    std::atomic<bool> writerDone{false};
+    std::atomic<int> invalidSnapshots{0};
+    std::atomic<int> observedSnapshots{0};
+    std::atomic<int> hostFallbackCount{0};
+
+    std::thread writer([&] {
+        while (!readerReady.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        start.store(true, std::memory_order_release);
+        for (int generation = 2; generation <= kIterations; ++generation) {
+            override.set(makeDeveloperGeneration(generation));
+            if ((generation & 31) == 0)
+                std::this_thread::yield();
+        }
+        writerDone.store(true, std::memory_order_release);
+    });
+
+    std::thread reader([&] {
+        readerReady.store(true, std::memory_order_release);
+        while (!start.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        do {
+            ParameterSnapshot snapshot;
+            snapshot.inputGainDb = -777777.0f;
+            snapshot.globalMix = -777777.0f;
+            snapshot.outputGainDb = -777777.0f;
+            override.applyTo(snapshot, readerState);
+            if (snapshot.inputGainDb == -777777.0f) {
+                ++hostFallbackCount;
+                continue;
+            }
+
+            ++observedSnapshots;
+            const auto generation = static_cast<int>(snapshot.inputGainDb - 400000.0f);
+            const auto coherent =
+                generation >= 1 && generation <= kIterations &&
+                snapshot.waterEnabled == ((generation & 1) != 0) &&
+                snapshot.iceEnabled == (((generation + 1) & 1) != 0) &&
+                snapshot.routingModeIndex == generation % 3 &&
+                snapshot.parallelBalance == static_cast<float>(100000 + generation) &&
+                snapshot.waterAmount == static_cast<float>(200000 + generation) &&
+                snapshot.iceAmount == static_cast<float>(300000 + generation) &&
+                snapshot.globalMix == static_cast<float>(500000 + generation) &&
+                snapshot.outputGainDb == static_cast<float>(600000 + generation);
+            if (!coherent)
+                ++invalidSnapshots;
+        } while (!writerDone.load(std::memory_order_acquire));
+    });
+
+    writer.join();
+    reader.join();
+    expect(context, observedSnapshots.load() > 0,
+           "concurrent override reader observes active publications");
+    expect(context, hostFallbackCount.load() == 0,
+           "active same-session override never falls back to Host sentinels");
+    expect(context, invalidSnapshots.load() == 0,
+           "concurrent override reads remain generation-coherent");
+    expect(context, override.isActive(),
+           "continuous Developer publication leaves the override active");
+
+    override.clear();
+    ParameterSnapshot afterClear;
+    afterClear.inputGainDb = -777777.0f;
+    override.applyTo(afterClear, readerState);
+    expect(context, afterClear.inputGainDb == -777777.0f,
+           "clear invalidates the cached Developer snapshot for the Host boundary");
+
+    auto newSession = makeDeveloperGeneration(12000);
+    override.set(newSession);
+    ParameterSnapshot afterReactivation;
+    afterReactivation.inputGainDb = -777777.0f;
+    override.applyTo(afterReactivation, readerState);
+    expect(context, afterReactivation.inputGainDb == 412000.0f,
+           "new Developer session requires and applies a new coherent snapshot");
+}
+
+void testDeveloperOverrideConcurrentSetAndClear(TestContext& context) {
+    constexpr int kIterations = 10000;
+    frazil::plugin::DeveloperParameterOverride override;
+    frazil::plugin::DeveloperHostParameterSnapshot values;
+    values.rawValues = {1.0f, 1.0f, 0.0f, 0.25f, 0.4f, 0.8f, 6.0f, 0.3f, -3.0f};
+
+    std::atomic<bool> start{false};
+    std::atomic<bool> readerReady{false};
+    std::atomic<bool> setStarted{false};
+    std::atomic<bool> firstSetDone{false};
+    std::atomic<bool> firstReaderObservationDone{false};
+    std::atomic<bool> setDone{false};
+    std::atomic<bool> clearDone{false};
+    std::atomic<int> invalidSnapshots{0};
+    std::atomic<int> observedSnapshots{0};
+
+    std::thread setter([&] {
+        while (!readerReady.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        start.store(true, std::memory_order_release);
+        setStarted.store(true, std::memory_order_release);
+        for (int iteration = 0; iteration < kIterations; ++iteration) {
+            values.rawValues[static_cast<std::size_t>(
+                frazil::plugin::DeveloperHostParameter::inputGainDb)] =
+                static_cast<float>(iteration);
+            override.set(values);
+            if (iteration == 0) {
+                firstSetDone.store(true, std::memory_order_release);
+                while (!firstReaderObservationDone.load(std::memory_order_acquire))
+                    std::this_thread::yield();
+            }
+            if ((iteration & 31) == 0)
+                std::this_thread::yield();
+        }
+        setDone.store(true, std::memory_order_release);
+    });
+
+    std::thread clearer([&] {
+        while (!readerReady.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        while (!setStarted.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        while (!firstSetDone.load(std::memory_order_acquire) ||
+               !firstReaderObservationDone.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        for (int iteration = 0; iteration < kIterations; ++iteration) {
+            override.clear();
+            if ((iteration & 31) == 0)
+                std::this_thread::yield();
+        }
+        clearDone.store(true, std::memory_order_release);
+    });
+
+    std::thread reader([&] {
+        readerReady.store(true, std::memory_order_release);
+        while (!start.load(std::memory_order_acquire) ||
+               !firstSetDone.load(std::memory_order_acquire))
+            std::this_thread::yield();
+
+        {
+            frazil::plugin::DeveloperHostParameterSnapshot snapshot;
+            if (override.read(snapshot)) {
+                ++observedSnapshots;
+                const auto inputGain = snapshot.rawValues[static_cast<std::size_t>(
+                    frazil::plugin::DeveloperHostParameter::inputGainDb)];
+                if (!std::isfinite(inputGain) || inputGain < 0.0f || inputGain >= kIterations)
+                    ++invalidSnapshots;
+            }
+            firstReaderObservationDone.store(true, std::memory_order_release);
+        }
+
+        while (!setDone.load(std::memory_order_acquire) ||
+               !clearDone.load(std::memory_order_acquire)) {
+            frazil::plugin::DeveloperHostParameterSnapshot snapshot;
+            if (!override.read(snapshot))
+                continue;
+            const auto inputGain = snapshot.rawValues[static_cast<std::size_t>(
+                frazil::plugin::DeveloperHostParameter::inputGainDb)];
+            ++observedSnapshots;
+            if (!std::isfinite(inputGain) || inputGain < 0.0f || inputGain >= kIterations)
+                ++invalidSnapshots;
+        }
+    });
+
+    setter.join();
+    clearer.join();
+    reader.join();
+    expect(context, observedSnapshots.load() > 0,
+           "concurrent set/clear reader observes meaningful active snapshots");
+    expect(context, invalidSnapshots.load() == 0,
+           "concurrent Developer set/clear reads remain valid");
+}
+
+void testDeveloperExperimentSlotWorkflow(TestContext& context) {
+    const auto sameSnapshot = [](const frazil::plugin::DeveloperExperimentSnapshot& left,
+                                 const frazil::plugin::DeveloperExperimentSnapshot& right) {
+        return left.host.rawValues == right.host.rawValues &&
+               left.water.model == right.water.model && left.water.size == right.water.size &&
+               left.water.motion == right.water.motion &&
+               left.comparisonMode == right.comparisonMode;
+    };
+
+    frazil::plugin::DeveloperExperimentSnapshot a;
+    a.host.rawValues = {1.0f, 0.0f, 0.0f, 0.2f, 0.3f, 0.4f, -3.0f, 0.5f, 2.0f};
+    a.water = {frazil::plugin::DeveloperWaterModel::fluid, 0.25f, 0.75f};
+    a.comparisonMode = frazil::plugin::DeveloperComparisonMode::dry;
+
+    frazil::plugin::DeveloperExperimentSnapshot b;
+    b.host.rawValues = {0.0f, 1.0f, 2.0f, 0.8f, 0.7f, 0.6f, 4.0f, 0.9f, -2.0f};
+    b.water = {frazil::plugin::DeveloperWaterModel::resonant, 0.85f, 0.15f};
+    b.comparisonMode = frazil::plugin::DeveloperComparisonMode::processed;
+
+    frazil::plugin::DeveloperExperimentSlots slots;
+    frazil::plugin::DeveloperExperimentSnapshot applied;
+    expect(context, !slots.apply(0, applied), "empty A slot is safe to apply");
+    slots.capture(0, a);
+    slots.capture(1, b);
+    expect(context, slots.isCaptured(0) && slots.isCaptured(1), "A/B slots report captured state");
+    expect(context, slots.apply(0, applied) && sameSnapshot(applied, a),
+           "A restores complete Host, Water and comparison state");
+    expect(context, slots.apply(1, applied) && sameSnapshot(applied, b),
+           "B restores complete Host, Water and comparison state");
+}
+
+void testDeveloperEditorAttachmentReconciliation(TestContext& context) {
+    using Action = frazil::plugin::DeveloperEditorAttachmentAction;
+    const auto action = frazil::plugin::developerEditorAttachmentAction;
+
+    expect(context, action(false, true) == Action::noChange,
+           "Host mode keeps existing Host attachments");
+    expect(context, action(false, false) == Action::attachHost,
+           "Host mode reattaches controls after external state restore");
+    expect(context, action(true, true) == Action::detachHost,
+           "Developer mode detaches Host controls before effective-state sync");
+    expect(context, action(true, false) == Action::noChange,
+           "Developer mode keeps detached controls without repeated detach");
+}
+
+void testDeveloperComparisonBoundary(TestContext& context) {
+    constexpr int kBlockSize = 64;
+    FRAZILAudioProcessor processor;
+    processor.prepareToPlay(48000.0, kBlockSize);
+
+    auto* inputGain = processor.parameters.getParameter(frazil::plugin::parameterIds::inputGain);
+    expect(context, inputGain != nullptr, "developer boundary parameter exists");
+    ParameterEventListener listener;
+    if (inputGain != nullptr)
+        inputGain->addListener(&listener);
+
+    const auto hostBefore = processor.getDeveloperHostParameterSnapshot();
+    const auto developerState = makeDeveloperHostSnapshot();
+    processor.setDeveloperHostParameterOverride(developerState);
+    expect(context, processor.isDeveloperHostParameterOverrideActive(),
+           "developer override becomes active");
+    const auto effective = processor.getDeveloperHostParameterSnapshot();
+    expectNear(context,
+               effective.rawValues[static_cast<std::size_t>(
+                   frazil::plugin::DeveloperHostParameter::inputGainDb)],
+               6.0f, 1.0e-6f, "developer override changes the effective audio snapshot");
+    expectNear(context,
+               hostBefore.rawValues[static_cast<std::size_t>(
+                   frazil::plugin::DeveloperHostParameter::inputGainDb)],
+               0.0f, 1.0e-6f, "developer override leaves the APVTS Host value untouched");
+    expect(context, listener.valueChanges == 0 && listener.gestureChanges == 0,
+           "developer override emits no Host value or gesture notifications");
+
+    setParameterValue(context, processor, frazil::plugin::parameterIds::inputGain, -3.0f);
+    expectNear(context,
+               getParameterValue(context, processor, frazil::plugin::parameterIds::inputGain),
+               -3.0f, 1.0e-6f, "Host/APVTS accepts automation while Developer override is active");
+    const auto effectiveDuringHostChange = processor.getDeveloperHostParameterSnapshot();
+    expectNear(context,
+               effectiveDuringHostChange.rawValues[static_cast<std::size_t>(
+                   frazil::plugin::DeveloperHostParameter::inputGainDb)],
+               6.0f, 1.0e-6f,
+               "Developer effective input gain remains active during Host automation");
+    expect(context, listener.valueChanges == 1 && listener.gestureChanges == 0,
+           "Host automation emits its value notification but no gesture notification");
+
+    juce::MemoryBlock serializedState;
+    processor.getStateInformation(serializedState);
+    const auto stateText =
+        juce::String::fromUTF8(static_cast<const char*>(serializedState.getData()),
+                               static_cast<int>(serializedState.getSize()));
+    expect(context, !stateText.contains("waterExperiment"),
+           "developer experiment state is absent from production state XML");
+
+    processor.setDeveloperComparisonMode(frazil::plugin::DeveloperComparisonMode::dry);
+    expect(context,
+           processor.getDeveloperComparisonMode() == frazil::plugin::DeveloperComparisonMode::dry,
+           "developer Dry comparison mode is selected without a Host parameter");
+    juce::MidiBuffer midi;
+    juce::AudioBuffer<float> buffer(2, kBlockSize);
+    fillBuffer(buffer, 1.0f);
+    processor.processBlock(buffer, midi);
+    expect(context, std::isfinite(buffer.getSample(0, kBlockSize - 1)),
+           "developer Dry comparison produces finite audio");
+
+    processor.setStateInformation(serializedState.getData(),
+                                  static_cast<int>(serializedState.getSize()));
+    expect(context, !processor.isDeveloperHostParameterOverrideActive(),
+           "state restore clears the temporary Developer override");
+    expect(context,
+           processor.getDeveloperComparisonMode() ==
+               frazil::plugin::DeveloperComparisonMode::processed,
+           "state restore returns comparison mode to Processed");
+    const auto effectiveAfterStateRestore = processor.getDeveloperHostParameterSnapshot();
+    expectNear(context,
+               effectiveAfterStateRestore.rawValues[static_cast<std::size_t>(
+                   frazil::plugin::DeveloperHostParameter::inputGainDb)],
+               -3.0f, 1.0e-6f, "state restore makes the current Host value effective");
+
+    processor.setDeveloperHostParameterOverride(developerState);
+    const auto notificationsBeforeClear = listener.valueChanges;
+    processor.clearDeveloperHostParameterOverride();
+    expect(context, !processor.isDeveloperHostParameterOverrideActive(),
+           "developer override can be cleared");
+    const auto hostAfter = processor.getDeveloperHostParameterSnapshot();
+    expectNear(context,
+               hostAfter.rawValues[static_cast<std::size_t>(
+                   frazil::plugin::DeveloperHostParameter::inputGainDb)],
+               -3.0f, 1.0e-6f, "clearing override restores the current APVTS Host snapshot");
+    expect(context,
+           listener.valueChanges == notificationsBeforeClear && listener.gestureChanges == 0,
+           "clearing developer override emits no Host notifications");
+
+    if (inputGain != nullptr)
+        inputGain->removeListener(&listener);
+}
+#endif
 
 void testStateRestoreAfterPrepareReachesAudioPath(TestContext& context) {
     constexpr int kBlockSize = 64;
@@ -161,18 +676,24 @@ void testModeSwitchRetainsInactiveValuesAcrossStateReopen(TestContext& context) 
                "state reopen retains Ice enable");
     expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::routingMode), 0.0f,
                1.0e-6f, "state reopen retains the latest routing mode");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::parallelBalance), 0.2f,
-               1.0e-6f, "state reopen retains parallel balance");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::waterAmount), 0.35f,
-               1.0e-6f, "state reopen retains inactive Water amount");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::iceAmount), 0.8f, 1.0e-6f,
-               "state reopen retains inactive Ice amount");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::inputGain), -3.0f, 1.0e-6f,
-               "state reopen retains input gain");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::globalMix), 0.6f, 1.0e-6f,
-               "state reopen retains global mix");
-    expectNear(context, getParameterValue(context, restored, frazil::plugin::parameterIds::outputGain), 4.0f, 1.0e-6f,
-               "state reopen retains output gain");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::parallelBalance),
+               0.2f, 1.0e-6f, "state reopen retains parallel balance");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::waterAmount),
+               0.35f, 1.0e-6f, "state reopen retains inactive Water amount");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::iceAmount), 0.8f,
+               1.0e-6f, "state reopen retains inactive Ice amount");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::inputGain), -3.0f,
+               1.0e-6f, "state reopen retains input gain");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::globalMix), 0.6f,
+               1.0e-6f, "state reopen retains global mix");
+    expectNear(context,
+               getParameterValue(context, restored, frazil::plugin::parameterIds::outputGain), 4.0f,
+               1.0e-6f, "state reopen retains output gain");
 
     restored.prepareToPlay(48000.0, kBlockSize);
     fillBuffer(buffer, 1.0f);
@@ -190,12 +711,26 @@ void testModeSwitchRetainsInactiveValuesAcrossStateReopen(TestContext& context) 
 int main() {
     TestContext context;
     testParameterAutomationReachesAudioPath(context);
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    testDeveloperDiagnosticsPublication(context);
+    testDeveloperDiagnosticsConcurrentPublication(context);
+    testDeveloperOverrideRejectsStaleEditAfterClear(context);
+    testDeveloperOverrideConcurrentPublication(context);
+    testDeveloperOverrideConcurrentSetAndClear(context);
+    testDeveloperExperimentSlotWorkflow(context);
+    testDeveloperEditorAttachmentReconciliation(context);
+    testDeveloperComparisonBoundary(context);
+#endif
     testStateRestoreAfterPrepareReachesAudioPath(context);
     testModeSwitchRetainsInactiveValuesAcrossStateReopen(context);
 
     if (context.failures != 0)
         return 1;
 
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    std::cout << "FRAZIL plugin integration tests passed (11 groups)\n";
+#else
     std::cout << "FRAZIL plugin integration tests passed (3 groups)\n";
+#endif
     return 0;
 }

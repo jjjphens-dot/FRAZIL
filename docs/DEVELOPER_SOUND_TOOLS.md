@@ -2,7 +2,9 @@
 
 > Document status: Approval Candidate in v1.3; CURRENT/CONTROLLED after approval and merge.<br>
 > Capability implementation status: tracked individually as CURRENT / PLANNED / CANDIDATE / DEFERRED below.<br>
-> No Developer Control Surface or diagnostics bridge is implemented by this document.
+> A Debug/ASAN Developer Control Surface candidate exists on the follow-up feature branch and is engineering-ready
+> for Sound & Host Lead usability acceptance; the current development baseline remains PLANNED until review, merge
+> and acceptance. Offline Sound Lab handoff remains in progress.
 
 ## 1. Purpose and boundaries
 
@@ -28,12 +30,18 @@ experimentation. It is not an M1 architecture-correctness exit gate, and `HOST-0
   `requirements-dsp.txt` Python environment. The analyzer already provides waveform diagnostics, FFT, Welch PSD,
   RMS, DC, stereo correlation and STFT/spectrogram analysis.
 - **CURRENT after v1.3 approval/merge**: the Perceptual Contract framework, template and Agent usage rules.
-- **PLANNED**: `DEV-UI-001`, a minimal diagnostics snapshot/bridge, realtime A/B workflow, experiment-config export,
-  richer Offline Sound Lab review packs, reproducible debug bundles, automated review-pack generation, LUFS/true
-  peak, spectral flux, onset, pitch/harmonic-retention and extended tail analysis. The `EXP-W-001` Water Perceptual
-  Contract instance remains PLANNED until produced and accepted.
-- **CANDIDATE**: exact developer-build isolation, diagnostic transport, UI layout, A/B storage lifetime, exported JSON
-  schema and Water experimental-control mapping.
+- **CANDIDATE (follow-up feature branch, engineering-ready)**: a Debug/ASAN-only `DEV-UI-001` surface in
+  `src/plugin/PluginEditor.*` binds the nine current Host parameters, keeps Water Model/Size/Motion
+  experiment-only, detaches APVTS attachments while a temporary non-APVTS override is active, and provides an
+  explicit Return Host path. It provides Dry/Processed comparison, bounded A/B/reset slots, complete draft
+  experiment-state export, and coherent prepared/latest block diagnostics. It is not the Production UI and has
+  not received workflow usability acceptance; this candidate is not the current main baseline.
+- **PLANNED**: final `DEV-UI-001` acceptance, richer Offline Sound Lab review packs, reproducible debug bundles,
+  automated review-pack generation, LUFS/true peak, spectral flux, onset, pitch/harmonic-retention and extended
+  tail analysis. The `EXP-W-001` Water Perceptual Contract instance remains PLANNED until produced and accepted.
+- **CANDIDATE / PLANNED**: Sound & Host Lead workflow usability and UI layout acceptance, richer diagnostic/debug
+  bundle evidence, and Water experimental-control mapping. The current bounded A/B storage is temporary editor
+  state and is not a persistent preset or plugin state.
 - **DEFERRED**: Production UI, production presets, generic modulation and a large logging framework remain at their
   existing later-plan gates. Ice tooling remains deferred until `M2 Exit + Explicit Joint Gate` confirms that the
   Water workflow is reusable for Ice.
@@ -53,6 +61,23 @@ Motion. Before explicit parameter adoption, these controls are not Host paramete
 `ParameterLayout`, do not change `schemaVersion`, and create no automation or compatibility promise. Their exact
 internal transport is a `DEV-UI-001` implementation decision and must preserve the repository dependency and
 realtime boundaries.
+
+When the developer override is inactive, normal Host controls use APVTS attachments. While the override is active,
+those attachments are detached so the visible controls remain authoritative for the effective developer state;
+Return Host clears the override, reattaches the APVTS controls and restores Host/APVTS as effective state. Water
+Model/Size/Motion remain outside the Host registry, automation and plugin state. Dry/Processed comparison reuses the
+preallocated dry reference and does not change `global.mix`; the candidate still requires workflow usability
+acceptance and does not provide the full debug-bundle workflow required for final DEV-UI-001 acceptance.
+
+The editor also reconciles an external Host/APVTS state restore: if the Processor clears a Developer override while
+attachments are detached, the next bounded editor reconciliation reattaches Host controls, syncs restored values and
+updates the Dry/Processed selection from the Processor comparison mode. Editing an already active override captures an
+active-publication token and commits conditionally; if Host restore or another control transaction wins first, the stale
+edit is discarded and the visible state is reconciled without reactivating it. The temporary override transport keeps
+its audio read/apply path lock-free and bounded; a primed reader may use the last coherent snapshot only within the same
+active session, while clear/session epoch invalidation permits Host values at the normal block boundary. Non-realtime
+set/clear/conditional-commit operations are serialized because Editor edits and Host state restore may arrive on
+different threads.
 
 The first version should provide:
 
@@ -88,6 +113,9 @@ The exported configuration must identify every experiment input needed for repro
 new Host parameters. Its exact schema remains CANDIDATE until the Offline Sound Lab and DEV-UI implementation issues
 agree on one boundary.
 
+The initial export uses `schema=frazil.dev-experiment`, `schemaVersion=1`, and `source=DEV-UI-001`. This is a local
+draft handoff format, not the plugin state schema or a frozen Offline Sound Lab contract.
+
 A standard review pack is PLANNED to contain dry, baseline and candidate WAVs, a manifest, per-candidate analysis,
 waveform/spectrum/spectrogram plots and `LISTENING_REVIEW.md`. Objective measurements are proxies; no scalar
 "quality score" may replace the per-dimension engineering, source-preservation, perceptual and decision record.
@@ -109,6 +137,12 @@ Audio thread
 The audio thread must not perform disk/network/console I/O, string formatting, dynamic diagnostic allocation,
 blocking locks or unbounded queue growth. A complex logging framework is explicitly out of scope.
 
+The candidate uses `DeveloperDiagnostics` as a bounded latest-block transport. Debug/ASAN builds publish input/output
+peak and RMS, finite status, prepared maximum block size and latest callback block size; a bounded two-slot
+sequence-check keeps the editor from accepting a torn snapshot and falls back to the previous valid snapshot if a
+read is not coherent. The editor polls the snapshot on the message thread. Release builds select the non-developer
+placeholder and compile out the callback diagnostics publication path.
+
 A future reproducible debug bundle may contain input/output audio, experiment parameters, engine state, diagnostics,
 analysis, performance observations, plots, build provenance and a short README. Raw machine-specific paths and
 generated audio remain ignored/local or artifact-hosted according to repository storage rules.
@@ -116,9 +150,10 @@ generated audio remain ignored/local or artifact-hosted according to repository 
 ## 6. Build isolation
 
 A Developer Build and Release Build should be distinguishable so developer controls and diagnostics cannot be
-shipped accidentally. The mechanism is CANDIDATE: a build option, dedicated preset or another bounded approach may
-be selected by the Engineering Lead in the `DEV-UI-001` implementation issue. This document intentionally does not
-freeze a macro name or preset.
+shipped accidentally. The initial implementation selects the single-config CMake build type as the isolation
+mechanism: Debug (including the Debug-configured ASAN preset) defines `FRAZIL_ENABLE_DEVELOPER_UI=1`, while Release
+defines it as `0`. The mechanism remains an implementation choice rather than a new production contract and can be
+replaced before final DEV-UI-001 acceptance.
 
 The result invariant is CONTROLLED even while the mechanism remains CANDIDATE:
 
