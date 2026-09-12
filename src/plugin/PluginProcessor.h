@@ -4,6 +4,7 @@
 #include "../app/ParameterMapper.h"
 #include "../app/ParameterSnapshot.h"
 #include "../app/ProcessSpec.h"
+#include "DeveloperDiagnostics.h"
 
 #include <JuceHeader.h>
 
@@ -37,12 +38,15 @@ class FRAZILAudioProcessor final : public juce::AudioProcessor {
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
+    frazil::plugin::DeveloperDiagnosticsSnapshot getDeveloperDiagnosticsSnapshot() const noexcept;
+
     juce::AudioProcessorValueTreeState parameters;
 
   private:
     ParameterSourcePointers parameterSources_;
     ParameterMapper parameterMapper_;
     AudioEngine audioEngine;
+    frazil::plugin::DeveloperDiagnostics developerDiagnostics_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FRAZILAudioProcessor)
 };

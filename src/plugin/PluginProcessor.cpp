@@ -4,6 +4,44 @@
 #include "PluginEditor.h"
 #include "StateAdapter.h"
 
+#include <algorithm>
+#include <cmath>
+
+namespace {
+struct BufferMetrics final {
+    float peak{};
+    float rms{};
+    bool finite{true};
+};
+
+BufferMetrics measureBuffer(const juce::AudioBuffer<float>& buffer) noexcept {
+    const auto channelCount = buffer.getNumChannels();
+    const auto sampleCount = buffer.getNumSamples();
+    if (channelCount <= 0 || sampleCount <= 0)
+        return {};
+
+    double sumSquares = 0.0;
+    float peak = 0.0f;
+    bool finite = true;
+    for (int channel = 0; channel < channelCount; ++channel) {
+        const auto* samples = buffer.getReadPointer(channel);
+        for (int sample = 0; sample < sampleCount; ++sample) {
+            const auto value = samples[sample];
+            if (!std::isfinite(value)) {
+                finite = false;
+                continue;
+            }
+
+            peak = std::max(peak, std::abs(value));
+            sumSquares += static_cast<double>(value) * static_cast<double>(value);
+        }
+    }
+
+    const auto sampleTotal = static_cast<double>(channelCount) * sampleCount;
+    return {peak, static_cast<float>(std::sqrt(sumSquares / sampleTotal)), finite};
+}
+} // namespace
+
 FRAZILAudioProcessor::FRAZILAudioProcessor()
     : AudioProcessor(BusesProperties()
                          .withInput("Input", juce::AudioChannelSet::stereo(), true)
@@ -27,10 +65,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout FRAZILAudioProcessor::create
 
 void FRAZILAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     audioEngine.prepare(ProcessSpec{sampleRate, samplesPerBlock, getTotalNumOutputChannels()});
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    developerDiagnostics_.setPrepared(static_cast<float>(sampleRate), samplesPerBlock,
+                                      getTotalNumOutputChannels());
+#endif
 }
 
 void FRAZILAudioProcessor::releaseResources() {
     audioEngine.reset();
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    developerDiagnostics_.reset();
+#endif
 }
 
 bool FRAZILAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
@@ -45,9 +90,22 @@ bool FRAZILAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) co
 
 void FRAZILAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&) {
     juce::ScopedNoDenormals noDenormals;
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    const auto inputMetrics = measureBuffer(buffer);
+#endif
     const auto snapshot = ParameterSnapshot::capture(parameterSources_);
     const auto engineParameters = parameterMapper_.map(snapshot);
     audioEngine.process(buffer, engineParameters);
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    const auto outputMetrics = measureBuffer(buffer);
+    developerDiagnostics_.publish(inputMetrics.peak, outputMetrics.peak, inputMetrics.rms,
+                                  outputMetrics.rms, inputMetrics.finite && outputMetrics.finite);
+#endif
+}
+
+frazil::plugin::DeveloperDiagnosticsSnapshot
+FRAZILAudioProcessor::getDeveloperDiagnosticsSnapshot() const noexcept {
+    return developerDiagnostics_.snapshot();
 }
 
 juce::AudioProcessorEditor* FRAZILAudioProcessor::createEditor() {

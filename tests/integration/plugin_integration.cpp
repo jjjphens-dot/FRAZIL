@@ -64,6 +64,18 @@ void testParameterAutomationReachesAudioPath(TestContext& context) {
     processor.processBlock(buffer, midi);
     expectNear(context, buffer.getSample(0, kBlockSize - 1), 1.0f, 1.0e-6f,
                "default plugin block is unity pass-through");
+#if FRAZIL_ENABLE_DEVELOPER_UI
+    const auto diagnostics = processor.getDeveloperDiagnosticsSnapshot();
+    expectNear(context, diagnostics.sampleRateHz, 48000.0f, 1.0e-6f,
+               "developer diagnostics retain prepared sample rate");
+    expect(context, diagnostics.blockSize == kBlockSize && diagnostics.channelCount == 2,
+           "developer diagnostics retain prepared block and channel dimensions");
+    expectNear(context, diagnostics.inputPeak, 1.0f, 1.0e-6f,
+               "developer diagnostics measure input peak");
+    expectNear(context, diagnostics.outputPeak, 1.0f, 1.0e-6f,
+               "developer diagnostics measure output peak");
+    expect(context, diagnostics.finite, "developer diagnostics report finite audio");
+#endif
 
     constexpr float kTargetGainDb = 6.0f;
     const auto targetGain = std::pow(10.0f, kTargetGainDb / 20.0f);

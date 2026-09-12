@@ -2,7 +2,8 @@
 
 > Document status: Approval Candidate in v1.3; CURRENT/CONTROLLED after approval and merge.<br>
 > Capability implementation status: tracked individually as CURRENT / PLANNED / CANDIDATE / DEFERRED below.<br>
-> No Developer Control Surface or diagnostics bridge is implemented by this document.
+> Initial Debug/ASAN Developer Control Surface and bounded diagnostics bridge are implemented; full
+> `DEV-UI-001` usability acceptance and Offline Sound Lab handoff remain in progress.
 
 ## 1. Purpose and boundaries
 
@@ -28,12 +29,15 @@ experimentation. It is not an M1 architecture-correctness exit gate, and `HOST-0
   `requirements-dsp.txt` Python environment. The analyzer already provides waveform diagnostics, FFT, Welch PSD,
   RMS, DC, stereo correlation and STFT/spectrogram analysis.
 - **CURRENT after v1.3 approval/merge**: the Perceptual Contract framework, template and Agent usage rules.
-- **PLANNED**: `DEV-UI-001`, a minimal diagnostics snapshot/bridge, realtime A/B workflow, experiment-config export,
-  richer Offline Sound Lab review packs, reproducible debug bundles, automated review-pack generation, LUFS/true
-  peak, spectral flux, onset, pitch/harmonic-retention and extended tail analysis. The `EXP-W-001` Water Perceptual
-  Contract instance remains PLANNED until produced and accepted.
-- **CANDIDATE**: exact developer-build isolation, diagnostic transport, UI layout, A/B storage lifetime, exported JSON
-  schema and Water experimental-control mapping.
+- **CURRENT (initial slice)**: a Debug/ASAN-only `DEV-UI-001` surface in `src/plugin/PluginEditor.*` that binds
+  the nine current Host parameters, exposes Water Model/Size/Motion as experiment-only controls, provides
+  temporary A/B/reset actions, exports a draft experiment config, and displays a bounded latest-block diagnostic
+  snapshot. The surface is not the Production UI and has not yet received workflow usability acceptance.
+- **PLANNED**: Dry/Processed comparison, richer Offline Sound Lab review packs, reproducible debug bundles,
+  automated review-pack generation, LUFS/true peak, spectral flux, onset, pitch/harmonic-retention and extended
+  tail analysis. The `EXP-W-001` Water Perceptual Contract instance remains PLANNED until produced and accepted.
+- **CANDIDATE**: final developer-build isolation, diagnostic transport/schema hardening, UI layout acceptance,
+  A/B storage lifetime, and Water experimental-control mapping.
 - **DEFERRED**: Production UI, production presets, generic modulation and a large logging framework remain at their
   existing later-plan gates. Ice tooling remains deferred until `M2 Exit + Explicit Joint Gate` confirms that the
   Water workflow is reusable for Ice.
@@ -53,6 +57,11 @@ Motion. Before explicit parameter adoption, these controls are not Host paramete
 `ParameterLayout`, do not change `schemaVersion`, and create no automation or compatibility promise. Their exact
 internal transport is a `DEV-UI-001` implementation decision and must preserve the repository dependency and
 realtime boundaries.
+
+The initial slice implements the listed Host controls through APVTS attachments and keeps Water Model/Size/Motion
+outside the Host registry and plugin state. Its A/B/reset actions are explicit UI actions; the current
+implementation does not yet provide the Dry/Processed comparison or full debug-bundle workflow required for final
+DEV-UI-001 acceptance.
 
 The first version should provide:
 
@@ -88,6 +97,9 @@ The exported configuration must identify every experiment input needed for repro
 new Host parameters. Its exact schema remains CANDIDATE until the Offline Sound Lab and DEV-UI implementation issues
 agree on one boundary.
 
+The initial export uses `schema=frazil.dev-experiment`, `schemaVersion=1`, and `source=DEV-UI-001`. This is a local
+draft handoff format, not the plugin state schema or a frozen Offline Sound Lab contract.
+
 A standard review pack is PLANNED to contain dry, baseline and candidate WAVs, a manifest, per-candidate analysis,
 waveform/spectrum/spectrogram plots and `LISTENING_REVIEW.md`. Objective measurements are proxies; no scalar
 "quality score" may replace the per-dimension engineering, source-preservation, perceptual and decision record.
@@ -109,6 +121,11 @@ Audio thread
 The audio thread must not perform disk/network/console I/O, string formatting, dynamic diagnostic allocation,
 blocking locks or unbounded queue growth. A complex logging framework is explicitly out of scope.
 
+The initial implementation uses `DeveloperDiagnostics` as a bounded latest-block transport. Debug/ASAN builds
+publish input/output peak and RMS, finite status, and prepared runtime metadata; the editor polls the snapshot on
+the message thread. Release builds select the non-developer placeholder and compile out the callback
+diagnostics publication path.
+
 A future reproducible debug bundle may contain input/output audio, experiment parameters, engine state, diagnostics,
 analysis, performance observations, plots, build provenance and a short README. Raw machine-specific paths and
 generated audio remain ignored/local or artifact-hosted according to repository storage rules.
@@ -116,9 +133,10 @@ generated audio remain ignored/local or artifact-hosted according to repository 
 ## 6. Build isolation
 
 A Developer Build and Release Build should be distinguishable so developer controls and diagnostics cannot be
-shipped accidentally. The mechanism is CANDIDATE: a build option, dedicated preset or another bounded approach may
-be selected by the Engineering Lead in the `DEV-UI-001` implementation issue. This document intentionally does not
-freeze a macro name or preset.
+shipped accidentally. The initial implementation selects the single-config CMake build type as the isolation
+mechanism: Debug (including the Debug-configured ASAN preset) defines `FRAZIL_ENABLE_DEVELOPER_UI=1`, while Release
+defines it as `0`. The mechanism remains an implementation choice rather than a new production contract and can be
+replaced before final DEV-UI-001 acceptance.
 
 The result invariant is CONTROLLED even while the mechanism remains CANDIDATE:
 

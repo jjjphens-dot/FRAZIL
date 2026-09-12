@@ -64,6 +64,10 @@ DAW compatibility evidence 的 owner；该证据链仍归 `HOST-001`。
 The detailed boundary, diagnostics rules and realtime-to-offline config handoff are defined in
 [`DEVELOPER_SOUND_TOOLS.md`](DEVELOPER_SOUND_TOOLS.md).
 
+The initial `DEV-UI-001` implementation is available only in Debug/ASAN builds and is covered by the
+corresponding compile/runtime CTest paths; its interactive usability, Dry/Processed comparison and Offline Sound Lab
+handoff remain acceptance work. Release builds intentionally retain the non-developer editor placeholder.
+
 ## 2. 自动化测试必须覆盖
 
 ### ParameterLayout
