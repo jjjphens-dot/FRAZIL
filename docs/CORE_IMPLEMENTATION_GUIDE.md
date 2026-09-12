@@ -46,11 +46,10 @@ STATE-001 已合入 `main`，包括：
 - `ValueTree::createXml()`/`fromXml()` restore regression；
 - all nine static parameters retained。
 
-STATE-002 的 mode value retention integration evidence 已建立。AUTO-001
-PluginProcessor integration evidence、TESTDATA-001 original reproducibility/provenance
-infrastructure 和 RENDER-001 pass-through offline smoke 已建立并分别由既有 work item 维护。
-当前 TESTDATA-001 diagnostic semantic refinement 是同一 corpus 的 finding-driven follow-up，
-不改变 plugin StateModel schema 或 production DSP scope。generic in-memory probes 和最小
+STATE-002 的 mode value retention integration evidence 已建立。AUTO-001 PluginProcessor integration
+evidence、TESTDATA-001 reproducible diagnostic corpus、RENDER-001 pass-through offline smoke、TEST-002
+processor-property evidence、PERF-BASE-001 manual baseline 和 ARCH-LAT-001 latency evidence 均已进入
+`main`，后续只按 regression/finding ownership 维护，不创建平行实现。generic in-memory probes 和现有
 离线分析工具仍可供未来 measurement 使用。
 
 当前 wet path 仍为 post-input pass-through。
@@ -59,10 +58,7 @@ infrastructure 和 RENDER-001 pass-through offline smoke 已建立并分别由�
 
 当前仍需收口的区域仅包括：
 
-- TESTDATA-001 diagnostic revision closeout / review；
-- RENDER-001 existing-harness acceptance/finding follow-up；
-- PERF-BASE-001、ARCH-LAT-001 和 TEST-002；
-- remaining Host/DAW automation evidence 和 discrete enable/routing transition acceptance；
+- remaining Host/DAW automation、state restore、save/reopen 和 current-artifact plugin validation；
   AUTO-001 integration evidence 已存在，但不等于完整 Host acceptance；
 - HOST-001 DAW/Host evidence；
 - M1 Joint Exit Review。
@@ -75,19 +71,22 @@ Water、Ice、Routing、`EditHistoryManager` 和 production UI 属于后续 mile
 Established foundation:
   STATE-001 / STATE-002 evidence
   PARAM-004 / AUTO-001 integration evidence
-  TESTDATA-001 original infrastructure
+  TESTDATA-001 reproducible diagnostic corpus
   RENDER-001 pass-through smoke
+  TEST-002 / PERF-BASE-001 / ARCH-LAT-001 evidence
 
 Current M1 remaining:
-  TESTDATA diagnostic revision closeout/review
-  RENDER-001 existing-harness acceptance/finding follow-up
-  PERF-BASE-001 / ARCH-LAT-001 / TEST-002
-  HOST-001 and M1 Joint Exit Review
+  current-artifact plugin validation
+  HOST-001 DAW/Host evidence
+  M1 Joint Exit Review
 ```
 
-Water 与 Ice 的实验研究可以并行，但生产实现不得绕过 M1 的生命周期、测试素材、渲染和性能
-基线。M0 governance tails such as HOST-000 / GitHub rules may proceed in parallel, but their
-required gates must be closed before the corresponding milestone exit。
+当前执行顺序为 Water-first。M1 late-stage 可并行推进 `HOST-001`、`DEV-UI-001` 和 `EXP-W-001`，但
+`DEV-UI-001` 与 `EXP-W-001` 不进入 M1 Joint Exit；大规模 `EXP-W-002` 仍要求 M1 Joint Exit、可用的
+Developer Control Surface 和已验收的 Water Perceptual Contract instance。Ice experiment、perceptual/
+parameter redesign 和 production implementation 当前均为 DEFERRED，只有在 `M2 Exit + Explicit Joint Gate`
+确认 Water workflow 可复用于 Ice 后才恢复 M3。M0 governance tails such as HOST-000 / GitHub rules may
+proceed in parallel, but their required gates must be closed before the corresponding milestone exit。
 
 ## 2. 总体处理链与数学合同
 
@@ -364,6 +363,9 @@ ownership 和 CPU upper bound。
 Resonant C 是已决定的产品方向，但具体 topology、mapping、范围、默认值、state evolution、性能预算
 和 production implementation 尚未被接受。生产采纳必须完成 `EXP-W-001..003`、双人 loudness-matched
 听测、工程 gate 和 Water ADR；本节不得直接触发 `ParameterLayout` 或 schema 修改。
+`EXP-W-001` 从 Human Water Intent 创建 Water-specific contract instance，不要求预先存在同一 instance；
+`EXP-W-002+` 必须遵守 `PERCEPTUAL_CONTRACT.md` framework，并读取已验收的
+`experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md` 后才可提出 candidate。
 
 ```text
 WaterProcessor
@@ -635,8 +637,9 @@ Official product documentation：
 
 ## 6. Ice DSP 实验候选
 
-本节只用于 `experiments/ice/`。生产采纳必须完成 `EXP-I-001..003`、Water/Ice 对照听测和
-`ADR-I-001`。
+本节只保留长期 `experiments/ice/` candidate reference；当前不授权启动 Ice experiment。只有完成 M2 Exit
+并通过 Explicit Joint Gate 确认 Water workflow 可复用于 Ice 后，才恢复 M3 planning/work。届时生产采纳仍
+必须完成 `EXP-I-001..003`、Water/Ice 对照听测和 `ADR-I-001`。
 
 ### 6.1 Friction Texture
 
