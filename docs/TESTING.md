@@ -44,14 +44,25 @@ DSP property、pluginval、render、DAW、listening 或 performance validation�
 `L6 DAW Acceptance` 归属 `HOST-001`：负责 scan/load、parameter enumeration、automation、
 save/reopen、DAW render 和 Host compatibility evidence。
 
-`L7 Listening` 归属 `LISTENING-001` 与 `WATER-006` / `ICE-006`：负责 representative musical
-material、license/provenance、perceptual review suitability 和 Water/Ice product-sound evidence。
-`LISTENING-001` 可以在 M1 期间准备，但不是 M1 Exit Gate；它必须在 `EXP-W-003` / `EXP-I-003`
-以及 `WATER-006` / `ICE-006` 前 ready。`EXP-W-002` / `EXP-I-002` engineering experiments
-可以直接使用 `TESTDATA-001`，不需要等待 listening corpus 完成。
+`L7 Listening` 归属 `LISTENING-001` 与 `WATER-006`，以及 Ice 恢复后的 `ICE-006`：负责 representative
+musical material、license/provenance、perceptual review suitability 和 product-sound evidence。
+`LISTENING-001` 可以在 M1 期间准备，但不是 M1 Exit Gate；当前必须在 `EXP-W-003` 和 `WATER-006`
+前 ready。`EXP-W-002` engineering experiments 可以直接使用 `TESTDATA-001`，不需要等待 listening
+corpus 完成。Ice 当前 DEFERRED；恢复时 `EXP-I-003` / `ICE-006` 仍遵守相同 listening prerequisite。
 
 Listening WAV 可以被放入 DAW 播放或作为 DAW 测试输入，但这不会把 `LISTENING-001` 变成
 DAW compatibility evidence 的 owner；该证据链仍归 `HOST-001`。
+
+### 1.3 Host, interactive and offline entry points
+
+| Entry point | Question answered | Evidence boundary |
+|---|---|---|
+| Host Test | Does the DAW <-> VST3 contract work? | `HOST-001` uses DAW enumeration, automation, state restore, save/reopen and render. Developer UI cannot substitute it. |
+| Developer Interactive Testing | Can sound designers rapidly control, compare and diagnose the current experiment? | `DEV-UI-001` usability and bounded diagnostics. It is not deterministic proof or Host acceptance. |
+| Offline Experiment Testing | Is a candidate/config reproducible and analyzable? | Fixed input/config/seed render, sweep, analysis and review pack. It cannot substitute human listening. |
+
+The detailed boundary, diagnostics rules and realtime-to-offline config handoff are defined in
+[`DEVELOPER_SOUND_TOOLS.md`](DEVELOPER_SOUND_TOOLS.md).
 
 ## 2. 自动化测试必须覆盖
 
@@ -248,15 +259,25 @@ RandomSource、block partition 和 controlled Water/Ice stub 输出应优先由 
 每个核心声音 PR 提供：
 
 ```text
-00-dry.wav
-01-baseline.wav
-02-candidate-a.wav
-03-candidate-b.wav（如有）
-manifest.json（参数、seed、build、响度数据）
-LISTENING_NOTES.md
+review-pack/
+  00-dry.wav
+  01-baseline.wav
+  02-candidate-a.wav
+  03-candidate-b.wav
+  manifest.json
+  analysis/
+    candidate-a.json
+    candidate-b.json
+  plots/
+    waveform.png
+    spectrum.png
+    spectrogram.png
+  LISTENING_REVIEW.md
 ```
 
-候选尽量 loudness-match。至少记录：材质辨识度、输入可辨识度、动态保留、刺耳/浑浊、瞬态、立体声、噪声/DC、极端参数和偏好结论。重要声音方向由两名开发者共同 review。
+该结构是 PLANNED target；现有 RENDER-001 smoke 不因此被描述为完整 Sound Lab/review-pack generator。
+候选尽量 loudness-match。至少记录：材质辨识度、输入可辨识度、动态保留、刺耳/浑浊、瞬态、立体声、
+噪声/DC、极端参数和偏好结论。重要声音方向由两名开发者共同 review。
 
 ### Listening rubric
 
@@ -279,6 +300,17 @@ LISTENING_NOTES.md
 
 Rubric 不规定总分公式。评审必须保留每个维度的分数、简短理由和两位评审的独立结论，再记录 accepted、revise 或 reject；不得只用一个总分替代听感判断。
 
+每个 rubric 维度在进入对应 listening stage 时必须补充 1 / 3 / 5 anchors。例如 Water Identity：
+
+- 1：基本不存在 Water material identity；
+- 3：明显存在，但跨素材一致性有限；
+- 5：Water identity 强且稳定，同时保持输入主体。
+
+Objective features are **Objective Proxies**, not perceptual truth. Peak/RMS/DC/finite/crest factor and later
+LUFS/true peak/spectral/onset/pitch/tail/stereo features may support a question, but no single metric or scalar
+quality score may replace the rubric and human `ACCEPT / REVISE / REJECT` decision. See
+[`PERCEPTUAL_CONTRACT.md`](PERCEPTUAL_CONTRACT.md).
+
 ### Water dual-mode planned acceptance
 
 本节定义 M2/`ADR-W-001` 的计划证据，不表示 Fluid、Resonant 或候选参数已经实现。Ice 的算法、参数、
@@ -293,7 +325,9 @@ Resonant，并分别记录：
   和 non-periodic behavior；
 - Resonant Water identity：stable/cohesive liquid resonance、tonal/pitched-material compatibility、
   predictable musical response；
-- Fluid 与 Resonant 的 perceptual distinction；不得以“real/fake”或质量高低描述；
+- Fluid 与 Resonant 分别按各自 mode-specific responsibilities 验收；qualitative review 只需确认二者都是
+  intentional Water models 且不被理解为 real/fake、good/bad 或 quality switch。当前不要求
+  perceptual-distance metric、classification threshold 或 mode-separation score；
 - normal product settings 下的 input recognizability，包含代表性的 `global.mix=100%` Water-only case；
   这不是 sample-equality assertion，也不能只靠降低 Global Mix 通过；
 - transient preservation、RMS/LUFS relationship、residual energy、peak growth、spectral change、DC 和
@@ -517,8 +551,11 @@ pluginval 路径与完整 MSVC 环境初始化见 `docs/ENVIRONMENT.md`。CI 命
 
 - M0：fresh clone 可配置/构建/测试，CI PASS，模板和 branch protection 就绪。
 - M1：`HOST-000` target DAW matrix、`TESTDATA-001` manifest、`PERF-BASE-001` report、`AUTO-001` automation contract、`ARCH-LAT-001` 的 0-sample Host reporting 与 latency policy、参数枚举/state/automation smoke、gain skeleton、finite output、offline render、pluginval PASS。
-- M2：Fluid/Resonant 双模式的 component ablation、property/render、mode differentiation、Size/Motion
-  semantic consistency、normal setting 与代表性 `global.mix=100%` input recognizability、click-free mode
+- `DEV-UI-001`：Developer interactive controls/diagnostics/config export 的 usability gate；是大规模
+  `EXP-W-002` 前的 Water M2 readiness prerequisite，不是 M1 Exit gate，且不替代 Host/offline evidence。
+- M2：Fluid/Resonant 双模式分别满足各自 mode-specific responsibilities，完成 component ablation、
+  property/render、qualitative non-quality-switch review、Size/Motion semantic consistency、normal setting 与
+  代表性 `global.mix=100%` input recognizability、click-free mode
   transition、state/automation、performance increment、Water rubric/Reject Criteria 和 pluginval PASS；
   引用 `TESTDATA-001`、`LISTENING-001` 与 `PERF-BASE-001`，且 Host-reported processing latency 保持 0。
 - M3：Ice vertical slice 的 property/render/listening rubric/Reject Criteria/pluginval PASS，并引用同一 reference corpus 与 performance baseline；本次 Water revision 不改变 Ice gate。

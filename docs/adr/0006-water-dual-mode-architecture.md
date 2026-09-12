@@ -101,7 +101,9 @@ with user evidence and a separate parameter/state review.
 
 ## Verification Required Before Accepted
 
-- loudness-matched Fluid/Resonant listening evidence with clear mode differentiation and musical usefulness;
+- loudness-matched evidence that evaluates Fluid and Resonant independently against their mode-specific
+  responsibilities, plus qualitative confirmation that both are intentional Water models rather than a good/bad
+  switch; no perceptual-distance metric, classification threshold, or mode-separation score is required;
 - source recognizability at normal settings, including representative `global.mix=100%` Water-only evaluation;
 - Size and Motion semantic consistency across both modes, with Motion shown not to act primarily as gain;
 - component ablation and fixed-seed engineering evidence;

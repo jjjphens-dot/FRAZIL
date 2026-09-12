@@ -10,12 +10,16 @@
 
 ## 1. 结论
 
-项目已有可构建的 JUCE M0 骨架；M1-A/M1-B 的参数、Snapshot/Mapper、Application-DSP 接口和基础 gain signal path 已随 PR #2 / PR #3 合入 `main`。M1-C STATE-001 已通过 PR #5 squash merge 合入 `main`，versioned StateModel/Host State Adapter foundation、XML restore regression 和相关 fallback/migration evidence 已完成；PluginProcessor automation/state integration evidence 已建立；TESTDATA-001 reproducibility/provenance infrastructure 已随 PR #12 合入，`RENDER-001` pass-through offline smoke 已随 PR #13 合入。TESTDATA-001 diagnostic corpus 当前 revision 已完成本地实现与验证；其 PR、CI 和合并状态以 GitHub live state 为准。本 engineering follow-up branch 已建立 TEST-002 processor property、PERF-BASE-001 baseline 和 ARCH-LAT-001 latency evidence；M1 仍在进行中，Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未完成。
+项目处于 **M1 late-stage closure + Water pre-M2 preparation + Developer Sound/Debug Tooling planning**。
+M1-A/M1-B foundation、STATE-001/002、AUTO-001、TESTDATA-001、RENDER-001、TEST-002、PERF-BASE-001 和
+ARCH-LAT-001 engineering evidence 已进入 `main`；M1 仍因真实 Host/DAW acceptance、current-artifact
+plugin validation 和 Joint Exit 未完成而保持进行中。Water/Ice、Routing、完整 render regression matrix 和
+正式 UI 仍未实现。
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
-`CODING_PLAN.md` v1.2 使用受控的 baseline transition：在同一 revision 获得 required formal approval
-并合入前，`main` 上的 v1.1 继续作为当前 Approved Development Baseline；经批准的 v1.2
+`CODING_PLAN.md` v1.3 使用受控的 baseline transition：在同一 revision 获得 required formal approval
+并合入前，`main` 上的 v1.2 继续作为当前 Approved Development Baseline；经批准的 v1.3
 revision 合入时成为新的 Approved Development Baseline。feature commit、Issue 或 `REQUEST_CHANGES`
 本身不构成 approval。这不代表 FRAZIL plugin v1.0 release，也不改变 M1、Water/Ice/Routing 的实际完成
 状态：Water production DSP、candidate controls 和 model transition 均未实现或注册。
@@ -27,7 +31,11 @@ revision 合入时成为新的 Approved Development Baseline。feature commit、
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；STATE-001 已建立已知 pre-v1 ID migration fixture，公开版本兼容性仍需后续 freeze/evidence；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
 5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；`frazil_render` + `tools/render_testdata.py` 已提供 M1 pass-through offline smoke，固定 input/config/seed 两次运行并检查 finite output、输出字节一致和完整当前配置/input/output hash manifest；`frazil_render_cli` 覆盖 help 成功路径、enable/routing/balance/amount 非法值拒绝、非默认完整配置 manifest 转发，以及同一 output path 重复渲染覆盖而非追加 WAV；CTest render artifacts 已隔离到 preset build tree；现有 Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；完整 render matrix 和真实 DAW automation 仍待执行；
-6. Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、离散 enable/routing transition 和正式 UI 仍未实现；真实 Host/DAW restore matrix、M5 EditHistoryManager integration、pluginval current-artifact validation 和公开兼容性仍待执行；`PARAM-FREEZE-001` 保持为 M2/M3 -> M4 gate，不是 M1 Exit blocker。
+6. `DEV-UI-001` Developer Control Surface、DiagnosticsSnapshot/debug bundle workflow 均为 PLANNED，尚未实现；
+   它们不是当前 640x360 placeholder，也不是 M5 Production UI。Water、Ice、Routing、EditHistoryManager、
+   完整 render regression matrix、离散 enable/routing transition 和正式 UI 仍未实现；真实 Host/DAW restore
+   matrix、M5 EditHistoryManager integration、pluginval current-artifact validation 和公开兼容性仍待执行；
+   `PARAM-FREEZE-001` 保持为 M2/M3 -> M4 gate，不是 M1 Exit blocker。
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug。PR #9 的人工 review 进一步暴露了角色 ownership、PR creator、commit authorship 和 reviewer evidence 被混为同一账号 gate 的问题；当时提出的“必须由 Implementation DRI account 创建 PR/预绑定不同 reviewer account”属于历史纠正方案，现已由更简单的规则取代：职责和 review evidence 分别真实记录，需要第二人 review 时保留独立 evidence；已有 PR 的后续 push account 必须等于 PR creator；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
@@ -43,7 +51,8 @@ revision 合入时成为新的 Approved Development Baseline。feature commit、
 | Plugin shell | mono/stereo bus check、editor、versioned state XML adapter | M1-C state boundary 已接入；XML createXml/fromXml restore path 已验证；真实 Host/DAW restore 证据仍待执行 |
 | Parameters | 9 个集中式 APVTS 参数静态注册；enabled ID 已使用 `.enabled` | M1 参数路径已接入；`PARAM-FREEZE-001` 是后续 M2/M3 -> M4 gate，不是 M1 Exit blocker |
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration verified；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
-| UI | 640x360 M0 占位界面 | 非产品 UI |
+| UI | 640x360 M0 占位界面 | 非产品 UI；不是计划中的 Developer Control Surface |
+| Developer sound tools | 当前 RENDER-001、TESTDATA-001 和 manual performance harness 可作为离线/工程入口 | `DEV-UI-001` realtime control surface、diagnostics bridge、config export 和 richer Sound Lab workflow 均为 PLANNED，未实现 |
 | Product identity | `docs/PRODUCT_IDENTITY.md` | FRAZIL adopted working/product name；命名词汇不改变参数合同；法律/商标 clearance 不属于当前工程范围 |
 | Tests | `frazil_smoke` + `frazil_unit` + `frazil_plugin_integration` + `frazil_processor_property` + `frazil_latency_contract` + `frazil_render` + `frazil_render_cli` CTest；`frazil_performance` manual benchmark | Release/ASAN 各 7/7 PASS；canonical PERF-BASE-001 的 steady-state、parameter-retarget、CPU/memory/allocation、finite-output 和 denormal evidence 已记录；真实 DAW 测试未完成 |
 | Local validation | PR #18 follow-up 的 Release、ASAN fresh configure、6-job safe build、7/7 CTest 和 Release manual benchmark 结果见 2.6，并按该节记录 exact tested implementation commit；当前 branch HEAD 与最新 CI 以 GitHub live query 为准 | 已验证；本机绝对路径仅在 ignored local configuration/build output，仓库 preset 保持可移植 |
@@ -207,9 +216,11 @@ PluginProcessor
 ## 5. 现状对应 milestone
 
 - M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
-- M1 Audio Skeleton & Parameter Contract：**进行中**。M1-A/M1-B foundation 与 PR #5 中的 STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`；STATE-002 mode-value-retention、AUTO-001 plugin integration、TESTDATA-001 reproducibility infrastructure、RENDER-001 pass-through offline smoke、TEST-002、PERF-BASE-001 和 ARCH-LAT-001 已建立；当前 branch 的 Debug/Release/ASAN engineering evidence 见 `docs/evidence/`；仍缺完整 render regression matrix、真实 DAW 验证、current-artifact pluginval、正式参数 freeze 和 M1 Joint Exit；M5 EditHistoryManager 仍未开始。
-- M2 Water：**未开始**。
-- M3 Ice：**未开始**。
+- M1 Audio Skeleton & Parameter Contract：**late-stage closure / 进行中**。M1 engineering foundation/evidence 已建立并进入 `main`；仍缺完整 render regression matrix、真实 DAW 验证、current-artifact pluginval 和 M1 Joint Exit。`PARAM-FREEZE-001` 仍是 M2/M3 后续 gate；M5 EditHistoryManager 仍未开始。
+- Developer Sound/Debug Tooling：**PLANNED / newly prioritized**。`DEV-UI-001` 是大规模 `EXP-W-002` 前的 Water M2 effective-development-readiness prerequisite，但不是 M1 Exit hard gate。
+- M2 Water：**未开始**；`EXP-W-001` Perceptual Contract preparation 为 PLANNED，不表示 M2 或 Water DSP 已开始。
+- Perceptual Contract framework/template：本 v1.3 branch 为 **Approval Candidate**；经 required approval + merge 后成为 **CURRENT / CONTROLLED**。`EXP-W-001` Water contract instance 仍为 **PLANNED**，尚未产出或验收。
+- M3 Ice：**DEFERRED**；长期 milestone 保留，在 `M2 Exit + Explicit Joint Gate` 确认 Water workflow 可复用于 Ice 前，不启动 Ice experiment、perceptual/parameter redesign 或 production implementation。
 - M4 Routing：**未开始**。
 - M5 UI & Edit History：**未开始**。
 - M6 Beta Hardening：**未开始**。
@@ -228,22 +239,28 @@ PluginProcessor
 
 ```text
 Engineering lane
-  -> RENDER-001 acceptance/finding follow-up
+  -> DEV-UI-001 design/implementation in a separate issue
   -> fix findings handed back from HOST-001
 
 Sound / Host lane
   -> HOST-001 Ableton -> FL Studio -> REAPER
   -> parameter enumeration / automation / save-reopen / DAW render evidence
-  -> representative workload for PERF-BASE-001
-  -> EXP-W-001 perceptual brief only; no production DSP
+  -> EXP-W-001 Perceptual Contract; no candidate or production DSP
+  -> DEV-UI-001 workflow/product usability acceptance
   -> LISTENING-001 representative corpus preparation (parallel; does not block M1 Joint Exit)
 
-Both evidence lanes
+M1 closure and Water readiness
   -> M1 Joint Exit Review
-  -> EXP-W-002 / EXP-I-002 engineering experiments using TESTDATA-001
-  -> EXP-W-003 Water dual-mode validation/refinement and EXP-I-003 selection only after LISTENING-001 is ready
-  -> WATER-006 / ICE-006 listening evidence only after LISTENING-001 is ready
+  -> DEV-UI-001 usable before large-scale EXP-W-002
+  -> EXP-W-002 engineering experiments using TESTDATA-001
+  -> EXP-W-003 Water dual-mode validation/refinement after LISTENING-001 is ready
+  -> WATER-006 listening evidence
   -> Water production only after experiment and Joint Gate
+  -> after M2 Exit, use an Explicit Joint Gate before resuming M3 Ice
 ```
 
-HOST-000 产品目标已冻结，support classification 仍需满足 Engineering Lead review 与 HOST-001 evidence 条件。STATE-001/002、AUTO-001 foundation、TESTDATA-001 original reproducibility/provenance infrastructure（PR #12）和 RENDER-001 pass-through smoke（PR #13）已进入 `main` 并转为 regression/finding ownership；当前 TESTDATA-001 diagnostic semantic refinement 仍是同一 work item 的 finding-driven follow-up，其 PR/CI/merge 状态只以 GitHub live state 为准。不得建立平行实现。Water/Ice/Routing 仍未开始 production。
+HOST-000 产品目标已冻结，support classification 仍需满足 Engineering Lead review 与 HOST-001 evidence 条件。
+已进入 `main` 的 M1 foundation/evidence 只按 regression/finding ownership 维护，不得建立平行实现。
+Developer UI、diagnostics 和 Water-specific Perceptual Contract instance 均不得从本状态文档推断为已实现；
+Perceptual Contract framework/template 只在 v1.3 approval + merge 后成为 CURRENT/CONTROLLED。
+Water/Ice/Routing 仍未开始 production。

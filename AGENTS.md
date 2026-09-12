@@ -18,11 +18,14 @@
 - Agent 不得在本机并发运行多个 configure/build/test pipeline；Debug、Release、ASAN 和其他重型 preset 必须串行执行。
 ## 1. 当前基线
 
-- 当前阶段：M1-C 进行中；M1-A/M1-B Parameter/Engine foundation 与 M1-C STATE-001 versioned StateModel/Host State Adapter foundation 已合入 `main`，M1 尚未完成。
+- 当前阶段：M1 late-stage closure + Water pre-M2 preparation + Developer Sound/Debug Tooling；M1 尚未完成。
 - 已有：JUCE 9.0.1、CMake/Ninja presets、VST3/Standalone、pass-through wet path、APVTS 状态保存、集中式 ParameterLayout、ParameterSnapshot/Mapper、基础 gain/mix/smoothing、9 个 Host 参数和 smoke test。
 - 已有：可移植 CI preset 与 Hosted CI 验证；M1-A/M1-B 的首块 priming、retarget 和 runtime buffer invariant regression 已建立；STATE-001 的 schema migration/fallback、XML restore、STATE-002 mode-value-retention 和 AUTO-001 PluginProcessor integration evidence 已建立。
 - 已有：`TESTDATA-001` 可复现 engineering corpus 与 `RENDER-001` pass-through offline smoke 已进入 `main`；这些能力只按 regression/finding 维护，不另建平行实现。
-- 尚缺：`TEST-002` processor property、`PERF-BASE-001`、`ARCH-LAT-001` 完整证据、真实 Host/DAW validation、编辑历史、Water/Ice/Routing DSP 和正式 UI；公开参数 freeze 与完整兼容性 evidence 仍待完成。
+- 已有：`TEST-002` processor property、`PERF-BASE-001` 和 `ARCH-LAT-001` engineering evidence 已进入 `main`。
+- 尚缺：真实 Host/DAW validation、current-artifact plugin validation、M1 Joint Exit、编辑历史、Water/Ice/Routing DSP 和正式 UI；公开参数 freeze 与完整兼容性 evidence 仍待完成。
+- `DEV-UI-001` 与 DiagnosticsSnapshot/debug bundle workflow 均为 PLANNED，不得写成已实现；Developer Control Surface 不是当前 placeholder，也不是 M5 Production UI。Perceptual Contract framework/template 在本 v1.3 revision approval + merge 后成为 CURRENT/CONTROLLED；`EXP-W-001` Water contract instance 在实际产出并验收前仍为 PLANNED。
+- 当前 Water-first；Ice 的长期 M3 合同保留，但在 `M2 Exit + Explicit Joint Gate` 前，Ice experiment、perceptual/parameter redesign 和 production implementation 均为 DEFERRED。Ice-resume joint decision 必须在已批准的 controlled-plan revision 或对应 planning issue/PR 中留下可审查的 repository/GitHub evidence；除非决定本身命中既有 ADR trigger，否则不自动要求新 ADR。
 - 当前参数合同已将历史 `water.enable` / `ice.enable` 迁移为 `water.enabled` / `ice.enabled`；现有 state migration evidence 已建立，公开兼容性基线前仍需完整 compatibility evidence 与正式参数 freeze。
 - GitHub 远端为 `https://github.com/jjjphens-dot/FRAZIL`。开始产品代码前必须确认工作目录是该仓库的 Git 工作树，且 `origin` 指向该地址。
 
@@ -165,6 +168,22 @@ tests -> 被测模块
 - 公开发布后修改 ID、范围或 state 结构必须提供迁移策略、兼容性测试和 ADR。
 
 ## 6. 实验进入生产的门槛
+
+Perceptual-definition work（例如 `EXP-W-001`）负责从 Human Intent 创建 Perceptual Contract instance，不要求
+预先存在同一 instance。下游主观 DSP experiment/refinement（`EXP-W-002+`）不得把“自然”“柔和”“更流动”等
+形容词直接翻译成某个 DSP 参数或实现；必须同时遵守
+[`docs/PERCEPTUAL_CONTRACT.md`](docs/PERCEPTUAL_CONTRACT.md) 定义的 framework/rules，并读取适用且已验收的
+project-specific contract instance。当前 Water instance 是
+`experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`；提出 candidate 前必须确认该 instance 的 positive、
+negative、must-preserve 和 reject 条件。只读取 framework 文档不满足 Perceptual Contract prerequisite。
+Objective measurement 只能作为 proxy，不得写成 perceptual truth，也不得用单一 quality score 替代 human
+listening decision。
+
+Developer/Experiment control 不等于 production Host parameter。`water.model`、`water.size`、
+`water.motion` 在正式 evidence、Joint Gate、Water ADR 与 state/compatibility review 前，不得因 Developer UI
+需要而进入 `ParameterLayout` 或 state schema。Developer Control Surface 不得被当作 Production UI，也不得
+替代 `HOST-001` 或 deterministic Offline Sound Lab evidence。完整边界见
+[`docs/DEVELOPER_SOUND_TOOLS.md`](docs/DEVELOPER_SOUND_TOOLS.md)。
 
 `experiments/` 中的算法只有同时满足以下条件才能移入 `src/dsp/`：
 
