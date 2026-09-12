@@ -78,22 +78,15 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
     iceEnabledButton_.setTooltip("Current Host parameter: ice.enabled");
     addAndMakeVisible(waterEnabledButton_);
     addAndMakeVisible(iceEnabledButton_);
-    waterEnabledButton_.onClick = [this] { clearDeveloperOverrideForUserEdit(); };
-    iceEnabledButton_.onClick = [this] { clearDeveloperOverrideForUserEdit(); };
+    waterEnabledButton_.onClick = [this] { updateDeveloperOverrideFromUserEdit(); };
+    iceEnabledButton_.onClick = [this] { updateDeveloperOverrideFromUserEdit(); };
 
     routingModeBox_.addItem("Parallel", 1);
     routingModeBox_.addItem("Water -> Ice", 2);
     routingModeBox_.addItem("Ice -> Water", 3);
     routingModeBox_.setTooltip("Current Host parameter: routing.mode");
     addAndMakeVisible(routingModeBox_);
-    routingModeBox_.onChange = [this] { clearDeveloperOverrideForUserEdit(); };
-
-    waterEnabledAttachment_ = std::make_unique<ButtonAttachment>(
-        processor_.parameters, frazil::plugin::parameterIds::waterEnabled, waterEnabledButton_);
-    iceEnabledAttachment_ = std::make_unique<ButtonAttachment>(
-        processor_.parameters, frazil::plugin::parameterIds::iceEnabled, iceEnabledButton_);
-    routingModeAttachment_ = std::make_unique<ComboBoxAttachment>(
-        processor_.parameters, frazil::plugin::parameterIds::routingMode, routingModeBox_);
+    routingModeBox_.onChange = [this] { updateDeveloperOverrideFromUserEdit(); };
 
     for (std::size_t index = 0; index < parameterSliders_.size(); ++index) {
         configureLabel(parameterLabels_[index], kSliderLabels[index]);
@@ -102,10 +95,10 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
                                             kSliderParameterIds[index]);
         addAndMakeVisible(parameterLabels_[index]);
         addAndMakeVisible(parameterSliders_[index]);
-        parameterAttachments_[index] = std::make_unique<SliderAttachment>(
-            processor_.parameters, kSliderParameterIds[index], parameterSliders_[index]);
-        parameterSliders_[index].onDragStart = [this] { clearDeveloperOverrideForUserEdit(); };
+        parameterSliders_[index].onValueChange = [this] { updateDeveloperOverrideFromUserEdit(); };
     }
+
+    attachHostParameterControls();
 
     configureLabel(waterModelLabel_, "Model");
     configureLabel(waterSizeLabel_, "Size");
@@ -156,6 +149,7 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
          {static_cast<juce::Button*>(&captureAButton_), static_cast<juce::Button*>(&applyAButton_),
           static_cast<juce::Button*>(&captureBButton_), static_cast<juce::Button*>(&applyBButton_),
           static_cast<juce::Button*>(&dryButton_), static_cast<juce::Button*>(&processedButton_),
+          static_cast<juce::Button*>(&returnHostButton_),
           static_cast<juce::Button*>(&resetHostButton_),
           static_cast<juce::Button*>(&resetExperimentButton_),
           static_cast<juce::Button*>(&copyConfigButton_),
@@ -174,6 +168,7 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
     processedButton_.onClick = [this] {
         setComparisonMode(frazil::plugin::DeveloperComparisonMode::processed);
     };
+    returnHostButton_.onClick = [this] { returnToHost(); };
     resetHostButton_.onClick = [this] { resetHostParameters(); };
     resetExperimentButton_.onClick = [this] { resetExperimentControls(); };
     copyConfigButton_.onClick = [this] { copyExperimentConfig(); };
@@ -203,6 +198,33 @@ void FRAZILAudioProcessorEditor::configureSlider(juce::Slider& slider) {
     slider.setColour(juce::Slider::textBoxTextColourId, kText);
     slider.setColour(juce::Slider::textBoxBackgroundColourId, kBackground);
     slider.setColour(juce::Slider::textBoxOutlineColourId, kPanelBorder);
+}
+
+void FRAZILAudioProcessorEditor::attachHostParameterControls() {
+    if (hostParameterControlsAttached())
+        return;
+
+    waterEnabledAttachment_ = std::make_unique<ButtonAttachment>(
+        processor_.parameters, frazil::plugin::parameterIds::waterEnabled, waterEnabledButton_);
+    iceEnabledAttachment_ = std::make_unique<ButtonAttachment>(
+        processor_.parameters, frazil::plugin::parameterIds::iceEnabled, iceEnabledButton_);
+    routingModeAttachment_ = std::make_unique<ComboBoxAttachment>(
+        processor_.parameters, frazil::plugin::parameterIds::routingMode, routingModeBox_);
+    for (std::size_t index = 0; index < parameterSliders_.size(); ++index)
+        parameterAttachments_[index] = std::make_unique<SliderAttachment>(
+            processor_.parameters, kSliderParameterIds[index], parameterSliders_[index]);
+}
+
+void FRAZILAudioProcessorEditor::detachHostParameterControls() {
+    for (auto& attachment : parameterAttachments_)
+        attachment.reset();
+    routingModeAttachment_.reset();
+    iceEnabledAttachment_.reset();
+    waterEnabledAttachment_.reset();
+}
+
+bool FRAZILAudioProcessorEditor::hostParameterControlsAttached() const noexcept {
+    return waterEnabledAttachment_ != nullptr;
 }
 
 frazil::plugin::DeveloperExperimentSnapshot
@@ -255,25 +277,88 @@ void FRAZILAudioProcessorEditor::syncExperimentControls(
     waterMotionSlider_.setValue(snapshot.motion, juce::dontSendNotification);
 }
 
-void FRAZILAudioProcessorEditor::applyExperimentSnapshot(
-    const frazil::plugin::DeveloperExperimentSnapshot& snapshot, int slotIndex) {
-    processor_.setDeveloperHostParameterOverride(snapshot.host);
-    syncHostControls(snapshot.host);
-    syncExperimentControls(snapshot.water);
-    setComparisonMode(snapshot.comparisonMode);
+void FRAZILAudioProcessorEditor::activateDeveloperOverride(
+    const frazil::plugin::DeveloperHostParameterSnapshot& snapshot, int slotIndex) {
+    const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
+    processor_.setDeveloperHostParameterOverride(snapshot);
+    detachHostParameterControls();
+    syncHostControls(snapshot);
     currentAppliedSlot_ = slotIndex;
     updateWorkflowSummary();
 }
 
-void FRAZILAudioProcessorEditor::clearDeveloperOverrideForUserEdit() {
+void FRAZILAudioProcessorEditor::applyExperimentSnapshot(
+    const frazil::plugin::DeveloperExperimentSnapshot& snapshot, int slotIndex) {
+    activateDeveloperOverride(snapshot.host, slotIndex);
+    syncExperimentControls(snapshot.water);
+    setComparisonMode(snapshot.comparisonMode);
+    updateWorkflowSummary();
+}
+
+void FRAZILAudioProcessorEditor::updateDeveloperOverrideFromUserEdit() {
     if (syncingDeveloperView_ || !processor_.isDeveloperHostParameterOverrideActive())
         return;
 
-    processor_.clearDeveloperHostParameterOverride();
+    auto snapshot = processor_.getDeveloperHostParameterSnapshot();
+    snapshot
+        .rawValues[static_cast<std::size_t>(frazil::plugin::DeveloperHostParameter::waterEnabled)] =
+        waterEnabledButton_.getToggleState() ? 1.0f : 0.0f;
+    snapshot
+        .rawValues[static_cast<std::size_t>(frazil::plugin::DeveloperHostParameter::iceEnabled)] =
+        iceEnabledButton_.getToggleState() ? 1.0f : 0.0f;
+    snapshot
+        .rawValues[static_cast<std::size_t>(frazil::plugin::DeveloperHostParameter::routingMode)] =
+        static_cast<float>(routingModeBox_.getSelectedItemIndex());
+
+    constexpr std::array indices{frazil::plugin::DeveloperHostParameter::parallelBalance,
+                                 frazil::plugin::DeveloperHostParameter::waterAmount,
+                                 frazil::plugin::DeveloperHostParameter::iceAmount,
+                                 frazil::plugin::DeveloperHostParameter::inputGainDb,
+                                 frazil::plugin::DeveloperHostParameter::globalMix,
+                                 frazil::plugin::DeveloperHostParameter::outputGainDb};
+    for (std::size_t index = 0; index < parameterSliders_.size(); ++index)
+        snapshot.rawValues[static_cast<std::size_t>(indices[index])] =
+            static_cast<float>(parameterSliders_[index].getValue());
+
+    processor_.setDeveloperHostParameterOverride(snapshot);
     currentAppliedSlot_ = -1;
-    syncHostControls(processor_.getDeveloperHostParameterSnapshot());
     updateWorkflowSummary();
-    setWorkflowStatus("Developer comparison cleared; Host controls are live again.");
+    setWorkflowStatus(
+        "Edited the effective Developer override; Host/APVTS remains underlying. Use Return Host "
+        "to resume Host values.");
+}
+
+void FRAZILAudioProcessorEditor::returnToHost() {
+    const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
+    processor_.clearDeveloperHostParameterOverride();
+    attachHostParameterControls();
+    syncHostControls(processor_.getDeveloperHostParameterSnapshot());
+    currentAppliedSlot_ = -1;
+    updateWorkflowSummary();
+    setWorkflowStatus("Returned to current Host/APVTS values; Developer override is inactive.");
+}
+
+void FRAZILAudioProcessorEditor::ensureHostParameterAttachmentMode() {
+    const auto overrideActive = processor_.isDeveloperHostParameterOverrideActive();
+    if (overrideActive == hostParameterControlsAttached()) {
+        if (!overrideActive)
+            return;
+
+        const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
+        detachHostParameterControls();
+        syncHostControls(processor_.getDeveloperHostParameterSnapshot());
+        return;
+    }
+
+    if (overrideActive) {
+        const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
+        detachHostParameterControls();
+        syncHostControls(processor_.getDeveloperHostParameterSnapshot());
+    } else {
+        const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
+        attachHostParameterControls();
+        syncHostControls(processor_.getDeveloperHostParameterSnapshot());
+    }
 }
 
 void FRAZILAudioProcessorEditor::setComparisonMode(frazil::plugin::DeveloperComparisonMode mode) {
@@ -304,11 +389,15 @@ void FRAZILAudioProcessorEditor::updateWorkflowSummary() {
     else if (processor_.isDeveloperHostParameterOverrideActive())
         current = "Developer override";
 
-    workflowStateLabel_.setText(juce::String("A: ") + slotState(abStates_[0]) + "  |  B: " +
-                                    slotState(abStates_[1]) + "  |  Current: " + current + "  |  " +
-                                    comparisonModeName(processor_.getDeveloperComparisonMode()) +
-                                    "  |  temporary / not serialized / not a preset",
-                                juce::dontSendNotification);
+    const auto stateBoundary = processor_.isDeveloperHostParameterOverrideActive()
+                                   ? "  |  Host/APVTS remains underlying"
+                                   : "";
+    workflowStateLabel_.setText(
+        juce::String("A: ") + slotState(abStates_[0]) + "  |  B: " + slotState(abStates_[1]) +
+            "  |  Current: " + current + "  |  " +
+            comparisonModeName(processor_.getDeveloperComparisonMode()) + stateBoundary +
+            "  |  temporary / not serialized / not a preset",
+        juce::dontSendNotification);
 }
 
 void FRAZILAudioProcessorEditor::captureSlot(int slotIndex) {
@@ -352,10 +441,7 @@ void FRAZILAudioProcessorEditor::resetHostParameters() {
                 processor_.parameters.getParameterRange(id).convertFrom0to1(
                     parameter->getDefaultValue());
     }
-    processor_.setDeveloperHostParameterOverride(defaults);
-    syncHostControls(defaults);
-    currentAppliedSlot_ = -1;
-    updateWorkflowSummary();
+    activateDeveloperOverride(defaults, -1);
     setWorkflowStatus(
         "Developer-reset all nine Host values to defaults; APVTS and Host were not edited.");
 }
@@ -445,6 +531,7 @@ void FRAZILAudioProcessorEditor::setWorkflowStatus(const juce::String& text) {
 }
 
 void FRAZILAudioProcessorEditor::timerCallback() {
+    ensureHostParameterAttachmentMode();
     const auto diagnostics = processor_.getDeveloperDiagnosticsSnapshot();
     const auto host = processor_.getDeveloperHostParameterSnapshot();
     const auto routingIndex = static_cast<int>(std::lround(host.rawValues[static_cast<std::size_t>(
@@ -533,9 +620,10 @@ void FRAZILAudioProcessorEditor::resized() {
     auto workflow = right.removeFromTop(96);
     const auto buttonWidth = workflow.getWidth() / 4;
     const auto buttonHeight = workflow.getHeight() / 3;
-    std::array<juce::Button*, 10> buttons{
-        &captureAButton_,   &applyAButton_,      &captureBButton_,  &applyBButton_,
-        &dryButton_,        &processedButton_,   &resetHostButton_, &resetExperimentButton_,
+    std::array<juce::Button*, 11> buttons{
+        &captureAButton_,   &applyAButton_,      &captureBButton_,
+        &applyBButton_,     &dryButton_,         &processedButton_,
+        &returnHostButton_, &resetHostButton_,   &resetExperimentButton_,
         &copyConfigButton_, &exportConfigButton_};
     for (std::size_t index = 0; index < buttons.size(); ++index) {
         const auto row = static_cast<int>(index / 4);

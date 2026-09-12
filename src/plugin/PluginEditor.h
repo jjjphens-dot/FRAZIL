@@ -35,11 +35,18 @@ class FRAZILAudioProcessorEditor final : public juce::AudioProcessorEditor
 
     void configureLabel(juce::Label&, const juce::String& text, bool heading = false);
     void configureSlider(juce::Slider&);
+    void attachHostParameterControls();
+    void detachHostParameterControls();
+    bool hostParameterControlsAttached() const noexcept;
     frazil::plugin::DeveloperExperimentSnapshot captureCurrentExperiment() const;
     void syncHostControls(const frazil::plugin::DeveloperHostParameterSnapshot&);
     void syncExperimentControls(const frazil::plugin::DeveloperWaterExperimentSnapshot&);
+    void activateDeveloperOverride(const frazil::plugin::DeveloperHostParameterSnapshot&,
+                                   int slotIndex);
     void applyExperimentSnapshot(const frazil::plugin::DeveloperExperimentSnapshot&, int slotIndex);
-    void clearDeveloperOverrideForUserEdit();
+    void updateDeveloperOverrideFromUserEdit();
+    void returnToHost();
+    void ensureHostParameterAttachmentMode();
     void setComparisonMode(frazil::plugin::DeveloperComparisonMode);
     void updateComparisonButtons();
     void updateWorkflowSummary();
@@ -87,6 +94,7 @@ class FRAZILAudioProcessorEditor final : public juce::AudioProcessorEditor
     juce::TextButton applyBButton_{"Apply B"};
     juce::TextButton dryButton_{"Dry"};
     juce::TextButton processedButton_{"Processed"};
+    juce::TextButton returnHostButton_{"Return Host"};
     juce::TextButton resetHostButton_{"Reset Host"};
     juce::TextButton resetExperimentButton_{"Reset Exp"};
     juce::TextButton copyConfigButton_{"Copy Config"};
