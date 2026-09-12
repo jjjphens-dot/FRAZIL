@@ -33,12 +33,14 @@ revision 合入时成为新的 Approved Development Baseline。feature commit、
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
 5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；`frazil_render` + `tools/render_testdata.py` 已提供 M1 pass-through offline smoke，固定 input/config/seed 两次运行并检查 finite output、输出字节一致和完整当前配置/input/output hash manifest；`frazil_render_cli` 覆盖 help 成功路径、enable/routing/balance/amount 非法值拒绝、非默认完整配置 manifest 转发，以及同一 output path 重复渲染覆盖而非追加 WAV；CTest render artifacts 已隔离到 preset build tree；现有 Debug VST3 artifact 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；完整 render matrix 和真实 DAW automation 仍待执行；
 6. 当前开发 baseline 仍将 `DEV-UI-001` 视为 PLANNED；follow-up feature branch 包含一个仅 Debug/ASAN 可用的
-   candidate：它绑定当前 9 个 Host 参数，保持 Water experiment-only controls，使用不触碰 APVTS 的临时
-   A/B/Reset override，提供 developer-only Dry/Processed comparison、完整 draft experiment-config export 和
-   prepared/latest block diagnostics。该 candidate 不是 M5 Production UI，也不改变 Host registry 或 plugin
-   state schema；interactive usability、pluginval、真实 Host/DAW、listening 和 Offline Sound Lab handoff 仍待
-   完成。Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、离散 enable/routing
-   transition 和正式 UI 仍未实现；`PARAM-FREEZE-001` 保持为 M2/M3 -> M4 gate，不是 M1 Exit blocker。
+   engineering-ready candidate：它绑定当前 9 个 Host 参数，保持 Water experiment-only controls，在 override
+   active 时让 effective developer state 拥有可见 controls，并提供显式 Return Host；它还覆盖不触碰 APVTS
+   的临时 A/B/Reset override、developer-only Dry/Processed comparison、完整 draft experiment-config export
+   和 coherent prepared/latest block diagnostics。该 candidate 不是 M5 Production UI，也不改变 Host registry
+   或 plugin state schema；interactive usability、pluginval、真实 Host/DAW、listening 和 Offline Sound Lab
+   handoff 仍待完成。Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、离散
+   enable/routing transition 和正式 UI 仍未实现；`PARAM-FREEZE-001` 保持为 M2/M3 -> M4 gate，不是 M1 Exit
+   blocker。
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug。PR #9 的人工 review 进一步暴露了角色 ownership、PR creator、commit authorship 和 reviewer evidence 被混为同一账号 gate 的问题；当时提出的“必须由 Implementation DRI account 创建 PR/预绑定不同 reviewer account”属于历史纠正方案，现已由更简单的规则取代：职责和 review evidence 分别真实记录，需要第二人 review 时保留独立 evidence；已有 PR 的后续 push account 必须等于 PR creator；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
@@ -54,8 +56,8 @@ revision 合入时成为新的 Approved Development Baseline。feature commit、
 | Plugin shell | mono/stereo bus check、editor、versioned state XML adapter | M1-C state boundary 已接入；XML createXml/fromXml restore path 已验证；真实 Host/DAW restore 证据仍待执行 |
 | Parameters | 9 个集中式 APVTS 参数静态注册；enabled ID 已使用 `.enabled` | M1 参数路径已接入；`PARAM-FREEZE-001` 是后续 M2/M3 -> M4 gate，不是 M1 Exit blocker |
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration verified；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
-| UI | follow-up feature branch 的 Debug/ASAN DEV-UI-001 candidate；Release 保留静态占位界面 | 非产品 UI；当前 baseline 仍 planned；interactive usability、pluginval、DAW 和 M5 Production UI 未完成 |
-| Developer sound tools | RENDER-001、TESTDATA-001、manual performance harness，以及 candidate 的 realtime controls、developer override、Dry/Processed、bounded diagnostics 和 draft config export | branch candidate 已有 Debug/Release/ASAN CTest evidence；正式 acceptance、debug bundle、Offline Sound Lab handoff 仍为 PLANNED |
+| UI | follow-up feature branch 的 Debug/ASAN DEV-UI-001 engineering-ready candidate；Release 保留静态占位界面 | 非产品 UI；当前 baseline 仍 planned；interactive usability、pluginval、DAW 和 M5 Production UI 未完成 |
+| Developer sound tools | RENDER-001、TESTDATA-001、manual performance harness，以及 candidate 的 effective controls、developer override、Dry/Processed、coherent bounded diagnostics、A/B slots 和 draft config export | branch candidate 的工程收口已完成；正式 acceptance、debug bundle、Offline Sound Lab handoff 仍为 PLANNED |
 | Product identity | `docs/PRODUCT_IDENTITY.md` | FRAZIL adopted working/product name；命名词汇不改变参数合同；法律/商标 clearance 不属于当前工程范围 |
 | Tests | `frazil_smoke` + `frazil_unit` + `frazil_plugin_integration` + `frazil_processor_property` + `frazil_latency_contract` + `frazil_render` + `frazil_render_cli` CTest；`frazil_performance` manual benchmark | Release/ASAN 各 7/7 PASS；canonical PERF-BASE-001 的 steady-state、parameter-retarget、CPU/memory/allocation、finite-output 和 denormal evidence 已记录；真实 DAW 测试未完成 |
 | Local validation | PR #18 follow-up 的 Release、ASAN fresh configure、6-job safe build、7/7 CTest 和 Release manual benchmark 结果见 2.6，并按该节记录 exact tested implementation commit；当前 branch HEAD 与最新 CI 以 GitHub live query 为准 | 已验证；本机绝对路径仅在 ignored local configuration/build output，仓库 preset 保持可移植 |

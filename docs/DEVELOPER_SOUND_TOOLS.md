@@ -2,9 +2,9 @@
 
 > Document status: Approval Candidate in v1.3; CURRENT/CONTROLLED after approval and merge.<br>
 > Capability implementation status: tracked individually as CURRENT / PLANNED / CANDIDATE / DEFERRED below.<br>
-> A Debug/ASAN Developer Control Surface candidate exists on the follow-up feature branch; the current
-> development baseline remains PLANNED until review, merge and usability acceptance. Offline Sound Lab handoff
-> remains in progress.
+> A Debug/ASAN Developer Control Surface candidate exists on the follow-up feature branch and is engineering-ready
+> for Sound & Host Lead usability acceptance; the current development baseline remains PLANNED until review, merge
+> and acceptance. Offline Sound Lab handoff remains in progress.
 
 ## 1. Purpose and boundaries
 
@@ -30,16 +30,18 @@ experimentation. It is not an M1 architecture-correctness exit gate, and `HOST-0
   `requirements-dsp.txt` Python environment. The analyzer already provides waveform diagnostics, FFT, Welch PSD,
   RMS, DC, stereo correlation and STFT/spectrogram analysis.
 - **CURRENT after v1.3 approval/merge**: the Perceptual Contract framework, template and Agent usage rules.
-- **CANDIDATE (follow-up feature branch)**: a Debug/ASAN-only `DEV-UI-001` surface in `src/plugin/PluginEditor.*`
-  binds the nine current Host parameters, keeps Water Model/Size/Motion experiment-only, uses a temporary
-  non-APVTS A/B/reset override, provides Dry/Processed comparison, exports the complete draft experiment state,
-  and displays prepared/latest block diagnostics. It is not the Production UI and has not received workflow
-  usability acceptance; this candidate is not the current main baseline.
+- **CANDIDATE (follow-up feature branch, engineering-ready)**: a Debug/ASAN-only `DEV-UI-001` surface in
+  `src/plugin/PluginEditor.*` binds the nine current Host parameters, keeps Water Model/Size/Motion
+  experiment-only, detaches APVTS attachments while a temporary non-APVTS override is active, and provides an
+  explicit Return Host path. It provides Dry/Processed comparison, bounded A/B/reset slots, complete draft
+  experiment-state export, and coherent prepared/latest block diagnostics. It is not the Production UI and has
+  not received workflow usability acceptance; this candidate is not the current main baseline.
 - **PLANNED**: final `DEV-UI-001` acceptance, richer Offline Sound Lab review packs, reproducible debug bundles,
   automated review-pack generation, LUFS/true peak, spectral flux, onset, pitch/harmonic-retention and extended
   tail analysis. The `EXP-W-001` Water Perceptual Contract instance remains PLANNED until produced and accepted.
-- **CANDIDATE**: final developer-build isolation, diagnostic transport/schema hardening, UI layout acceptance,
-  A/B storage lifetime, and Water experimental-control mapping.
+- **CANDIDATE / PLANNED**: Sound & Host Lead workflow usability and UI layout acceptance, richer diagnostic/debug
+  bundle evidence, and Water experimental-control mapping. The current bounded A/B storage is temporary editor
+  state and is not a persistent preset or plugin state.
 - **DEFERRED**: Production UI, production presets, generic modulation and a large logging framework remain at their
   existing later-plan gates. Ice tooling remains deferred until `M2 Exit + Explicit Joint Gate` confirms that the
   Water workflow is reusable for Ice.
@@ -60,11 +62,12 @@ Motion. Before explicit parameter adoption, these controls are not Host paramete
 internal transport is a `DEV-UI-001` implementation decision and must preserve the repository dependency and
 realtime boundaries.
 
-The follow-up feature-branch candidate keeps normal user Host controls on APVTS attachments but applies temporary
-A/B/Reset values through a bounded developer-only override. Water Model/Size/Motion remain outside the Host registry,
-automation and plugin state. Dry/Processed comparison reuses the preallocated dry reference and does not change
-`global.mix`; the candidate still requires workflow usability acceptance and does not provide the full debug-bundle
-workflow required for final DEV-UI-001 acceptance.
+When the developer override is inactive, normal Host controls use APVTS attachments. While the override is active,
+those attachments are detached so the visible controls remain authoritative for the effective developer state;
+Return Host clears the override, reattaches the APVTS controls and restores Host/APVTS as effective state. Water
+Model/Size/Motion remain outside the Host registry, automation and plugin state. Dry/Processed comparison reuses the
+preallocated dry reference and does not change `global.mix`; the candidate still requires workflow usability
+acceptance and does not provide the full debug-bundle workflow required for final DEV-UI-001 acceptance.
 
 The first version should provide:
 
@@ -125,9 +128,10 @@ The audio thread must not perform disk/network/console I/O, string formatting, d
 blocking locks or unbounded queue growth. A complex logging framework is explicitly out of scope.
 
 The candidate uses `DeveloperDiagnostics` as a bounded latest-block transport. Debug/ASAN builds publish input/output
-peak and RMS, finite status, prepared maximum block size and latest callback block size; the editor polls the snapshot
-on the message thread. Release builds select the non-developer placeholder and compile out the callback diagnostics
-publication path.
+peak and RMS, finite status, prepared maximum block size and latest callback block size; a bounded two-slot
+sequence-check keeps the editor from accepting a torn snapshot and falls back to the previous valid snapshot if a
+read is not coherent. The editor polls the snapshot on the message thread. Release builds select the non-developer
+placeholder and compile out the callback diagnostics publication path.
 
 A future reproducible debug bundle may contain input/output audio, experiment parameters, engine state, diagnostics,
 analysis, performance observations, plots, build provenance and a short README. Raw machine-specific paths and

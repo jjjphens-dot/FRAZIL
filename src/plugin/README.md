@@ -9,7 +9,7 @@
 - `PluginProcessor` 的 bus、生命周期、APVTS 当前骨架、`processBlock` 和 versioned XML state round-trip；
 - `PluginEditor` 的 JUCE editor lifecycle；Debug/ASAN 构建提供 follow-up branch 上的 DEV-UI-001 Developer Control Surface candidate，Release 构建保留静态占位界面；
 - `src/plugin/ParameterLayout.*` 负责 Host/JUCE-facing 静态参数注册；`PluginProcessor` 缓存原子参数源并在 audio block 边界创建 Snapshot，再调用 app 层。
-- `DeveloperDiagnostics` 只提供从 `processBlock` 到开发 editor 的 bounded latest-block snapshot，不是插件 state、日志队列或 Production UI 状态。
+- `DeveloperDiagnostics` 只提供从 `processBlock` 到开发 editor 的 bounded latest-block snapshot；双槽 sequence-check 保证 message-thread 只接受 coherent snapshot，不是插件 state、日志队列或 Production UI 状态。
 - `DeveloperParameterOverride` 和 `DeveloperExperimentState` 只承载临时 developer comparison state；它们不修改 APVTS、Host automation 或生产 plugin state。
 
 ## Non-responsibilities
@@ -30,12 +30,12 @@ Host state <-> Plugin Host State Adapter -> app StateModel
 
 PluginEditor -> plugin parameter interface
 processBlock -> bounded DeveloperDiagnostics snapshot -> Developer editor (Debug/ASAN only)
-PluginEditor -> developer-only comparison override -> ParameterSnapshot (Debug/ASAN only)
+PluginEditor -> effective developer state / Return Host -> developer-only comparison override -> ParameterSnapshot (Debug/ASAN only)
 ```
 
 ## Public Interfaces
 
-当前 `PluginProcessor` 暴露 JUCE lifecycle、`prepareToPlay`、`processBlock`、editor、state API 和 Debug/ASAN-only 的 diagnostics/developer comparison consumer API；APVTS 仍为 public member，是后续需要收窄审查的技术债。参数 layout 已迁移到 `src/plugin/ParameterLayout.*`，并由 M1 合同测试固定顺序和 ID。`HostStateAdapter` 将 APVTS state 转换为带 `schemaVersion=1` 的稳定 envelope，并把 restore 留在非音频线程；developer override 不参与该 envelope。
+当前 `PluginProcessor` 暴露 JUCE lifecycle、`prepareToPlay`、`processBlock`、editor、state API 和 Debug/ASAN-only 的 diagnostics/developer comparison consumer API；APVTS 仍为 public member，是后续需要收窄审查的技术债。参数 layout 已迁移到 `src/plugin/ParameterLayout.*`，并由 M1 合同测试固定顺序和 ID。`HostStateAdapter` 将 APVTS state 转换为带 `schemaVersion=1` 的稳定 envelope，并把 restore 留在非音频线程；developer override 不参与该 envelope，state restore 会清除该临时 override。
 
 `ParameterLayout` 只参与 Plugin construction/setup 的稳定 Host 参数注册，不参与 per-block audio runtime chain；runtime 从 Host Parameter Atomics 建立 `ParameterSnapshot` 开始。
 
@@ -53,7 +53,7 @@ PluginProcessor 拥有 APVTS、AudioEngine 和 editor 生命周期；JUCE factor
 
 ## Implementation Overview
 
-M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing 的 gain/mix skeleton；wet path 仍为 pass-through。M1-C 已把 `processBlock` 之外的 state save/restore 接入 versioned `HostStateAdapter`/`StateModel` boundary；plugin integration evidence 已覆盖连续 gain automation 进入 audio path，以及三种 routing mode 切换后的 inactive value retention/state reopen。DEV-UI-001 follow-up candidate 仅在 Debug/ASAN 中提供九个当前 Host 参数的 attachment、experiment-only Water controls、非 APVTS 临时 A/B/Reset、Dry/Processed path、完整 draft config export 和 prepared/latest diagnostics；它不改变 Host registry/state schema，也不替代 HOST-001。candidate 尚未完成 workflow usability、pluginval、DAW 或 listening acceptance；`EditHistoryManager` remains planned for M5 (HIST-001..004)。
+M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing 的 gain/mix skeleton；wet path 仍为 pass-through。M1-C 已把 `processBlock` 之外的 state save/restore 接入 versioned `HostStateAdapter`/`StateModel` boundary；plugin integration evidence 已覆盖连续 gain automation 进入 audio path，以及三种 routing mode 切换后的 inactive value retention/state reopen。DEV-UI-001 follow-up candidate 仅在 Debug/ASAN 中提供九个当前 Host 参数的 attachment、experiment-only Water controls、active override 时由 effective developer state 接管的可见 controls、显式 Return Host、非 APVTS 临时 A/B/Reset、Dry/Processed path、完整 draft config export 和 coherent prepared/latest diagnostics；它不改变 Host registry/state schema，也不替代 HOST-001。candidate 尚未完成 workflow usability、pluginval、DAW 或 listening acceptance；`EditHistoryManager` remains planned for M5 (HIST-001..004)。
 
 ## Tests
 
