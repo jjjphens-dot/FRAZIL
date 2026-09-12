@@ -69,6 +69,10 @@ Model/Size/Motion remain outside the Host registry, automation and plugin state.
 preallocated dry reference and does not change `global.mix`; the candidate still requires workflow usability
 acceptance and does not provide the full debug-bundle workflow required for final DEV-UI-001 acceptance.
 
+The editor also reconciles an external Host/APVTS state restore: if the Processor clears a Developer override while
+attachments are detached, the next bounded editor reconciliation reattaches Host controls, syncs restored values and
+updates the Dry/Processed selection from the Processor comparison mode.
+
 The first version should provide:
 
 - sample rate, block size and channel count;

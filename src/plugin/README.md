@@ -53,7 +53,7 @@ PluginProcessor 拥有 APVTS、AudioEngine 和 editor 生命周期；JUCE factor
 
 ## Implementation Overview
 
-M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing 的 gain/mix skeleton；wet path 仍为 pass-through。M1-C 已把 `processBlock` 之外的 state save/restore 接入 versioned `HostStateAdapter`/`StateModel` boundary；plugin integration evidence 已覆盖连续 gain automation 进入 audio path，以及三种 routing mode 切换后的 inactive value retention/state reopen。DEV-UI-001 follow-up candidate 仅在 Debug/ASAN 中提供九个当前 Host 参数的 attachment、experiment-only Water controls、active override 时由 effective developer state 接管的可见 controls、显式 Return Host、非 APVTS 临时 A/B/Reset、Dry/Processed path、完整 draft config export 和 coherent prepared/latest diagnostics；它不改变 Host registry/state schema，也不替代 HOST-001。candidate 尚未完成 workflow usability、pluginval、DAW 或 listening acceptance；`EditHistoryManager` remains planned for M5 (HIST-001..004)。
+M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing 的 gain/mix skeleton；wet path 仍为 pass-through。M1-C 已把 `processBlock` 之外的 state save/restore 接入 versioned `HostStateAdapter`/`StateModel` boundary；plugin integration evidence 已覆盖连续 gain automation 进入 audio path，以及三种 routing mode 切换后的 inactive value retention/state reopen。DEV-UI-001 follow-up candidate 仅在 Debug/ASAN 中提供九个当前 Host 参数的 attachment、experiment-only Water controls、active override 时由 effective developer state 接管的可见 controls、显式 Return Host、外部 Host restore 后的 attachment/comparison reconciliation、非 APVTS 临时 A/B/Reset、Dry/Processed path、完整 draft config export 和 coherent prepared/latest diagnostics；它不改变 Host registry/state schema，也不替代 HOST-001。candidate 尚未完成 workflow usability、pluginval、DAW 或 listening acceptance；`EditHistoryManager` remains planned for M5 (HIST-001..004)。
 
 ## Tests
 

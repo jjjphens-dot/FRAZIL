@@ -165,8 +165,9 @@ MSVC 环境、`tools/vscode_build_safe.cmd --preset <name> --jobs 6` safe wrappe
 Debug、Release、ASAN 均 7/7 通过。当前证据支持“无复现的栈越界”，不把这次结果写成完整 UI usability 或
 Host/DAW acceptance。
 
-Final engineering follow-up 还通过 effective-state ownership、Host-change-under-override、state-restore、
-coherent diagnostics publication/readback 和 complete temporary A/B slot regression；并通过
+Final engineering follow-up 还通过 effective-state ownership、Host-change-under-override、state-restore、Editor
+attachment/comparison-button reconciliation、coherent diagnostics publication/readback 和 complete temporary A/B
+slot regression；并通过
 `python tools/check_markdown_links.py`、`python tools/check_portability.py` 与 `git diff --check`。Release
 isolation audit 确认 Debug/ASAN 使用 `FRAZIL_ENABLE_DEVELOPER_UI=1`，Release 使用 `0`，且
 `ParameterLayout` 不包含 Water candidate IDs。Dry/Processed 的代码路径和 finite/serialization boundary
