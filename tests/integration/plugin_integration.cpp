@@ -72,6 +72,17 @@ frazil::plugin::DeveloperHostParameterSnapshot makeDeveloperHostSnapshot() {
     snapshot.rawValues = {1.0f, 1.0f, 0.0f, 0.25f, 0.4f, 0.8f, 6.0f, 0.3f, -3.0f};
     return snapshot;
 }
+
+frazil::plugin::DeveloperHostParameterSnapshot makeDeveloperGeneration(int generation) {
+    frazil::plugin::DeveloperHostParameterSnapshot values;
+    values.rawValues = {
+        static_cast<float>(generation & 1),      static_cast<float>((generation + 1) & 1),
+        static_cast<float>(generation % 3),      static_cast<float>(100000 + generation),
+        static_cast<float>(200000 + generation), static_cast<float>(300000 + generation),
+        static_cast<float>(400000 + generation), static_cast<float>(500000 + generation),
+        static_cast<float>(600000 + generation)};
+    return values;
+}
 #endif
 
 void testParameterAutomationReachesAudioPath(TestContext& context) {
@@ -223,28 +234,77 @@ void testDeveloperDiagnosticsConcurrentPublication(TestContext& context) {
            "diagnostics retains the final published generation");
 }
 
+void testDeveloperOverrideRejectsStaleEditAfterClear(TestContext& context) {
+    frazil::plugin::DeveloperParameterOverride override;
+    const auto initial = makeDeveloperHostSnapshot();
+    override.set(initial);
+
+    const auto editToken = override.getActiveControlToken();
+    expect(context, override.isActive(), "stale-edit regression starts with an active override");
+    expect(context, editToken.has_value(), "stale-edit regression captures an active token");
+    if (!editToken)
+        return;
+
+    std::atomic<bool> editReady{false};
+    std::atomic<bool> clearCompleted{false};
+    std::atomic<bool> staleCommitAccepted{false};
+
+    std::thread editor([&] {
+        auto edited = initial;
+        edited.rawValues[static_cast<std::size_t>(
+            frazil::plugin::DeveloperHostParameter::inputGainDb)] = 18.0f;
+        editReady.store(true, std::memory_order_release);
+        while (!clearCompleted.load(std::memory_order_acquire))
+            std::this_thread::yield();
+
+        staleCommitAccepted.store(override.trySetIfCurrent(edited, *editToken),
+                                  std::memory_order_release);
+    });
+
+    std::thread hostRestore([&] {
+        while (!editReady.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        override.clear();
+        clearCompleted.store(true, std::memory_order_release);
+    });
+
+    editor.join();
+    hostRestore.join();
+    expect(context, clearCompleted.load(std::memory_order_acquire),
+           "stale-edit regression observes completed Host restore clear");
+    expect(context, !staleCommitAccepted.load(std::memory_order_acquire),
+           "stale Developer edit is rejected after Host restore clear");
+    expect(context, !override.isActive(),
+           "rejected stale Developer edit cannot reactivate the override");
+}
+
 void testDeveloperOverrideConcurrentPublication(TestContext& context) {
     constexpr int kIterations = 10000;
     frazil::plugin::DeveloperParameterOverride override;
+    auto initial = makeDeveloperGeneration(1);
+    override.set(initial);
+    frazil::plugin::DeveloperParameterOverride::AudioReadState readerState;
+    ParameterSnapshot primed;
+    primed.inputGainDb = -777777.0f;
+    primed.globalMix = -777777.0f;
+    primed.outputGainDb = -777777.0f;
+    override.applyTo(primed, readerState);
+    expect(context, primed.inputGainDb == 400001.0f,
+           "continuous Developer publication primes the audio reader cache");
+
     std::atomic<bool> start{false};
     std::atomic<bool> readerReady{false};
     std::atomic<bool> writerDone{false};
     std::atomic<int> invalidSnapshots{0};
     std::atomic<int> observedSnapshots{0};
+    std::atomic<int> hostFallbackCount{0};
 
     std::thread writer([&] {
         while (!readerReady.load(std::memory_order_acquire))
             std::this_thread::yield();
         start.store(true, std::memory_order_release);
-        for (int generation = 1; generation <= kIterations; ++generation) {
-            frazil::plugin::DeveloperHostParameterSnapshot values;
-            values.rawValues = {
-                static_cast<float>(generation & 1),      static_cast<float>((generation + 1) & 1),
-                static_cast<float>(generation % 3),      static_cast<float>(100000 + generation),
-                static_cast<float>(200000 + generation), static_cast<float>(300000 + generation),
-                static_cast<float>(400000 + generation), static_cast<float>(500000 + generation),
-                static_cast<float>(600000 + generation)};
-            override.set(values);
+        for (int generation = 2; generation <= kIterations; ++generation) {
+            override.set(makeDeveloperGeneration(generation));
             if ((generation & 31) == 0)
                 std::this_thread::yield();
         }
@@ -257,12 +317,14 @@ void testDeveloperOverrideConcurrentPublication(TestContext& context) {
             std::this_thread::yield();
         do {
             ParameterSnapshot snapshot;
-            snapshot.inputGainDb = -1.0f;
-            snapshot.globalMix = -2.0f;
-            snapshot.outputGainDb = -3.0f;
-            override.applyTo(snapshot);
-            if (snapshot.inputGainDb < 0.0f)
+            snapshot.inputGainDb = -777777.0f;
+            snapshot.globalMix = -777777.0f;
+            snapshot.outputGainDb = -777777.0f;
+            override.applyTo(snapshot, readerState);
+            if (snapshot.inputGainDb == -777777.0f) {
+                ++hostFallbackCount;
                 continue;
+            }
 
             ++observedSnapshots;
             const auto generation = static_cast<int>(snapshot.inputGainDb - 400000.0f);
@@ -285,8 +347,27 @@ void testDeveloperOverrideConcurrentPublication(TestContext& context) {
     reader.join();
     expect(context, observedSnapshots.load() > 0,
            "concurrent override reader observes active publications");
+    expect(context, hostFallbackCount.load() == 0,
+           "active same-session override never falls back to Host sentinels");
     expect(context, invalidSnapshots.load() == 0,
            "concurrent override reads remain generation-coherent");
+    expect(context, override.isActive(),
+           "continuous Developer publication leaves the override active");
+
+    override.clear();
+    ParameterSnapshot afterClear;
+    afterClear.inputGainDb = -777777.0f;
+    override.applyTo(afterClear, readerState);
+    expect(context, afterClear.inputGainDb == -777777.0f,
+           "clear invalidates the cached Developer snapshot for the Host boundary");
+
+    auto newSession = makeDeveloperGeneration(12000);
+    override.set(newSession);
+    ParameterSnapshot afterReactivation;
+    afterReactivation.inputGainDb = -777777.0f;
+    override.applyTo(afterReactivation, readerState);
+    expect(context, afterReactivation.inputGainDb == 412000.0f,
+           "new Developer session requires and applies a new coherent snapshot");
 }
 
 void testDeveloperOverrideConcurrentSetAndClear(TestContext& context) {
@@ -296,20 +377,30 @@ void testDeveloperOverrideConcurrentSetAndClear(TestContext& context) {
     values.rawValues = {1.0f, 1.0f, 0.0f, 0.25f, 0.4f, 0.8f, 6.0f, 0.3f, -3.0f};
 
     std::atomic<bool> start{false};
+    std::atomic<bool> readerReady{false};
     std::atomic<bool> setStarted{false};
+    std::atomic<bool> firstSetDone{false};
+    std::atomic<bool> firstReaderObservationDone{false};
     std::atomic<bool> setDone{false};
     std::atomic<bool> clearDone{false};
     std::atomic<int> invalidSnapshots{0};
+    std::atomic<int> observedSnapshots{0};
 
     std::thread setter([&] {
-        while (!start.load(std::memory_order_acquire))
+        while (!readerReady.load(std::memory_order_acquire))
             std::this_thread::yield();
+        start.store(true, std::memory_order_release);
         setStarted.store(true, std::memory_order_release);
         for (int iteration = 0; iteration < kIterations; ++iteration) {
             values.rawValues[static_cast<std::size_t>(
                 frazil::plugin::DeveloperHostParameter::inputGainDb)] =
                 static_cast<float>(iteration);
             override.set(values);
+            if (iteration == 0) {
+                firstSetDone.store(true, std::memory_order_release);
+                while (!firstReaderObservationDone.load(std::memory_order_acquire))
+                    std::this_thread::yield();
+            }
             if ((iteration & 31) == 0)
                 std::this_thread::yield();
         }
@@ -317,9 +408,12 @@ void testDeveloperOverrideConcurrentSetAndClear(TestContext& context) {
     });
 
     std::thread clearer([&] {
-        while (!start.load(std::memory_order_acquire))
+        while (!readerReady.load(std::memory_order_acquire))
             std::this_thread::yield();
         while (!setStarted.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        while (!firstSetDone.load(std::memory_order_acquire) ||
+               !firstReaderObservationDone.load(std::memory_order_acquire))
             std::this_thread::yield();
         for (int iteration = 0; iteration < kIterations; ++iteration) {
             override.clear();
@@ -330,7 +424,23 @@ void testDeveloperOverrideConcurrentSetAndClear(TestContext& context) {
     });
 
     std::thread reader([&] {
-        start.store(true, std::memory_order_release);
+        readerReady.store(true, std::memory_order_release);
+        while (!start.load(std::memory_order_acquire) ||
+               !firstSetDone.load(std::memory_order_acquire))
+            std::this_thread::yield();
+
+        {
+            frazil::plugin::DeveloperHostParameterSnapshot snapshot;
+            if (override.read(snapshot)) {
+                ++observedSnapshots;
+                const auto inputGain = snapshot.rawValues[static_cast<std::size_t>(
+                    frazil::plugin::DeveloperHostParameter::inputGainDb)];
+                if (!std::isfinite(inputGain) || inputGain < 0.0f || inputGain >= kIterations)
+                    ++invalidSnapshots;
+            }
+            firstReaderObservationDone.store(true, std::memory_order_release);
+        }
+
         while (!setDone.load(std::memory_order_acquire) ||
                !clearDone.load(std::memory_order_acquire)) {
             frazil::plugin::DeveloperHostParameterSnapshot snapshot;
@@ -338,6 +448,7 @@ void testDeveloperOverrideConcurrentSetAndClear(TestContext& context) {
                 continue;
             const auto inputGain = snapshot.rawValues[static_cast<std::size_t>(
                 frazil::plugin::DeveloperHostParameter::inputGainDb)];
+            ++observedSnapshots;
             if (!std::isfinite(inputGain) || inputGain < 0.0f || inputGain >= kIterations)
                 ++invalidSnapshots;
         }
@@ -346,9 +457,8 @@ void testDeveloperOverrideConcurrentSetAndClear(TestContext& context) {
     setter.join();
     clearer.join();
     reader.join();
-    override.clear();
-    expect(context, !override.isActive(),
-           "Host restore clear wins after concurrent Developer set operations");
+    expect(context, observedSnapshots.load() > 0,
+           "concurrent set/clear reader observes meaningful active snapshots");
     expect(context, invalidSnapshots.load() == 0,
            "concurrent Developer set/clear reads remain valid");
 }
@@ -604,6 +714,7 @@ int main() {
 #if FRAZIL_ENABLE_DEVELOPER_UI
     testDeveloperDiagnosticsPublication(context);
     testDeveloperDiagnosticsConcurrentPublication(context);
+    testDeveloperOverrideRejectsStaleEditAfterClear(context);
     testDeveloperOverrideConcurrentPublication(context);
     testDeveloperOverrideConcurrentSetAndClear(context);
     testDeveloperExperimentSlotWorkflow(context);
@@ -617,7 +728,7 @@ int main() {
         return 1;
 
 #if FRAZIL_ENABLE_DEVELOPER_UI
-    std::cout << "FRAZIL plugin integration tests passed (10 groups)\n";
+    std::cout << "FRAZIL plugin integration tests passed (11 groups)\n";
 #else
     std::cout << "FRAZIL plugin integration tests passed (3 groups)\n";
 #endif

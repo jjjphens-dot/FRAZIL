@@ -11,6 +11,7 @@
 #endif
 
 #include <JuceHeader.h>
+#include <optional>
 
 class FRAZILAudioProcessor final : public juce::AudioProcessor {
   public:
@@ -48,6 +49,11 @@ class FRAZILAudioProcessor final : public juce::AudioProcessor {
     getDeveloperHostParameterSnapshot() const noexcept;
     void setDeveloperHostParameterOverride(
         const frazil::plugin::DeveloperHostParameterSnapshot&) noexcept;
+    std::optional<frazil::plugin::DeveloperParameterOverride::ControlToken>
+    getDeveloperHostParameterOverrideToken() const noexcept;
+    bool trySetDeveloperHostParameterOverrideIfCurrent(
+        const frazil::plugin::DeveloperHostParameterSnapshot&,
+        frazil::plugin::DeveloperParameterOverride::ControlToken) noexcept;
     void clearDeveloperHostParameterOverride() noexcept;
     bool isDeveloperHostParameterOverrideActive() const noexcept;
     void setDeveloperComparisonMode(frazil::plugin::DeveloperComparisonMode) noexcept;
@@ -63,6 +69,7 @@ class FRAZILAudioProcessor final : public juce::AudioProcessor {
     frazil::plugin::DeveloperDiagnostics developerDiagnostics_;
 #if FRAZIL_ENABLE_DEVELOPER_UI
     frazil::plugin::DeveloperParameterOverride developerParameterOverride_;
+    frazil::plugin::DeveloperParameterOverride::AudioReadState developerOverrideAudioReadState_;
     std::atomic<bool> developerDryComparison_{};
 #endif
 

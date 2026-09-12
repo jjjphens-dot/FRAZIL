@@ -296,8 +296,19 @@ void FRAZILAudioProcessorEditor::applyExperimentSnapshot(
 }
 
 void FRAZILAudioProcessorEditor::updateDeveloperOverrideFromUserEdit() {
-    if (syncingDeveloperView_ || !processor_.isDeveloperHostParameterOverrideActive())
+    if (syncingDeveloperView_)
         return;
+
+    const auto editToken = processor_.getDeveloperHostParameterOverrideToken();
+    if (!editToken) {
+        ensureHostParameterAttachmentMode();
+        const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
+        syncHostControls(processor_.getDeveloperHostParameterSnapshot());
+        currentAppliedSlot_ = -1;
+        updateComparisonButtons();
+        updateWorkflowSummary();
+        return;
+    }
 
     auto snapshot = processor_.getDeveloperHostParameterSnapshot();
     snapshot
@@ -320,7 +331,21 @@ void FRAZILAudioProcessorEditor::updateDeveloperOverrideFromUserEdit() {
         snapshot.rawValues[static_cast<std::size_t>(indices[index])] =
             static_cast<float>(parameterSliders_[index].getValue());
 
-    processor_.setDeveloperHostParameterOverride(snapshot);
+    if (!processor_.trySetDeveloperHostParameterOverrideIfCurrent(snapshot, *editToken)) {
+        currentAppliedSlot_ = -1;
+        ensureHostParameterAttachmentMode();
+        {
+            const juce::ScopedValueSetter<bool> updating(syncingDeveloperView_, true);
+            syncHostControls(processor_.getDeveloperHostParameterSnapshot());
+        }
+        updateComparisonButtons();
+        updateWorkflowSummary();
+        setWorkflowStatus(
+            "The effective state changed while the Developer edit was in progress; the stale "
+            "edit was discarded.");
+        return;
+    }
+
     currentAppliedSlot_ = -1;
     updateWorkflowSummary();
     setWorkflowStatus(

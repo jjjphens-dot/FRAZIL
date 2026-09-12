@@ -67,6 +67,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout FRAZILAudioProcessor::create
 void FRAZILAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     audioEngine.prepare(ProcessSpec{sampleRate, samplesPerBlock, getTotalNumOutputChannels()});
 #if FRAZIL_ENABLE_DEVELOPER_UI
+    developerOverrideAudioReadState_ = {};
     developerDiagnostics_.setPrepared(static_cast<float>(sampleRate), samplesPerBlock,
                                       getTotalNumOutputChannels());
 #endif
@@ -96,7 +97,7 @@ void FRAZILAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
 #endif
     auto snapshot = ParameterSnapshot::capture(parameterSources_);
 #if FRAZIL_ENABLE_DEVELOPER_UI
-    developerParameterOverride_.applyTo(snapshot);
+    developerParameterOverride_.applyTo(snapshot, developerOverrideAudioReadState_);
     const auto dryReferenceOnly = developerDryComparison_.load(std::memory_order_acquire);
 #else
     constexpr auto dryReferenceOnly = false;
@@ -158,6 +159,17 @@ FRAZILAudioProcessor::getDeveloperHostParameterSnapshot() const noexcept {
 void FRAZILAudioProcessor::setDeveloperHostParameterOverride(
     const frazil::plugin::DeveloperHostParameterSnapshot& snapshot) noexcept {
     developerParameterOverride_.set(snapshot);
+}
+
+std::optional<frazil::plugin::DeveloperParameterOverride::ControlToken>
+FRAZILAudioProcessor::getDeveloperHostParameterOverrideToken() const noexcept {
+    return developerParameterOverride_.getActiveControlToken();
+}
+
+bool FRAZILAudioProcessor::trySetDeveloperHostParameterOverrideIfCurrent(
+    const frazil::plugin::DeveloperHostParameterSnapshot& snapshot,
+    frazil::plugin::DeveloperParameterOverride::ControlToken expectedToken) noexcept {
+    return developerParameterOverride_.trySetIfCurrent(snapshot, expectedToken);
 }
 
 void FRAZILAudioProcessor::clearDeveloperHostParameterOverride() noexcept {
