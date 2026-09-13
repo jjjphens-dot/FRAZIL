@@ -18,12 +18,11 @@ Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未实现�
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
-`CODING_PLAN.md` v1.3 使用受控的 baseline transition：在同一 revision 获得 required formal approval
-并合入前，`main` 上的 v1.2 继续作为当前 Approved Development Baseline；经批准的 v1.3
-revision 合入时成为新的 Approved Development Baseline。feature commit、Issue 或 `REQUEST_CHANGES`
-本身不构成 approval。这不代表 FRAZIL plugin v1.0 release，也不改变 M1、Water/Ice/Routing 的实际完成
-状态：Water production DSP、production candidate controls 和 model transition 均未实现或注册；Debug/ASAN
-开发面板中的 experiment-only controls 不属于该 production scope。
+`CODING_PLAN.md` v1.3 已由 [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23) 完成 required formal
+approval 并合入 `main`，当前是 Approved Development Baseline。这不代表 FRAZIL plugin v1.0 release，
+也不改变 M1、Water/Ice/Routing 的实际完成状态：Water production DSP、production candidate controls
+和 model transition 均未实现或注册；Debug/ASAN 开发面板中的 experiment-only controls 不属于该
+production scope。
 
 当前阻塞性差距：
 
@@ -273,7 +272,7 @@ PluginProcessor
   M5 Production UI；usability、DAW/listening evidence 和 Offline Sound Lab handoff 仍未完成。它是大规模
   `EXP-W-002` 前的 Water M2 effective-development-readiness prerequisite，但不是 M1 Exit hard gate。
 - M2 Water：**未开始**；`EXP-W-001` Perceptual Contract preparation 为 PLANNED，不表示 M2 或 Water DSP 已开始。
-- Perceptual Contract framework/template：本 v1.3 branch 为 **Approval Candidate**；经 required approval + merge 后成为 **CURRENT / CONTROLLED**。`EXP-W-001` Water contract instance 仍为 **PLANNED**，尚未产出或验收。
+- Perceptual Contract framework/template：当前已随批准并合入的 v1.3 baseline 成为 **CURRENT / CONTROLLED**。`EXP-W-001` Water contract instance 仍为 **PLANNED**，尚未产出或验收。
 - M3 Ice：**DEFERRED**；长期 milestone 保留，在 `M2 Exit + Explicit Joint Gate` 确认 Water workflow 可复用于 Ice 前，不启动 Ice experiment、perceptual/parameter redesign 或 production implementation。
 - M4 Routing：**未开始**。
 - M5 UI & Edit History：**未开始**。
@@ -316,5 +315,5 @@ HOST-000 产品目标已冻结，support classification 仍需满足 Engineering
 已进入 `main` 的 M1 foundation/evidence 只按 regression/finding ownership 维护，不得建立平行实现。
 Debug/ASAN Developer UI 与 diagnostics implementation 已进入 `main`，但不得从本状态文档推断为产品
 UI 或已完成 usability/DAW acceptance；Water-specific Perceptual Contract instance 仍不得推断为已实现；
-Perceptual Contract framework/template 只在 v1.3 approval + merge 后成为 CURRENT/CONTROLLED。
+Perceptual Contract framework/template 已在 v1.3 approval + merge 后成为 CURRENT/CONTROLLED。
 Water/Ice/Routing 仍未开始 production。
