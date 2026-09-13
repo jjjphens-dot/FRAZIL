@@ -36,9 +36,9 @@ UI 只在 message thread 工作，不阻塞 audio thread；UI 不能读取或写
 
 ## Implementation Overview
 
-M5 才实现正式 `src/ui/` 组件；当前 follow-up feature branch 在 Debug/ASAN 提供 DEV-UI-001 开发面板
-candidate，Release 保留静态非开发占位界面。该 candidate 不是产品 UI，也不改变当前 baseline 的 planned
-状态；不得因 README 中的规划内容提前创建生产依赖。
+M5 才实现正式 `src/ui/` 组件；当前 `main` 在 Debug/ASAN 通过 `src/plugin/PluginEditor.*` 提供
+DEV-UI-001 Developer Control Surface，Release 保留静态非开发占位界面。该开发面板不是产品 UI，
+不改变 `src/ui/` 组件的 planned 状态，也不创建生产参数依赖。
 
 若 M2 candidate controls 经 Water ADR、state compatibility 和 parameter freeze 正式采纳，planned Water
 主区保持 Enable、Mode（Fluid/Resonant）、Size 与 Motion 的固定层级；切换 mode 不替换完整 panel，
@@ -52,7 +52,11 @@ large/deep 的 material-scale 含义；最终 label 仍待 UX/listening review�
 
 ## Tests
 
-未来需要 interaction、resize、attachment、automation display 和 pluginval/DAW evidence；当前无正式 UI 测试，具体 gate 见 [TESTING.md](../../docs/TESTING.md)。
+未来需要正式 UI 的 interaction、resize、attachment、automation display 和 pluginval/DAW evidence；
+当前 `src/ui/` 没有正式 UI 测试。DEV-UI-001 的 Debug/ASAN 工程测试与窄范围 Host smoke 记录见
+[`PROJECT_STATUS.md`](../../docs/PROJECT_STATUS.md#27-dev-ui-001-engineering-validation) 和
+[`HOST-001 DAW smoke evidence`](../../docs/evidence/HOST-001-DAW-SMOKE-2026-09-13.md)；这些不等于产品 UI
+或完整 Host acceptance。
 
 ## Related ADRs
 

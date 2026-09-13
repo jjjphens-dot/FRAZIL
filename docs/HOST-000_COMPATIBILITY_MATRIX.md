@@ -57,14 +57,16 @@ Support intent 与 evidence status 是两个独立维度，不得合并书写。
 | Not run | 本次任务明确未执行 |
 | Unknown | 当前没有足够证据判断 |
 
-当前没有任何宿主可标为 `Development Validated` 或 `Passed`。正式支持分类仍需 Engineering Lead review，实际证据由 HOST-001 补充。
+当前尚无宿主可标为 `Development Validated` 或 `Officially Supported`。Ableton 与 FL Studio
+已有主要 HOST-001 的窄范围用户观察，记录为 `Verified`；正式支持分类仍需 Engineering Lead
+review 与完整矩阵证据。
 
 ### 2.3 Compatibility classification
 
 | Compatibility classification | Required condition | Current HOST-000 result |
 |---|---|---|
 | Officially Supported | Support intent 已冻结、Engineering Lead 完成技术 review，并有足够的可复现 HOST-001 evidence | None; no host is officially supported yet |
-| Development Validated | 已按记录版本、设置和步骤完成真实运行验证，并保留 artifact/version、结果和 reviewer | None; current DAW cases are `Not run` |
+| Development Validated | 已按记录版本、设置和步骤完成真实运行验证，并保留 artifact/version、结果和 reviewer | None; Ableton/FL Studio have only narrow user-observed HOST-001 evidence |
 | Best Effort / Not Formally Supported | 可能工作，但没有完整支持承诺或完整验证证据 | 已发现的 Ableton/FL Studio 在本轮；REAPER 在精确版本锁定前；其他未测 host |
 
 因此，`Official v1 target` 是产品支持意图，不能直接改写为 `Officially Supported`；`Development Validated` 是证据分类，必须由 HOST-001 真实运行结果支撑。
@@ -87,8 +89,8 @@ Support intent 与 evidence status 是两个独立维度，不得合并书写。
 |---|---|---|
 | Platform | Windows 11 x64 | Target frozen; release evidence pending |
 | Format | VST3 64-bit | Target frozen; format/DAW evidence pending |
-| Primary development DAW | Ableton Live 12 Suite `12.4.2` | Installed/discovered; DAW smoke `Not run` |
-| Primary validation DAW | FL Studio 2025 `25.1.4.4951` | Installed/discovered; DAW smoke `Not run` |
+| Primary development DAW | Ableton Live 12 Suite `12.4.2` | Narrow scan/load, enumeration, automation, save/reopen and render observations `Verified` (user-observed); full HOST-001 fields not captured |
+| Primary validation DAW | FL Studio 2025 `25.1.4.4951` | Narrow scan/load, enumeration, save/reopen and render observations `Verified` (user-observed); automation not captured |
 | Secondary validation host | REAPER | `Planned`; exact version TBD; not validated |
 | Development host | JUCE Standalone | Development-only; not DAW compatibility evidence |
 | AU/AAX/macOS/Linux | Out of v1 scope | Not supported / Not run |
@@ -101,8 +103,8 @@ Windows 11 x64 是当前 v1 support intent，不是对所有 Windows 11 机器�
 
 | Host | Exact version discovered | Executable evidence | Frozen role | Current status |
 |---|---|---|---|---|
-| Ableton Live 12 Suite | `12.4.2` | Executable discovered locally; exact machine path intentionally omitted from tracked documentation; ProductVersion/FileVersion `12.4.2` | Primary development DAW | Installed/discovered; launch, scan, enumeration, automation and save/reopen **Not run** |
-| FL Studio 2025 | `25.1.4.4951` | Executable discovered locally; exact machine path intentionally omitted from tracked documentation; ProductVersion `25.1.4.4951` | Primary validation DAW | Installed/discovered; launch, scan, enumeration, automation and save/reopen **Not run** |
+| Ableton Live 12 Suite | `12.4.2` | Executable discovered locally; exact machine path intentionally omitted from tracked documentation; ProductVersion/FileVersion `12.4.2` | Primary development DAW | FRAZIL narrow scan/load, nine-parameter, automation, save/reopen and render observations **Verified** (user-observed); full HOST-001 fields not captured |
+| FL Studio 2025 | `25.1.4.4951` | Executable discovered locally; exact machine path intentionally omitted from tracked documentation; ProductVersion `25.1.4.4951` | Primary validation DAW | FRAZIL narrow scan/load, nine-parameter, save/reopen and render observations **Verified** (user-observed); automation lane not separately captured |
 | REAPER | Exact version not discovered | No matching installed-app entry or executable found in the audited locations | Secondary/lightweight validation candidate | **Unknown / not installed evidence**; cannot claim validation |
 | JUCE Standalone | Project target; runtime version not separately frozen | Role defined by JUCE/CMake target | Development/debug host | **Not a DAW**; no DAW compatibility claim |
 
@@ -110,8 +112,8 @@ Windows 11 x64 是当前 v1 support intent，不是对所有 Windows 11 机器�
 
 | Candidate | Strength | Risk / unresolved decision |
 |---|---|---|
-| Ableton Live 12.4.2 | Installed exact version; representative music-production workflow | No local FRAZIL scan/load or automation evidence; license/support scope not inferred |
-| FL Studio 25.1.4.4951 | Installed exact version; independent host workflow and VST3 path | No local FRAZIL scan/load or automation evidence; not a lightweight cross-check |
+| Ableton Live 12.4.2 | Installed exact version; representative music-production workflow; narrow FRAZIL scan/load, parameter order, automation, save/reopen and bounce observations recorded | Full HOST-001 fields, audio-product listening and license/support scope not inferred |
+| FL Studio 25.1.4.4951 | Installed exact version; independent host workflow and VST3 path; narrow FRAZIL scan/load, parameter order, save/reopen and bounce observations recorded | Automation lane and full HOST-001 fields not captured; audio-product listening and license/support scope not inferred |
 | REAPER | Appropriate lightweight cross-validation candidate in the existing testing guidance | Not discovered locally; exact version and availability must be supplied before validation |
 | JUCE Standalone | Fast developer feedback for lifecycle/audio callback smoke | Does not replace DAW validation and cannot establish DAW compatibility |
 
@@ -121,8 +123,8 @@ The following is the Sound & Host Lead product decision. It freezes support inte
 
 | Role | Frozen target | Evidence status |
 |---|---|---|
-| Primary development DAW | Ableton Live 12 Suite `12.4.2` | Installed/discovered; DAW smoke `Not run` |
-| Primary validation DAW | FL Studio 2025 `25.1.4.4951` | Installed/discovered; DAW smoke `Not run` |
+| Primary development DAW | Ableton Live 12 Suite `12.4.2` | Narrow scan/load, enumeration, automation, save/reopen and render observations `Verified` (user-observed) |
+| Primary validation DAW | FL Studio 2025 `25.1.4.4951` | Narrow scan/load, enumeration, save/reopen and render observations `Verified` (user-observed); automation lane not captured |
 | Secondary/lightweight validation host | REAPER, exact version TBD | `Planned`; exact version and installation pending |
 | Standalone | JUCE Standalone | Development-only; not DAW compatibility evidence |
 
@@ -135,15 +137,15 @@ The following layers answer different questions and must not be substituted for 
 | Layer | Tool / scope | Evidence boundary | Current status |
 |---|---|---|---|
 | Layer 1 — VST3 format conformance | Steinberg VST3 Validator | Checks VST3 API, component, bundle and format conformance; suitable for CI | Validator was not configured/run in this task; `Planned` |
-| Layer 2 — Cross-host stress validation | Tracktion `pluginval` | Generic plugin stability/compatibility checks; HOST-001 strictness 5; higher-strictness nightly/Beta/Release runs are non-binding proposals and remain TBD until added to the canonical testing contract | Historical strictness 5 evidence exists; current artifact not run; higher-strictness runs are not current acceptance gates |
-| Layer 3 — Real DAW acceptance | Ableton `12.4.2`, FL Studio `25.1.4.4951`, REAPER exact version TBD | Scan/load, bus, parameter, automation, state, editor and offline render | HOST-001; current cases `Not run` |
+| Layer 2 — Cross-host stress validation | Tracktion `pluginval` | Generic plugin stability/compatibility checks; HOST-001 strictness 5; higher-strictness nightly/Beta/Release runs are non-binding proposals and remain TBD until added to the canonical testing contract | Current Debug artifact strictness 5 `Verified` with seed 12345; local log is ignored and higher-strictness runs are not current acceptance gates |
+| Layer 3 — Real DAW acceptance | Ableton `12.4.2`, FL Studio `25.1.4.4951`, REAPER exact version TBD | Scan/load, bus, parameter, automation, state, editor and offline render | Ableton/FL narrow user-observed smoke `Verified`; full HOST-001 fields remain open; REAPER `Not run` |
 | Layer 4 — Release environment | Clean Windows 11 x64 machine | Install/uninstall, standard VST3 path, versioned artifact, multi-instance and long-running behavior | M6/M7 scope; not HOST-000 evidence |
 
 Validator PASS or pluginval PASS does not equal real DAW PASS. Standalone PASS does not equal DAW compatibility evidence.
 
 ## 7. M1 Host smoke scenarios
 
-Each frozen host target must run the following HOST-001 cases: the primary development DAW, the primary validation DAW, and the secondary host once its exact REAPER version is locked. Each result is recorded as `Passed`, `Failed`, `Blocked` or `Not run`; “planned” is not evidence.
+Each frozen host target must run the following HOST-001 cases: the primary development DAW, the primary validation DAW, and the secondary host once its exact REAPER version is locked. Each result is recorded as `Verified`, `Passed`, `Failed`, `Blocked` or `Not run`; “planned” is not evidence. `Verified` is reserved for a narrow, traceable observation that does not satisfy the full case protocol.
 
 ### 7.1 Scan and load
 
@@ -171,6 +173,56 @@ output.gain
 
 Record display name, range/default/choice text, automation visibility and parameter order. This is an enumeration check, not a claim that all production DSP is implemented.
 
+### 7.2.1 Recorded Ableton enumeration result
+
+```text
+HOST-001-AbletonLive-12.4.2-parameter-enumeration
+date/time: 2026-09-13 (exact observation time not captured)
+OS / architecture: Windows x64 (exact OS build not captured)
+host / exact version: Ableton Live 12 Suite 12.4.2
+format: VST3 64-bit
+plugin commit SHA: b595a47
+plugin artifact version: FRAZIL 0.1.0 Debug VST3 from current main
+build type: Debug
+validator/tool version: Ableton Live host parameter enumeration
+sample rate / block size / channels: not captured
+steps: Loaded FRAZIL from the configured host-specific VST3 scan location in the already-open Live
+       session and inspected the Host-visible parameter list/order.
+expected result: The Host displays the nine current parameters in the contract order.
+result: Verified (user-observed; narrow parameter-list observation)
+logs / screenshot / issue link: [HOST-001 DAW smoke evidence record](evidence/HOST-001-DAW-SMOKE-2026-09-13.md); no host log or screenshot was captured.
+DRI: Sound & Host Lead / user observation
+reviewer: Not recorded
+limitations: Complete rescan/verify, mono/stereo load, editor/bus checks, display metadata, range/default/choice
+             text, automation visibility and the full automation matrix were not captured in this record.
+```
+
+### 7.2.2 Recorded FL Studio enumeration result
+
+```text
+HOST-001-FLStudio-25.1.4.4951-parameter-enumeration
+date/time: 2026-09-13 (exact observation time not captured)
+OS / architecture: Windows x64 (exact OS build not captured)
+host / exact version: FL Studio 2025 25.1.4.4951
+format: VST3 64-bit
+plugin commit SHA: b595a47
+plugin artifact version: FRAZIL 0.1.0 Debug VST3 from current main
+build type: Debug
+validator/tool version: FL Studio host scan and parameter enumeration
+sample rate / block size / channels: not captured
+steps: Loaded FRAZIL from the FL Studio VST3 scan location and inspected the Host-visible parameter
+       list/order and basic parameter interaction.
+expected result: FRAZIL is discoverable and the nine current parameters can be interacted with in contract order.
+result: Verified (user-observed; narrow scan/load and interaction observation)
+logs / screenshot / issue link: [HOST-001 DAW smoke evidence record](evidence/HOST-001-DAW-SMOKE-2026-09-13.md); no host log or screenshot was captured.
+DRI: Sound & Host Lead / user observation
+reviewer: Not recorded
+limitations: Complete rescan/verify, mono/stereo load, editor/bus checks, display metadata, range/default/choice
+             text, automation visibility and the full automation matrix were not captured in this record.
+installation note: In this observed FL Studio environment, FRAZIL was discoverable from the Windows
+                 default VST3 location; arbitrary custom scan placement was not treated as portable guidance.
+```
+
 ### 7.3 Automation acceptance
 
 The v1 contract is:
@@ -195,13 +247,65 @@ There is no sample-accurate Host automation promise. Test cases must cover:
 4. Confirm parameter values, routing choice and automation lanes are restored.
 5. Record whether the host reports any missing parameter, changed order or state warning.
 
-STATE-001 的 versioned StateModel foundation 与 unit/XML transport restore evidence 已随 PR #5 合入 `main`。这不等于真实 DAW save/reopen 已验证；STATE-002 mode-value-retention integration 仍为 pending，Ableton、FL Studio 和 REAPER 的 save/reopen evidence 仍属于 HOST-001。不得把 `origin/feat/m1-state-contract` 的当前分支状态作为 `main` 的实现事实。
+STATE-001 的 versioned StateModel foundation 与 unit/XML transport restore evidence 已随 PR #5 合入 `main`；STATE-002 mode-value-retention integration evidence 也已进入 `main`。这些工程证据不等于真实 DAW save/reopen 已完成；本节记录的 DAW 观察仍需按 HOST-001 完整协议补齐。不得把 `origin/feat/m1-state-contract` 的当前分支状态作为 `main` 的实现事实。
+
+### 7.4.1 Recorded Ableton save/reopen result
+
+```text
+HOST-001-AbletonLive-12.4.2-save-reopen
+date/time: 2026-09-13 (exact observation time not captured)
+host / exact version: Ableton Live 12 Suite 12.4.2
+format / plugin commit: VST3 64-bit / b595a47
+steps: Saved a Live Set with distinctive values across the nine formal parameters, including
+       inactive-mode values; closed and reopened the project.
+expected result: The project reopens without missing-parameter, order-change or state warnings.
+result: Verified (user-observed; narrow save/reopen smoke)
+logs / screenshot / issue link: [HOST-001 DAW smoke evidence record](evidence/HOST-001-DAW-SMOKE-2026-09-13.md); no project or host log was captured.
+limitations: Per-parameter restore, routing/state assertions and automation-lane restoration were not captured;
+             Water/Ice processing was not judged as a sonic product feature in this M1 smoke.
+```
+
+### 7.4.2 Recorded FL Studio save/reopen result
+
+```text
+HOST-001-FLStudio-25.1.4.4951-save-reopen
+date/time: 2026-09-13 (exact observation time not captured)
+host / exact version: FL Studio 2025 25.1.4.4951
+format / plugin commit: VST3 64-bit / b595a47
+steps: Saved a project with distinctive values across the nine formal parameters, including
+       inactive-mode values; closed and reopened the project.
+expected result: The project reopens without missing-parameter, order-change or state warnings.
+result: Verified (user-observed; narrow save/reopen smoke)
+logs / screenshot / issue link: [HOST-001 DAW smoke evidence record](evidence/HOST-001-DAW-SMOKE-2026-09-13.md); no project or host log was captured.
+limitations: Per-parameter restore, routing/state assertions and automation-lane restoration were not captured;
+             Water/Ice processing was not judged as a sonic product feature in this M1 smoke.
+```
 
 ### 7.5 Offline render smoke
 
 1. Render a fixed short input through the selected host at the declared audio settings.
 2. Record render completion, channel count, length, finite output and obvious lifecycle failures.
 3. Treat output comparison/determinism as a later RENDER-001 responsibility; HOST-001 must not claim a full render regression from a bounce smoke alone.
+
+### 7.5.1 Recorded Ableton and FL Studio render results
+
+```text
+HOST-001-AbletonLive-12.4.2-daw-render
+host / exact version: Ableton Live 12 Suite 12.4.2
+format / plugin commit: VST3 64-bit / b595a47
+audio settings / channels / output length / finite output: not captured
+result: Verified (user-observed; render-completion smoke only)
+
+HOST-001-FLStudio-25.1.4.4951-daw-render
+host / exact version: FL Studio 2025 25.1.4.4951
+format / plugin commit: VST3 64-bit / b595a47
+audio settings / channels / output length / finite output: not captured
+result: Verified (user-observed; render-completion smoke only)
+```
+
+Evidence link: [HOST-001 DAW smoke evidence record](evidence/HOST-001-DAW-SMOKE-2026-09-13.md). These are DAW
+bounce smoke observations only. No durable output artifact, finite-output check or byte-level comparison was
+captured; they do not replace the deterministic RENDER-001 harness.
 
 ## 8. Minimum Host smoke sub-matrix
 
@@ -245,7 +349,7 @@ validator/tool version:
 sample rate / block size / channels:
 steps:
 expected result:
-result: Passed | Failed | Blocked | Not run
+result: Verified | Passed | Failed | Blocked | Not run
 logs / screenshot / issue link:
 DRI:
 reviewer:
@@ -259,13 +363,14 @@ Per the current working instruction, use version/commit identifiers and evidence
 ### Current local availability
 
 - A local pluginval executable was found with ProductVersion/FileVersion `1.0.4`; its exact machine path is intentionally omitted from tracked documentation.
-- The executable responded to `--help`; this proves tool availability only, not FRAZIL validation.
-- HOST-000 did not run pluginval against a current artifact.
+- The current Debug VST3 artifact from `main@b595a47` was run against the configured host-scan copy
+  with strictness 5 and seed `12345`; the log ended with `SUCCESS`.
+- The Steinberg VST3 validator path was not configured and remains `Not run`.
 
 ### Historical repository evidence
 
 - The `origin/main` `PROJECT_STATUS.md` records a historical Debug VST3 pluginval strictness 5 success for the M1-A/M1-B merge candidate and links the [PR #3 Hosted CI run](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34044332388).
-- That historical result is not reused as current HOST-001 evidence: the exact validator artifact commit is not recorded in the current status snapshot, and no DAW matrix was executed in this task.
+- That historical result is not reused as current HOST-001 evidence: the exact validator artifact commit is not recorded in the historical status snapshot. The current task records narrow Ableton and FL Studio user-observed smoke evidence in the [durable case record](evidence/HOST-001-DAW-SMOKE-2026-09-13.md); the complete DAW matrix is still open because REAPER is unavailable.
 - The [M1-A/M1-B PR](https://github.com/jjjphens-dot/FRAZIL/pull/3) is the historical review context; it does not establish Ableton or FL Studio compatibility.
 
 ## 11. External basis
@@ -282,8 +387,13 @@ The verification layers and host-format boundaries use the following primary ref
 
 ## 12. Known limitations and review state
 
-- No DAW was launched in this read-only audit; scan/load, parameter enumeration, automation, save/reopen and offline render are **Not run**.
-- Ableton Live and FL Studio are installed candidates, not validated hosts.
+- Ableton Live 12 Suite 12.4.2 and FL Studio 2025 25.1.4.4951 were tested by the user. Narrow
+  scan/load, nine-parameter, save/reopen and DAW render observations are recorded as `Verified`; Ableton's
+  nine-parameter record/edit/playback observation is also recorded as a narrow `Verified` automation case.
+  FL Studio automation lane behavior was not separately captured. The [case record](evidence/HOST-001-DAW-SMOKE-2026-09-13.md)
+  lists the missing protocol fields.
+- Neither host is yet `Development Validated` or officially supported; Engineering Lead review and
+  the remaining matrix evidence are still required.
 - REAPER was not discovered; the secondary host role is unresolved.
 - Windows 11 x64 is the frozen v1 platform target; the reference machine is not evidence that every Windows 11 machine is compatible.
 - Official v1 target intent is frozen by Sound & Host Lead; `Officially Supported` and `Development Validated` classifications require the review and HOST-001 evidence conditions above. Do not call this `Done` or `Development Validated` without those conditions.
@@ -295,5 +405,7 @@ The verification layers and host-format boundaries use the following primary ref
 - [x] Sound & Host Lead freezes primary validation DAW.
 - [x] Sound & Host Lead selects REAPER as secondary/lightweight host; exact version remains `TBD`.
 - HOST-000 support classification requires Engineering Lead review of VST3/Standalone roles, automation wording, latency wording and evidence requirements; the review evidence belongs in the PR/review record.
-- [ ] HOST-001 records actual scan/load, nine-parameter enumeration, automation, save/reopen and offline render results.
-- [ ] Evidence status is updated from `Not run`/`Planned` only after reproducible HOST-001 results exist.
+- [x] HOST-001 records narrow Ableton scan/load, nine-parameter enumeration, automation, save/reopen and DAW render observations; formal `Passed` status remains open.
+- [x] HOST-001 records narrow FL Studio scan/load, nine-parameter enumeration, save/reopen and DAW render observations; formal `Passed` status remains open.
+- [ ] FL Studio automation and REAPER matrix remain to be captured.
+- [x] Evidence status is updated to `Verified` only after each narrow observed result exists; full `Passed` status remains gated by the protocol fields above.

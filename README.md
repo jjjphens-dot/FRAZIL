@@ -2,7 +2,7 @@
 
 FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器，首要格式为 VST3，并保留 Standalone 作为开发与测试宿主。
 
-当前处于 M1 早期：Windows + JUCE 9.0.1 构建链路、静态参数合同、Snapshot/Mapper 和基础 gain/mix skeleton 已接入，wet path 仍为 pass-through，Water / Ice / Routing 生产 DSP 尚未实现。详细事实基线见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)，实施顺序见 [`docs/CODING_PLAN.md`](docs/CODING_PLAN.md)。
+当前处于 M1 收口后期（late-stage closure），并进行 Water pre-M2 preparation 与 Developer Sound/Debug Tooling acceptance follow-up：Windows + JUCE 9.0.1 构建链路、静态参数合同、Snapshot/Mapper 和基础 gain/mix skeleton 已接入，wet path 仍为 pass-through，Water / Ice / Routing 生产 DSP 尚未实现。详细事实基线见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)，实施顺序见 [`docs/CODING_PLAN.md`](docs/CODING_PLAN.md)。
 
 ## 产品合同摘要
 
@@ -13,6 +13,15 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 - 所有正式参数静态注册、ID 稳定、可自动化、可保存恢复；UI 显隐不改变 Host 参数集合。
 - Undo/Redo 只管理插件 UI 编辑历史，不记录 Host automation 或工程恢复。
 
+## 安装与宿主扫描
+
+- 使用 FL Studio 时，请将完整的 `FRAZIL.vst3` 安装到 Windows 默认 VST3 位置，例如
+  `%PROGRAMFILES%\Common Files\VST3`，然后在 FL Studio 中重新扫描插件。
+- 使用其他宿主时，请将完整的 `FRAZIL.vst3` 放入该宿主能够扫描的 VST3 目录，并执行宿主的
+  插件扫描或刷新。
+- 不要把 `FRAZIL.vst3` 放入 FL Studio 自己的 `Plugins\VST` 文件夹；Water/Ice 当前仍处于
+  开发阶段，测试版的可见控件不代表正式产品参数或声音功能已经完成。
+
 ## 文档入口
 
 - [架构总纲](docs/FRAZIL_PROJECT_ARCHITECTURE_v0.3.md)
@@ -22,7 +31,7 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 - [参数与状态合同](docs/PARAMETERS.md)
 - [测试与发布门槛](docs/TESTING.md)
 - [核心实现指南](docs/CORE_IMPLEMENTATION_GUIDE.md)
-- [HOST-000 平台与 DAW 兼容性矩阵（产品目标已冻结，HOST-001 evidence pending）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
+- [HOST-000 平台与 DAW 兼容性矩阵（产品目标已冻结，HOST-001 窄范围 Verified observation 已记录）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
 - [GitHub 协作流程](docs/GITHUB_WORKFLOW.md)
 - [双人协作分工](docs/COLLABORATION_ROLES.md)
 - [开发环境](docs/ENVIRONMENT.md)
