@@ -369,6 +369,11 @@ Per the current working instruction, use version/commit identifiers and evidence
 - A local pluginval executable was found with ProductVersion/FileVersion `1.0.4`; its exact machine path is intentionally omitted from tracked documentation.
 - The current Debug VST3 artifact from `main@b595a47` was run against the configured host-scan copy
   with strictness 5 and seed `12345`; the log ended with `SUCCESS`.
+- The final closeout candidate at `1d45683` was subsequently rebuilt from a clean source in Debug, and both its
+  build-tree bundle and configured scan copy completed pluginval 1.0.4 at strictness 5 with seed `12345` and
+  `SUCCESS`. This supersedes `b595a47` only as the latest artifact check; the older observation remains historical.
+  Raw logs remain ignored, with their bounded summary in the
+  [HOST-001 / M1 acceptance index](evidence/HOST-001_ACCEPTANCE_INDEX.md).
 - The Steinberg VST3 validator path was not configured and remains `Not run`.
 
 ### Historical repository evidence

@@ -187,6 +187,11 @@ scan/load、九参数交互、save/reopen 与 DAW render 无异常；FL Studio �
 这些结果在 [HOST-001 DAW smoke evidence](evidence/HOST-001-DAW-SMOKE-2026-09-13.md) 中按 case
 记录为窄范围 `Verified` 用户观察，不是完整 HOST-001 `Passed`。
 
+当前收尾 candidate 的工程、产物和逐 Host 缺口集中记录在
+[`HOST-001 / M1 acceptance index`](evidence/HOST-001_ACCEPTANCE_INDEX.md)；M1 gate-by-gate 结论见
+[`M1 Joint Exit record`](evidence/M1_JOINT_EXIT.md)。该记录当前明确为 Host acceptance incomplete，未签署
+Joint Exit，不改变本文件的 M1 late-stage closure 状态。
+
 当前 Debug artifact 另有 pluginval 1.0.4 strictness 5 / seed 12345 `SUCCESS` 观察；这不替代完整
 DAW matrix、RENDER-001 确定性回归或 Water/Ice 声音产品验收。REAPER 因 exact version 未锁定仍为
 `Not run`。
@@ -265,7 +270,7 @@ PluginProcessor
 ## 5. 现状对应 milestone
 
 - M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、完整 Host evidence、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
-- M1 Audio Skeleton & Parameter Contract：**late-stage closure / 进行中**。M1 engineering foundation/evidence 已建立并进入 `main`；当前 artifact pluginval 已完成 strictness-5 本地验证，Ableton 与 FL Studio 的窄范围 Host smoke 已由用户观察并记录为 `Verified`；仍缺完整 render regression matrix、FL automation lane 的独立记录、REAPER evidence 和 M1 Joint Exit。`PARAM-FREEZE-001` 仍是 M2/M3 后续 gate；M5 EditHistoryManager 仍未开始。
+- M1 Audio Skeleton & Parameter Contract：**late-stage closure / 进行中**。M1 engineering foundation/evidence 已建立并进入 `main`；closeout candidate 的 Debug/Release/ASAN 工程验证与 exact Debug artifact strictness-5 pluginval 已完成，Ableton 与 FL Studio 的窄范围 Host smoke 已由用户观察并记录为 `Verified`；仍缺完整 primary Host case fields、FL automation lane 的独立记录、REAPER 适用性/evidence 和 M1 Joint Exit。完整未来 render matrix 仍按原计划推进，不因本次收尾变成新的 M1 blocker。`PARAM-FREEZE-001` 仍是 M2/M3 后续 gate；M5 EditHistoryManager 仍未开始。
 - Developer Sound/Debug Tooling：**DEV-UI-001 implementation merged / acceptance 进行中**。当前 `main` 的
   Debug/ASAN 控制面板已覆盖当前 9 参数控制、Water experiment-only controls、non-APVTS A/B/reset、
   developer Dry/Processed path、prepared/latest diagnostics 和完整 draft config representation。它不是
