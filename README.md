@@ -13,6 +13,15 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 - 所有正式参数静态注册、ID 稳定、可自动化、可保存恢复；UI 显隐不改变 Host 参数集合。
 - Undo/Redo 只管理插件 UI 编辑历史，不记录 Host automation 或工程恢复。
 
+## 安装与宿主扫描
+
+- 使用 FL Studio 时，请将完整的 `FRAZIL.vst3` 安装到 Windows 默认 VST3 位置，例如
+  `%PROGRAMFILES%\Common Files\VST3`，然后在 FL Studio 中重新扫描插件。
+- 使用其他宿主时，请将完整的 `FRAZIL.vst3` 放入该宿主能够扫描的 VST3 目录，并执行宿主的
+  插件扫描或刷新。
+- 不要把 `FRAZIL.vst3` 放入 FL Studio 自己的 `Plugins\VST` 文件夹；Water/Ice 当前仍处于
+  开发阶段，测试版的可见控件不代表正式产品参数或声音功能已经完成。
+
 ## 文档入口
 
 - [架构总纲](docs/FRAZIL_PROJECT_ARCHITECTURE_v0.3.md)
@@ -22,7 +31,7 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 - [参数与状态合同](docs/PARAMETERS.md)
 - [测试与发布门槛](docs/TESTING.md)
 - [核心实现指南](docs/CORE_IMPLEMENTATION_GUIDE.md)
-- [HOST-000 平台与 DAW 兼容性矩阵（产品目标已冻结，HOST-001 evidence pending）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
+- [HOST-000 平台与 DAW 兼容性矩阵（产品目标已冻结，HOST-001 主要 evidence 已记录）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
 - [GitHub 协作流程](docs/GITHUB_WORKFLOW.md)
 - [双人协作分工](docs/COLLABORATION_ROLES.md)
 - [开发环境](docs/ENVIRONMENT.md)

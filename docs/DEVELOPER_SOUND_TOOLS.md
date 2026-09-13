@@ -2,9 +2,8 @@
 
 > Document status: Approval Candidate in v1.3; CURRENT/CONTROLLED after approval and merge.<br>
 > Capability implementation status: tracked individually as CURRENT / PLANNED / CANDIDATE / DEFERRED below.<br>
-> A Debug/ASAN Developer Control Surface candidate exists on the follow-up feature branch and is engineering-ready
-> for Sound & Host Lead usability acceptance; the current development baseline remains PLANNED until review, merge
-> and acceptance. Offline Sound Lab handoff remains in progress.
+> The Debug/ASAN Developer Control Surface implementation is merged on `main` and is engineering-ready for Sound &
+> Host Lead usability acceptance; final workflow acceptance and Offline Sound Lab handoff remain in progress.
 
 ## 1. Purpose and boundaries
 
@@ -30,12 +29,12 @@ experimentation. It is not an M1 architecture-correctness exit gate, and `HOST-0
   `requirements-dsp.txt` Python environment. The analyzer already provides waveform diagnostics, FFT, Welch PSD,
   RMS, DC, stereo correlation and STFT/spectrogram analysis.
 - **CURRENT after v1.3 approval/merge**: the Perceptual Contract framework, template and Agent usage rules.
-- **CANDIDATE (follow-up feature branch, engineering-ready)**: a Debug/ASAN-only `DEV-UI-001` surface in
+- **CURRENT implementation / acceptance pending**: a Debug/ASAN-only `DEV-UI-001` surface in
   `src/plugin/PluginEditor.*` binds the nine current Host parameters, keeps Water Model/Size/Motion
   experiment-only, detaches APVTS attachments while a temporary non-APVTS override is active, and provides an
   explicit Return Host path. It provides Dry/Processed comparison, bounded A/B/reset slots, complete draft
   experiment-state export, and coherent prepared/latest block diagnostics. It is not the Production UI and has
-  not received workflow usability acceptance; this candidate is not the current main baseline.
+  not received workflow usability acceptance.
 - **PLANNED**: final `DEV-UI-001` acceptance, richer Offline Sound Lab review packs, reproducible debug bundles,
   automated review-pack generation, LUFS/true peak, spectral flux, onset, pitch/harmonic-retention and extended
   tail analysis. The `EXP-W-001` Water Perceptual Contract instance remains PLANNED until produced and accepted.
