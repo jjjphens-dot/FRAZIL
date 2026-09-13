@@ -12,8 +12,8 @@
 
 项目处于 **M1 late-stage closure + Water pre-M2 preparation + Developer Sound/Debug Tooling acceptance follow-up**。
 M1-A/M1-B foundation、STATE-001/002、AUTO-001、TESTDATA-001、RENDER-001、TEST-002、PERF-BASE-001 和
-ARCH-LAT-001 engineering evidence 已进入 `main`；current-artifact pluginval 已通过，Ableton 与 FL Studio
-的主要 Host smoke 已完成并观察通过，但 M1 仍因完整矩阵和 Joint Exit 未完成而保持进行中。
+ARCH-LAT-001 engineering evidence 已进入 `main`；current-artifact pluginval 已完成 strictness-5 本地
+验证，Ableton 与 FL Studio 也有窄范围用户观察记录，但 M1 仍因完整矩阵和 Joint Exit 未完成而保持进行中。
 Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未实现。
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
@@ -31,7 +31,7 @@ revision 合入时成为新的 Approved Development Baseline。feature commit、
 2. PR #5 合并后 main 的 [Hosted CI run 34091515810](https://github.com/jjjphens-dot/FRAZIL/actions/runs/34091515810) 已完成 Windows Debug configure/build/test 并通过；PR #4、PR #3 和 PR #2 的既有 Hosted CI 证据也已通过；当前 GitHub branch listing 报告 `main` 为 `protected:false`；fine-grained repository ruleset / admin-level branch-protection configuration 尚未以充分的管理员证据独立验证；不据此推断不存在其它规则集；
 3. `water.enable`/`ice.enable` 与架构目标的 ID 冲突已在合入 `main` 的集中式 ParameterLayout 中修正为 `water.enabled`/`ice.enabled`；STATE-001 已建立已知 pre-v1 ID migration fixture，公开版本兼容性仍需后续 freeze/evidence；
 4. APVTS 参数已通过一次 block Snapshot 和 ParameterMapper 进入 AudioEngine；当前 wet path 仍为 post-input pass-through；
-5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；`frazil_render` + `tools/render_testdata.py` 已提供 M1 pass-through offline smoke，固定 input/config/seed 两次运行并检查 finite output、输出字节一致和完整当前配置/input/output hash manifest；`frazil_render_cli` 覆盖 help 成功路径、enable/routing/balance/amount 非法值拒绝、非默认完整配置 manifest 转发，以及同一 output path 重复渲染覆盖而非追加 WAV；CTest render artifacts 已隔离到 preset build tree；当前 `main@b595a47` Debug VST3 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；Ableton Live 12.4.2 的 scan/load、九参数枚举、automation、save/reopen 和 DAW render 已由用户观察为 PASS；FL Studio 2025 25.1.4.4951 的 scan/load、九参数枚举、save/reopen 和 DAW render 也已观察为 PASS，FL automation lane 未单独记录；完整 render matrix 和 REAPER evidence 仍待执行；
+5. CTest 已覆盖参数枚举、Snapshot、Mapper、mix、smoothing、RandomSource、gain staging、first-block priming、reset、zero-length、runtime buffer invariant，以及 STATE-001 的 schema round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、默认/非法输入 fallback（含 duplicate known ID、nonnumeric schemaVersion/value 和 malformed bool）、legacy ID migration、三个 routing choice 和 inactive retention；新增 plugin integration test 覆盖实际 `FRAZILAudioProcessor` 的参数写入→audio path、连续 gain automation smoothing、三种 routing mode 切换、inactive value retention、prepareToPlay -> setStateInformation -> processBlock 生命周期 restore 和 XML state reopen；`frazil_render` + `tools/render_testdata.py` 已提供 M1 pass-through offline smoke，固定 input/config/seed 两次运行并检查 finite output、输出字节一致和完整当前配置/input/output hash manifest；`frazil_render_cli` 覆盖 help 成功路径、enable/routing/balance/amount 非法值拒绝、非默认完整配置 manifest 转发，以及同一 output path 重复渲染覆盖而非追加 WAV；CTest render artifacts 已隔离到 preset build tree；当前 `main@b595a47` Debug VST3 使用 pluginval 1.0.4、strictness 5、seed 12345 验证并以 `SUCCESS` 结束，Steinberg validator 因未配置而跳过；Ableton Live 12.4.2 与 FL Studio 2025 25.1.4.4951 的窄范围 HOST-001 用户观察已记录为 `Verified`，详见 [HOST-001 DAW smoke evidence](evidence/HOST-001-DAW-SMOKE-2026-09-13.md)；完整 render matrix、FL automation lane 和 REAPER evidence 仍待执行；
 6. `DEV-UI-001` 已进入当前 `main@b595a47` 的 Debug/ASAN 工程实现：它绑定当前 9 个 Host 参数，保持
    Water experiment-only controls，在 override active 时让 effective developer state 拥有可见 controls，
    并提供显式 Return Host；它还覆盖不触碰 APVTS 的临时 A/B/Reset override、developer-only Dry/Processed
@@ -43,7 +43,7 @@ revision 合入时成为新的 Approved Development Baseline。feature commit、
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug。PR #9 的人工 review 进一步暴露了角色 ownership、PR creator、commit authorship 和 reviewer evidence 被混为同一账号 gate 的问题；当时提出的“必须由 Implementation DRI account 创建 PR/预绑定不同 reviewer account”属于历史纠正方案，现已由更简单的规则取代：职责和 review evidence 分别真实记录，需要第二人 review 时保留独立 evidence；已有 PR 的后续 push account 必须等于 PR creator；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-10. GitHub 当前已有治理 issue [#11](https://github.com/jjjphens-dot/FRAZIL/issues/11) 用于跟踪 portable GitHub workflow 文档同步，以及 TESTDATA-001 rationale issue [#15](https://github.com/jjjphens-dot/FRAZIL/issues/15)；Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；HOST-000 产品目标已由 Sound & Host Lead 冻结，HOST-001 已有 Ableton/FL Studio 的主要 smoke evidence，FL automation lane 与 REAPER exact version/matrix 仍未完成；当前 PR、review 和 merge 状态只以 GitHub 为准，不在本文件重复记录；不据此推断不存在其它规则集。
+10. GitHub 当前已有治理 issue [#11](https://github.com/jjjphens-dot/FRAZIL/issues/11) 用于跟踪 portable GitHub workflow 文档同步，以及 TESTDATA-001 rationale issue [#15](https://github.com/jjjphens-dot/FRAZIL/issues/15)；Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；HOST-000 产品目标已由 Sound & Host Lead 冻结，HOST-001 已有 Ableton/FL Studio 的窄范围用户观察，完整 DAW evidence、FL automation lane 与 REAPER exact version/matrix 仍未完成；当前 PR、review 和 merge 状态只以 GitHub 为准，不在本文件重复记录；不据此推断不存在其它规则集。
 
 ## 2. 已有资产
 
@@ -52,13 +52,13 @@ revision 合入时成为新的 Approved Development Baseline。feature commit、
 | Build | CMake 3.25+、C++20、Ninja presets | 本机可用；portable preset 已由 Hosted CI 验证 |
 | Formats | JUCE target 声明 VST3 + Standalone | 已接入 |
 | Dependency | `external/JUCE` 为 9.0.1，本机文档记录两个兼容补丁 | 需确定仓库获取/补丁策略 |
-| Plugin shell | mono/stereo bus check、editor、versioned state XML adapter | M1-C state boundary 已接入；XML createXml/fromXml restore path 已验证；真实 Host/DAW restore 证据仍待执行 |
+| Plugin shell | mono/stereo bus check、editor、versioned state XML adapter | M1-C state boundary 已接入；XML createXml/fromXml restore path 已验证；真实 DAW save/reopen 只有窄范围用户观察，完整 Host restore evidence 仍待执行 |
 | Parameters | 9 个集中式 APVTS 参数静态注册；enabled ID 已使用 `.enabled` | M1 参数路径已接入；`PARAM-FREEZE-001` 是后续 M2/M3 -> M4 gate，不是 M1 Exit blocker |
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration verified；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
 | UI | `main@b595a47` 中的 Debug/ASAN DEV-UI-001 测试用控制面板；Release 保留静态占位界面 | 非产品 UI；interactive usability、DAW 和 M5 Production UI 未完成 |
 | Developer sound tools | RENDER-001、TESTDATA-001、manual performance harness，以及 Debug/ASAN DEV-UI-001 的 effective controls、developer override、Dry/Processed、coherent bounded diagnostics、A/B slots 和 draft config export | implementation 已进入 `main`；正式 acceptance、debug bundle、Offline Sound Lab handoff 仍为 PLANNED |
 | Product identity | `docs/PRODUCT_IDENTITY.md` | FRAZIL adopted working/product name；命名词汇不改变参数合同；法律/商标 clearance 不属于当前工程范围 |
-| Tests | `frazil_smoke` + `frazil_unit` + `frazil_plugin_integration` + `frazil_processor_property` + `frazil_latency_contract` + `frazil_render` + `frazil_render_cli` CTest；`frazil_performance` manual benchmark | Release/ASAN 各 7/7 PASS；canonical PERF-BASE-001 的 steady-state、parameter-retarget、CPU/memory/allocation、finite-output 和 denormal evidence 已记录；Ableton/FL Studio 主要 DAW smoke 已观察通过，完整 matrix 仍待完成 |
+| Tests | `frazil_smoke` + `frazil_unit` + `frazil_plugin_integration` + `frazil_processor_property` + `frazil_latency_contract` + `frazil_render` + `frazil_render_cli` CTest；`frazil_performance` manual benchmark | Release/ASAN 各 7/7 PASS；canonical PERF-BASE-001 的 steady-state、parameter-retarget、CPU/memory/allocation、finite-output 和 denormal evidence 已记录；Ableton/FL Studio 窄范围 DAW smoke 已记录为 `Verified`，完整 matrix 仍待完成 |
 | Local validation | PR #18 follow-up 的 Release、ASAN fresh configure、6-job safe build、7/7 CTest 和 Release manual benchmark 结果见 2.6，并按该节记录 exact tested implementation commit；当前 branch HEAD 与最新 CI 以 GitHub live query 为准 | 已验证；本机绝对路径仅在 ignored local configuration/build output，仓库 preset 保持可移植 |
 | pluginval | `main@b595a47` 当前 Debug VST3 在配置的 Host 扫描副本上以 pluginval 1.0.4、strictness 5、seed 12345 运行并以 `SUCCESS` 结束；Steinberg validator 未配置而跳过 | 当前 artifact 已验证；不等于完整 DAW compatibility |
 | Remote | `jjjphens-dot/FRAZIL` public repository；`main` 和审查分支的当前 SHA、mergeability 与 CI 状态以 GitHub live query 为准；`9955cdb` 仅为历史 safety follow-up baseline，不是当前审查分支 head；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main；TESTDATA-001 rationale 记录见 Issue #15 | GitHub live state；Milestones/Projects metadata 未建立 |
@@ -151,7 +151,7 @@ non-goals 标记为 NOT RUN。
 
 当前 TEST-002 与 ARCH-LAT-001 的 implementation commit 为 `e56664c8775f614e77004ac891d63a5c2fd2fa7a`；PERF-BASE-001 harness follow-up implementation commit 为 `98ea8c6a70edef917fc42cc48a25801fc613716b`。结果见 [`docs/evidence/M1_ENGINEERING_EVIDENCE.md`](evidence/M1_ENGINEERING_EVIDENCE.md) 与 [`docs/evidence/PERF-BASE-001.md`](evidence/PERF-BASE-001.md)。当前分支的 Release、Debug、ASAN 均通过 fresh configure、safe build 和 7/7 CTest；canonical `frazil_performance` manual Release benchmark 的 `configured_commit`/`configured_source_state` 与 `runtime_commit`/`runtime_source_state` 均为 clean matching，`formal_provenance_status=PASS`，并记录 steady-state/parameter-retarget、CPU、memory、allocation、finite-output 和 denormal observations；focused mutation verification 也证明 active lifecycle corruption、active valid-but-different output 和 neutral exact-repeatability corruption 能被分别验证。早期实现/证据 head `c1aea641688397f80bec0996e8eb3375b5f60def` 的 Hosted Windows Debug run `34481193756` 已通过 Configure、Build 和 7/7 Test；此前 docs-only validation head `c3bfeab4d55c47e322cad6ef7cfc259f6542b6dd` 的 run `34482138484`，以及 provenance-fix head `b8918ec93fe696867e16712e67837173b6cfceb4` 的 run `34490710722`，也均已通过 Configure、Build 和 7/7 Test。pluginval、真实 DAW、listening 和 M1 Joint Exit 不在本地/Hosted Debug 证据范围内，需后续 acceptance。
 
-## 2.7 DEV-UI-001 follow-up candidate validation
+## 2.7 DEV-UI-001 engineering validation
 
 2026-09-13 DEV-UI-001 closeout follow-up 本地工作树 evidence：Debug、Release 和 ASAN 均通过仓库 `tools/vscode_msvc_env.cmd` 初始化
 MSVC 环境、`tools/vscode_build_safe.cmd --preset <name> --jobs 6` safe wrapper build，以及对应的
@@ -182,14 +182,15 @@ acceptance。
 ## 2.8 HOST-001 primary DAW evidence
 
 2026-09-13，用户在 Ableton Live 12 Suite 12.4.2 中加载配置扫描目录里的 FRAZIL Debug VST3，
-观察到 Host 按合同顺序显示全部 9 个参数，并完成 automation 的录制、编辑和回放；随后完成
-save/reopen 与 DAW render，均无异常。用户也在 FL Studio 2025 25.1.4.4951 中完成 FRAZIL
-scan/load、九参数交互、save/reopen 与 DAW render，均无异常；FL Studio 的 automation lane
-未单独记录。以上结果记录为 HOST-001 主要 DAW smoke `PASS`，对应 `main@b595a47`；当前 Debug
-artifact 另有 pluginval 1.0.4 strictness 5 / seed 12345 `SUCCESS` 证据。
+观察到 Host 按合同顺序显示全部 9 个参数，并报告九参数测试的 automation 录制、编辑和回放无异常；
+随后报告 save/reopen 与 DAW render 无异常。用户也在 FL Studio 2025 25.1.4.4951 中报告 FRAZIL
+scan/load、九参数交互、save/reopen 与 DAW render 无异常；FL Studio 的 automation lane 未单独记录。
+这些结果在 [HOST-001 DAW smoke evidence](evidence/HOST-001-DAW-SMOKE-2026-09-13.md) 中按 case
+记录为窄范围 `Verified` 用户观察，不是完整 HOST-001 `Passed`。
 
-这些是 Host 集成与 DAW bounce smoke 证据，不是 Water/Ice 声音产品验收，也不替代
-RENDER-001 的确定性回归。REAPER 因 exact version 未锁定仍为 `Not run`。
+当前 Debug artifact 另有 pluginval 1.0.4 strictness 5 / seed 12345 `SUCCESS` 观察；这不替代完整
+DAW matrix、RENDER-001 确定性回归或 Water/Ice 声音产品验收。REAPER 因 exact version 未锁定仍为
+`Not run`。
 
 ## 3. 当前源码映射
 
@@ -264,8 +265,8 @@ PluginProcessor
 
 ## 5. 现状对应 milestone
 
-- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、实际 Host smoke、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
-- M1 Audio Skeleton & Parameter Contract：**late-stage closure / 进行中**。M1 engineering foundation/evidence 已建立并进入 `main`；当前 artifact pluginval 已通过，Ableton 的主要 Host smoke 与 FL Studio 的主要 scan/state/render smoke 已由用户观察通过；仍缺完整 render regression matrix、FL automation lane 的独立记录、REAPER evidence 和 M1 Joint Exit。`PARAM-FREEZE-001` 仍是 M2/M3 后续 gate；M5 EditHistoryManager 仍未开始。
+- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、完整 Host evidence、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
+- M1 Audio Skeleton & Parameter Contract：**late-stage closure / 进行中**。M1 engineering foundation/evidence 已建立并进入 `main`；当前 artifact pluginval 已完成 strictness-5 本地验证，Ableton 与 FL Studio 的窄范围 Host smoke 已由用户观察并记录为 `Verified`；仍缺完整 render regression matrix、FL automation lane 的独立记录、REAPER evidence 和 M1 Joint Exit。`PARAM-FREEZE-001` 仍是 M2/M3 后续 gate；M5 EditHistoryManager 仍未开始。
 - Developer Sound/Debug Tooling：**DEV-UI-001 implementation merged / acceptance 进行中**。当前 `main` 的
   Debug/ASAN 控制面板已覆盖当前 9 参数控制、Water experiment-only controls、non-APVTS A/B/reset、
   developer Dry/Processed path、prepared/latest diagnostics 和完整 draft config representation。它不是

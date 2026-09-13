@@ -23,8 +23,8 @@
 - 已有：可移植 CI preset 与 Hosted CI 验证；M1-A/M1-B 的首块 priming、retarget 和 runtime buffer invariant regression 已建立；STATE-001 的 schema migration/fallback、XML restore、STATE-002 mode-value-retention 和 AUTO-001 PluginProcessor integration evidence 已建立。
 - 已有：`TESTDATA-001` 可复现 engineering corpus 与 `RENDER-001` pass-through offline smoke 已进入 `main`；这些能力只按 regression/finding 维护，不另建平行实现。
 - 已有：`TEST-002` processor property、`PERF-BASE-001` 和 `ARCH-LAT-001` engineering evidence 已进入 `main`。
-- 尚缺：真实 Host/DAW validation、current-artifact plugin validation、M1 Joint Exit、编辑历史、Water/Ice/Routing DSP 和正式 UI；公开参数 freeze 与完整兼容性 evidence 仍待完成。
-- `DEV-UI-001` 与 DiagnosticsSnapshot/debug bundle workflow 均为 PLANNED，不得写成已实现；Developer Control Surface 不是当前 placeholder，也不是 M5 Production UI。Perceptual Contract framework/template 在本 v1.3 revision approval + merge 后成为 CURRENT/CONTROLLED；`EXP-W-001` Water contract instance 在实际产出并验收前仍为 PLANNED。
+- 尚缺：完整真实 Host/DAW validation（当前仅有窄范围用户观察，仍不满足完整 evidence）、完整 current-artifact/plugin validation matrix、M1 Joint Exit、编辑历史、Water/Ice/Routing DSP 和正式 UI；公开参数 freeze 与完整兼容性 evidence 仍待完成。
+- `DEV-UI-001` Debug/ASAN Developer Control Surface implementation 已进入 `main`；final workflow usability 与 DiagnosticsSnapshot/debug bundle workflow 仍为 PLANNED，不得写成已完成验收；Developer Control Surface 不是当前 placeholder，也不是 M5 Production UI。Perceptual Contract framework/template 在本 v1.3 revision approval + merge 后成为 CURRENT/CONTROLLED；`EXP-W-001` Water contract instance 在实际产出并验收前仍为 PLANNED。
 - 当前 Water-first；Ice 的长期 M3 合同保留，但在 `M2 Exit + Explicit Joint Gate` 前，Ice experiment、perceptual/parameter redesign 和 production implementation 均为 DEFERRED。Ice-resume joint decision 必须在已批准的 controlled-plan revision 或对应 planning issue/PR 中留下可审查的 repository/GitHub evidence；除非决定本身命中既有 ADR trigger，否则不自动要求新 ADR。
 - 当前参数合同已将历史 `water.enable` / `ice.enable` 迁移为 `water.enabled` / `ice.enabled`；现有 state migration evidence 已建立，公开兼容性基线前仍需完整 compatibility evidence 与正式参数 freeze。
 - GitHub 远端为 `https://github.com/jjjphens-dot/FRAZIL`。开始产品代码前必须确认工作目录是该仓库的 Git 工作树，且 `origin` 指向该地址。
