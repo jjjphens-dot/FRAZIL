@@ -147,6 +147,10 @@ Validator PASS or pluginval PASS does not equal real DAW PASS. Standalone PASS d
 
 Each frozen host target must run the following HOST-001 cases: the primary development DAW, the primary validation DAW, and the secondary host once its exact REAPER version is locked. Each result is recorded as `Verified`, `Passed`, `Failed`, `Blocked` or `Not run`; “planned” is not evidence. `Verified` is reserved for a narrow, traceable observation that does not satisfy the full case protocol.
 
+The live case/gate status is centralized in the
+[`HOST-001 / M1 acceptance index`](evidence/HOST-001_ACCEPTANCE_INDEX.md); this section remains the canonical
+execution protocol and is not replaced by that index.
+
 ### 7.1 Scan and load
 
 1. Install the current Windows VST3 artifact in a standard VST3 location (`%LOCALAPPDATA%/Programs/Common/VST3/` for development or `%PROGRAMFILES%/Common Files/VST3/` for global installation), or record the host-specific scan path used.
