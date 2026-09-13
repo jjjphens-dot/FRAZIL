@@ -201,7 +201,7 @@ PluginProcessor
   ├─ captures one ParameterSnapshot per processBlock
   ├─ maps to EngineParameters
   ├─ saves/restores versioned state through Host State Adapter -> StateModel
-  └─ Debug/ASAN candidate may apply a developer-only override and Dry/Processed mode before AudioEngine
+  └─ Current-main Debug/ASAN implementation may apply a developer-only override and Dry/Processed mode before AudioEngine
      `process(buffer, engineParameters, dryReferenceOnly)`
 
 AudioEngine
@@ -209,7 +209,7 @@ AudioEngine
   └─ owns prepare-time dry scratch and continuous smoothers
 
 PluginEditor
-  ├─ Debug/ASAN candidate: Host/Water experiment controls, non-APVTS A/B/reset, Dry/Processed and draft config export
+  ├─ Current-main Debug/ASAN implementation: Host/Water experiment controls, non-APVTS A/B/reset, Dry/Processed and draft config export
   └─ Release: static non-developer placeholder
 ```
 
@@ -241,7 +241,7 @@ PluginProcessor
 - 正向事实：`src/plugin`、`src/app`、`src/dsp`、`src/ui` 目录边界已经存在；当前未发现 mutable global runtime state；AudioEngine 的运行状态由实例成员持有；`JuceHeader.h` 目前局限在插件适配层；Debug/ASAN 的开发 editor 通过 bounded atomic diagnostics snapshot 读取 runtime 信息，Release 编译掉 callback diagnostics publication path。
 - 已确认技术债：`PluginProcessor` 仍公开 APVTS，后续需要收窄 Host parameter interface；完整 Host/DAW state compatibility 与 history integration 尚未完成；wet path 仍为 pass-through，Water/Ice/Routing 尚未实现。
 - 有意保留的未实现项：Water、Ice、Routing、EditHistoryManager、完整 render regression matrix、DEV-UI usability
-  acceptance、正式 UI 和离散 transition 均仍按 Coding Plan 处于计划阶段；feature-branch Dry/Processed 仅是
+  acceptance、正式 UI 和离散 transition 均仍按 Coding Plan 处于计划阶段；current-main Dry/Processed 仅是
   developer workflow infrastructure，不是 production semantics；当前 RENDER-001 只覆盖 M1 pass-through offline
   smoke；本次状态工作不提前创建声音算法或 history 生产依赖。
 - 当前验证边界：CTest 已提供当前列出的 unit/lifecycle/invariant、processor property、latency 和 render smoke 证据；PERF-BASE-001 是独立 manual benchmark，不是 CTest gate。以上不能据此宣称完整 realtime safety、真实 DAW、完整 render/listening 或公开兼容性已完成。
