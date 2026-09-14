@@ -1,43 +1,48 @@
-# HOST-001 DAW smoke evidence — 2026-09-13
+# HOST-001 primary DAW evidence — confirmed 2026-09-14
 
-本记录把用户在本任务中确认的 DAW 观察拆成独立 case。它是可追溯的用户观察记录，
-不是完整 HOST-001 验收报告；没有观察到或没有记录的字段保持 `not captured`，不推导为通过。
+本记录最初保存 2026-09-13 的窄范围 DAW smoke 观察；2026-09-14，Sound & Host Lead / 用户按
+[`HOST-001 / M1 acceptance index`](HOST-001_ACCEPTANCE_INDEX.md) 中列出的完整 primary-host case scope，
+确认 Ableton Live 与 FL Studio 的全部适用检查均已执行且无异常。原始截图、DAW 工程和输出 WAV 未留存；
+这是附件形式限制，不是本轮人工验证的失败或阻塞项。
 
 ## Traceability
 
-- Source: [HOST-001 PR #26](https://github.com/jjjphens-dot/FRAZIL/pull/26) and the user-confirmed observations in that task.
-- Observation owner: Sound & Host Lead / user; exact observation time and independent reviewer were not captured.
-- Environment: Windows x64; exact OS build, sample rate, block size and channel configuration were not captured.
-- Artifact: FRAZIL 0.1.0 Debug VST3 built from `main@b595a47`; the machine-specific scan path is intentionally omitted.
-- Scope boundary: Water/Ice processing was not judged as a sonic product feature. No parameter, state, routing or realtime contract changed.
+- Observation owner and Sound/Host decision: Sound & Host Lead / user; `Passed` confirmation received
+  2026-09-14，exact per-case observation times were not captured.
+- Environment: Windows x64；exact OS build 与 audio-driver identity 未记录。
+- Hosts: Ableton Live 12 Suite `12.4.2`；FL Studio 2025 `25.1.4.4951`。
+- Artifact: FRAZIL 0.1.0 Debug VST3，来自 closeout candidate `1d45683`；Live 使用已配置的可扫描
+  VST3 目录，FL Studio 使用 Windows 默认 VST3 位置。机器特定绝对路径不写入 tracked evidence。
+- Primary matrix: H1 48 kHz/128/mono；H2 48 kHz/128/stereo；H3 44.1 kHz/128/stereo；
+  H4 96 kHz/128/stereo；H5 48 kHz/32/stereo；H6 48 kHz/256/stereo；H7 48 kHz/1024/stereo。
+- Scope boundary: Water/Ice 尚为 pass-through/未实现声音产品处理；本证据验证 Host surface、状态、
+  automation、lifecycle 和 render smoke，不声称 Water/Ice 听感或未来 M4 routing crossfade 已完成。
 
-## Per-case observations
+## Passed primary-host cases
 
-| Case | Host / version | Narrow observation recorded | Status |
-|---|---|---|---|
-| Enumeration | Ableton Live 12 Suite 12.4.2 | FRAZIL loaded and the Host displayed the nine current parameters in contract order. | `Verified` — user-observed, narrow scope |
-| Automation | Ableton Live 12 Suite 12.4.2 | The nine-parameter test recording, editing and playback showed no abnormal behavior. | `Verified` — user-observed, narrow scope |
-| Save/reopen | Ableton Live 12 Suite 12.4.2 | The project was saved, reopened and reported as having no abnormal behavior. | `Verified` — user-observed, narrow scope |
-| DAW render | Ableton Live 12 Suite 12.4.2 | DAW render completed with no abnormal behavior reported. | `Verified` — render-completion smoke only |
-| Enumeration | FL Studio 2025 25.1.4.4951 | FRAZIL was scanned/loaded and the nine-parameter interaction was reported as working normally. | `Verified` — user-observed, narrow scope |
-| Automation | FL Studio 2025 25.1.4.4951 | No separate automation-lane observation was recorded. | `Not run` |
-| Save/reopen | FL Studio 2025 25.1.4.4951 | The project was saved, reopened and reported as having no abnormal behavior. | `Verified` — user-observed, narrow scope |
-| DAW render | FL Studio 2025 25.1.4.4951 | DAW render completed with no abnormal behavior reported. | `Verified` — render-completion smoke only |
+以下各项均由用户在 Live 与 FL Studio 中确认完成且无异常：
 
-## Evidence not captured
+| Case | Result | Recorded observation |
+|---|---|---|
+| Group A / H1-H2 | `Passed` | 完整 rescan 后只有一个预期插件条目；真实 mono/stereo instance、editor lifecycle、bus 和全部九参数的名称、顺序、默认值、范围、choice/automation visibility 符合当前合同。 |
+| Automation — gain / H2 | `Passed` | `input.gain` 与 `output.gain` 的慢速、快速及最终值录制、编辑、回放正常，无异常 click/zipper。 |
+| Automation — continuous values / H2 | `Passed` | `global.mix`、`parallel.balance`、`water.amount`、`ice.amount` 使用独立 lane，endpoint/final value 与 inactive-value retention 正常。 |
+| Automation — discrete / H2 | `Passed` | `water.enabled`、`ice.enabled` 的 Bool 组合及 `routing.mode` 三个 choice 在重复变化后保持注册并达到最终值；仅验证当前 M1 value/identity path，不外推未来 routing crossfade。 |
+| Save/reopen / H2 | `Passed` | 九参数 distinctive values、routing、inactive values 与 automation lanes 在工程重开后恢复，无 missing parameter、order-change 或 state warning。 |
+| DAW render / H2 | `Passed` | 固定短输入的 bounce 完成，可解码、输出有限且未观察到 lifecycle 异常；所用设置、channel/frame/length 数值未另行抄录，输出 WAV 未留存。 |
+| Boundary / H3-H7 | `Passed` | 各配置完成 reconfigure/prepare、playback、parameter write、代表性 gain change 与 output observation，无异常。 |
+| Developer UI / Host restore boundary / H2 | `Passed` | editor 打开时 Host restore 可清除 developer override 并回到 Processed；editor reopen/automation 与 stale developer edit 的 ownership 边界无异常。 |
 
-The following HOST-001 acceptance fields remain open and must not be inferred from the observations above:
+每个表项同时适用于上述两个 primary host。用户的最终确认取代本记录先前的 `Verified`/`Not run`
+临时分类，但不取代 Engineering Lead 对 artifact identity、协议覆盖和合同边界的独立 review。
 
-- Complete rescan/verify output, mono and stereo instance load, editor open/close, bus/lifecycle checks,
-  display metadata, range/default/choice text and automation visibility.
-- Explicit fast/slow automation ramps, final-value and inactive-value retention checks for every contract case;
-  Ableton's record/edit/playback observation is narrower than that matrix, and FL Studio automation was not
-  separately captured.
-- Save/reopen per-parameter/state assertions and automation-lane restoration evidence for both hosts.
-- Render sample rate, block size, channel count, output length and finite-output observation; no durable bounce
-  artifact or deterministic comparison was recorded. Deterministic render remains the responsibility of
-  `RENDER-001`.
-- REAPER validation and any official-support or `Development Validated` classification.
+## Evidence form and limitations
 
-These limitations intentionally keep the case status at `Verified` rather than `Passed` until the full
-HOST-001 protocol has durable, reviewable evidence.
+- 未保存截图、DAW 工程、Host log 或输出 WAV；用户明确选择不把这些可选原始附件作为本轮验收交付物。
+- exact OS build、audio driver、逐 case 精确时间和 render 的数值 metadata 未记录。测试采用 acceptance index
+  冻结的 H1-H7 配置，结果和可观察属性由 Sound & Host Lead 明确签认为通过。
+- Deterministic/byte-level render 仍由既有 `RENDER-001` harness 证明；本记录只证明真实 DAW bounce smoke。
+- REAPER 是 secondary/lightweight host，本轮延期且不形成支持声明；它不阻塞 `CODING_PLAN v1.3`
+  明确列出的 primary-target DAW M1 Exit 条件。
+- `Development Validated`、HOST-001 closure 与 M1 Joint Exit 仍需 Engineering Lead 对更新后精确 PR HEAD
+  的正式 review；`Officially Supported` 不由本记录授予。

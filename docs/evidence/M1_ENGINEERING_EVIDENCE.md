@@ -19,4 +19,9 @@
 
 The new targets are test executables only. No Water, Ice, Routing, UI, EditHistoryManager, parameter ID/range/default, or production DSP algorithm was added. The CMake source-set cleanup only centralizes existing source lists; it does not create a new production dependency boundary. The measured allocation observation covers only the selected `AudioEngine::process` benchmark workload. It is not evidence that the complete `FRAZILAudioProcessor::processBlock` callback path is allocation-free, and it is not a substitute for a complete realtime audit or a future Water/Ice performance claim.
 
-Current gaps are real Host/DAW validation, full render regression coverage, listening acceptance, pluginval on the current artifact, formal parameter freeze/compatibility evidence, and M1 Joint Exit review. `tools/bin/pluginval.exe` was not present on this machine, so current pluginval validation is `NOT RUN`; historical pluginval records remain historical only.
+At the time of this evidence revision, the gaps were real Host/DAW validation, full render regression coverage,
+listening acceptance, pluginval on that revision's current artifact, formal parameter freeze/compatibility evidence,
+and M1 Joint Exit review. `tools/bin/pluginval.exe` was not present for that execution, so its pluginval result remains
+`NOT RUN`; later artifact evidence must not be backdated into this historical run. The subsequent closeout candidate's
+three-preset and pluginval results are recorded separately in
+[`HOST-001_ACCEPTANCE_INDEX.md`](HOST-001_ACCEPTANCE_INDEX.md).
