@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-13<br>
+> 快照日期：2026-09-15<br>
 > 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -10,11 +10,12 @@
 
 ## 1. 结论
 
-项目处于 **M1 late-stage closure + Water pre-M2 preparation + Developer Sound/Debug Tooling acceptance follow-up**。
+项目已完成 **M1 Audio Skeleton & Parameter Contract Exit**，当前进入 **Water pre-M2 preparation + Developer Sound/Debug Tooling acceptance follow-up**。
 M1-A/M1-B foundation、STATE-001/002、AUTO-001、TESTDATA-001、RENDER-001、TEST-002、PERF-BASE-001 和
 ARCH-LAT-001 engineering evidence 已进入 `main`；current-artifact pluginval 已完成 strictness-5 本地
-验证，Ableton 与 FL Studio 的 primary HOST-001 matrix 已由 Sound & Host Lead 签认为 `Passed`。M1 仍因
-更新后精确 PR HEAD 的 Engineering Lead review 与 Joint Exit 尚未完成而保持进行中。
+验证，Ableton 与 FL Studio 的 primary HOST-001 matrix 已由 Sound & Host Lead 签认为 `Passed`。Engineering
+Lead 已正式批准精确 PR #27 HEAD `01d590f`，Hosted CI 成功，PR #27 已合入 `main@3438593`；HOST-001
+关闭、两个 primary host 达到本记录范围内的 `Development Validated`，M1 Joint Exit 已批准。
 Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未实现。
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
@@ -43,7 +44,7 @@ production scope。
 7. PR #2 与 PR #3 均已合入 `main`；`87fd69b docs: add two-person collaboration roles` 作为协作基线保留在历史中，未为追求历史美观而重写 feature 分支；
 8. PR #3 collaborator review was not preserved as a formal GitHub Review submission；这是 process evidence gap，不是 production implementation bug。PR #9 的人工 review 进一步暴露了角色 ownership、PR creator、commit authorship 和 reviewer evidence 被混为同一账号 gate 的问题；当时提出的“必须由 Implementation DRI account 创建 PR/预绑定不同 reviewer account”属于历史纠正方案，现已由更简单的规则取代：职责和 review evidence 分别真实记录，需要第二人 review 时保留独立 evidence；已有 PR 的后续 push account 必须等于 PR creator；
 9. MIT `LICENSE` 已加入；第三方 notice 策略仍待收口；
-10. GitHub 当前已有治理 issue [#11](https://github.com/jjjphens-dot/FRAZIL/issues/11) 用于跟踪 portable GitHub workflow 文档同步，以及 TESTDATA-001 rationale issue [#15](https://github.com/jjjphens-dot/FRAZIL/issues/15)；Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；HOST-000 产品目标已由 Sound & Host Lead 冻结，HOST-001 primary Live/FL evidence 已由该角色签认为 `Passed`，Engineering Lead exact-HEAD review 未完成；REAPER secondary matrix 延期；当前 PR、review 和 merge 状态只以 GitHub 为准，不在本文件重复记录；不据此推断不存在其它规则集。
+10. GitHub 当前已有治理 issue [#11](https://github.com/jjjphens-dot/FRAZIL/issues/11) 用于跟踪 portable GitHub workflow 文档同步，以及 TESTDATA-001 rationale issue [#15](https://github.com/jjjphens-dot/FRAZIL/issues/15)；Milestones 为 0，Projects 为 0；Labels 页面仅见 GitHub 默认标签，项目自定义 labels 未建立；branch listing 当前报告 `main` 为 `protected:false`，更细粒度 ruleset / admin-level branch-protection configuration 尚未独立验证；HOST-000 产品目标已由 Sound & Host Lead 冻结，HOST-001 primary Live/FL evidence 已由该角色签认为 `Passed` 并由 Engineering Lead 在精确 PR #27 HEAD 正式批准；REAPER secondary matrix 延期；当前 PR、review 和 merge 状态只以 GitHub 为准，不据此推断不存在其它规则集。
 
 ## 2. 已有资产
 
@@ -52,13 +53,13 @@ production scope。
 | Build | CMake 3.25+、C++20、Ninja presets | 本机可用；portable preset 已由 Hosted CI 验证 |
 | Formats | JUCE target 声明 VST3 + Standalone | 已接入 |
 | Dependency | `external/JUCE` 为 9.0.1，本机文档记录两个兼容补丁 | 需确定仓库获取/补丁策略 |
-| Plugin shell | mono/stereo bus check、editor、versioned state XML adapter | M1-C state boundary 已接入；XML createXml/fromXml restore path 已验证；Live/FL 的真实 DAW save/reopen、lane/inactive-value restore 已由 Sound & Host 标为 `Passed`，Engineering review pending |
+| Plugin shell | mono/stereo bus check、editor、versioned state XML adapter | M1-C state boundary 已接入；XML createXml/fromXml restore path 已验证；Live/FL 的真实 DAW save/reopen、lane/inactive-value restore 已通过并获 Engineering Lead review；HOST-001 closed |
 | Parameters | 9 个集中式 APVTS 参数静态注册；enabled ID 已使用 `.enabled` | M1 参数路径已接入；`PARAM-FREEZE-001` 是后续 M2/M3 -> M4 gate，不是 M1 Exit blocker |
 | App | `ProcessSpec`、`EngineParameters`、`ParameterSnapshot`、`ParameterMapper`、`StateModel`、`AudioEngine::prepare/reset/process` | M1 gain/mix skeleton；STATE-001 versioned value/schema、known migration、invalid fallback、inactive retention；STATE-002 mode-value-retention integration verified；M5 EditHistoryManager remains planned；wet pass-through；runtime buffer invariant fallback |
 | UI | `main@b595a47` 中的 Debug/ASAN DEV-UI-001 测试用控制面板；Release 保留静态占位界面 | 非产品 UI；interactive usability、DAW 和 M5 Production UI 未完成 |
 | Developer sound tools | RENDER-001、TESTDATA-001、manual performance harness，以及 Debug/ASAN DEV-UI-001 的 effective controls、developer override、Dry/Processed、coherent bounded diagnostics、A/B slots 和 draft config export | implementation 已进入 `main`；正式 acceptance、debug bundle、Offline Sound Lab handoff 仍为 PLANNED |
 | Product identity | `docs/PRODUCT_IDENTITY.md` | FRAZIL adopted working/product name；命名词汇不改变参数合同；法律/商标 clearance 不属于当前工程范围 |
-| Tests | `frazil_smoke` + `frazil_unit` + `frazil_plugin_integration` + `frazil_processor_property` + `frazil_latency_contract` + `frazil_render` + `frazil_render_cli` CTest；`frazil_performance` manual benchmark | Debug/Release/ASAN 各 7/7 PASS；canonical PERF-BASE-001 已记录；Ableton/FL Studio primary HOST-001 matrix 已由 Sound & Host 标为 `Passed`，Engineering review pending |
+| Tests | `frazil_smoke` + `frazil_unit` + `frazil_plugin_integration` + `frazil_processor_property` + `frazil_latency_contract` + `frazil_render` + `frazil_render_cli` CTest；`frazil_performance` manual benchmark | Debug/Release/ASAN 各 7/7 PASS；canonical PERF-BASE-001 已记录；Ableton/FL Studio primary HOST-001 matrix 已通过并获 Engineering Lead review |
 | Local validation | PR #18 follow-up 的 Release、ASAN fresh configure、6-job safe build、7/7 CTest 和 Release manual benchmark 结果见 2.6，并按该节记录 exact tested implementation commit；当前 branch HEAD 与最新 CI 以 GitHub live query 为准 | 已验证；本机绝对路径仅在 ignored local configuration/build output，仓库 preset 保持可移植 |
 | pluginval | `main@b595a47` 当前 Debug VST3 在配置的 Host 扫描副本上以 pluginval 1.0.4、strictness 5、seed 12345 运行并以 `SUCCESS` 结束；Steinberg validator 未配置而跳过 | 当前 artifact 已验证；不等于完整 DAW compatibility |
 | Remote | `jjjphens-dot/FRAZIL` public repository；`main` 和审查分支的当前 SHA、mergeability 与 CI 状态以 GitHub live query 为准；`9955cdb` 仅为历史 safety follow-up baseline，不是当前审查分支 head；HOST-000 frozen-target push 已有记录；PR #5 已将 STATE-001 合入 main；TESTDATA-001 rationale 记录见 Issue #15 | GitHub live state；Milestones/Projects metadata 未建立 |
@@ -187,13 +188,14 @@ save/reopen、DAW render、H1-H7 及 Developer UI/Host restore boundary 均无�
 截图、DAW 工程和输出 WAV 未留存；这是 evidence-form limitation，不是测试失败。详见
 [HOST-001 primary DAW evidence](evidence/HOST-001-DAW-SMOKE-2026-09-13.md)。
 
-当前收尾 candidate 的工程、产物和逐 Host 缺口集中记录在
+收尾 artifact 的工程、产物和逐 Host 结果集中记录在
 [`HOST-001 / M1 acceptance index`](evidence/HOST-001_ACCEPTANCE_INDEX.md)；M1 gate-by-gate 结论见
-[`M1 Joint Exit record`](evidence/M1_JOINT_EXIT.md)。Sound & Host half 已签署；Engineering Lead 对更新后
-精确 PR HEAD 的 review 与最终 Joint Exit 仍待完成，因此暂不改变 M1 late-stage closure 状态。
+[`M1 Joint Exit record`](evidence/M1_JOINT_EXIT.md)。Engineering Lead 已于 2026-09-14 正式批准精确 PR #27
+HEAD `01d590f`；Hosted CI run 34864859407 通过，PR #27 合入 `main@3438593`。HOST-001 已关闭，Live/FL
+达到本次记录范围内的 `Development Validated`，M1 Joint Exit 已批准。
 
-当前 Debug artifact 另有 pluginval 1.0.4 strictness 5 / seed 12345 `SUCCESS` 观察；这不替代完整
-Engineering review、RENDER-001 确定性回归或 Water/Ice 声音产品验收。REAPER 作为 secondary host 延期，
+当前 Debug artifact 另有 pluginval 1.0.4 strictness 5 / seed 12345 `SUCCESS` 观察；这不替代
+RENDER-001 确定性回归或 Water/Ice 声音产品验收。REAPER 作为 secondary host 延期，
 仍为 `Not run` 且不形成支持声明。
 
 ## 3. 当前源码映射
@@ -261,16 +263,16 @@ PluginProcessor
 | Parallel balance | `parallel.balance` | `parallel.balance` | 保留 |
 | Water stage amount | `water.amount` | `water.amount` | 保留 |
 | Ice stage amount | `ice.amount` | `ice.amount` | 保留 |
-| Input trim | `input.gain` | `input.gain` | 保留；基础 DSP/continuous smoothing 已接入；Live/FL automation/state/Host matrix 由 Sound & Host 标为 `Passed`，Engineering exact-HEAD review pending；不形成 official-support claim |
-| Global dry/wet | `global.mix` | `global.mix` | 保留；基础 DSP/continuous smoothing 已接入；Live/FL automation/state/Host matrix 由 Sound & Host 标为 `Passed`，Engineering exact-HEAD review pending；不形成 official-support claim |
-| Output trim | `output.gain` | `output.gain` | 保留；基础 DSP/continuous smoothing 已接入；Live/FL automation/state/Host matrix 由 Sound & Host 标为 `Passed`，Engineering exact-HEAD review pending；不形成 official-support claim |
+| Input trim | `input.gain` | `input.gain` | 保留；基础 DSP/continuous smoothing 已接入；Live/FL automation/state/Host matrix 已通过并获 Engineering exact-HEAD review；不形成 official-support claim |
+| Global dry/wet | `global.mix` | `global.mix` | 保留；基础 DSP/continuous smoothing 已接入；Live/FL automation/state/Host matrix 已通过并获 Engineering exact-HEAD review；不形成 official-support claim |
+| Output trim | `output.gain` | `output.gain` | 保留；基础 DSP/continuous smoothing 已接入；Live/FL automation/state/Host matrix 已通过并获 Engineering exact-HEAD review；不形成 official-support claim |
 
 虽然 M1 参数合同已随 PR #3 合入 `main`，但在正式参数 freeze、state migration 和 compatibility evidence 前，不得创建公开 preset/session 兼容性承诺。若已有外部用户使用过当前占位构建，应先确认是否需要兼容别名/迁移。
 
 ## 5. 现状对应 milestone
 
-- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和两次 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、完整 Host evidence、GitHub metadata 与 branch protection 尚未收口。HOST-001 evidence 不阻塞 HOST-000 定义目标，但阻塞 M1 Exit Gate。
-- M1 Audio Skeleton & Parameter Contract：**late-stage closure / 进行中**。M1 engineering foundation/evidence、closeout candidate 的 Debug/Release/ASAN、exact Debug artifact strictness-5 pluginval 与 Sound & Host `Passed` 的 Ableton/FL primary matrix 均已完成；剩余 gate 是 Engineering Lead 对更新后精确 PR HEAD 的 review 与 Joint Exit/merge。REAPER 为延期的 secondary host，不阻塞 M1 且不形成支持声明。完整未来 render matrix 仍按原计划推进，不因本次收尾变成新的 M1 blocker。`PARAM-FREEZE-001` 仍是 M2/M3 后续 gate；M5 EditHistoryManager 仍未开始。
+- M0 Repository & Governance：**进行中**。本地 Git、portable preset、bootstrap、CI 文件、基础测试 target、MIT 许可证、首次 push 和 Hosted CI success 已验证；HOST-000 产品目标矩阵与产品身份文档已记录，但 official-support gate、完整 release compatibility、GitHub metadata 与 branch protection 尚未收口。HOST-001 已关闭，不再阻塞 M1 Exit。
+- M1 Audio Skeleton & Parameter Contract：**Exit approved / 完成**。M1 engineering foundation/evidence、closeout artifact 的 Debug/Release/ASAN、exact Debug artifact strictness-5 pluginval、Sound & Host `Passed` 的 Ableton/FL primary matrix、Engineering Lead exact-HEAD approval、Hosted CI 与 PR #27 merge 均已完成。REAPER 为延期的 secondary host，不阻塞 M1 且不形成支持声明。完整未来 render matrix 仍按原计划推进；`PARAM-FREEZE-001` 仍是 M2/M3 后续 gate；M5 EditHistoryManager 仍未开始。
 - Developer Sound/Debug Tooling：**DEV-UI-001 implementation merged / acceptance 进行中**。当前 `main` 的
   Debug/ASAN 控制面板已覆盖当前 9 参数控制、Water experiment-only controls、non-APVTS A/B/reset、
   developer Dry/Processed path、prepared/latest diagnostics 和完整 draft config representation。它不是
@@ -297,7 +299,7 @@ PluginProcessor
 
 ```text
 Engineering lane
-  -> fix findings handed back from HOST-001
+  -> maintain merged M1 evidence only for regressions/findings
 
 Sound / Host lane
   -> HOST-001 Ableton + FL Studio primary evidence complete
@@ -306,8 +308,8 @@ Sound / Host lane
   -> DEV-UI-001 workflow/product usability acceptance
   -> LISTENING-001 representative corpus preparation (parallel; does not block M1 Joint Exit)
 
-M1 closure and Water readiness
-  -> M1 Joint Exit Review
+Post-M1 Water readiness
+  -> M1 Joint Exit complete
   -> DEV-UI-001 usable before large-scale EXP-W-002
   -> EXP-W-002 engineering experiments using TESTDATA-001
   -> EXP-W-003 Water dual-mode validation/refinement after LISTENING-001 is ready
@@ -316,7 +318,8 @@ M1 closure and Water readiness
   -> after M2 Exit, use an Explicit Joint Gate before resuming M3 Ice
 ```
 
-HOST-000 产品目标已冻结，support classification 仍需满足 Engineering Lead review 与 HOST-001 evidence 条件。
+HOST-000 产品目标已冻结；Live/FL 已满足本轮 `Development Validated` 条件，但 `Officially Supported`
+仍需后续 release compatibility/support gate，REAPER 无支持声明。
 已进入 `main` 的 M1 foundation/evidence 只按 regression/finding ownership 维护，不得建立平行实现。
 Debug/ASAN Developer UI 与 diagnostics implementation 已进入 `main`，但不得从本状态文档推断为产品
 UI 或已完成 usability/DAW acceptance；Water-specific Perceptual Contract instance 仍不得推断为已实现；

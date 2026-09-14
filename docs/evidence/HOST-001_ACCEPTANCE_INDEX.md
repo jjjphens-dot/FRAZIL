@@ -1,10 +1,10 @@
 # HOST-001 / M1 acceptance index
 
-> Status: Engineering and primary-Host execution complete; independent acceptance review pending<br>
-> Baseline: `main@71bdf11`<br>
+> Status: **Closed / Accepted**; primary-Host execution, independent Engineering review and M1 Joint Exit complete<br>
+> Merged baseline: `main@3438593` (PR #27)<br>
 > Tested source: `1d45683e68273a59bd160acd084c0e528343d4c2`<br>
 > Implementation DRI: Sound & Host Lead for DAW evidence; Engineering Lead for build/artifact evidence<br>
-> Acceptance: Sound & Host Lead has signed the primary cases; Engineering Lead review and the M1 Joint Gate remain pending
+> Acceptance: Sound & Host Lead signed the primary cases; Engineering Lead formally approved exact PR HEAD `01d590f`; PR #27 merged on 2026-09-14
 
 This file is an index, not a substitute for the protocols in
 [`HOST-000_COMPATIBILITY_MATRIX.md`](../HOST-000_COMPATIBILITY_MATRIX.md),
@@ -25,7 +25,7 @@ confirmation recorded on 2026-09-14 is the separate basis for each `Passed` resu
   conclusions do not automatically extend across build types.
 - REAPER: secondary/lightweight scope, deferred by the Sound & Host Lead after read-only discovery found no install.
   It remains `Not run` and cannot be used for a support claim. This does not block the M1 Exit clause, which
-  explicitly requires the primary target DAWs; Engineering Lead review must confirm that boundary.
+  explicitly requires the primary target DAWs; Engineering Lead review accepted that boundary on PR #27.
 - Out of scope: Water/Ice/Routing production DSP, product UI, listening acceptance, the future full render matrix,
   and official-support classification.
 
@@ -90,15 +90,16 @@ installation authorization and grants no REAPER support status; the primary-DAW 
 |---|---|---|
 | Parameter registry/snapshot/mapper — Coding Plan M1-A and M1 Exit | Exact nine-parameter contract plus real Processor integration | Current Debug/Release/ASAN CTest PASS; existing detailed evidence remains applicable |
 | Gain/mix/smoothing — Coding Plan M1-B and M1 Exit | Mathematical, lifecycle and integration results | Current Debug/Release/ASAN CTest PASS; existing detailed evidence remains applicable |
-| State/inactive/history boundary — STATE-001/002 and M1 Exit | Schema/fallback/round-trip/mode retention plus real Host restore boundary | Engineering tests PASS; both primary Host restore cases `Passed`; Engineering review pending |
-| AUTO-001 — Coding Plan lines defining block snapshot, continuous smoothing and discrete transition | Engineering block/smoothing/value evidence plus applicable Host automation | Engineering evidence and primary Host cases pass for the current M1 path; Engineering review must confirm that this does not claim the future RoutingEngine click-free crossfade or implement M4 early |
+| State/inactive/history boundary — STATE-001/002 and M1 Exit | Schema/fallback/round-trip/mode retention plus real Host restore boundary | Engineering tests PASS; both primary Host restore cases `Passed`; accepted by Engineering Lead on exact PR #27 HEAD |
+| AUTO-001 — Coding Plan lines defining block snapshot, continuous smoothing and discrete transition | Engineering block/smoothing/value evidence plus applicable Host automation | Engineering evidence and primary Host cases pass for the current M1 path; Engineering review accepted the boundary that this does not claim the future RoutingEngine click-free crossfade or implement M4 early |
 | TESTDATA-001 / RENDER-001 — Coding Plan M1-C and M1 Exit | Existing corpus integrity and deterministic pass-through render | Current CTest, corpus verification and render CLI checks PASS |
 | PERF-BASE-001 | Clean matching Release provenance and recorded baseline | Current clean-provenance Release benchmark PASS; no runtime change invalidates the canonical baseline |
 | ARCH-LAT-001 / TEST-002 | Accepted 0-sample metadata, finite/lifecycle/property results | Current property/latency CTest PASS; pluginval reports 0 samples and tail 0 |
 | Build/plugin | Debug, Release, ASAN evidence and one exact strictness-5 pluginval artifact | Current three-preset build/CTest and exact Debug artifact pluginval PASS |
 | Sound/Host — Coding Plan M1 Exit | Primary DAW parameter enumeration and project save/reopen, with HOST-001 cases scoped above | Complete primary cases `Passed`; Sound & Host Lead signed 2026-09-14; raw attachments not retained |
-| Review/closure | Engineering and Sound & Host evidence reviewed at exact revision; explicit Joint Exit decision | Sound & Host decision complete; independent Engineering Lead review pending |
+| Review/closure | Engineering and Sound & Host evidence reviewed at exact revision; explicit Joint Exit decision | Complete: Engineering Lead formally approved exact PR #27 HEAD `01d590f`; Hosted CI passed; PR #27 merged as `main@3438593` |
 
-The primary execution results are acceptance-ready but do not grant `Development Validated`, `Officially Supported`,
-HOST-001 closure, or M1 completion by themselves. Those transitions occur only after exact-revision Engineering Lead
-review and the explicit Joint Exit decision. Deferred REAPER work cannot be cited as a support result.
+The accepted primary execution results grant `Development Validated` to Ableton Live 12.4.2 and FL Studio
+25.1.4.4951 for this recorded Windows x64 Debug VST3 scope. HOST-001 is closed and M1 Joint Exit is approved.
+This does not grant `Officially Supported`, extend the result to release builds or other machines, or validate
+Water/Ice sound or future M4 routing. Deferred REAPER work cannot be cited as a support result.

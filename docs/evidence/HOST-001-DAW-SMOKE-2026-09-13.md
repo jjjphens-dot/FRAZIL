@@ -34,7 +34,7 @@
 | Developer UI / Host restore boundary / H2 | `Passed` | editor 打开时 Host restore 可清除 developer override 并回到 Processed；editor reopen/automation 与 stale developer edit 的 ownership 边界无异常。 |
 
 每个表项同时适用于上述两个 primary host。用户的最终确认取代本记录先前的 `Verified`/`Not run`
-临时分类，但不取代 Engineering Lead 对 artifact identity、协议覆盖和合同边界的独立 review。
+临时分类；Engineering Lead 随后在精确 PR #27 HEAD `01d590f` 上正式批准 artifact identity、协议覆盖和合同边界。
 
 ## Evidence form and limitations
 
@@ -44,5 +44,6 @@
 - Deterministic/byte-level render 仍由既有 `RENDER-001` harness 证明；本记录只证明真实 DAW bounce smoke。
 - REAPER 是 secondary/lightweight host，本轮延期且不形成支持声明；它不阻塞 `CODING_PLAN v1.3`
   明确列出的 primary-target DAW M1 Exit 条件。
-- `Development Validated`、HOST-001 closure 与 M1 Joint Exit 仍需 Engineering Lead 对更新后精确 PR HEAD
-  的正式 review；`Officially Supported` 不由本记录授予。
+- Engineering Lead 已正式批准精确 PR #27 HEAD `01d590f`，且 PR #27 已合入 `main@3438593`；因此两个
+  primary host 达到本记录范围内的 `Development Validated`，HOST-001 关闭且 M1 Joint Exit 获批。
+  `Officially Supported` 不由本记录授予。
