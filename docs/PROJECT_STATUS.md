@@ -261,9 +261,9 @@ PluginProcessor
 | Parallel balance | `parallel.balance` | `parallel.balance` | 保留 |
 | Water stage amount | `water.amount` | `water.amount` | 保留 |
 | Ice stage amount | `ice.amount` | `ice.amount` | 保留 |
-| Input trim | `input.gain` | `input.gain` | 保留；基础 DSP/continuous smoothing 已接入；仍待 automation/state/Host validation |
-| Global dry/wet | `global.mix` | `global.mix` | 保留；基础 DSP/continuous smoothing 已接入；仍待 automation/state/Host validation |
-| Output trim | `output.gain` | `output.gain` | 保留；基础 DSP/continuous smoothing 已接入；仍待 automation/state/Host validation |
+| Input trim | `input.gain` | `input.gain` | 保留；基础 DSP/continuous smoothing 已接入；Live/FL automation/state/Host matrix 由 Sound & Host 标为 `Passed`，Engineering exact-HEAD review pending；不形成 official-support claim |
+| Global dry/wet | `global.mix` | `global.mix` | 保留；基础 DSP/continuous smoothing 已接入；Live/FL automation/state/Host matrix 由 Sound & Host 标为 `Passed`，Engineering exact-HEAD review pending；不形成 official-support claim |
+| Output trim | `output.gain` | `output.gain` | 保留；基础 DSP/continuous smoothing 已接入；Live/FL automation/state/Host matrix 由 Sound & Host 标为 `Passed`，Engineering exact-HEAD review pending；不形成 official-support claim |
 
 虽然 M1 参数合同已随 PR #3 合入 `main`，但在正式参数 freeze、state migration 和 compatibility evidence 前，不得创建公开 preset/session 兼容性承诺。若已有外部用户使用过当前占位构建，应先确认是否需要兼容别名/迁移。
 
