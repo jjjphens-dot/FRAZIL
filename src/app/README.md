@@ -38,7 +38,12 @@ UI -> narrow app edit/history command interface -> EditHistoryManager (message t
 
 正式 Host 参数由 plugin 层 `src/plugin/ParameterLayout.*` 集中注册。app 层的 Snapshot 只接收由 plugin 缓存的原子参数指针，Mapper 输出不含 Host 对象的 `EngineParameters`；app 不依赖 ParameterLayout、PluginProcessor 或 Host adapter。
 
-未来 Water candidate 的 app mapping 只准备 normalized `WaterProductValues { model, size, motion, decay }`：
+未来 Water candidate 的 app mapping 只准备 normalized `WaterProductValues { model, size, motion, decay }`。
+`WaterProductValues` 和 `WaterModel` 的类型定义归 Water domain，推荐未来放在
+`src/dsp/water/WaterProductValues.h` 或同域相邻 pure-value header，不在 app/plugin/ui 定义。
+app 可依赖并构造下游 domain values；构造职责不改变类型所有权。允许 `plugin -> app -> dsp/Water domain`，
+禁止 `dsp/Water domain -> app`；WaterProcessor 和 WaterMacroMapper 不依赖 app。
+
 raw interpretation、finite fallback、clamp、choice -> enum 和 dB -> linear 属于 `ParameterMapper`。
 Water domain 的 `WaterMacroMapper` 唯一负责这些值到 `FluidTargets` / `ResonantTargets` 的转换；app 不认识
 Bubble/Droplet/Flow/Modal configs、decay seconds、event probability、trajectory interval、modal coefficients

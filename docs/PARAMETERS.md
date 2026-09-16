@@ -59,15 +59,23 @@ user perceptual intention
 
 ```text
 Host / Developer Control -> ParameterSnapshot -> ParameterMapper
-  -> WaterProductValues { model, size, motion, decay }
+  -> WaterProductValues { model, size, motion, decay } (Water-domain value type)
   -> WaterMacroMapper (Water domain) -> FluidTargets / ResonantTargets -> DSP components
 ```
 
 这是 planned value boundary，不是当前已接线的 runtime path，也不授权把 Developer controls 注册到 APVTS。
+`WaterProductValues` 是 Water-domain normalized product value representation；推荐未来路径为
+`src/dsp/water/WaterProductValues.h`，`WaterModel` 在同一或相邻 Water-domain value layer。
+`ParameterMapper` 是这些值的 producer/adapter，不拥有类型定义；`WaterMacroMapper` 是 consumer 和唯一的
+mode-specific semantic mapper。允许 `app -> Water domain`，禁止 `Water domain -> app`；不得把生产定义
+放在 app/plugin/ui。该 small/plain value type 无 JUCE/APVTS/UI、分配或 DSP runtime state；完整排除项见
+[Architecture §5.3](FRAZIL_PROJECT_ARCHITECTURE_v0.3.md#53-waterprocessor)。
 当前九参数 Snapshot/Mapper 路径与独立的 Developer experiment snapshot 保持原状；未来实验适配应复用同一
 产品值语义，不另建一套 DSP destination mapping。`ParameterMapper` 只解释 Host/raw values、执行 finite
 fallback、clamp、choice -> enum、dB -> linear，并准备 normalized product/domain values。
-它不认识 BubbleConfig、DropletConfig、FlowConfig、ModalConfig，也不决定 decay seconds、event probability、
+NaN/Inf、越界值和 invalid choice/enum 在此 application boundary 按明确 fallback 规则清理；WaterMacroMapper
+接收 finite normalized values 和有效 WaterModel，仍须生成 defensive bounded targets，不把任意 clamp 散落到 primitives。
+ParameterMapper 不认识 BubbleConfig、DropletConfig、FlowConfig、ModalConfig，也不决定 decay seconds、event probability、
 trajectory interval、modal coefficient 或 voice lifetime。
 
 `WaterMacroMapper` 唯一拥有 normalized Water values -> mode-specific bounded targets 的转换；它位于

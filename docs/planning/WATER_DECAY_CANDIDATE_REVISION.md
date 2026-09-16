@@ -78,6 +78,26 @@ Targeted semantic scan retained current Developer Model/Size/Motion and Size/Mot
 preserving Size/Motion while changing Decay describe held semantics, not incomplete vocabulary. Future candidate
 lists use Model/Size/Motion/Decay. No runtime/export capability was inferred from documentation.
 
+### Final ownership remediation
+
+Reviewed previous HEAD: `958cd76c548aadde5627a18b22515e1afdbb7601`; base remains `c7e68ce`.
+The next user-supplied REQUEST_CHANGES identified one remaining P1: WaterProductValues type ownership and
+dependency direction. It considered the prior four findings resolved; that report is not an independent approval
+or proof of a formal GitHub submission.
+
+Resolution: WaterProductValues and WaterModel belong to the Water-domain pure-value layer, preferably the future
+`src/dsp/water/WaterProductValues.h` or adjacent domain header. ParameterMapper constructs downstream values
+without owning their definition. Allowed: `plugin -> app -> dsp/Water domain`; forbidden: `dsp/Water domain -> app`.
+WaterMacroMapper and WaterProcessor cannot depend on app. The Architecture responsibility matrix separates
+value ownership, mapping and runtime state; the guide/testing contract records future quality and semantic tests.
+No production header/mapper, alternate DTO or framework is created.
+
+This round changes nine Markdown files: Architecture, Parameters, Core Implementation Guide, Module Index,
+Coding Plan, Proposed ADR-0006, app README, Testing and this record. Reviewed without further edits: Developer
+Sound Tools, Perceptual Contract and dsp/ui README already preserve the current/planned distinction and downstream
+gate/dependency rules; governance, Accepted ADRs and Project Status require no new fact. The Revision B gate,
+formal EXP-W-002 gate, Developer Decay planned status and approval-before-finalization lifecycle remain unchanged.
+
 ## Review evidence and finalization gate
 
 Current status: **ready for independent re-review; required approval and finalization pending**.
@@ -87,7 +107,7 @@ in the PR and link it here; agent consistency checks do not satisfy this require
 | Required evidence | Current record |
 |---|---|
 | Reviewer and reviewed HEAD | Independent re-review pending; no reviewer identity claimed |
-| Review scope | Requested: candidate semantics, mapping ownership, handoff gates, Developer boundary and authority lifecycle |
+| Review scope | Requested: candidate semantics, mapping/type ownership and dependency direction, handoff gates, Developer boundary and authority lifecycle |
 | Evidence reproduced / not reproduced | Reviewer must state both; local checks below are agent checks only |
 | Findings | Supplied REQUEST_CHANGES and remediation table above; independent resolution pending |
 | Decision | Required independent decision pending; no APPROVE claimed |
@@ -164,10 +184,12 @@ formal performance-budget impacts are N/A. Audio evaluation remains future evide
 - `python tools/check_markdown_links.py`: PASS, including the revision record; local target paths only.
 - `python tools/check_portability.py`: PASS.
 - `git diff --check` and `git diff --cached --check`: PASS.
-- Manual diff/semantic/scope review: PASS; 14 Markdown files across Revision A and remediation, 11 changed by
-  remediation. Read-only Python assertions against the base
+- Manual diff/semantic/scope review: PASS; 14 Markdown files across Revision A and remediation; the first
+  remediation changed 11, the final ownership remediation changes nine. Read-only Python assertions against the base
   confirmed unchanged Host registry text, exact nine source IDs, schema 1, Proposed ADR, and identical M1 Exit
   and M3/PARAM-FREEZE sections. No executable sources, tests or configs changed.
+- Final ownership remediation also verifies unchanged Revision B/EXP-W-002 and finalization gate text (apart
+  from the review-scope field), unchanged Developer/perceptual documents and no production Water headers/mapper.
 - Debug/Release/ASAN builds, CTest, pluginval, render, CPU, DAW and listening: **NOT RUN / N/A** for this
   non-executable revision. Future UI/experiment code must run its own required validation, including actual
   Release Host enumeration; source isolation review is not a replacement for that runtime check.

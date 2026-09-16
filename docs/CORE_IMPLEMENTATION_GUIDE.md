@@ -573,6 +573,32 @@ application `ParameterMapper` 只做 raw interpretation、finite fallback、clam
 trajectory interval、modal coefficients 或 voice lifetimes。当前 Developer snapshot 尚未接入该 planned chain；
 不新增 runtime mapper、generic framework 或第二套 destination mapping。
 
+`WaterProductValues` 和 `WaterModel` 的定义属于 Water domain，推荐未来同置于
+`src/dsp/water/WaterProductValues.h` 或相邻 pure-value header；`FluidTargets` / `ResonantTargets`
+同属 Water domain。app `ParameterMapper` 构造下游值，不拥有其类型；允许 `plugin -> app -> dsp/Water domain`，
+禁止 WaterMacroMapper/WaterProcessor 反向依赖 app。value type 保持 small/plain、无 JUCE/APVTS/UI、分配或
+runtime state；排除项与职责矩阵见 [Architecture §5.3](FRAZIL_PROJECT_ARCHITECTURE_v0.3.md#53-waterprocessor)。
+
+后续实现须遵守 [Code Standards](CODE_STANDARDS.md) 和以下 mapping-specific 约束（本轮不实现）：
+
+- 明确区分 application sanitize、domain mapping、DSP state update 和 DSP processing；每个函数只做一项
+  逻辑职责，不把 clamping、随机生成、voice allocation、processing 合为一个 WaterManager/controller。
+- 输入优先 immutable/const，mapping 为 input value -> output value；不用 mutable global/static、隐藏查询
+  或 service locator。使用小型 explicit structs/plain functions/classes，禁止无实际需求的 dictionaries、
+  dynamic property bags、destination graphs、mapper inheritance/reflection 或 dependency-injection framework。
+- 名称体现语义与单位，如 `decaySeconds`、`eventRateHz`、`rootFrequencyHz`、`trajectoryIntervalSeconds`；
+  normalized/seconds/samples 的转换边界明确。重要 range/constant 有名称和实验依据，不写无解释 magic numbers。
+- 注释解释 why、contract、单位、invariant、ownership 和非显然 realtime 限制，不复述赋值语法。
+- ParameterMapper 清理 NaN/Inf、越界及 invalid choice/enum；WaterMacroMapper 接收 finite normalized domain
+  values，仍生成 defensive bounded targets。它不持有 voice/delay/resonator/random state、buffers、Host
+  automation 或序列化责任；primitive 不接收产品 IDs，clamp 责任不得任意分散。
+- audio path 保持 bounded/deterministic，不分配、I/O、console log、阻塞、JSON parsing、string formatting、
+  Host/UI calls 或在 automation 时调用完整 prepare。
+- mapping 可脱离 audio device、JUCE Host、PluginProcessor 和 UI 测试；按 [Testing](TESTING.md) 验证 finite、
+  normalized endpoints、determinism、destination independence 和 persistence monotonicity，避免锁死 private coefficients。
+- 未来创建这些类型/mapper 的同一 PR 必须 review/update Module Index、dsp/app README、Architecture、Parameters、
+  Testing 及适用 ADR；内部类型存在不等于 Host adoption，也不关闭 experiment/Joint Gate/state/freeze prerequisites。
+
 SPIKE 的 A/B/C `decaySeconds` 在 prepare 中建立系数/voice lifetime；D 是持续的 fractional-delay residual，
 有 `targetIntervalSeconds`/trajectory/depth，没有天然 event lifetime。不为覆盖所有组件创造 Flow decay。
 B 的 `refractorySeconds` 是当前 trigger gate 的实现量；后续 Motion 可比较 sensitivity、probability、

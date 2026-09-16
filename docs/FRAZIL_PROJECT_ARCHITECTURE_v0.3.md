@@ -834,6 +834,31 @@ public:
 
 以上类型只表达 planned production shape / candidate contract，不是当前源码、Host registry 或 state schema；
 零初始化语法不冻结产品默认值。Decay 修订见 [DOC-W-DECAY-001](planning/WATER_DECAY_CANDIDATE_REVISION.md)。
+
+`WaterProductValues` 是 **Water-domain pure value type**，推荐未来定义于
+`src/dsp/water/WaterProductValues.h` 或等价的狭窄 Water-domain value header；`WaterModel` 在同一或相邻
+Water-domain value layer。不得把这两个类型的生产定义放在 app/plugin/ui，或复制 app/domain 两套定义。
+`ParameterMapper` 位于 `src/app/`，可以依赖下游类型来构造 normalized Water values；构造职责不等于类型所有权。
+允许依赖保持 `plugin -> app -> dsp/Water domain`；禁止 `dsp/Water domain -> app`，
+`WaterProcessor` 和 `WaterMacroMapper` 均不得 include/依赖 `src/app`。示意 prepare 签名也不授权 DSP
+include app 的 `ProcessSpec.h`；未来 lifecycle 接口须通过下游值或明确的工程量由 app 适配。
+
+该值类型只携带 model 与 normalized size/motion/decay，应为 small/plain/value-oriented、state-free、
+JUCE/APVTS/UI-free、allocation-free；不得持有 parameter objects/IDs、APVTS references、UI handles、
+DSP processor objects、smoothers、buffers、RandomSource state、voice pools、resonators 或 routing state。
+`FluidTargets` / `ResonantTargets` 同属 Water domain；`WaterMacroMapper` 不拥有 voice/delay/resonator/random
+runtime state、buffers、Host automation 或 state serialization。这里只约束未来架构，不创建任何 header/mapper。
+
+| Layer / planned Water type | Owns | Must not own |
+|---|---|---|
+| Plugin / ParameterLayout | Host IDs/types/ranges/registration | Water DSP semantics |
+| ParameterSnapshot | coherent per-block Host values | smoothing/DSP |
+| ParameterMapper (app) | Host/app interpretation -> normalized domain values | Water DSP destination mapping |
+| WaterProductValues + WaterModel (Water domain) | normalized Water product intent | Host/UI/DSP state |
+| WaterMacroMapper (Water domain) | product values -> bounded Water DSP targets | DSP runtime state |
+| WaterProcessor (Water domain) | Water lifecycle/state/composition | Host/APVTS/routing/stage amount |
+| DSP primitives | algorithmic quantities/state | product parameter IDs |
+
 ParameterMapper 只准备 normalized WaterProductValues；WaterProcessor 使用 Water domain 的 WaterMacroMapper
 将其映射为 FluidTargets / ResonantTargets 后交给 components，state 和 lifecycle 留在 processor/components；
 WaterProcessor 不读取 APVTS，也不拥有 `water.amount`、`parallel.balance`、`global.mix` 或 RoutingMode。
@@ -1285,7 +1310,8 @@ ParameterMapper 负责：
 - Host/raw parameter interpretation；
 - finite fallback 与 clamp；
 - choice -> enum 与 dB -> linear；
-- normalized product/domain value preparation；未来 Water 输出为 `WaterProductValues`。
+- normalized product/domain value preparation；未来构造 Water domain 定义的 `WaterProductValues`，
+  不把其类型定义归入 app。`WaterModel` 同属下游 Water domain，保持 `app -> dsp` 单向依赖。
 
 ParameterMapper 不认识 BubbleConfig、DropletConfig、FlowConfig、ModalConfig，不决定 decay seconds、
 event probability、trajectory interval、modal coefficient 或 voice lifetime；这些属于 Water domain。

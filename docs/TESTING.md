@@ -396,6 +396,15 @@ Resonant，并分别记录：
 
 #### Motion × Decay separation and dynamic-state evidence (planned)
 
+Future pure-value mapping tests must run without an audio device, JUCE Host, PluginProcessor or UI. Review the
+include boundary: WaterProductValues / WaterModel and targets belong to Water domain; app may consume their
+headers, while WaterMacroMapper / WaterProcessor must not depend on app. ParameterMapper tests cover NaN/Inf,
+out-of-range and invalid choice/enum fallback. WaterMacroMapper tests start from finite normalized values and a
+valid WaterModel: 0/0.5/1 boundaries produce finite bounded targets; identical inputs give identical outputs;
+increasing Decay increases target persistence monotonically. Size must not change direct activity/lifetime targets
+unless explicitly justified by an accepted mapping. Test these semantics, not arbitrary private coefficient values.
+Motion/Decay destination invariants below remain required. These are planned tests, not results from this revision.
+
 EXP-W-002 requires the following in **each** of Fluid and Resonant after accepted EXP-W-001 **including mandatory
 Decay Revision B**, with M1 Exit and applicable Developer readiness. Apply the
 [completion/start gate](CODING_PLAN.md#decay-revision-b-completion-gate); Revision A alone, an old three-macro brief

@@ -187,7 +187,7 @@ M1 期间不授权 production Water/Ice DSP 或 candidate production integration
 | PluginProcessor | JUCE lifecycle、bus、Snapshot 入口、state adapter | Water/Ice 算法、routing math、UI layout | pluginval、mono/stereo、state/parameter tests |
 | ParameterLayout | `src/plugin/ParameterLayout.*` 的 Host/JUCE-facing 静态 ID/type/range/default/label/choice | DSP mapping、显隐 | 精确枚举 regression |
 | ParameterSnapshot | 每 block 一致的 POD 值 | smoothing、APVTS ownership | 无分配、一致性测试 |
-| ParameterMapper | Host/application values -> product/domain values；finite fallback、clamp、enum、dB -> linear；未来 WaterProductValues | Water DSP targets/configs、buffer、Host timeline | table-driven unit tests |
+| ParameterMapper | Host/application values -> product/domain values；finite fallback、clamp、enum、dB -> linear；未来构造 Water domain 定义的 WaterProductValues | Water 类型定义所有权、DSP targets/configs、buffer、Host timeline | table-driven unit tests |
 | AudioEngine | gain/routing/global mix 编排与生命周期 | 算法细节、UI/history | signal-chain/integration tests |
 | WaterProcessor | 完整 Water transform 与少量 macro | stage amount、routing、Host | property/render/listening/perf |
 | IceProcessor | 完整 Ice transform 与少量 macro | stage amount、routing、Host | property/render/listening/perf |
@@ -195,6 +195,12 @@ M1 期间不授权 production Water/Ice DSP 或 candidate production integration
 | StageMixer | dry/processed mix law | Host/UI | endpoint/monotonicity/energy tests |
 | EditHistoryManager | UI transaction、bounded undo/redo | Host automation、audio thread | gesture/source/state tests |
 | UI | 产品参数表达、attachment、gesture，以及 narrow app edit/history command interface 的调用 | DSP 执行、动态参数注册、直接持有 DSP object | interaction/resize/automation tests |
+
+计划中的 `WaterProductValues` / `WaterModel` 类型定义归 Water domain，推荐未来路径
+`src/dsp/water/WaterProductValues.h` 或同域相邻 pure-value header；app ParameterMapper 只构造它们。
+WaterMacroMapper、FluidTargets / ResonantTargets 同属 Water domain；允许 `plugin -> app -> dsp/Water domain`，
+禁止 `dsp/Water domain -> app`。完整职责矩阵见 [Architecture §5.3](FRAZIL_PROJECT_ARCHITECTURE_v0.3.md#53-waterprocessor)。
+此处为 planned contract，不创建 header/mapper，不改变现有运行时或 Host adoption prerequisites。
 
 ## 4. M0 — Repository, Governance & Reproducible Build
 

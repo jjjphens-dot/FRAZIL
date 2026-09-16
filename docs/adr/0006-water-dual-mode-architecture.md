@@ -63,6 +63,16 @@ trajectory intervals, modal coefficients or voice lifetimes. WaterMacroMapper al
 values -> mode-specific bounded DSP targets: pure C++, deterministic, allocation-free, unit-testable and
 independent of JUCE/APVTS/UI/DSP state. Primitives consume engineering quantities, not product parameter IDs.
 This is a future boundary, not an implemented Developer/Host path or a new generic mapping framework.
+Proposed value ownership: WaterProductValues belongs to the Water domain, preferably in the future
+`src/dsp/water/WaterProductValues.h` or an equivalent narrow domain header. WaterModel belongs in the same or
+adjacent Water-domain value layer; FluidTargets / ResonantTargets also belong to that domain. ParameterMapper
+may construct these downstream product values without owning their definition. The allowed dependency remains
+`plugin -> app -> dsp/Water domain`; `dsp/Water domain -> app` is forbidden, including WaterProcessor and
+WaterMacroMapper. Do not define these domain types in app/plugin/ui or duplicate them across layers.
+WaterProductValues is small/plain, state-free, allocation-free and JUCE/APVTS/UI-free; it carries normalized intent,
+not parameter objects/IDs, handles, processors, smoothers, buffers, random/voice/resonator/routing state.
+WaterMacroMapper owns no DSP runtime state, Host automation or serialization. No such production header or
+mapper is created by this revision; ADR-0006 remains Proposed.
 Detailed ranges, defaults, nonlinear curves, transition duration, smoothing constants, and state evolution
 are not decided here.
 
