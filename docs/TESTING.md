@@ -581,3 +581,24 @@ pluginval 路径与完整 MSVC 环境初始化见 `docs/ENVIRONMENT.md`。CI 命
 - M5：UI attachment、gesture/history、resize/accessibility 基线 PASS。
 - M6：全矩阵、ASAN、长稳、多实例、DAW、CPU/memory、listening regression PASS。
 - M7：Release clean build、VST3 validation、兼容性和 packaging 签核，known blockers=0。
+
+### SPIKE-W-DSP-001 objective feasibility checks
+
+The opt-in `FRAZIL_BUILD_WATER_EXPERIMENT` option builds candidate-only tests, renderer and a
+manual research performance executable. CTest covers baseline, features, modal, bubble, flow,
+droplet, Fluid ablation, direct event-pool capacity invariants and decoded renderer output. Checks include lifecycle/numerical bounds,
+seed independence, zero/odd callbacks, silence/tail, stereo isolation, sample-rate/partition
+consistency and strict engineering-config syntax/representation validation. Raw-text CLI regressions
+reject concatenated roots, trailing content, malformed numbers/escapes and control bytes globally,
+including baseline/inactive-module modes, before output creation. Duplicate decoded keys are rejected
+so overwritten fields cannot evade global validation. Valid whitespace, exponent forms, escaped known
+keys and an initial UTF-8 BOM remain supported. Only enabled DSP components
+validate semantic ranges or prepare; disabled state is reset and never processed. Baseline/C/Fluid
+renderer isolation and failure/recovery are explicit regressions. Fresh-directory typical-signal
+smoke uses seed 42/defaults and 7/128/1024 partitions; full corpus uses ten fixtures x eight modes.
+Zero-input event counts, carrier ownership, decay and unexcited-channel isolation are engineering
+gates; spectra/coloration are observations, not subjective selection. The optional scope follows
+[Perceptual Contract section 6](PERCEPTUAL_CONTRACT.md#6-optional-objective-feasibility-before-the-water-instance). The corpus runner reuses TESTDATA-001 and
+`analyze_testdata.py`; generated WAV/metrics remain ignored. These engineering checks do not
+establish Water identity, source recognizability, musical acceptance or production readiness.
+Commands, actual results and limitations: [research README](../experiments/water/SPIKE-W-DSP-001/README.md).

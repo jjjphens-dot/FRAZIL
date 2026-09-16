@@ -140,6 +140,7 @@ v1.0 Release
 Parallel during M1 late-stage closure (does not change the M1 Exit contract):
   DEV-UI-001 implementation in its own issue
   EXP-W-001 perceptual-contract preparation
+  SPIKE-W-DSP-001 optional objective feasibility (no subjective refinement/adoption)
   LISTENING-001 representative corpus preparation
 
 Current Water listening side dependency:
@@ -161,8 +162,8 @@ Ice 的既有 M3 contract、work item 和长期 exit gate 保留，但当前为 
 该 Explicit Joint Gate 必须留下可审查的 repository 或 GitHub evidence：可以是已批准的 controlled-plan
 revision，也可以是对应 planning issue 或 PR 中明确记录的 joint decision。除非该决定同时改变 architecture
 或其他触发 ADR 的 contract，否则不自动要求新 ADR。
-M1 期间不授权 production Water/Ice DSP 或 candidate production integration。Engineering candidate work
-从 M1 Joint Exit 后开始。
+M1 期间不授权 production Water/Ice DSP 或 candidate production integration。Formal `EXP-W-002` candidate work
+从 M1 Joint Exit 后开始；下述 optional `SPIKE-W-DSP-001` 只允许提前做客观工程可行性研究。
 `PARAM-FREEZE-001` 必须在 M2/M3 完成后、M4 开始前完成；`ADR-R-001` 必须在任何 `ROUTE-006`
 实现前 Accepted。任何 Water/Ice 生产实现都依赖 M1 的 ProcessSpec、EngineParameters、Snapshot、统一测试
 素材和性能 baseline。
@@ -316,6 +317,25 @@ implementation responsibility 换人时才记录 Implementation DRI Transfer。
 |---|---:|---|---|
 | `DEV-UI-001` | P0 (Water M2 readiness) | Engineering Lead implements；Sound & Host Lead accepts workflow usability | Create a minimal Developer Control Surface using current parameter boundaries, realtime-safe diagnostics and experiment-config export. It is not Production UI, does not change the current Host registry/state schema, and must be usable before large-scale `EXP-W-002`. See [`DEVELOPER_SOUND_TOOLS.md`](DEVELOPER_SOUND_TOOLS.md). |
 | `EXP-W-001` | P0 (Water M2 readiness) | Sound & Host Lead owns；Engineering Lead feasibility review | Perceptual-definition work follows the framework in [`PERCEPTUAL_CONTRACT.md`](PERCEPTUAL_CONTRACT.md) to create the Water-specific instance `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md` from Human Water Intent. It does not require a pre-existing Water instance and authorizes no candidate or production DSP. |
+
+### Optional pre-EXP-W-002 objective feasibility
+
+| ID | P | Owner / acceptance | Scope and gate |
+|---|---:|---|---|
+| `SPIKE-W-DSP-001` | P1 (optional; not an M1/M2 exit gate) | Engineering Lead implements and validates; Sound & Host Lead independently reviews scope/evidence | [Issue #29](https://github.com/jjjphens-dot/FRAZIL/issues/29); standalone `experiments/water/SPIKE-W-DSP-001/`; numerical/realtime feasibility, determinism, residual/carrier, finite/reset/tail/state, RNG isolation, rate/block behavior, ablation, offline engineering renders and preliminary performance only. |
+
+This spike may precede accepted EXP-W-001 and M1 Joint Exit. Acceptance requires bounded
+prepare/process contracts, enabled-component isolation, strict config representation, finite and
+repeatable property/render evidence, safe Debug/Release/ASAN validation, preliminary timing and
+independent review. Existing TESTDATA-001, analysis and M1 baseline infrastructure must be reused.
+It neither substitutes for the accepted perceptual contract nor changes formal EXP-W-002 dependencies.
+Before the accepted brief, subjective tuning/selection, Water acceptance, macro decisions and
+Fluid/Resonant quality ranking are forbidden. Algorithm adoption, EXP-W-002 closure, ADR-W-001
+acceptance and production integration remain gated by the formal lifecycle.
+
+Handoff: after accepted EXP-W-001, EXP-W-002 consumes/revises these results against its positive,
+negative, preserve and reject conditions; do not create a parallel DSP implementation. Full rules:
+[`PERCEPTUAL_CONTRACT.md`](PERCEPTUAL_CONTRACT.md#6-optional-objective-feasibility-before-the-water-instance).
 
 The exact Developer/Release build-isolation mechanism, diagnostics transport and experiment-config schema remain
 implementation candidates. This plan does not freeze a build macro or preset name.
@@ -693,6 +713,7 @@ P2 只有在用户研究/真实声音问题证明价值、且通过新的 ADR �
 | M1 | AUTO-001 / TESTDATA-001 / PERF-BASE-001 / ARCH-LAT-001 | `[M1][PERF-BASE-001] Establish realtime performance baseline` | M1 contract types |
 | M1 | APP-001 / RENDER-001 / HOST-001 | `[M1][APP-001] Route EngineParameters through AudioEngine` | PARAM-002/003 |
 | DEV | DEV-UI-001 | `[DEV][DEV-UI-001] Create developer control surface for sound design and debugging` | current M1 parameter path；required before large-scale EXP-W-002 |
+| DEV | SPIKE-W-DSP-001 | `[DEV][SPIKE-W-DSP-001] Bound objective Water DSP feasibility` | TESTDATA-001; optional before accepted brief; no subjective/production adoption |
 | M2 | EXP-W-* / WATER-* | `[M2][EXP-W-001] Define Water dual-mode perceptual brief` | TESTDATA-001；M1 Joint Exit；DEV-UI-001 before large-scale EXP-W-002 |
 | M3 (deferred) | EXP-I-* / ICE-* | `[M3][EXP-I-001] Define Ice perceptual brief` | M2 Exit + Explicit Joint Gate confirming Water workflow reuse |
 | M4 | PARAM-FREEZE-001 / ADR-R-001 | `[M4][PARAM-FREEZE-001] Freeze v1 host parameter contract` | M2 + M3 exit gates |

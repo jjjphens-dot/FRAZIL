@@ -83,3 +83,24 @@ instance of that same contract. Downstream subjective DSP experiment/refinement 
 For current Water work, that instance is `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`. Reading only this
 framework document does not satisfy the Perceptual Contract prerequisite. Experiment controls remain outside the
 production Host registry until evidence, Joint Gate and the applicable ADR/state compatibility work approve adoption.
+
+## 6. Optional objective feasibility before the Water instance
+
+[SPIKE-W-DSP-001 / #29](https://github.com/jjjphens-dot/FRAZIL/issues/29) is a bounded,
+optional pre-EXP-W-002 engineering work item. It may run alongside perceptual-definition work,
+before the Water instance or M1 Joint Exit, inside `experiments/water/SPIKE-W-DSP-001/` only.
+It investigates numerical implementation, realtime safety, fixed-seed determinism, residual/carrier
+ownership, finite output, reset/tail/state, random isolation, sample-rate/block behavior, ablation,
+offline engineering renders and preliminary performance. These are feasibility hypotheses, not
+subjective Water candidates evaluated against an invented brief.
+
+Before the accepted instance, this spike must not perform perceptual acceptance, subjective
+selection/tuning (including “more natural/watery”), product macro mapping or Fluid/Resonant quality
+ranking. It cannot close EXP-W-002, adopt an algorithm, accept ADR-W-001 or integrate production
+WaterProcessor. It adds no M1 exit gate and grants no production exception.
+
+The formal lifecycle in section 5 remains unchanged: accepted EXP-W-001 -> EXP-W-002 -> EXP-W-003
+listening/refinement decision -> ADR-W-001 -> production. EXP-W-002 must reuse/revise the spike
+under the accepted positive/negative/preserve/reject conditions rather than duplicate it or
+retroactively label feasibility evidence as perceptual acceptance. The controlled issue/PR review,
+not a session authorization note, governs this scope.

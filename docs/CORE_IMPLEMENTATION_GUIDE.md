@@ -568,6 +568,20 @@ destination、state 和 automation complexity。未来若真实用户证据支�
 `Motion Mod` foldout：Source=LFO/Random、Rate、Depth、Smooth、destination fixed to Motion；这仍需新的
 parameter/state/automation review，不能进入当前 schemaVersion=1。
 
+### Standalone research implementation
+
+The [SPIKE-W-DSP-001 objective feasibility implementation](../experiments/water/SPIKE-W-DSP-001/README.md) evaluates
+independent A/B/D random streams, fixed-capacity event pools with deterministic oldest-voice
+stealing, Flow residual `gain*(xd-x)` with bounded linear interpolation, and fixed C modes using
+normalized complex-pole state. Tests check ablation, reset, isolation, bounds and determinism;
+these implementation observations do not accept a production topology or product mapping.
+Independent bubbles omit coupled-cloud behavior, and numerical validity does not prove Water
+identity. The optional pre-EXP-W-002 work item is bounded by
+[Perceptual Contract section 6](PERCEPTUAL_CONTRACT.md#6-optional-objective-feasibility-before-the-water-instance)
+and [Issue #29](https://github.com/jjjphens-dot/FRAZIL/issues/29). Formal EXP-W-002 still requires the
+accepted brief and must reuse/revise these mechanisms rather than duplicate them. Subjective
+refinement, macro decisions, listening acceptance and production adoption remain outstanding.
+
 ### 5.7 Water mode transition candidate
 
 若两个 engine 都输出 residual，可评估：

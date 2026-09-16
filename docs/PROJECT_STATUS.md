@@ -357,3 +357,13 @@ Debug/ASAN Developer UI 与 diagnostics implementation 已进入 `main`，但不
 UI 或已完成 usability/DAW acceptance；Water-specific Perceptual Contract instance 仍不得推断为已实现；
 Perceptual Contract framework/template 已在 v1.3 approval + merge 后成为 CURRENT/CONTROLLED。
 Water/Ice/Routing 仍未开始 production。
+
+## Water objective engineering feasibility
+
+A standalone bounded `SPIKE-W-DSP-001` exists under `experiments/water/SPIKE-W-DSP-001/`.
+It contains A/B/D/C research mechanisms, deterministic Fluid ablation, engineering JSON configs,
+offline rendering and preliminary performance measurement. Its controlled scope is objective
+feasibility before the accepted brief, not production Water DSP or perceptual acceptance.
+It does not close EXP-W-002. Brief integration and human listening remain outstanding with
+Sound & Host Lead. Current validation and limitations are recorded in the
+[research checkpoint](../experiments/water/SPIKE-W-DSP-001/README.md).

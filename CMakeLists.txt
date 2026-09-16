@@ -328,6 +328,12 @@ add_test(
             --renderer $<TARGET_FILE:frazil_render>
 )
 
+# Research targets are opt-in and never linked into the production plugin.
+option(FRAZIL_BUILD_WATER_EXPERIMENT "Build the standalone Water DSP research candidates" OFF)
+if(FRAZIL_BUILD_WATER_EXPERIMENT)
+    add_subdirectory(experiments/water/SPIKE-W-DSP-001)
+endif()
+
 # MSVC ASAN uses a dynamic runtime DLL. Keep test execution independent from the
 # shell that launched CTest and make the test artifacts directly runnable.
 if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
