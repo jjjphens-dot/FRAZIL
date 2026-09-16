@@ -433,7 +433,8 @@ residual-oriented。若 Resonant 输出已经包含 direct feedthrough，不得�
 resonator topology 和 mode transition 由 Water experiment 与 Proposed Water ADR 决定。
 
 `water.size`、`water.motion` 与 `water.decay` 是跨两模式一致的候选产品语义，详细 bubble radius、modal frequency、event
-density、micro-delay、drift 等属于 ParameterMapper 后的 engine quantities。WaterProcessor 不拥有
+density、micro-delay、drift 等属于 WaterMacroMapper 输出的 bounded DSP targets；app ParameterMapper
+只准备 normalized WaterProductValues。WaterProcessor 不拥有
 Parallel/Serial routing、stage amount 或 Global Mix；Host/global routing responsibility 保持不变。
 
 本次 Water-focused revision 不改变 Ice architecture；Ice 将在后续独立修订中评审。
@@ -811,7 +812,7 @@ enum class WaterModel
     resonant
 };
 
-struct WaterParameters
+struct WaterProductValues
 {
     WaterModel model {};
     float size {};
@@ -827,13 +828,14 @@ public:
 
     void process(
         juce::AudioBuffer<float>&,
-        const WaterParameters&) noexcept;
+        const WaterProductValues&) noexcept;
 };
 ```
 
 以上类型只表达 planned production shape / candidate contract，不是当前源码、Host registry 或 state schema；
 零初始化语法不冻结产品默认值。Decay 修订见 [DOC-W-DECAY-001](planning/WATER_DECAY_CANDIDATE_REVISION.md)。
-ParameterMapper 负责把 normalized product controls 映射到 mode-specific engine quantities；
+ParameterMapper 只准备 normalized WaterProductValues；WaterProcessor 使用 Water domain 的 WaterMacroMapper
+将其映射为 FluidTargets / ResonantTargets 后交给 components，state 和 lifecycle 留在 processor/components；
 WaterProcessor 不读取 APVTS，也不拥有 `water.amount`、`parallel.balance`、`global.mix` 或 RoutingMode。
 
 候选内部结构：
@@ -1258,7 +1260,7 @@ struct EngineParameters
     float waterStageAmount {};
     float iceStageAmount {};
 
-    WaterParameters water {};
+    WaterProductValues water {};
     IceParameters ice {};
 
     float inputGain {};
@@ -1280,17 +1282,23 @@ public:
 
 ParameterMapper 负责：
 
-- 参数范围归一化；
-- UI 语义 → engine 语义；
-- mode-dependent 参数选择；
-- 默认值；
-- 必要的非线性映射。
+- Host/raw parameter interpretation；
+- finite fallback 与 clamp；
+- choice -> enum 与 dB -> linear；
+- normalized product/domain value preparation；未来 Water 输出为 `WaterProductValues`。
+
+ParameterMapper 不认识 BubbleConfig、DropletConfig、FlowConfig、ModalConfig，不决定 decay seconds、
+event probability、trajectory interval、modal coefficient 或 voice lifetime；这些属于 Water domain。
 
 Water 候选分责：Model = what behavior、Size = how large、Motion = how active、Decay = response persistence。
-推荐小型 value types：`WaterProductValues { model, size, motion, decay }` -> `WaterMacroMapper` 或等价
-显式映射 -> `FluidTargets` / `ResonantTargets` -> DSP components；这是后续实验方向，不创建新 production path。
-Mapper 应为 deterministic、allocation-free、unit-testable pure C++，不依赖 JUCE/APVTS/UI 或 DSP state。
-底层仅消费工程 quantity（如 bubble/droplet/modal decay seconds），不认识 `water.decay` 产品 ID。
+唯一 planned chain：Host / Developer Control -> ParameterSnapshot -> ParameterMapper
+-> `WaterProductValues { model, size, motion, decay }` -> `WaterMacroMapper` (Water domain)
+-> `FluidTargets` / `ResonantTargets` -> DSP components。`WaterMacroMapper` 唯一拥有 normalized Water values
+到 mode-specific bounded DSP targets 的转换，应为 deterministic、allocation-free、unit-testable pure C++，
+不依赖 JUCE/APVTS/UI 或 DSP state。当前九参数 runtime 和独立 Developer experiment snapshot 不变；
+本图不声称候选值已进入 Snapshot/EngineParameters，不创建新 production path 或重复 destination mapper。
+底层仅消费工程 quantity（如 decaySeconds、eventRateHz、targetIntervalSeconds、rootFrequencyHz），
+不认识 `water.decay` / `water.motion` 产品 ID。
 Motion 不直接控制 lifetime targets；Decay 不直接控制 event/trajectory-rate targets；允许可测、有界的
 overlap/tail/energy 交互。Flow 默认没有直接 Decay destination。最终 target type 和 mapping 由实验决定，
 不为四个 macro 建立 generic DSP graph、继承体系或 runtime parameter framework。

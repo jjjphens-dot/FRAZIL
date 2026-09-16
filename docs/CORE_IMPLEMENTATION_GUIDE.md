@@ -535,8 +535,8 @@ Decay 才负责 modal damping / response persistence：较高值对应较弱 dam
 ```text
 user perceptual intention
   -> normalized product parameter
-  -> ParameterMapper responsibility
-  -> mode-specific engine mapping
+  -> ParameterMapper: Host/application values -> normalized WaterProductValues
+  -> WaterMacroMapper: Water product values -> mode-specific bounded DSP targets
   -> bounded DSP quantities
   -> expected audible consequence
   -> smoothing/transition and automation
@@ -564,8 +564,14 @@ Size 偷偷变成 Motion/response lifetime、Motion 偷偷变成 Decay/Amount，
 
 职责依据 `PARAMETERS.md` 的 responsibility orthogonality + perceptual separability + bounded interaction；
 不要求所有声学结果严格独立。产品值 `[0, 1]` 分别映射 Bubble、Droplet、Modal 的候选 monotonic curves，
-不承诺相同值等于相同秒数，也不冻结 range/default/curve。底层只消费带单位的 engine quantities；mapping
-使用小型 pure-C++ value types、显式 deterministic allocation-free 转换，独立于 JUCE/APVTS/UI/DSP state。
+不承诺相同值等于相同秒数，也不冻结 range/default/curve。上述 Fluid/Resonant mapping 唯一属于 Water domain
+的 `WaterMacroMapper`：`WaterProductValues { model, size, motion, decay }` -> `FluidTargets` / `ResonantTargets`
+-> DSP components。它使用小型 pure-C++ value types、显式 deterministic allocation-free、unit-testable 转换，
+独立于 JUCE/APVTS/UI/DSP state；底层只消费带单位的 engine quantities，不认识产品 Parameter ID。
+application `ParameterMapper` 只做 raw interpretation、finite fallback、clamp、choice -> enum、dB -> linear
+和 normalized product values 准备，不认识 Bubble/Droplet/Flow/Modal configs、decay seconds、event probability、
+trajectory interval、modal coefficients 或 voice lifetimes。当前 Developer snapshot 尚未接入该 planned chain；
+不新增 runtime mapper、generic framework 或第二套 destination mapping。
 
 SPIKE 的 A/B/C `decaySeconds` 在 prepare 中建立系数/voice lifetime；D 是持续的 fractional-delay residual，
 有 `targetIntervalSeconds`/trajectory/depth，没有天然 event lifetime。不为覆盖所有组件创造 Flow decay。

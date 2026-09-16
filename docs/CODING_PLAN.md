@@ -181,7 +181,7 @@ M1 期间不授权 production Water/Ice DSP 或 candidate production integration
 | PluginProcessor | JUCE lifecycle、bus、Snapshot 入口、state adapter | Water/Ice 算法、routing math、UI layout | pluginval、mono/stereo、state/parameter tests |
 | ParameterLayout | `src/plugin/ParameterLayout.*` 的 Host/JUCE-facing 静态 ID/type/range/default/label/choice | DSP mapping、显隐 | 精确枚举 regression |
 | ParameterSnapshot | 每 block 一致的 POD 值 | smoothing、APVTS ownership | 无分配、一致性测试 |
-| ParameterMapper | user -> engine 语义、clamp、enum | buffer、Host timeline | table-driven unit tests |
+| ParameterMapper | Host/application values -> product/domain values；finite fallback、clamp、enum、dB -> linear；未来 WaterProductValues | Water DSP targets/configs、buffer、Host timeline | table-driven unit tests |
 | AudioEngine | gain/routing/global mix 编排与生命周期 | 算法细节、UI/history | signal-chain/integration tests |
 | WaterProcessor | 完整 Water transform 与少量 macro | stage amount、routing、Host | property/render/listening/perf |
 | IceProcessor | 完整 Ice transform 与少量 macro | stage amount、routing、Host | property/render/listening/perf |
@@ -488,9 +488,9 @@ recognizability 是否保留。检查 masking、runaway ringing、excessive stea
 
 | ID | P | 模块/工作 | 具体要求 | 验收 |
 |---|---:|---|---|---|
-| WATER-001 | P0 | `WaterProcessor` dual-engine lifecycle/ownership | `prepare/reset/process(buffer, WaterParameters)`；明确 Fluid/Resonant state、tail、random 和 residual/complete-signal ownership；mono/stereo；无 routing/amount/APVTS | lifecycle/property/ownership review |
+| WATER-001 | P0 | `WaterProcessor` dual-engine lifecycle/ownership | `prepare/reset/process(buffer, WaterProductValues)`；明确 Fluid/Resonant state、tail、random 和 residual/complete-signal ownership；mono/stereo；无 routing/amount/APVTS | lifecycle/property/ownership review |
 | WATER-002 | P0 | Fluid + Resonant cores | Fluid 实现经采纳的 A+B+D 有界组合，Resonant 实现经采纳的 C；固定 test seed 可复现；component ablation、输入驱动、参数极值和 source-preserving output 有证据 | render + finite + ablation + recognizability evidence |
-| WATER-003 | P0 | shared product macros | 评估 candidate `water.model`、`water.size`、`water.motion`、`water.decay`；ParameterMapper 集中 mode-specific mapping；完整语义链、自动化/平滑、state evolution 和兼容性证据齐备后才可正式注册；不得增加 `water.dryWet` | mapping/automation/listening/state compatibility tests |
+| WATER-003 | P0 | shared product macros | 评估 candidate `water.model`、`water.size`、`water.motion`、`water.decay`；ParameterMapper 只准备 normalized WaterProductValues；Water domain 的 WaterMacroMapper 唯一负责 mode-specific bounded DSP targets，独立于 JUCE/APVTS/UI/DSP state；完整语义链、自动化/平滑、state evolution 和兼容性证据齐备后才可正式注册；不得增加 `water.dryWet` | application/domain mapping boundary、automation/listening/state compatibility tests |
 | WATER-004 | P0 | click-free enable | disabled=pass-through；重新开启保留 macro；过渡无异常峰值 | transient automation render |
 | WATER-005 | P0 | dual-mode performance/tail | 分别记录 Fluid、Resonant 和 mode-transition 相对 `PERF-BASE-001` 的 mean/P95/P99/worst；不引入非零 Host-reported processing latency；intentional effect delay/tail 由 Water ADR/tests 描述；M2 不预设最终硬预算 | benchmark + plugin metadata |
 | WATER-006 | P0 | dual-mode listening pack | 使用 `LISTENING-001` 做 dry/baseline/Fluid/Resonant loudness-matched review；验证 Water identity、模式区分、Size/Motion/Decay 方向、正常设置及 `global.mix=100%` 下 input recognizability；工程诊断仍由 `TESTDATA-001` 提供 | rubric accepted；未触发 Reject Criteria |

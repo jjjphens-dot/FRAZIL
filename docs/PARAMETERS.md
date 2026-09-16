@@ -47,28 +47,48 @@ contract，不是当前九参数生产 registry、`ParameterLayout`、`schemaVer
 ```text
 user perceptual intention
   -> normalized product parameter
-  -> ParameterMapper responsibility
-  -> mode-specific engine parameter mapping
+  -> ParameterMapper: Host/application values -> normalized WaterProductValues
+  -> WaterMacroMapper: Water product values -> mode-specific bounded DSP targets
   -> bounded DSP quantities
   -> expected audible consequence
   -> automation/smoothing or transition requirements
   -> listening/property/state validation
 ```
 
-- `water.model`：Mapper 将稳定 choice 映射为 Water engine mode；engine/ADR 决定 residual ownership
+未来 Water mapping 的唯一职责链为：
+
+```text
+Host / Developer Control -> ParameterSnapshot -> ParameterMapper
+  -> WaterProductValues { model, size, motion, decay }
+  -> WaterMacroMapper (Water domain) -> FluidTargets / ResonantTargets -> DSP components
+```
+
+这是 planned value boundary，不是当前已接线的 runtime path，也不授权把 Developer controls 注册到 APVTS。
+当前九参数 Snapshot/Mapper 路径与独立的 Developer experiment snapshot 保持原状；未来实验适配应复用同一
+产品值语义，不另建一套 DSP destination mapping。`ParameterMapper` 只解释 Host/raw values、执行 finite
+fallback、clamp、choice -> enum、dB -> linear，并准备 normalized product/domain values。
+它不认识 BubbleConfig、DropletConfig、FlowConfig、ModalConfig，也不决定 decay seconds、event probability、
+trajectory interval、modal coefficient 或 voice lifetime。
+
+`WaterMacroMapper` 唯一拥有 normalized Water values -> mode-specific bounded targets 的转换；它位于
+Water domain，以小型 pure-C++ value types 表达，deterministic、allocation-free、unit-testable，独立于
+JUCE/APVTS/UI 和 DSP state。DSP primitive 只消费 `decaySeconds`、`eventRateHz`、`targetIntervalSeconds`、
+`rootFrequencyHz` 等工程量，不认识 `water.decay` / `water.motion` 等产品 ID。这里不实现 mapper 或 framework。
+
+- `water.model`：ParameterMapper 将稳定 choice 转为 WaterModel enum；WaterMacroMapper 按该 enum 选择目标集；engine/ADR 决定 residual ownership
   和 transition。预期结果是可辨识且可切换的 Fluid/Resonant 行为，不改变 routing mode。
-- `water.size`：Fluid 主要映射 bubble radius/population scale -> resonance-frequency distribution；
+- `water.size`：WaterMacroMapper 在 Fluid 主要映射 bubble radius/population scale -> resonance-frequency distribution；
   Resonant 映射 modal/root frequency scale -> coherent mode-family scaling。较大尺度通常对应较低
   resonance scale，较小尺度对应较高 resonance scale。Size 不映射 overall amount、general loudness、
   event density、Motion speed 或 response lifetime；最终频率范围和曲线必须由实验决定。
 - `water.motion`：temporal activity。Fluid 可映射 bubble/droplet event activity/scheduling、Flow movement /
   trajectory rate 和 bounded stochastic variation；Resonant 可映射 subtle modal drift、excitation-distribution
-  movement 和 bounded temporal variation。Motion mapper 不直接控制 bubble/droplet/modal decay targets，
+  movement 和 bounded temporal variation。WaterMacroMapper 的 Motion 分支不直接控制 bubble/droplet/modal decay targets，
   不得主要变成 loudness、Amount 或任意 random depth；补偿策略由测量决定。
-- `water.decay`：response persistence intention -> normalized candidate -> mode-specific mapper -> bounded
+- `water.decay`：response persistence intention -> normalized candidate -> WaterMacroMapper -> bounded
   bubble/droplet response-decay 或 modal-damping quantities -> audible persistence -> smoothing / existing-state
   policy -> experiment/listening/property/state evidence。较高 Decay 指向更长响应；Resonant 对应较弱 damping，
-  较低值对应较强 damping。Decay mapper 不直接控制 event-rate / trajectory-rate targets；Flow 默认无直接
+  较低值对应较强 damping。WaterMacroMapper 的 Decay 分支不直接控制 event-rate / trajectory-rate targets；Flow 默认无直接
   Decay destination，不为覆盖全部组件而创造 Flow decay。Droplet 的 `refractorySeconds` 是当前 SPIKE 的
   scheduling quantity，不冻结为 Motion mapping；后续实验比较 sensitivity/probability/scheduling/refractory。
 
@@ -203,7 +223,7 @@ struct ParameterSnapshot
 };
 ```
 
-`ParameterSnapshot::capture` 从 plugin 在构造阶段缓存的 raw parameter atomics 形成这组值，每个 source 在一个 block 边界只读取一次。`ParameterMapper` 负责边界夹紧、choice index 转 `RoutingMode`、dB→linear 语义和未来 macro 映射；不处理 buffer、不读取 UI、不拥有 smoother。当前 `EngineParameters` 使用 `inputGainLinear`/`outputGainLinear`，以明确 DSP 内部单位。
+`ParameterSnapshot::capture` 从 plugin 在构造阶段缓存的 raw parameter atomics 形成这组值，每个 source 在一个 block 边界只读取一次。`ParameterMapper` 负责 finite fallback、边界夹紧、choice index 转 `RoutingMode` 和 dB→linear 语义；未来 Water 扩展只准备 normalized `WaterProductValues`，Water-specific DSP targets 由 `WaterMacroMapper` 负责。它不处理 buffer、不读取 UI、不拥有 smoother。当前 `EngineParameters` 使用 `inputGainLinear`/`outputGainLinear`，以明确 DSP 内部单位。
 
 ## 5. Smoothing 初始策略
 

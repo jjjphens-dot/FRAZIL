@@ -38,6 +38,13 @@ UI -> narrow app edit/history command interface -> EditHistoryManager (message t
 
 正式 Host 参数由 plugin 层 `src/plugin/ParameterLayout.*` 集中注册。app 层的 Snapshot 只接收由 plugin 缓存的原子参数指针，Mapper 输出不含 Host 对象的 `EngineParameters`；app 不依赖 ParameterLayout、PluginProcessor 或 Host adapter。
 
+未来 Water candidate 的 app mapping 只准备 normalized `WaterProductValues { model, size, motion, decay }`：
+raw interpretation、finite fallback、clamp、choice -> enum 和 dB -> linear 属于 `ParameterMapper`。
+Water domain 的 `WaterMacroMapper` 唯一负责这些值到 `FluidTargets` / `ResonantTargets` 的转换；app 不认识
+Bubble/Droplet/Flow/Modal configs、decay seconds、event probability、trajectory interval、modal coefficients
+或 voice lifetime。这是 [Parameters §1.1 的 planned mapping boundary](../../docs/PARAMETERS.md)，
+不表示当前 Snapshot/EngineParameters 已包含 Water candidates，也不改变独立的 Developer experiment snapshot。
+
 ## Ownership & Lifetime
 
 AudioEngine 为 PluginProcessor 的实例成员，拥有其生命周期内的准备状态；当前没有 app 层全局 runtime state。未来 buffer、smoother 和 DSP module 的所有权必须实例化并在 `prepare()` 前准备。

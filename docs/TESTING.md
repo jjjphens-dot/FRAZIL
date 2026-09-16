@@ -443,7 +443,9 @@ Developer Decay. This documentation revision runs none of those executable check
 
 `water.model`、`water.size`、`water.motion`、`water.decay` 只有在正式采纳后才进入 ParameterLayout/Host/state tests。采纳
 前必须定义并验证：稳定静态注册与 deterministic choice ordering、range/default、ParameterMapper 的
-mode-specific mapping、smoothing/transition、automation lane/record/edit/playback、inactive value retention、
+raw/finite/clamp/enum/dB -> normalized product-value boundary，以及 WaterMacroMapper 独立的 mode-specific
+bounded DSP target mapping；后者应有 deterministic、allocation-free、DSP-state-independent 的 unit evidence，
+且不得把 component configs/destinations 泄漏到 app mapper。另需 smoothing/transition、automation lane/record/edit/playback、inactive value retention、
 save/reopen、schema evolution/default/migration fixtures 和 compatibility fallback。当前
 `schemaVersion=1` 与九参数 registry 不因本测试计划扩展。
 

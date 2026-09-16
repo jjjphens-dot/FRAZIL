@@ -54,9 +54,17 @@ Decay revision: [DOC-W-DECAY-001 / #32](https://github.com/jjjphens-dot/FRAZIL/i
 - `water.motion`: temporal activity, `Calm / Stable <-> Active / Flowing`;
 - `water.decay`: Water response persistence, `Short / Tight <-> Long / Lingering` (not Dry).
 
-Size, Motion and Decay retain the same high-level meaning and UI position in both modes. ParameterMapper owns the
-normalized-product-to-mode-specific-engine mapping. Detailed ranges, defaults, nonlinear curves, transition
-duration, smoothing constants, and state evolution are not decided here.
+Size, Motion and Decay retain the same high-level meaning and UI position in both modes. The planned chain is
+Host / Developer Control -> ParameterSnapshot -> ParameterMapper -> WaterProductValues { model, size, motion, decay }
+-> WaterMacroMapper (Water domain) -> FluidTargets / ResonantTargets -> DSP components.
+ParameterMapper owns raw interpretation, finite fallback, clamp, choice-to-enum, dB-to-linear and normalized
+product/domain value preparation. It does not know component configs, decay seconds, event probabilities,
+trajectory intervals, modal coefficients or voice lifetimes. WaterMacroMapper alone owns normalized Water
+values -> mode-specific bounded DSP targets: pure C++, deterministic, allocation-free, unit-testable and
+independent of JUCE/APVTS/UI/DSP state. Primitives consume engineering quantities, not product parameter IDs.
+This is a future boundary, not an implemented Developer/Host path or a new generic mapping framework.
+Detailed ranges, defaults, nonlinear curves, transition duration, smoothing constants, and state evolution
+are not decided here.
 
 Responsibility orthogonality + perceptual separability + bounded interaction: Motion does not directly drive
 decay targets; Decay does not directly drive event/trajectory-rate targets. High Motion + Long Decay may increase
