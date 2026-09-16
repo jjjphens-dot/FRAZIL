@@ -52,6 +52,15 @@ experiments/water/
 production work 均 DEFERRED，只有在 M2 Exit 后通过 Explicit Joint Gate 确认 Water workflow 可复用于 Ice，
 才恢复 M3 planning/work。
 
+[`EXP-W-001 Engineering Handoff`](water/EXP-W-001_ENGINEERING_HANDOFF.md) 是 Engineering Lead 的
+Phase 1 draft companion：提供 Common/Fluid/Resonant/Macro question matrix、E1–E4 evidence 分类、
+review 状态和已有 SPIKE observation 交接。它不是第二份 Perceptual Contract，不替代 Sound & Host Lead
+定义/验收，也不表示 EXP-W-001 已 Accepted 或 EXP-W-002 已获准开始。
+
+后续 [SOUNDLAB-RP-001 v0](../docs/SOUNDLAB_REVIEW_PACK.md) 已有独立的 generic assembly implementation
+candidate，可将现有 render 打包为 raw audio、manifest、analysis/plots 和空白人耳 review；当前
+[验证记录](../docs/evidence/SOUNDLAB-RP-001_VALIDATION.md) 只证明 infrastructure，不构成 Water acceptance。
+
 ## Water objective feasibility
 
 [SPIKE-W-DSP-001](water/SPIKE-W-DSP-001/README.md) contains independently testable Bubble A,

@@ -367,3 +367,18 @@ feasibility before the accepted brief, not production Water DSP or perceptual ac
 It does not close EXP-W-002. Brief integration and human listening remain outstanding with
 Sound & Host Lead. Current validation and limitations are recorded in the
 [research checkpoint](../experiments/water/SPIKE-W-DSP-001/README.md).
+
+## Offline review-pack infrastructure candidate
+
+`SOUNDLAB-RP-001` has a local implementation candidate in `tools/build_review_pack.py`: generic spec-driven
+assembly, unchanged audio copies, per-render config/seed/provenance, staged-audio integrity, existing analyzer
+JSON/plots, RMS zero/finite states, blank independent human reviews and standalone pack validation.
+[Contract and usage](SOUNDLAB_REVIEW_PACK.md); [phase validation and limitations](evidence/SOUNDLAB-RP-001_VALIDATION.md).
+Independent review and Sound & Host workflow acceptance remain pending. No Hosted CI or C++
+build result is implied. The candidate reuses historical SPIKE artifacts for infrastructure smoke; it neither
+changes the SPIKE sound nor accepts Water/Fluid/Resonant, EXP-W-001, EXP-W-002 or an algorithm ADR.
+
+The [EXP-W-001 engineering companion](../experiments/water/EXP-W-001_ENGINEERING_HANDOFF.md) supplies clause
+records and feasibility questions. The available remote draft remains unaccepted and lacks the updated
+dual-mode/Size/Motion clauses. Formal real-brief integration awaits Sound-owned clarification; renderer
+orchestration, Developer UI adapter, loudness matching and advanced proxies remain downstream work.

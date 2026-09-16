@@ -35,8 +35,12 @@ experimentation. It is not an M1 architecture-correctness exit gate, and `HOST-0
   explicit Return Host path. It provides Dry/Processed comparison, bounded A/B/reset slots, complete draft
   experiment-state export, and coherent prepared/latest block diagnostics. It is not the Production UI and has
   not received workflow usability acceptance.
+- **IMPLEMENTATION CANDIDATE / review pending**: `SOUNDLAB-RP-001` supplies generic offline assembly of existing
+  audio, provenance/config/seed, analyzer JSON/plots, RMS differences and blank human review, with completeness
+  validation. See [RP-v0](SOUNDLAB_REVIEW_PACK.md) and [local evidence](evidence/SOUNDLAB-RP-001_VALIDATION.md).
+  This does not complete Developer UI export integration, human listening or final Sound Lab workflow acceptance.
 - **PLANNED**: final `DEV-UI-001` acceptance, richer Offline Sound Lab review packs, reproducible debug bundles,
-  automated review-pack generation, LUFS/true peak, spectral flux, onset, pitch/harmonic-retention and extended
+  render orchestration, LUFS/true peak, spectral flux, onset, pitch/harmonic-retention and extended
   tail analysis. The `EXP-W-001` Water Perceptual Contract instance remains PLANNED until produced and accepted.
 - **CANDIDATE / PLANNED**: Sound & Host Lead workflow usability and UI layout acceptance, richer diagnostic/debug
   bundle evidence, and Water experimental-control mapping. The current bounded A/B storage is temporary editor
@@ -115,8 +119,12 @@ agree on one boundary.
 The initial export uses `schema=frazil.dev-experiment`, `schemaVersion=1`, and `source=DEV-UI-001`. This is a local
 draft handoff format, not the plugin state schema or a frozen Offline Sound Lab contract.
 
-A standard review pack is PLANNED to contain dry, baseline and candidate WAVs, a manifest, per-candidate analysis,
-waveform/spectrum/spectrogram plots and `LISTENING_REVIEW.md`. Objective measurements are proxies; no scalar
+The `SOUNDLAB-RP-001` implementation candidate assembles dry, optional baseline and candidate WAVs, a manifest,
+per-artifact analysis, waveform/Welch PSD/spectrogram plots and blank `LISTENING_REVIEW.md`. The concrete
+[v0 contract](SOUNDLAB_REVIEW_PACK.md) preserves raw audio and measures level differences; automatic loudness
+matching and render orchestration remain deferred. Its spec is separate from `frazil.dev-experiment`; no implicit
+Developer UI export-to-render adapter or completed end-to-end handoff is claimed. Objective measurements are
+proxies; no scalar
 "quality score" may replace the per-dimension engineering, source-preservation, perceptual and decision record.
 New analysis requirements must extend or reuse `tools/analyze_testdata.py` unless a reviewed, concrete limitation
 justifies another tool; do not create a parallel analyzer by default.

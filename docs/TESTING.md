@@ -293,7 +293,13 @@ review-pack/
   LISTENING_REVIEW.md
 ```
 
-该结构是 PLANNED target；现有 RENDER-001 smoke 不因此被描述为完整 Sound Lab/review-pack generator。
+这是完整声音评审的目标结构。`SOUNDLAB-RP-001` 已提供 raw-audio assembly 的 implementation candidate；
+其 [v0 合同](SOUNDLAB_REVIEW_PACK.md) 使用 `audio/`、per-artifact `analysis/` 和 `plots/<id>/`，保留
+现有 analyzer 的 `welch_psd.png` 文件名，并提供 `LISTENING_REVIEW.md` 空白模板。
+`python tools/test_review_pack.py` 验证完整性、traceability、failure behavior 和 RMS zero semantics；
+需要 `requirements-dsp.txt`，当前是独立 Python 命令，未接入 CTest/Hosted CI。结果见
+[local evidence](evidence/SOUNDLAB-RP-001_VALIDATION.md)。现有 RENDER-001 smoke 不因此被描述为完整 Sound Lab。
+Raw pack 不进行 normalization，不代表正式 loudness-matched listening 已完成；原有听测门槛保持不变。
 候选尽量 loudness-match。至少记录：材质辨识度、输入可辨识度、动态保留、刺耳/浑浊、瞬态、立体声、
 噪声/DC、极端参数和偏好结论。重要声音方向由两名开发者共同 review。
 

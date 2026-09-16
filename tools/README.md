@@ -59,6 +59,24 @@ optional experiment/measurement support for waveform metrics, FFT, Welch PSD,
 stereo correlation, and STFT/spectrogram metadata; optional PNG plots can be
 written with `--plot-dir`. It is not a TESTDATA-001 semantic exit blocker.
 
+Offline review-pack assembly (`SOUNDLAB-RP-001`, implementation candidate):
+
+    python -m pip install -r requirements-dsp.txt
+    python tools/build_review_pack.py --spec build/experiment.json --output build/review-pack
+    python tools/build_review_pack.py --validate build/review-pack
+    python tools/test_review_pack.py
+
+The [RP-v0 contract](../docs/SOUNDLAB_REVIEW_PACK.md) includes the JSON spec and validation rules.
+The builder copies existing dry/optional baseline/candidate WAVs unchanged, reuses `analyze_testdata.py`,
+generates per-artifact plots and a blank `LISTENING_REVIEW.md`, and checks completeness before success.
+Audio integrity hashes are limited to the staged pack audio required by this interface. It does not render
+algorithms, normalize, score or accept sounds. Equal rate/channel/frame dimensions are required; spec audio
+paths resolve relative to the spec file. Use fresh ignored output directories; failed assembly retains an
+`.incomplete` marker and cannot validate as complete. Existing outputs and human notes are never overwritten.
+The Python regression suite is standalone, requires the existing DSP analysis environment, and is not yet a
+CTest/Hosted CI job. Actual local checks and the historical-SPIKE infrastructure smoke are recorded in
+[SOUNDLAB-RP-001 validation](../docs/evidence/SOUNDLAB-RP-001_VALIDATION.md).
+
 Offline render smoke:
 
     python tools/render_testdata.py --renderer build/windows-debug/frazil_render_artefacts/Debug/frazil_render.exe
