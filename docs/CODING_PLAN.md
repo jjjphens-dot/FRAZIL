@@ -317,6 +317,7 @@ implementation responsibility 换人时才记录 Implementation DRI Transfer。
 |---|---:|---|---|
 | `DEV-UI-001` | P0 (Water M2 readiness) | Engineering Lead implements；Sound & Host Lead accepts workflow usability | Create a minimal Developer Control Surface using current parameter boundaries, realtime-safe diagnostics and experiment-config export. It is not Production UI, does not change the current Host registry/state schema, and must be usable before large-scale `EXP-W-002`. See [`DEVELOPER_SOUND_TOOLS.md`](DEVELOPER_SOUND_TOOLS.md). |
 | `EXP-W-001` | P0 (Water M2 readiness) | Sound & Host Lead owns；Engineering Lead feasibility review | Perceptual-definition work follows the framework in [`PERCEPTUAL_CONTRACT.md`](PERCEPTUAL_CONTRACT.md) to create the Water-specific instance `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md` from Human Water Intent. It does not require a pre-existing Water instance and authorizes no candidate or production DSP. |
+| [`SOUNDLAB-RP-001`](https://github.com/jjjphens-dot/FRAZIL/issues/33) | P1 (bounded offline tooling; no new exit gate) | Engineering Lead implements/tests; independent engineering and Sound & Host workflow review | Assemble existing dry/optional baseline/candidate audio with independent config/seed/provenance, existing analyzer/plots, level differences, blank human review and pack validation. See [RP-v0 contract candidate](SOUNDLAB_REVIEW_PACK.md). No render algorithm, normalization, perceptual scoring or production adoption; can proceed alongside EXP-W-001 definition. |
 
 ### Optional pre-EXP-W-002 objective feasibility
 
@@ -348,8 +349,8 @@ implementation candidates. This plan does not freeze a build macro or preset nam
 44.1/48/96 kHz temporary generation；每个 canonical signal 有 standard-library semantic
 verification；analysisMethods 已记录。现有 `tools/analyze_testdata.py` 已提供 waveform、FFT、Welch PSD、
 RMS、DC、stereo correlation 和 STFT/spectrogram optional analysis，且应优先扩展复用；它不是
-TESTDATA-001 exit blocker。LUFS/true peak/spectral flux/onset/pitch/tail 等扩展和 automated review-pack
-generation 仍为 PLANNED。M1 不要求
+TESTDATA-001 exit blocker。LUFS/true peak/spectral flux/onset/pitch/tail 等扩展仍为后续工作；automated
+review-pack assembly 由 `SOUNDLAB-RP-001` 界定，实际实现/验收状态见 `PROJECT_STATUS.md`。M1 不要求
 final Water/Ice probes、algorithm-specific acceptance thresholds 或真实 listening corpus；这些
 随 `EXP-W-*`、`EXP-I-*`、`ADR-W-001` 和 `ADR-I-001` 推进。
 

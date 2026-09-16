@@ -23,6 +23,12 @@
 | Developer diagnostics presentation | `src/ui/DeveloperDiagnosticsView.*`, `src/ui/DeveloperLevelMeter.*` | compact runtime/finite text and aggregate INPUT/OUTPUT dBFS meters; no measurement or state ownership | `update(snapshot, routing)`; `setLevels(peak, rms)` | JUCE; existing diagnostics value type only in the view; no Processor/APVTS/engine access | message only, editor-owned | Debug/Release/ASAN isolation, CTest, pluginval and local size/signal observations; see Project Status 2.9 | 0003 (unchanged) | `DEV-UI-001` | Implementation candidate; human usability acceptance pending; not Production UI |
 | Production UI components | planned `src/ui/` | 产品参数表达、attachment、gesture 和 UI transaction | narrow plugin parameter interface、narrow app edit/history command interface | plugin parameter interface、app edit/history command interface | message only | interaction/resize/automation | 0002 | `UI-001..008`, `HIST-002..004` | Planned M5 |
 
+## Offline tooling
+
+| Tool | Path / interface | Responsibility / dependencies | Evidence / status |
+|---|---|---|---|
+| Review-Pack v0 | `tools/build_review_pack.py --spec ... --output ...` / `--validate ...`; [data contract](SOUNDLAB_REVIEW_PACK.md) | `SOUNDLAB-RP-001` from Coding Plan; offline assembly/integrity validation, environment-gated numerical reanalysis, generated summary and editable human review; reuses `analyze_testdata.py` and `requirements-dsp.txt`; no production/audio-thread dependency | `tools/test_review_pack.py` and Hosted CI `Review-Pack Python`; [validation evidence](evidence/SOUNDLAB-RP-001_VALIDATION.md); implementation candidate, independent/workflow review pending; no DSP/Host/perceptual adoption |
+
 ## Registration and update rules
 
 - 新模块进入本表前必须有真实需求、路径、公共接口、依赖方向、线程模型、测试入口和 Coding Plan ID；人员 owner 由 GitHub Issue/Project 维护，不写死在长期索引中。
