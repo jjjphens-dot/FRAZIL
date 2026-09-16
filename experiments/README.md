@@ -49,3 +49,10 @@ experiments/water/
 不要为了整洁预建大量空文件。当前 Water-first；Ice experiment、Ice perceptual/parameter redesign 和 Ice
 production work 均 DEFERRED，只有在 M2 Exit 后通过 Explicit Joint Gate 确认 Water workflow 可复用于 Ice，
 才恢复 M3 planning/work。
+
+## Water research infrastructure checkpoint
+
+[LOCAL-WDSP-00](water/EXP-W-002/README.md) adds opt-in baseline/test/render infrastructure only.
+No sonic Water candidate exists yet. The Engineering Lead authorized a bounded research spike with
+brief integration and listening deferred; formal acceptance still requires those steps. See the
+[research proposal and session scope note](water/EXP-W-002_DSP_IMPLEMENTATION_PLAN.md).

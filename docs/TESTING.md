@@ -574,3 +574,11 @@ pluginval 路径与完整 MSVC 环境初始化见 `docs/ENVIRONMENT.md`。CI 命
 - M5：UI attachment、gesture/history、resize/accessibility 基线 PASS。
 - M6：全矩阵、ASAN、长稳、多实例、DAW、CPU/memory、listening regression PASS。
 - M7：Release clean build、VST3 validation、兼容性和 packaging 签核，known blockers=0。
+
+### LOCAL-WDSP-00 research infrastructure
+
+The opt-in `FRAZIL_BUILD_WATER_EXPERIMENT` CMake option adds `frazil_water_experiment_unit` and
+`frazil_water_experiment_render_cli` to CTest. These check zero residual, carrier ownership, lifecycle,
+seed plumbing, decoded PCM, stereo isolation and callback partitions at 44.1/48/96 kHz.
+They are infrastructure checks, not Water algorithm, component-ablation or perceptual acceptance.
+Commands, scope and actual evidence are maintained in the [research README](../experiments/water/EXP-W-002/README.md).

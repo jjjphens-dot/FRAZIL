@@ -322,3 +322,10 @@ Debug/ASAN Developer UI 与 diagnostics implementation 已进入 `main`，但不
 UI 或已完成 usability/DAW acceptance；Water-specific Perceptual Contract instance 仍不得推断为已实现；
 Perceptual Contract framework/template 已在 v1.3 approval + merge 后成为 CURRENT/CONTROLLED。
 Water/Ice/Routing 仍未开始 production。
+
+## Branch-local Water research preparation (2026-09-16)
+
+LOCAL-WDSP-00 baseline/test/render infrastructure exists under `experiments/water/EXP-W-002/`
+in this working change. It is not merged or a sonic candidate, and does not complete EXP-W-002.
+The accepted EXP-W-001 instance remains absent from the inspected main baseline.
+Validation and continuation status: [research checkpoint](../experiments/water/EXP-W-002/README.md).
