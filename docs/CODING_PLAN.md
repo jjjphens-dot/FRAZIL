@@ -523,6 +523,24 @@ Bubble/Droplet/Modal 分别评估 normalized mapping curves，Flow 默认无直�
 recognizability 是否保留。检查 masking、runaway ringing、excessive steals/CPU/gain buildup；工程 proxy
 不替代 human decision。完整验证边界见 `TESTING.md`，后续采纳仍需 Joint Gate / ADR-W-001。
 
+### Proposed Protect research addendum (not authorized implementation)
+
+`DOC-W-PROTECT-001` / [#36](https://github.com/jjjphens-dot/FRAZIL/issues/36) proposes source-keyed residual
+attenuation around attacks. Its [audit, perceptual draft and seven-wave plan](planning/WATER_PROTECT_CANDIDATE_REVISION.md)
+are **Wave 1 / PROPOSED / NOT ACCEPTED**. v1.4 remains the approved four-macro baseline; Protect is not an
+additional M2 Exit requirement or a fifth accepted product macro.
+
+Engineering owns theory and bounded implementation proposals; Sound & Host owns perceptual acceptance and
+the product-control decision, with independent engineering review of theory/scope. Wave 1 changes documents
+only. Wave 2 requires review and merge of this proposal, accepted Protect intent reconciled with EXP-W-001,
+all existing EXP-W-002 readiness including mandatory Decay Revision B, and a separately scoped implementation
+issue. SPIKE-W-DSP-001's pre-contract exception does not extend to Protect.
+
+Proposed sequence: detector comparison -> whole-residual gain -> Fluid topology comparison -> Motion/Decay
+interaction -> human listening -> Reject / Internal safeguard / User macro decision. Each is separately
+bounded; no production adoption, Host registration, state change or UI implementation follows from this table.
+Joint Gate, ADR-W-001 and compatibility review remain required at the existing adoption boundary.
+
 ### 生产实现
 
 | ID | P | 模块/工作 | 具体要求 | 验收 |

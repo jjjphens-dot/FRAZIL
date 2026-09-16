@@ -465,6 +465,93 @@ save/reopen、schema evolution/default/migration fixtures 和 compatibility fall
 `parallel.balance`=Parallel proportion，`global.mix`=完整插件 dry/wet。内部 algorithmic LFO/random tests
 不构成 public LFO/modulation-matrix contract；通用用户 LFO 和可选 `Motion Mod` 均为 deferred。
 
+### Water Protect proposed validation
+
+Status: **PROPOSED / NOT RUN**, [DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md). This protocol
+does not authorize implementation or create a new M2 Exit requirement. Use the accepted applicable perceptual
+definition and all existing EXP-W-002/Decay Revision B gates before execution. The
+[theory](CORE_IMPLEMENTATION_GUIDE.md#510-water-protect-theory-candidate) defines D0/D1, F0–F3 and their limits.
+
+#### Staged functional and property evidence
+
+1. **Detector (Wave 2):** compare D0/D1 with identical linked input/envelope configuration, seeds and material.
+   Test silence, low levels around the floor, capped high levels, single-sample impulses, sparse/overlapping
+   notes, sustained bass/sines and noise; measure score, false triggers, missed/late onsets and level sensitivity.
+   Dry-input/fixture onset annotations must be fixed independently of the detector being evaluated.
+2. **Gain (Wave 3):** finite output, validated config, `0<gp<=1`, bounded attenuation and same gain for both
+   channels. Constant/reset P=0 must be bit-exact to the original candidate's output, including accumulation
+   order. For dynamic OFF, specify bounded transition/unity-snap policy first; separately test continuity,
+   completion and exact baseline continuation. An asymptotic release is not exact OFF.
+3. **State:** compare the same seed/config unprotected and protected generator state/RNG progression, including
+   after OFF, tails, reset/prepare and instance isolation. Event counts alone do not prove equal RNG state.
+   Generation runs once and is never gated/reseeded by Protect; expose comparison evidence outside processing.
+   Explicit Motion/Decay destinations stay unchanged while audible tail energy may change.
+4. **Topology (Wave 4):** retain F0, evaluate F1 first, then F2/F3 to test Droplet identity. Whole-residual
+   sample/window contraction applies only to F1 and common-gain C with identical unprotected E. F2/F3 can
+   increase summed energy; include the cancellation counterexample and total-output peak checks for all cases.
+5. **Rate/lifecycle:** 44.1/48/96 kHz, representative 32–1024 sample blocks plus zero/1/7/31/odd-length cases,
+   reset/reprepare, signal/silence/tail boundaries and channel isolation. Verify block-partition invariance
+   for equivalent sample-timed control trajectories; block-quantized controls need documented tolerances.
+   Exercise rapid depth/target changes once a live control path exists; static configs cannot prove automation.
+6. **Interaction (Wave 5):** two models x Motion low/high x Decay short/long x Protect OFF/medium/high = 24
+   configurations per fixed Size/input/seed. Use accepted macro anchors, independent destination checks and
+   repeated notes/tails. Prepare-only spike settings can support static engineering observations, not live
+   Decay policy or accepted product-macro evidence. Record that missing evidence explicitly.
+7. **Realtime:** review allocation, locks, I/O, initialization, bounds and instance-owned state; prepare computes
+   coefficients/capacity. No logging/analysis in process. Preserve zero Host-reported latency; measure response
+   lag separately. Linked gain prevents independent ducking per channel but does not prove unchanged perceived
+   stereo image after dry/residual interference. Review one-sided and anti-phase input cases.
+
+#### Objective analysis definitions (not perceptual scores)
+
+Record config/seed/rate/block/channels, valid sample counts, window definitions and units with each report.
+Keep raw processing metrics before any loudness matching. For each fixed dry-annotated onset tk, use explicit
+pre/post durations and half-open sample windows `[floor((tk-pre)*fs), ceil((tk+post)*fs))`, clipped to file bounds.
+Report windows individually; pooled statistics use their union to avoid double-counting overlaps. Offline
+analysis may inspect surrounding samples; runtime Protect may not look ahead.
+
+- Gain reduction `GR[n]=-20*log10(gp[n])` in positive dB: max, arithmetic sample mean and nearest-rank P95
+  (`sorted[ceil(.95*N)-1]`, N>0). Report full-file and onset-window statistics separately. Ducking duty is
+  samples with GR above a declared fixed threshold divided by valid samples (e.g. 1 dB for observation, not
+  an acceptance constant). Distinguish the common envelope from actual B weighting in F3; F0 GR is zero.
+- Residual/source deviation for y=protected Water output: `10*log10(sum((y-x)^2)/sum(x^2))` over identical
+  samples and channels. A declared source-energy floor marks silent windows N/A; do not report a huge
+  epsilon-driven ratio as a result. For a valid source window with exactly zero numerator the mathematical
+  result is negative infinity; encode null plus `zero residual` in finite-only JSON. Ratios do not measure
+  masking and need not be monotonic for F2/F3.
+- Attack-envelope discrepancy: `sum(abs(Fy-Fx))/sum(Fx)` using the same specified offline envelope and initial
+  conditions; below a declared denominator floor use N/A. It is an envelope proxy, not perceptual attack time
+  or instrument identification. Record numerator/denominator and floors so results can be reproduced.
+- Peak, RMS, DC, crest and tail energy/duration use declared windows, channel aggregation and thresholds.
+  Record non-finite counts before excluding any invalid samples; a non-finite output fails the relevant
+  property, not merely its analysis. Event/voice statistics are N/A if unavailable, not inferred from audio.
+- Performance uses same-run unprotected/protected comparisons after warmup, with machine/toolchain/config,
+  repetition count, average/P95/maximum callback wall time and incremental cost. Do not relabel callback
+  wall-time ratio as process CPU utilization or turn measurements into an unapproved formal budget.
+
+For cap/attack/release exploration, use bounded staged subsets from the plan and retain reasons for elimination.
+Compare dry, F0 and surviving candidates with fixed source/config/seed; record all normalization gains in a
+separate listening preparation record. No makeup gain or limiter is added to runtime Protect to win a metric.
+
+#### Independent listening and product decision (Waves 6–7)
+
+Use licensed bass, drums/percussion, pad, piano/guitar and appropriate vocal passages under LISTENING-001.
+Engineering impulse/noise evidence cannot replace these. Provide dry/OFF/mild/medium/strong references and
+surviving topology comparisons with loudness-aware preparation, randomized/blinded labels where practicable,
+repeated conditions and recorded monitoring level/environment. Compare with a lower-Amount control to test
+whether Protect provides more than general material reduction.
+
+Record separate judgments for attack clarity, source recognizability, Water identity, continuity, Droplet
+identity, tail preservation, pumping, post-attack holes, stereo stability, usefulness of variable depth and
+other artifacts. Sound & Host defines 1/3/5 anchors before scoring; do not fabricate scores or aggregate them
+into a quality winner. Each record includes reviewer, exact revision/material/config, observations, uncertainty
+and ACCEPT / REVISE / REJECT. Mechanism benefit and need for a user macro are independent decisions.
+
+Persistent medium-depth ducking, lost Water/Droplet identity, unnatural recovery, serious unexplained cost,
+lookahead dependence, or inability to distinguish Protect from Amount require revision/rejection before
+scope expansion. Preserve failed candidates as evidence. Adoption remains subject to Joint Gate/ADR and,
+for a user macro, parameter/state compatibility review; this protocol does not authorize Host/UI changes.
+
 ### Reject criteria
 
 Water/Ice candidate 至少在以下任一情况发生时 reject 或退回 experiment：

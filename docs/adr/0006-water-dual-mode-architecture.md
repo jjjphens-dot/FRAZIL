@@ -127,6 +127,19 @@ with user evidence and a separate parameter/state review.
 - parameter adoption, stable choice order, and state-schema evolution/compatibility strategy;
 - final Fluid/Resonant performance budget and failure/degradation behavior.
 
+## Proposed Protect research question
+
+[DOC-W-PROTECT-001](../planning/WATER_PROTECT_CANDIDATE_REVISION.md) asks whether source-keyed attenuation of
+the Water residual improves attack clarity while preserving material identity. It is **NOT ACCEPTED** and
+does not change this ADR's Proposed status, four-macro baseline, Water topology or formal start/adoption gates.
+The theory distinguishes whole-residual contraction from component attenuation, which can reduce phase
+cancellation and increase the summed residual. Source, state, RNG and zero Host latency remain boundaries.
+
+Wave 1 adds theory, intent draft and tests-to-run only. Experiment scope requires independent review, accepted
+applicable perceptual definition and EXP-W-002 readiness including Decay Revision B. Reject / Internal
+safeguard / User macro remain open decisions. A later adopted algorithm must update this ADR through the
+existing Joint Gate; user-control adoption separately requires parameter/state compatibility work.
+
 ## Consequences
 
 - `EXP-W-001` defines common/Fluid/Resonant identity, Size/Motion/Decay semantics, anti-examples, and source

@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-16（仅追加 Decay baseline review/finalization 事实，其余 evidence 保留原适用范围）<br>
+> 快照日期：2026-09-17（仅核实 Decay baseline merge 并追加 Protect proposal；其余 evidence 保留原适用范围）<br>
 > 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -23,13 +23,20 @@ Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未实现�
 `CODING_PLAN.md` v1.4 的 candidate contract / engineering boundaries 已获
 [PR #35 proposal HEAD 765f42a 的独立 APPROVE](https://github.com/jjjphens-dot/FRAZIL/pull/35#pullrequestreview-5223609754)，
 该 HEAD 的 [Hosted Windows Debug / CMake / CTest](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35103827055) 已通过。
-本 finalization 定义 v1.4 为 Approved Development Baseline，随 PR #35 合入 main 生效；最终 HEAD 仍须满足
-review/check gates，不能复用 proposal approval/CI 作为最终提交证据。v1.3 / [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23)
-是 previous approved baseline；实际 merge 与 final-head review/check 以 GitHub evidence 为准。本段不宣称已合并。
+2026-09-17 live query 确认 [PR #35](https://github.com/jjjphens-dot/FRAZIL/pull/35) 已于
+2026-09-16 14:32:33 UTC 合入 `main@fc20370`，v1.4 Approved Development Baseline 已生效。
+上述 proposal HEAD 的历史 approval/CI 不冒充 merge commit 的新验证；v1.3 /
+[PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23) 是 previous approved baseline。
 这不代表 FRAZIL plugin v1.0 release，
 也不改变 M1、Water/Ice/Routing 的实际完成状态：Water production DSP、production candidate controls
 和 model transition 均未实现或注册；Debug/ASAN 开发面板中的 experiment-only controls 不属于该
 production scope。
+
+[DOC-W-PROTECT-001 / #36](planning/WATER_PROTECT_CANDIDATE_REVISION.md) 新增 **PROPOSED / NOT ACCEPTED**
+的 Wave 1 理论、感知定义草案和分波实验计划。Protect 没有 DSP、Developer/Host control、render、性能或听测
+evidence；没有第五个已接受 macro。Issue #17 已同步四 macro，但 owner brief/Decay Revision B、精确版本
+engineering re-review 和独立 whole-contract acceptance 仍待完成。Protect Wave 2 必须满足文档独立审查、
+适用感知定义验收、既有 EXP-W-002 readiness 和单独 implementation scope；不能扩展旧 SPIKE exception。
 
 当前阻塞性差距：
 

@@ -112,6 +112,14 @@ Required follow-up evidence: default value, A/B retain Decay, experiment reset, 
 consumer round-trip where a parser exists, unchanged nine Host parameters/plugin schema, Release Host enumeration
 and Developer-control exclusion. GUI/build/plugin validation follows `TESTING.md`; none is claimed by this revision.
 
+### Proposed Protect research control
+
+[DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) is Wave 1 documentation only. Protect has no
+Developer snapshot/editor/export implementation and does not extend DEV-UI-001 acceptance. Current Water
+experiment controls remain Model/Size/Motion; the Decay follow-up above remains planned. A future Protect
+experiment-control change needs its own accepted scope/readiness, bounded state handoff and config tests;
+it cannot register an APVTS/Host parameter or alter the production schema for convenience.
+
 ## 4. Realtime-to-offline handoff
 
 The intended workflow is:

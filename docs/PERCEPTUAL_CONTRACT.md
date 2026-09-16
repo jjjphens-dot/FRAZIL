@@ -81,6 +81,15 @@ acoustic outcome. Exact decay seconds, coefficients, voice lifetime, mapping cur
 remain engineering questions. The Water instance owner must incorporate and review this dimension through
 EXP-W-001; this example does not create or accept that deliverable.
 
+### Proposed Protect definition
+
+[DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md#3-protect-perceptual-definition-phase-1b-draft)
+contains an unaccepted definition draft using this framework: positive/negative/must-preserve behavior,
+questions, materials, proxies, reject conditions and pending whole-definition Human Review. It adds no
+accepted fifth macro to EXP-W-001 and is not a second canonical Water instance. Sound & Host must reconcile
+and accept its intent against the accepted Water brief before Protect experiments. Existing EXP-W-002 and
+mandatory Decay Revision B prerequisites remain intact; documentation review alone cannot replace them.
+
 ## 5. Lifecycle and agent rules
 
 The authoritative lifecycle distinguishes definition from downstream consumption:
