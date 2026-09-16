@@ -88,9 +88,11 @@ can also be the analyzer's zero-variance fallback; it alone cannot prove dual-mo
 - NOT RUN: listening, LUFS/true peak, perceptual fusion classification, Level 2/3 analysis,
   negative-anchor validation, source separation, A/B matching, holdout validation and license verification.
 
-## First human action
+## Human calibration update — 2026-09-17
 
-Read [Round 01 Agent first-pass](ROUND_01_COMMON_WATER.md), then use
-[LISTENING_LOG.md](LISTENING_LOG.md) for Sound Lead calibration. The Agent's numerical/visual observations
-precede calibration; direct auditory interpretation remains incomplete. No two-person blind pack is required
-for this semantic round. This index is provenance, not a perceptual label key.
+User feedback on W-P002/W-P003/W-M001/W-M007 and Human Review ACCEPT for brief b616533 are recorded in
+[LISTENING_LOG.md](LISTENING_LOG.md). [Round 01 Agent first-pass](ROUND_01_COMMON_WATER.md) remains the
+original numerical/visual record; agent auditory interpretation is still incomplete. Cave reverberation and
+the musical bell/arrangement are explicit confounds. No exact time windows/playback levels, Fused/Layered
+classification, Decay sweep or engineering acceptance were supplied. The metadata/QA above remains historical;
+this index is provenance, not a perceptual label key.

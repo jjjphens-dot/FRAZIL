@@ -2,7 +2,7 @@
 
 > Framework status: CURRENT/CONTROLLED; first established by v1.3 / [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23). Decay candidate revision follows the [v1.4 activation rule](CODING_PLAN.md).<br>
 > Water instance status: `EXP-W-001` accepted Water Perceptual Contract remains PLANNED; the branch draft is CANDIDATE.<br>
-> This branch contains a [CANDIDATE Water brief](../experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md); human acceptance remains pending.<br>
+> This branch contains a [CANDIDATE Water brief](../experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md); Human Review ACCEPT at b616533 is recorded on 2026-09-17; engineering/independent acceptance remains pending.<br>
 > This framework does not accept a DSP algorithm or register parameters.
 
 ## 1. Purpose

@@ -1,8 +1,8 @@
 # EXP-W-001 — Human calibration log
 
 > Active workflow: latest plan, Agent First → Human Calibration.
-> Current round: 01 Common Water. Calibration count: 0/4. Contract acceptance: PENDING.
-> Human Intent clarification HI-01: two statements explicitly accepted; reference calibration remains 0/4.
+> Current round: 01 Common Water. Calibration count: 4/4 (user feedback, 2026-09-17). Human Review: ACCEPT at b616533; Engineering acceptance: PENDING.
+> Human Intent clarification HI-01: two statements explicitly accepted; reference calibration subsequently recorded below (4/4).
 > Previous unfilled blind-scorecard preparation is superseded; no human evidence was lost.
 
 ## How to review
@@ -14,69 +14,58 @@ for this semantic calibration. Record playback setup and level because they can 
 Keep AGENT INITIAL v1 unchanged; add HUMAN CALIBRATED here with author/date. Later corrections get a new
 revision rather than replacing an earlier decision. No third-party messages are sent automatically.
 
-## Session
+## Session — 2026-09-17
 
-- Reviewer / role / date: PENDING (Sound & Host Lead).
-- Headphones/monitors / environment / playback level: PENDING.
-- Evidence reviewed: PENDING; use current clip-relative timestamps, not unknown original-song timecodes.
-- Familiarity / loudness or arrangement confounds: PENDING.
-- One question: 哪些跨真实水声和歌曲的现象，值得成为 Common Water 的语义候选？
+- Reviewer: user / Human Water Intent authority, providing Sound & Host product review in this conversation.
+- Reviewed contract revision: `b61653399a5104efaaf441bfe8add5455264e089` (the exact version supplied immediately before this feedback).
+- Headphones/monitors, environment and playback level: NOT PROVIDED; no controlled loudness comparison claimed.
+- Evidence: user-reported listening to W-P002, W-P003, W-M001 and W-M007; exact clip time windows NOT PROVIDED.
+- Scope: reference semantic calibration and whole-brief Human Review, not a DSP candidate test or engineering sign-off.
+- AGENT INITIAL v1 remains unchanged in ROUND_01_COMMON_WATER.md; the agent has not independently heard these files.
 
 ## W-P002 — CaveWaterFlow — HUMAN CALIBRATED v1
 
-- AGENT INITIAL: immutable v1 in Round 01 record; NOT overwritten.
-- HUMAN REVIEW / Decision: PENDING (ACCEPT / MODIFY / REJECT / UNCERTAIN).
-- Corrected Character: PENDING (Common / Fluid / Resonant / Mixed / None / Uncertain).
-- Corrected Interpretation: PENDING.
-- Product Relevance: PENDING.
-- Misinterpretation / Missing Feature: PENDING.
-- Positive Behavior Contribution: PENDING.
-- Negative / Anti-example Contribution: PENDING.
-- Must-Preserve Contribution: PENDING.
-- Reject Condition Contribution: PENDING.
-- Notes / clip time / Water salience / Fused-Layered-Ambiguous: PENDING.
+- User statement: “如其名字是山洞中的流水，悦耳动听，与项目目标一致度很高，但是要注意在洞穴中有很大的混响”。
+- Human interpretation: pleasant cave water flow with high relevance to the project goal.
+- Positive contribution: the perceived flowing Water quality is a useful product reference.
+- Confound / caution: substantial cave reverberation; do not infer that the desired Water identity requires that room/reverb component.
+- Explicit mode classification, must-preserve threshold and reject threshold: NOT PROVIDED.
+- Time window: NOT PROVIDED. Musical Fused/Layered classification: N/A for this pure-water reference.
 
 ## W-P003 — ChlorinePourInto — HUMAN CALIBRATED v1
 
-- AGENT INITIAL: immutable v1 in Round 01 record; NOT overwritten.
-- HUMAN REVIEW / Decision: PENDING (ACCEPT / MODIFY / REJECT / UNCERTAIN).
-- Corrected Character: PENDING (Common / Fluid / Resonant / Mixed / None / Uncertain).
-- Corrected Interpretation: PENDING.
-- Product Relevance: PENDING.
-- Misinterpretation / Missing Feature: PENDING.
-- Positive Behavior Contribution: PENDING.
-- Negative / Anti-example Contribution: PENDING.
-- Must-Preserve Contribution: PENDING.
-- Reject Condition Contribution: PENDING.
-- Notes / clip time / Water salience / Fused-Layered-Ambiguous: PENDING.
+- User statement: “为向瓶中倒水的声音，其中水花的声音与motion高了之后比较相似，其中还有有水流下来撞击到的大气泡的声音”。
+- Human interpretation: water poured into a bottle, splashing and large bubbles associated with falling-water impact.
+- Positive contribution: splash/activity serves as a semantic anchor for higher Motion; impact-associated large bubbles are relevant material cues.
+- This comparison describes intended Motion behavior, not a tested plugin sweep or a prescribed event generator.
+- Explicit mode classification, must-preserve/reject thresholds and time window: NOT PROVIDED.
+- Musical Fused/Layered classification: N/A for this pure-water reference.
 
 ## W-M001 — Flux excerpt 1 — HUMAN CALIBRATED v1
 
-- AGENT INITIAL: immutable v1 in Round 01 record; NOT overwritten.
-- HUMAN REVIEW / Decision: PENDING (ACCEPT / MODIFY / REJECT / UNCERTAIN).
-- Corrected Character: PENDING (Common / Fluid / Resonant / Mixed / None / Uncertain).
-- Corrected Interpretation: PENDING.
-- Product Relevance: PENDING.
-- Misinterpretation / Missing Feature: PENDING.
-- Positive Behavior Contribution: PENDING.
-- Negative / Anti-example Contribution: PENDING.
-- Must-Preserve Contribution: PENDING.
-- Reject Condition Contribution: PENDING.
-- Notes / clip time / Water salience / Fused-Layered-Ambiguous: PENDING.
+- User statement: “为音乐片段，背后的water可以归类为watertexure，与其中具有冰块感的bell音色塑造了梦幻的感觉，与项目最终要达成的音乐性一致度很高，需要这种清澈而流动的水的感觉，让人的耳朵仿佛受到洗涤”。
+- Human interpretation: background Water texture and ice-like bell timbre together create a dreamy musical impression highly aligned with the intended musicality.
+- Positive contribution: clear, flowing Water texture; the quoted washing sensation is a human experiential description, not an objective metric.
+- Arrangement confound: the bell and Water jointly contribute to the impression; do not attribute the entire result to Water alone or promote ice-like bell timbre to the Water target.
+- “Background texture” does not establish a DSP Fused/Layered classification, dry-source preservation or the song's processing method; these remain NOT DETERMINED.
+- Explicit mode assignment, must-preserve/reject thresholds and time window: NOT PROVIDED. No Ice development authorization.
 
 ## W-M007 — Woelvinquesh excerpt 1 — HUMAN CALIBRATED v1
 
-- AGENT INITIAL: immutable v1 in Round 01 record; NOT overwritten.
-- HUMAN REVIEW / Decision: PENDING (ACCEPT / MODIFY / REJECT / UNCERTAIN).
-- Corrected Character: PENDING (Common / Fluid / Resonant / Mixed / None / Uncertain).
-- Corrected Interpretation: PENDING.
-- Product Relevance: PENDING.
-- Misinterpretation / Missing Feature: PENDING.
-- Positive Behavior Contribution: PENDING.
-- Negative / Anti-example Contribution: PENDING.
-- Must-Preserve Contribution: PENDING.
-- Reject Condition Contribution: PENDING.
-- Notes / clip time / Water salience / Fused-Layered-Ambiguous: PENDING.
+- User statement: “为钢琴左右使用了bubble较多的水声，bubble给人一种梦幻的感觉，与motion提高时气泡变多相契合”。
+- Human interpretation: bubble-rich Water sounds to the left and right of piano create a dreamy impression.
+- Positive contribution: increasing bubble activity is consistent with intended higher Motion.
+- This supports an activity cue, not a frozen stereo algorithm, density curve or evidence that both Water models must generate bubble events.
+- Explicit Fused/Layered or mode classification, must-preserve/reject thresholds and time window: NOT PROVIDED.
+
+## Whole-contract Human Review — 2026-09-17
+
+- User statement: “human review检查文档为通过，我认可文档里书写的内容，与我的理念基本一致；审查结果推送”。
+- Decision: **ACCEPT** for the perceptual/product brief at `b61653399a5104efaaf441bfe8add5455264e089`.
+- Rationale: the written brief is broadly consistent with the user's product intent; four reference comments above supply the first reported auditory calibration round.
+- This recording update adds evidence, not new product clauses or a claim that later edits were reviewed in advance.
+- The user previously offered to perform engineering review, but this message supplies no engineering findings, reproduced checks or engineering decision. That gate remains PENDING.
+- No new reference rounds, negative-anchor coverage, Decay listening sweep, saturation, candidate acceptance or formal GitHub APPROVE is inferred.
 
 ## Round decision / semantic promotion — original proposal, superseded by HI-01 below
 
@@ -99,7 +88,7 @@ revision rather than replacing an earlier decision. No third-party messages are 
 | Fused versus Layered errors | NOT ENOUGH DATA |
 | Terms repeatedly accepted / modified | NOT ENOUGH DATA |
 
-No classification accuracy, saturation or acceptance claim can be made from zero human-calibrated rounds.
+One human-calibrated round (4/4) and whole-contract Human ACCEPT are now recorded above; classification accuracy, saturation and engineering acceptance are not established.
 Final contract Human Review and Engineering Feasibility Review are separate sections in the canonical brief.
 
 ## HI-01 — HUMAN CALIBRATED clarification

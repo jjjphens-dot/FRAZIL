@@ -6,7 +6,7 @@
 
 ## Current priority — Decay Revision B
 
-Status: blocked for EXP-W-001 closure; Revision B document synchronization and independent agent review complete.
+Status: awaiting engineering review; Revision B synchronization, independent agent document review and user Human ACCEPT complete.
 Goal: synchronize Issue #17 and the existing canonical brief to approved Model/Size/Motion/Decay
 baseline, then record engineering re-review and independent acceptance without inventing listening evidence.
 Success: text/issue agree, all six Revision B gates have attributable evidence before EXP-W-001 closure.
@@ -14,7 +14,7 @@ Completed: main fc20370 merged into the existing brief branch; historical HI inp
 contains four-macro perceptual/UX clauses and Motion x Decay review tasks. No new production path.
 Owners: Sound & Host Lead implementation; Engineering Lead feasibility/Acceptance DRI.
 Next checkpoint: real Engineering Lead feasibility review and independent Acceptance DRI decision on this revised brief.
-Blockers to closure: human reference calibration, whole-contract acceptance and real Engineering Lead/Acceptance DRI evidence remain unrecorded. User authorization to proceed is not a substitute for those results.
+Remaining gate: real Engineering Lead/Acceptance DRI evidence. Four-reference user feedback and Human ACCEPT for b616533 are recorded on 2026-09-17; broader listening coverage is not inferred. The user offered to perform engineering review; no engineering decision has yet been supplied.
 Q16/Q17 remain optional follow-ups, not a renewed interview prerequisite.
 Historical sections below describe earlier rounds; current Decay interpretation is section 5 of the brief.
 
@@ -157,3 +157,22 @@ NOT RUN: Debug/Release/ASAN builds, CTest, render/property/performance, pluginva
 listening/calibration and Developer usability. Documentation-only revision supplies no runtime evidence.
 No push, merge to main, Issue closure or production acceptance performed. Branch-local merge of approved
 main for preparation is separate from a future reviewed merge of this brief into main.
+
+## Human review recording — 2026-09-17
+
+Source: user supplied feedback for the four Round 01 references, explicitly passed the brief Human Review,
+and requested pushing the review results. Reviewed product revision: b61653399a5104efaaf441bfe8add5455264e089.
+This update records those statements and synchronizes current-status summaries; it does not redesign macros.
+Original Agent first-pass and HI records remain historical. Device/level/time windows and engineering findings
+are NOT PROVIDED. User's earlier willingness to perform engineering review is not a completed decision.
+
+Contract Review -> Implementation -> Functional Validation -> Code Quality Review -> Comment & Documentation
+Pass -> Final Validation: reviewed the product/engineering gate distinction; preserved user statements in
+LISTENING_LOG, updated brief and related index/status/plan; checked no invented mode/classification or Ice/DSP
+adoption; validated Markdown links, portability and diff. Results are recorded by the push follow-up on Issue #17.
+Documentation changes: LISTENING_LOG, brief, reference index, experiments README, PERCEPTUAL_CONTRACT status
+note, PROJECT_STATUS and this task plan. Reviewed without update: PARAMETERS, CODING_PLAN, TESTING,
+Proposed ADR-0006, COLLABORATION_ROLES and DOCUMENT_GOVERNANCE; existing scope and independent gates unchanged.
+Runtime/build/DAW/CPU/automated audio validation NOT RUN (documentation/evidence recording only).
+Next action: review the pushed recording revision, supply actual Engineering feasibility findings/decision,
+and satisfy independent acceptance before Issue #17 closure or formal EXP-W-002. No merge/closure authorized here.

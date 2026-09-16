@@ -1,9 +1,9 @@
 # EXP-W-001 — Water Identity v0.2 — Decay Revision B 感知合同草案
 
 > Version: **v0.2 — DECAY REVISION B / ENGINEERING REVIEW DRAFT**。Status: **CANDIDATE / NOT ACCEPTED**。
-> 六段 Human Intent 已完成首轮对话整理；无参考音频听评或独立可行性签核。
+> 六段 Human Intent 已整理；2026-09-17 已记录四参考人工听评及本稿 b616533 的 Human ACCEPT；独立工程签核仍待完成。
 > ID：EXP-W-001。Human Intent：最新 Water Dual-Mode Perceptual/Product Brief plan；取代旧版 candidate-oriented 执行顺序。
-> 当前依据：明确 Human Intent + 未校准的语义候选；reference first-pass 仅完成数值/图形层，直接听辨未完成。
+> 当前依据：Human Intent、获准 candidate baseline 与四参考人工反馈；Agent first-pass 仍仅为数值/图形层。整体 EXP-W-001 工程验收未完成。
 > Implementation DRI：Sound & Host Lead；Engineering feasibility reviewer：Engineering Lead。
 > Tracking：[Issue #17](https://github.com/jjjphens-dot/FRAZIL/issues/17)。
 
@@ -40,8 +40,8 @@ bass 补充回答。本页是后文和 HI 记录的当前汇总；历史 Agent �
 | Decay（历史名称 Time） | PR #35 已合入获准的 candidate 定义；本 Revision B 按 response persistence 同步 | 第 5 节明确取代旧 hard-deadline 提案；最终 mapping/state policy 和听评仍待后续证据 |
 | Q16 bass 液态表现偏重 | 暂停，后续具体试听时细化 | 非初版交接前置条件；不自行代填选择 |
 | Q17 bass 最低频保留程度 | 暂停；维持共同主体/起音/节奏边界 | 非初版交接前置条件；不据此指定分频或保留干声架构 |
-| 参考对应正例/反例、词汇听评 | 20 metadata、6 basic QA、4 numerical/visual first-pass；reference human calibration 0/4 | 不阻挡 draft review；不能宣称已完成 reference-grounded 验收 |
-| 整份合同 Human Review | PENDING；逐项认可不等于全篇 ACCEPT | 仍是 EXP-W-001 收口条件 |
+| 参考对应正例/反例、词汇听评 | 20 metadata、6 basic QA、4 numerical/visual first-pass；reference human calibration 4/4（2026-09-17，见 LISTENING_LOG） | 一轮人工语义反馈；不代表 DSP candidate 或完整 coverage 验收 |
+| 整份合同 Human Review | ACCEPT，用户于 2026-09-17 对 b616533 明确认可 | 产品审查已记录；不代替独立工程验收 |
 | 独立 Engineering feasibility review | PENDING | 可立即先做初审，正式收口保留可追溯记录 |
 
 ### 0.3 Engineering Lead 现在可以推进什么
@@ -124,8 +124,9 @@ Fluid 与 Resonant 是**同等重要、互不从属**的 Water Character；分�
 该澄清来自 Q4/Q5，完整过程见 [校准记录](LISTENING_LOG.md)。它不证明某种物理模型更容易实现，
 也不将 effect tail 等同于 processing latency。下一段校准 Fluid 的感知身份。
 
-### 总体解释草案 OVERVIEW-01 — AGENT INITIAL，待整体人工校准
+### 总体解释草案 OVERVIEW-01 — AGENT INITIAL 历史记录
 
+本节保留最初解释及当时状态；2026-09-17 的全篇产品认可见第 10 节。
 本节响应用户“先自行总结总体情况，再人工校准”的要求，综合项目目标、最新 plan 和 HI-01。
 下列例子是预期产品体验，不是已听到的参考内容或已实现的效果。概念判断标为 INTERPRETATION；
 已确认意图单独指出。它们未通过 reference saturation，也未替代后文的完整合同 review。
@@ -385,7 +386,7 @@ AMBIGUOUS 后，FUSED 优先，LAYERED 仅用于层次/密度/位置研究，AMB
 观察、解释与后续问题；注明方法、时间窗、信心与原因。历史 OBSERVED/SUPPORTED/HYPOTHESIZED
 保留其来源含义，不冒充人工校准。语义候选只有经多个参考支持且被 Sound Lead 反复保留，才升为主条款。
 [Round 01 first-pass](ROUND_01_COMMON_WATER.md) 保存四个参考的独立数值/图形解释；
-Water Salience 未评估、Character 未确定，不能推断直接听辨或人工校准已完成。
+其中 Agent 的 Water Salience 未评估、Character 未确定；后续四参考用户听评见 LISTENING_LOG，不能将其回写成 Agent 直接听辨。
 
 | Objective proxy | 可支持的问题 | 不能证明 |
 |---|---|---|
@@ -459,13 +460,17 @@ F15 GENERIC-FX；F16 UNNATURAL-MOTION；F17 OVER-PROCESSED。
 
 ## 10. Human Review — 合同本身
 
-- Reviewer：Sound & Host Lead，PENDING。
-- Material and Environment：PENDING。
-- Evidence Reviewed：本 brief、reference provenance、Agent initial 与 Human calibrated records，PENDING。
-- Decision：PENDING（最终使用 ACCEPT / REVISE / REJECT）。
-- Rationale：PENDING。HI-01 至 HI-10 已确认部分产品意图；尚无参考听评及全篇 ACCEPT。
+- Reviewer / date：用户 / Human Water Intent authority（Sound & Host 产品审查），2026-09-17。
+- Reviewed revision：`b61653399a5104efaaf441bfe8add5455264e089`。
+- Material and Environment：用户反馈 W-P002、W-P003、W-M001、W-M007；设备、播放电平、具体时间窗未提供。
+- Evidence Reviewed：上述精确版本的 brief 与四参考；原话和逐项解释见 [LISTENING_LOG](LISTENING_LOG.md#whole-contract-human-review--2026-09-17)。
+- Decision：**ACCEPT**。
+- Rationale：用户明确表示“human review检查文档为通过，我认可文档里书写的内容，与我的理念基本一致”。
 
-本 review 审查 Perceptual Contract，不验收 DSP candidate。
+本结论验收产品/感知目标，不验收 DSP candidate，也不代替 Engineering feasibility / 独立 Acceptance DRI。
+四参考反馈支持清澈流动、梦幻 Water texture、较高 Motion 的水花/气泡活动；洞穴混响和歌曲 bell
+分别作为环境/编曲混杂因素记录，不自动变成 Water 算法要求或 Ice 工作授权。未声称完成 Decay sweep。
+本次更新只记录用户证据及状态，不将尚未审查的后续语义修改归入本次 ACCEPT。
 
 ## 11. Engineering Feasibility Review — Human Review 后
 
@@ -486,8 +491,9 @@ proxy 限制；是否误指定实现；是否冲突 realtime、parameter、archi
 - [x] Round 01 AGENT INITIAL 数值/图形层已独立保存。
 - [ ] 直接听辨层的 Agent first-pass 完成（当前无可靠本地音频听辨入口）。
 - [x] 六段产品语义均已有初步对话输入（HI-01 至 HI-10）；Decay 已按 PR #35 的获准 candidate 定义完成 Revision B 文本同步；不代表听评 ACCEPT。
-- [ ] 基于实际 reference 的多轮 Sound Lead calibration 完成，足够支持主语义条款；当前 0 轮。
-- [ ] Human Review = ACCEPT。
+- [x] 首轮四参考 Sound Lead 反馈已记录（4/4）；用户认可整份产品合同。
+- [ ] 多轮参考 coverage / 负例与 Decay 专项听评充分性尚未建立；由后续审查按缺口判断，不伪造已完成轮次。
+- [x] Human Review = ACCEPT（2026-09-17，精确版本 b616533）。
 - [ ] Engineering Lead feasibility review 完成，并记录 reviewer、scope、复现/未复现、finding、decision 及 evidence。
 - [ ] Revision B Issue #17 与四 macro 文本一致，随后独立 Acceptance DRI 对精确 revision 作出决定。
 - [x] 未实现/接受 candidate DSP；未改变 production parameter/state。

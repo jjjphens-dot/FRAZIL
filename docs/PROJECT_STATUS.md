@@ -316,7 +316,7 @@ PluginProcessor
   M5 Production UI；usability、DAW/listening evidence 和 Offline Sound Lab handoff 仍未完成。它是大规模
   `EXP-W-002` 前的 Water M2 effective-development-readiness prerequisite，但不是 M1 Exit hard gate。
 - M2 Water：**未开始**；`EXP-W-001` Perceptual Contract preparation 在本分支已有 CANDIDATE 草案，验收仍 PLANNED，不表示 M2 或 Water DSP 已开始。
-- Perceptual Contract framework/template：当前已随批准并合入的 v1.3 baseline 成为 **CURRENT / CONTROLLED**。`EXP-W-001` accepted Water contract instance 仍为 **PLANNED**；本分支已有 [Revision B 四 macro 草案](../experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md)（CANDIDATE / NOT ACCEPTED），参考听评、整体合同与独立验收未完成；不代表 main 已收录或 EXP-W-002 已启动。
+- Perceptual Contract framework/template：当前已随批准并合入的 v1.3 baseline 成为 **CURRENT / CONTROLLED**。`EXP-W-001` accepted Water contract instance 仍为 **PLANNED**；本分支已有 [Revision B 四 macro 草案](../experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md)（CANDIDATE / NOT ACCEPTED），2026-09-17 已记录四参考人工反馈与 b616533 的产品合同 Human ACCEPT；工程复审与独立验收未完成；不代表 main 已收录或 EXP-W-002 已启动。
 - M3 Ice：**DEFERRED**；长期 milestone 保留，在 `M2 Exit + Explicit Joint Gate` 确认 Water workflow 可复用于 Ice 前，不启动 Ice experiment、perceptual/parameter redesign 或 production implementation。
 - M4 Routing：**未开始**。
 - M5 UI & Edit History：**未开始**。

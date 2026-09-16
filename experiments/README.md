@@ -50,7 +50,7 @@ experiments/water/
 [v0.2 Revision B 四 macro 工程审阅草案（CANDIDATE）](water/EXP-W-001_PERCEPTUAL_BRIEF.md)、[参考索引](water/REFERENCE_INDEX.md)、
 [执行计划](water/task_plan.md)、[首轮 Agent 数值/图形解释](water/ROUND_01_COMMON_WATER.md) 和
 [Human calibration 记录单](water/LISTENING_LOG.md)。最新流程为 Agent First → Human Calibration；
-直接音频听辨和人工校准尚未完成。尚未接受该合同，
+2026-09-17 已收到四参考人工听评及 b616533 的 Human Review ACCEPT；Agent 直接听辨仍未完成。工程与独立验收仍待完成，
 不授权 EXP-W-002 候选 DSP。参考音频留在外部本地库；入库工具只复用既有 analyzer，输出留在 ignored tree。
 不要另建并行的
 `EXP-W-001/` 路径。`EXP-W-002` / `EXP-W-003` 只有在实际需要 configs/renders/analysis/review 时才目录化，
