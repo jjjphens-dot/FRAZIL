@@ -352,18 +352,19 @@ Resonant，并分别记录：
   tail behavior；实验前不设 universal residual-to-input dB threshold；
 - **Semantic Predictability**：不解释内部 DSP 时，用户能预测 `water.size` 从 Fine/Small/Bright 到
   Large/Deep 表示尺度更大、更深，`water.motion` 从 Calm/Stable 到 Active/Flowing 表示时间行为更
-  活跃、更流动；Size 的 compact display 可候选 `Fine <-> Deep`，exact label 不在本测试计划冻结；
-- **Cross-Mode Consistency**：Fluid/Resonant mapping 可以不同，但切换后 Size/Motion 保持同一高层
+  活跃、更流动；`water.decay` 表示 response persistence，Short/Tight -> Long/Lingering，低端不用 Dry；
+  Size 的 compact display 可候选 `Fine <-> Deep`，exact label 不在本测试计划冻结；
+- **Cross-Mode Consistency**：Fluid/Resonant mapping 可以不同，但切换后 Size/Motion/Decay 保持同一高层
   感知方向，且 Resonant 的 Motion 变化刻意比 Fluid subtle；
-- **Orthogonality**：用户能区分 Size、Motion、`water.amount`、`global.mix` 和
+- **Responsibility orthogonality + perceptual separability + bounded interaction**：用户能区分 Size、Motion、Decay、`water.amount`、`global.mix` 和
   `parallel.balance`；Motion 不得主要表现为 Amount/output gain/simple loudness increase，Size 不得
   主要表现为 loudness，Mode 不得表现为 quality switch；任何 compensation 由测量和 loudness-matched
   review 决定，不能预填固定 dB；
 - **Discoverability**：Fluid 与 Resonant 被理解为两种 Water behavior，而不是 real/fake、good/bad 或
   high/low quality；记录是否需要简短描述或 tooltip；
-- **Interaction Cost**：评估常用 Water sound design 是否能用 Enable、Mode、Size、Motion 完成，而不
+- **Interaction Cost**：评估常用 Water sound design 是否能用 Enable、Mode、Size、Motion、Decay 完成，而不
   暴露 bubble radius、resonator Q、delay depth、event probability 等 engineering controls；
-- **Automation Readability**：Host lane 的 Water Model、Water Size、Water Motion 无需内部 DSP 知识即可
+- **Automation Readability**：Host lane 的 Water Model、Water Size、Water Motion、Water Decay 无需内部 DSP 知识即可
   理解；
 - musical usefulness、artifact severity、最终 mapping 理由、risk 和 tradeoff。
 
@@ -383,7 +384,7 @@ Resonant，并分别记录：
 - Size：Fluid 的 bubble scale -> resonance distribution 与 Resonant 的 root/mode-family scale 在适用区间
   保持预期单调方向；Size 不改变 event density、Motion speed、Amount 或 general gain；
 - Motion：Fluid 的 event/Flow/stochastic destinations 与 Resonant 的 subtle drift/excitation destinations
-  保持预期 temporal-activity 方向；检查 loudness correlation，防止 Motion 主要成为 gain；
+  保持预期 temporal-activity 方向；不直接改变 explicit decay targets；检查 loudness correlation，防止 Motion 主要成为 gain；
 - Water mode transition 检查 click/zipper、异常 peak、rapid repeated automation、最终 mode、tail/state
   ownership、random progression、reset/prepare/state restore 和 transition CPU upper bound；不把通用
   约 20 ms 测试 baseline 当作 final Water duration；
@@ -393,11 +394,70 @@ Resonant，并分别记录：
 - plugin `getLatencySamples()` 仍为 0，Water 不引入需要 lookahead/FFT block latency/linear-phase/
   convolution/Host PDC 的 production dependency；intentional effect delay/tail 单独描述和测试。
 
+#### Motion × Decay separation and dynamic-state evidence (planned)
+
+Future pure-value mapping tests must run without an audio device, JUCE Host, PluginProcessor or UI. Review the
+include boundary: WaterProductValues / WaterModel and targets belong to Water domain; app may consume their
+headers, while WaterMacroMapper / WaterProcessor must not depend on app. ParameterMapper tests cover NaN/Inf,
+out-of-range and invalid choice/enum fallback. WaterMacroMapper tests start from finite normalized values and a
+valid WaterModel: 0/0.5/1 boundaries produce finite bounded targets; identical inputs give identical outputs;
+increasing Decay increases target persistence monotonically. Size must not change direct activity/lifetime targets
+unless explicitly justified by an accepted mapping. Test these semantics, not arbitrary private coefficient values.
+Motion/Decay destination invariants below remain required. These are planned tests, not results from this revision.
+
+EXP-W-002 requires the following in **each** of Fluid and Resonant after accepted EXP-W-001 **including mandatory
+Decay Revision B**, with M1 Exit and applicable Developer readiness. Apply the
+[completion/start gate](CODING_PLAN.md#decay-revision-b-completion-gate); Revision A alone, an old three-macro brief
+or prepare-time SPIKE decay cannot satisfy it:
+
+| Case | Motion | Decay |
+|---|---|---|
+| 1 | Low / Calm | Short / Tight |
+| 2 | Low / Calm | Long / Lingering |
+| 3 | High / Active | Short / Tight |
+| 4 | High / Active | Long / Lingering |
+
+Hold input, Size, seed and other settings constant. Sweep Motion with Decay fixed: activity/trajectory/variation
+may change, explicit decay targets must not. Sweep Decay with Motion fixed: response lifetime/tail may change,
+explicit scheduler/activity targets must not. Decay destinations are Bubble/Droplet response decay and Resonant
+modal damping; Flow has no forced destination. Droplet refractory remains one scheduling hypothesis, not the
+frozen Motion mapping. Unit tests inspect mapper outputs; render observations alone cannot prove destination isolation.
+
+Record actual endpoints/curves and active voice count, overlap, steals, tail energy, peak/RMS, CPU and finite status,
+especially High Motion + Long Decay. Use N/A with a reason where a mechanism lacks an observation (e.g. fixed modal
+bank has no event stealing); do not invent counters. Measure bounded interaction, not strict acoustic orthogonality.
+Equal normalized values need not mean equal seconds across mechanisms. Changes in overlap/energy are allowed;
+constant RMS is not required and compensation needs evidence. Review fixed-seed scheduling sequence and RNG
+domain/ownership: Decay must not redefine them without a documented architecture reason.
+
+Compare live damping (existing state smoothly adopts new damping) and event-latched decay (new events capture
+the current value, existing events keep it). Record automation memory/lag, lifetime/expiry, coefficient/excitation
+update stability, tail termination and stealing; do not preselect a policy. Test fast changes, correct final target,
+finite/stable output and click/zipper behavior at 44.1/48/96 kHz and representative block sizes, plus reset/prepare.
+Prepare-time SPIKE configuration is not live automation evidence; callback reprepare/allocation/blocking is forbidden.
+
+EXP-W-003/WATER-006 additionally use loudness-matched representative music: with each macro held fixed, can listeners
+reliably identify the other's direction? Are all four combinations useful, and is higher Decay more persistent in both
+modes? Preserve rhythm, major transient timing, recognizability and Size/Motion meaning. Review masking, runaway
+ringing, excessive steals/CPU/gain buildup. Decay must not mainly act as Amount, activity, reverb wetness/size, source
+release or whole-effect duration; Motion must not mainly act as lifetime. Keep separate engineering observations
+and independent human decisions; no new scalar quality score or frozen threshold.
+
+#### Planned Developer Decay isolation regression
+
+A future UI/export implementation must test provisional default, A/B capture/apply retention, reset, explicit
+`waterExperiment.decay` export and old/new config compatibility/round-trip where a parser exists. Inspect consumer
+unknown/missing-field policy before choosing additive format versus experiment-schema revision. Verify unchanged
+plugin state/schema, all nine Host IDs/order/ranges/defaults, and actual Release Host enumeration and exclusion of
+Developer Decay. This documentation revision runs none of those executable checks and claims no UI support.
+
 #### Candidate Host parameter evidence (`WATER-003/007`)
 
-`water.model`、`water.size`、`water.motion` 只有在正式采纳后才进入 ParameterLayout/Host/state tests。采纳
+`water.model`、`water.size`、`water.motion`、`water.decay` 只有在正式采纳后才进入 ParameterLayout/Host/state tests。采纳
 前必须定义并验证：稳定静态注册与 deterministic choice ordering、range/default、ParameterMapper 的
-mode-specific mapping、smoothing/transition、automation lane/record/edit/playback、inactive value retention、
+raw/finite/clamp/enum/dB -> normalized product-value boundary，以及 WaterMacroMapper 独立的 mode-specific
+bounded DSP target mapping；后者应有 deterministic、allocation-free、DSP-state-independent 的 unit evidence，
+且不得把 component configs/destinations 泄漏到 app mapper。另需 smoothing/transition、automation lane/record/edit/playback、inactive value retention、
 save/reopen、schema evolution/default/migration fixtures 和 compatibility fallback。当前
 `schemaVersion=1` 与九参数 registry 不因本测试计划扩展。
 
@@ -473,7 +533,7 @@ v1 automation contract：FRAZIL 不承诺 sample-accurate Host automation。Host
 - routing/enable: 播放中切换，检查 click 和参数值保留；
 - 模式切换后 inactive automation 继续写值，再切回时使用最新值。
 - 若 M2 正式采纳 Water candidates：`water.model` 的 Fluid/Resonant rapid switching/final value、
-  `water.size` 与 `water.motion` 的快慢曲线、跨模式 value retention 和 save/reopen；采纳前不把这些
+  `water.size`、`water.motion` 与 `water.decay` 的快慢曲线、跨模式 value retention 和 save/reopen；采纳前不把这些
   candidate 写成当前 Host acceptance 项。
 
 所有 automation stress 至少检查：无 click、无 zipper、无 NaN/Inf、block size 改变后行为稳定、参数最终值正确；不得把“sample/block ramp”写成 Host sample-accurate 保证。
@@ -572,7 +632,7 @@ pluginval 路径与完整 MSVC 环境初始化见 `docs/ENVIRONMENT.md`。CI 命
 - `DEV-UI-001`：Developer interactive controls/diagnostics/config export 的 usability gate；是大规模
   `EXP-W-002` 前的 Water M2 readiness prerequisite，不是 M1 Exit gate，且不替代 Host/offline evidence。
 - M2：Fluid/Resonant 双模式分别满足各自 mode-specific responsibilities，完成 component ablation、
-  property/render、qualitative non-quality-switch review、Size/Motion semantic consistency、normal setting 与
+  property/render、qualitative non-quality-switch review、Size/Motion/Decay semantic consistency、normal setting 与
   代表性 `global.mix=100%` input recognizability、click-free mode
   transition、state/automation、performance increment、Water rubric/Reject Criteria 和 pluginval PASS；
   引用 `TESTDATA-001`、`LISTENING-001` 与 `PERF-BASE-001`，且 Host-reported processing latency 保持 0。

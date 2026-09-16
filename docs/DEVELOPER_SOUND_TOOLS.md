@@ -1,6 +1,6 @@
 # FRAZIL Developer Sound Tools
 
-> Document status: CURRENT/CONTROLLED in the approved and merged v1.3 baseline ([PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23)).<br>
+> Document status: CURRENT/CONTROLLED; first established by v1.3 / [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23). Decay candidate revision follows the [v1.4 activation rule](CODING_PLAN.md).<br>
 > Capability implementation status: tracked individually as CURRENT / PLANNED / CANDIDATE / DEFERRED below.<br>
 > The Debug/ASAN Developer Control Surface implementation is merged on `main` and is engineering-ready for Sound &
 > Host Lead usability acceptance; final workflow acceptance and Offline Sound Lab handoff remain in progress.
@@ -28,7 +28,7 @@ experimentation. It is not an M1 architecture-correctness exit gate, and `HOST-0
   RENDER-001 offline smoke, manual performance harness, and `tools/analyze_testdata.py` using the
   `requirements-dsp.txt` Python environment. The analyzer already provides waveform diagnostics, FFT, Welch PSD,
   RMS, DC, stereo correlation and STFT/spectrogram analysis.
-- **CURRENT**: the Perceptual Contract framework, template and Agent usage rules from the approved v1.3 baseline.
+- **CURRENT**: the Perceptual Contract framework, template and Agent usage rules first established by the approved v1.3 baseline; current plan authority follows `CODING_PLAN.md`.
 - **CURRENT implementation / acceptance pending**: a Debug/ASAN-only `DEV-UI-001` surface in
   `src/plugin/PluginEditor.*` binds the nine current Host parameters, keeps Water Model/Size/Motion
   experiment-only, detaches APVTS attachments while a temporary non-APVTS override is active, and provides an
@@ -55,16 +55,20 @@ parallel.balance   water.amount         ice.amount
 input.gain         global.mix           output.gain
 ```
 
-During Water experiments it may also expose Developer/Experiment controls named Water Model, Water Size and Water
-Motion. Before explicit parameter adoption, these controls are not Host parameters, do not enter
+During Water experiments the candidate vocabulary is Water Model, Water Size, Water Motion and Water Decay.
+The existing implementation exposes the first three; Decay is a PLANNED extension under
+[DOC-W-DECAY-001](planning/WATER_DECAY_CANDIDATE_REVISION.md), not an implemented control.
+Before explicit parameter adoption, these controls are not Host parameters, do not enter
 `ParameterLayout`, do not change `schemaVersion`, and create no automation or compatibility promise. Their exact
 internal transport is a `DEV-UI-001` implementation decision and must preserve the repository dependency and
 realtime boundaries.
 
 When the developer override is inactive, normal Host controls use APVTS attachments. While the override is active,
 those attachments are detached so the visible controls remain authoritative for the effective developer state;
-Return Host clears the override, reattaches the APVTS controls and restores Host/APVTS as effective state. Water
-Model/Size/Motion remain outside the Host registry, automation and plugin state. Dry/Processed comparison reuses the
+Return Host clears the override, reattaches the APVTS controls and restores Host/APVTS as effective state. The currently
+implemented Water Model/Size/Motion controls remain outside the Host registry, automation and plugin state.
+The planned Decay experiment control must remain outside those production contracts as well; its UI/snapshot/export
+extension is not implemented. Dry/Processed comparison reuses the
 preallocated dry reference and does not change `global.mix`; the candidate still requires workflow usability
 acceptance and does not provide the full debug-bundle workflow required for final DEV-UI-001 acceptance.
 
@@ -95,6 +99,19 @@ Dry/Processed, A/B and Reset actions must not silently write DAW automation or r
 Developer-only comparison state may enter reproducible experiment evidence only through an explicit export/apply
 handoff. The exact internal storage and transaction design remains a `DEV-UI-001` implementation decision.
 
+### Planned Decay experiment-control follow-up
+
+A separately scoped implementation may extend `DeveloperWaterExperimentSnapshot` with `decay`, the visible
+Water Decay control, A/B capture/apply and experiment reset. A provisional `0.5` normalized experiment UI default
+is permitted; it is not a future production default. Motion means temporal activity; Decay means input-excited
+response persistence, Short/Tight to Long/Lingering. Do not label the low end Dry or imply whole-effect duration.
+The control must not call DSP `prepare()` on a live parameter change or imply that prepare-time SPIKE supports
+realtime automation. No product ID enters the primitive, APVTS, ParameterLayout or plugin state.
+
+Required follow-up evidence: default value, A/B retain Decay, experiment reset, explicit export contains Decay,
+consumer round-trip where a parser exists, unchanged nine Host parameters/plugin schema, Release Host enumeration
+and Developer-control exclusion. GUI/build/plugin validation follows `TESTING.md`; none is claimed by this revision.
+
 ## 4. Realtime-to-offline handoff
 
 The intended workflow is:
@@ -114,6 +131,13 @@ agree on one boundary.
 
 The initial export uses `schema=frazil.dev-experiment`, `schemaVersion=1`, and `source=DEV-UI-001`. This is a local
 draft handoff format, not the plugin state schema or a frozen Offline Sound Lab contract.
+
+The planned extension adds `waterExperiment.decay` to explicit experiment export. Current export contains only
+`model`, `size`, `motion`; no Decay export has been implemented here. Before changing the format, inventory consumers
+and their missing/unknown-field policies, choose a compatible additive field or explicit experiment-schema revision,
+and record old/new fixture behavior. Do not change plugin `StateModel::schemaVersion`, APVTS or Host presets.
+The SPIKE renderer currently accepts engineering module configs and rejects unknown product fields; this export
+cannot be passed directly to it. A reviewed mapping/handoff remains necessary after the accepted brief.
 
 A standard review pack is PLANNED to contain dry, baseline and candidate WAVs, a manifest, per-candidate analysis,
 waveform/spectrum/spectrogram plots and `LISTENING_REVIEW.md`. Objective measurements are proxies; no scalar

@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-15<br>
+> 快照日期：2026-09-16（仅追加 Decay baseline review/finalization 事实，其余 evidence 保留原适用范围）<br>
 > 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -20,8 +20,13 @@ Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未实现�
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
-`CODING_PLAN.md` v1.3 已由 [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23) 完成 required formal
-approval 并合入 `main`，当前是 Approved Development Baseline。这不代表 FRAZIL plugin v1.0 release，
+`CODING_PLAN.md` v1.4 的 candidate contract / engineering boundaries 已获
+[PR #35 proposal HEAD 765f42a 的独立 APPROVE](https://github.com/jjjphens-dot/FRAZIL/pull/35#pullrequestreview-5223609754)，
+该 HEAD 的 [Hosted Windows Debug / CMake / CTest](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35103827055) 已通过。
+本 finalization 定义 v1.4 为 Approved Development Baseline，随 PR #35 合入 main 生效；最终 HEAD 仍须满足
+review/check gates，不能复用 proposal approval/CI 作为最终提交证据。v1.3 / [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23)
+是 previous approved baseline；实际 merge 与 final-head review/check 以 GitHub evidence 为准。本段不宣称已合并。
+这不代表 FRAZIL plugin v1.0 release，
 也不改变 M1、Water/Ice/Routing 的实际完成状态：Water production DSP、production candidate controls
 和 model transition 均未实现或注册；Debug/ASAN 开发面板中的 experiment-only controls 不属于该
 production scope。
