@@ -120,12 +120,23 @@ zero source frames. They do not alter DSP state, output or the separate timed ca
 
 The single `review_smoke.py` command runs 138 core renders and four supplemental controls.
 `observations.json` retains the 32 core signal/mode records. `supplemental_controls.json` records
-A/B high/low gate event counts derived from a canonical-input prefix, and dry-versus-Flow-D RMS
-differences and dominant frequencies. Gate boundaries come from TESTDATA-001's manifest; the
+A/B high/low gate event counts derived from a canonical-input prefix, and Flow-D
+processed-vs-dry RMS level delta and dominant frequencies. Gate boundaries come from TESTDATA-001's manifest; the
 prefix preserves initial detector/RNG history and matches the corresponding full-render samples.
 Two dry HF/sweep baselines use the same three-second appended silence as processed/residual runs.
 Existing analyzer PSD/spectrogram plots support inspection of coloration/ripple, without automatic
 alias attribution or subjective audibility claims. All derived inputs and outputs stay ignored.
+The script checks that all 18 expected dry/processed/residual plot files exist; it does not inspect pixels.
+
+RMS metrics use the full render, including appended silence, and remain distinct:
+
+| Supplemental JSON field | Meaning |
+|---|---|
+| `processed_rms` | Processed signal RMS(y), linear amplitude |
+| `baseline.rms` | Dry/source RMS(x), linear amplitude |
+| `processed_vs_dry_rms_delta_db` | Processed-vs-dry RMS level delta: 20 log10(RMS(y) / RMS(x)), dB |
+| `residual.rms` | RMS(E) for E = y - x, linear amplitude; a separate measurement |
+
 Hosted CI runs repository policy/tool checks, TESTDATA-001 verification and research-enabled
 configure/build/CTest; Water smoke, 80-render corpus and research timing are local evidence.
 

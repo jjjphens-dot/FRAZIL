@@ -77,10 +77,14 @@ def supplemental_controls(output_dir, observations, render):
         plots = {name: f"plots-{fixture}-{mode}" for name, mode in
                  (("dry", "baseline"), ("processed", "d"), ("residual", "d-residual"))}
         write_plots(path, output_dir / plots["dry"])
+        for folder in plots.values():
+            for filename in ("waveform.png", "welch_psd.png", "spectrogram.png"):
+                assert (output_dir / folder / filename).is_file(), (folder, filename)
+        # Compare signal levels; RMS(y - x) is the separate residual["rms"] metric.
         comparisons.append(dict(
             fixture=fixture, baseline=baseline, processed=flow["path"],
             residual=flow["residual"], processed_rms=flow["rms"],
-            processed_minus_dry_rms_db=float(20 * np.log10(flow["rms"]/baseline["rms"])),
+            processed_vs_dry_rms_delta_db=float(20 * np.log10(flow["rms"]/baseline["rms"])),
             processed_fft_peak_hz=flow["fftPeakFrequencyHz"],
             processed_psd_peak_hz=flow["welchPsdPeakFrequencyHz"],
             main_frequency_comparison=("dominant peak for single-tone input" if

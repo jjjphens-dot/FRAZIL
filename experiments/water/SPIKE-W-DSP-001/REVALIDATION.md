@@ -6,9 +6,11 @@ Engineering feasibility only. No perceptual acceptance, formal EXP-W-002 closure
 ## Source, provenance and environment
 
 - Repaired executable/config/C++ test source: `6b3b8f8e590acfc1164fe8dfe7f6d10108a8f041`.
-- Supplemental smoke automation source: `f9a0e6ce69452b21d4ff23cb739f187a6f94e562`.
-  The rerun used identical Python contents immediately before that commit. It changes only
-  `analysis/review_smoke.py`; the final follow-up commit changes README/REVALIDATION Markdown only.
+- Initial supplemental smoke automation source: `f9a0e6ce69452b21d4ff23cb739f187a6f94e562`;
+  the subsequent `e842e50` changed README/REVALIDATION only. The final terminology cleanup changes
+  only the smoke field name, adds plot-existence checks and synchronizes these two documents.
+  Its automation source is the final submitted HEAD recorded in PR #30. The latest smoke rerun
+  used identical Python contents immediately before that cleanup commit; the calculation is unchanged.
 - Reviewed predecessor: `646a8bc9cfe951333ef2a4ca02a88dc3a6622761`; main base: `3438593`.
 - Debug/Release builds initially compiled the identical source contents before the repaired-source
   commit; ASAN and the original smoke/corpus/timing ran at that committed source. The final smoke
@@ -94,14 +96,15 @@ PR #30 records the actual final HEAD and its completed Hosted run URL/result. No
 
 ```powershell
 $renderer = 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe'
-python experiments/water/SPIKE-W-DSP-001/analysis/review_smoke.py --renderer $renderer --output build/water-review-smoke-final-controls
+python experiments/water/SPIKE-W-DSP-001/analysis/review_smoke.py --renderer $renderer --output build/water-review-smoke-final
 ```
 
 **32 signal/mode cases; 138 renders PASS**: each case has processed blocks 7/128/1024 and residual
 block 128, plus ten entirely-unexcited-channel probes derived from the canonical stereo fixture.
-The final automation rerun adds **four supplemental controls, 142 total PASS** using the unchanged
+The final terminology-cleanup rerun includes **four supplemental controls, 142 total PASS** using the unchanged
 Release renderer from `6b3b8f8`. Its complete 32-record `observations.json` exactly matches the
-prior `build/water-review-smoke-6b3b8f8/observations.json`; the table below remains applicable.
+prior `build/water-review-smoke-final-controls/observations.json` (and the original `6b3b8f8` run);
+the table below remains applicable.
 Defaults, seed 42, 48 kHz, three appended seconds of silence. Decoded samples match exactly across
 partitions. Max carrier error `2.9802322387695312e-08`; max final-100-ms residual peak `3.15009e-15`.
 Every output is finite; no Bubble/Droplet event was scheduled on any exactly zero source frame.
@@ -155,7 +158,7 @@ or “Water identity accepted.” None is a quality ranking.
 |---|---|---|---|---|
 | A Bubble | silence, impulse, gated, transient, noise, stereo | Silence creates no events; gated has 25 high-section + 5 low-section events; transient 21; noise 50; independent RNG/reset | No event on one-sample impulse at seed 42; isolated bubbles omit coupling/pitch rise; hard stealing may click; thin/high-frequency impression untested | PASS |
 | B Droplet | silence, impulse, gated, transient, stereo | Gated high onset triggers at frame 9607 (0.146 ms after its start); low gate does not trigger; four transient events, first at frame 4837 (0.771 ms after start); four localized decays visible; no zero-source events | Threshold sensitivity: misses low gated segment and one-sample impulse; event-like timbre untested | PASS; sensitivity observation retained |
-| D Flow | gated, noise, sweep, HF sine, stereo | Bounded delayed-minus-source residual; silence clears; HF total RMS -0.697 dB relative to carrier, sweep -0.836 dB; source frequency trajectory retained | F-D-01: visible frequency coloration/PSD ripple and low-level off-main-track sweep features versus dry control; audibility and alias attribution unmeasured; chorus/flanger risk retained | PASS; spectral finding for later isolated review |
+| D Flow | gated, noise, sweep, HF sine, stereo | Bounded delayed-minus-source residual; silence clears; processed-vs-dry RMS level delta: HF -0.697 dB, sweep -0.836 dB; source frequency trajectory retained | F-D-01: visible frequency coloration/PSD ripple and low-level off-main-track sweep features versus dry control; audibility and alias attribution unmeasured; chorus/flanger risk retained | PASS; spectral finding for later isolated review |
 | C Resonant | silence, impulse, transient, noise, sweep, HF, stereo | Decaying impulse residual; low-frequency resonance distribution in noise/sweep; finite and isolated; no duplicated carrier | Default impulse residual peak only about 1.25e-5; subtle/generic/metallic character possible; no physical-water mode claim | PASS |
 | ABD Fluid | silence, impulse, gated, transient, noise, sweep, HF, stereo | A/B counts match isolated components; exact partition repeatability; residual composition agrees within rounding; no autonomous output | Relative balance and source recognizability need musical listening; Flow spectral observation remains | PASS |
 
@@ -178,17 +181,25 @@ and processed-prefix equality with the full render. It verifies silence outside 
 zero-source event counts before subtracting prefix events from full events. Results: A high/low
 **25/5**, B **1/0**. Counts are observations, not perceptual thresholds.
 
-`build/water-review-smoke-final-controls/supplemental_controls.json` stores the counts, defaults,
+`build/water-review-smoke-final/supplemental_controls.json` stores the counts, defaults,
 seed 42, block 128, three-second tail, baseline metrics, Flow processed/residual metrics and plot
 paths. Comparable dry/Flow durations and rates, PCM24 carrier tolerance and zero dry tail are checked.
-Using the existing `analyze_audio`/`write_plots`, full-render Flow-minus-dry RMS is **-0.696507 dB**
+Using the existing `analyze_audio`/`write_plots`, full-render processed-vs-dry RMS level delta is **-0.696507 dB**
 for HF and **-0.835653 dB** for the sweep. HF dry and Flow FFT peaks both remain **10560 Hz**;
 their Welch maxima are both **10558.59375 Hz**. A single global sweep peak is not trajectory proof;
-the spectrogram supplies that inspection. All 18 dry/processed/residual comparison PNGs exist.
+the spectrogram supplies that inspection. All 18 dry/processed/residual comparison PNGs exist,
+now checked by the smoke script without image-content analysis.
 Visual review reproduces F-D-01: HF PSD ripple and faint sweep off-main-track features. Automatic
 plot scales do not establish calibrated alias rejection or audibility. No new analyzer or DSP was added.
 The earlier manual controls remain historical in `build/water-review-spectrum-controls-6b3b8f8/`;
 manual WAV construction is no longer needed for these observations.
+
+The current JSON names this metric `processed_vs_dry_rms_delta_db` and computes
+`20 * log10(processed_rms / baseline.rms)`. Here `processed_rms` is RMS(y), `baseline.rms` is
+RMS(x), and the separate `residual.rms` is RMS(E), E = y - x. The first two and residual RMS use
+linear amplitude; the level delta uses dB. This terminology correction does not change the
+measurement. Comparison with the prior supplemental report confirms identical numeric results
+and gate counts after accounting for the renamed field. Historical local outputs remain unchanged.
 
 Final automation validation: `python -m py_compile experiments/water/SPIKE-W-DSP-001/analysis/review_smoke.py`,
 the smoke command above, JSON/result/plot consistency checks, `python tools/check_portability.py`,
@@ -295,6 +306,10 @@ contracts/ADRs and historical EVIDENCE.md are unchanged. Commands, counts, paths
 PR #30 requests `jjjphens-dot` to independently review objective scope, disclosed risks, reproducibility,
 absence of production adoption and the accepted EXP-W-001 prerequisite for future EXP-W-002.
 The live request/decision status belongs in the PR; self-validation is not independent acceptance.
+The terminology cleanup follows the same six phases and targeted scope. Its separate Code Quality
+Review confirms the ratio expression, render settings and core assertions are unchanged; the optional
+plot assertions check file existence only. Comment & Documentation Pass aligns the JSON field/formula,
+README metric definitions, this report and PR text. No testing contract, milestone claim or DSP changes.
 
 ## Unexecuted / deferred acceptance
 
