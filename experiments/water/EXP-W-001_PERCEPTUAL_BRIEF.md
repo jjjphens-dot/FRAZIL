@@ -1,0 +1,453 @@
+# EXP-W-001 — Water Identity v0.1 感知合同草案
+
+> Version: **v0.1 — ENGINEERING REVIEW DRAFT**。Status: **CANDIDATE / NOT ACCEPTED**。
+> 六段 Human Intent 已完成首轮对话整理；无参考音频听评或独立可行性签核。
+> ID：EXP-W-001。Human Intent：最新 Water Dual-Mode Perceptual/Product Brief plan；取代旧版 candidate-oriented 执行顺序。
+> 当前依据：明确 Human Intent + 未校准的语义候选；reference first-pass 仅完成数值/图形层，直接听辨未完成。
+> Implementation DRI：Sound & Host Lead；Engineering feasibility reviewer：Engineering Lead。
+> Tracking：[Issue #17](https://github.com/jjjphens-dot/FRAZIL/issues/17)。
+
+## 0. Engineering Lead 交接摘要 — v0.1
+
+**用途**：当前即可用于初步可行性审查、工程问题拆分及 Decay 定义讨论。无需等待 Q16/Q17
+bass 补充回答。本页是后文和 HI 记录的当前汇总；历史 Agent 提案不能覆盖用户已确认意图。
+本文件仍是唯一 canonical brief，不另建并行合同。
+
+### 0.1 已确认的产品方向
+
+| 主题 | v0.1 要求 | 证据 |
+|---|---|---|
+| Common Water | 输入驱动的材质转化，响应与演奏有关联；两模式同等重要；保留可辨的音乐主体 | 最新 plan、HI-01/02 |
+| 瞬态 | 主要起音及原节奏清楚；有限允许 attack 软化，强材质设置允许攻击形状明显变化；不设独立失序极端模式 | HI-03 |
+| 液态事件 | 可明显辨认且与主体融合；保留中低频冲击质感；过多/过强造成杂乱时拒绝 | HI-02/03 |
+| Fluid | pad 的持续流动中有部分可辨气泡/涌动/短冲击；持续输入时保留演变，平静/活动由 Motion 控制 | HI-04；A/B/D 职责保留 |
+| Resonant | 融合材质及明显液态共鸣均有价值；可相对平稳；允许短暂音高和不遮盖主体的稳定共振 | HI-01/05；C 职责保留 |
+| Resonant 反例 | 尽量避免金属/钟音边缘；少量不自动否决，但不追求金属特色；刺耳、主导主体或侵入性固定音高拒绝 | HI-05 |
+| Size | 小/精细/偏亮 → 大/深/厚实；改变水材质频率尺度，不主要改响度、事件数量或运动速度，不等于整体移调输入 | HI-06 |
+| 最低 Motion | 恒定 pad、固定 Size 下：两模式均无新的气泡/冲击事件，共鸣音高轻微变化，响应强弱及左右位置稳定 | HI-08/09 |
+| 提高 Motion | 感知优先级：变化速度 > 事件频率 > 不规则性 > 变化幅度；前两项最重要；非数值权重/固定算法 | HI-09 |
+| 应用顺序 | bass > 鼓/打击乐 > pad/氛围 > 创意钢琴/吉他 > 特定人声效果；完整混音/总线处理不列为目标场景 | HI-10 |
+| 基准声音 | 水感明确但强度不过分；低效果量允许细微染色，较强设置应有明确水感；未指定实际 preset 或 Golden | HI-10 |
+
+现有 `water.amount` 是 Serial stage dry/wet，`global.mix` 是整体干湿；不能把用户的“高强度”
+描述自动变成新的算法强度参数。Mode/Size/Motion 仍是候选控制。没有修改当前九参数/state 合同。
+
+### 0.2 待定项与是否阻挡当前交接
+
+| 项目 | 状态 / 责任 | 对本次交接的影响 |
+|---|---|---|
+| Decay（历史名称 Time） | 用户已交 Engineering Lead 定义；Size–事件时长–Decay 关系仍待回传讨论 | 不阻挡其他语义/可行性审阅；阻挡冻结相关时间/参数语义 |
+| Q16 bass 液态表现偏重 | 暂停，后续具体试听时细化 | 非初版交接前置条件；不自行代填选择 |
+| Q17 bass 最低频保留程度 | 暂停；维持共同主体/起音/节奏边界 | 非初版交接前置条件；不据此指定分频或保留干声架构 |
+| 参考对应正例/反例、词汇听评 | 20 metadata、6 basic QA、4 numerical/visual first-pass；reference human calibration 0/4 | 不阻挡 draft review；不能宣称已完成 reference-grounded 验收 |
+| 整份合同 Human Review | PENDING；逐项认可不等于全篇 ACCEPT | 仍是 EXP-W-001 收口条件 |
+| 独立 Engineering feasibility review | PENDING | 可立即先做初审，正式收口保留可追溯记录 |
+
+### 0.3 Engineering Lead 现在可以推进什么
+
+1. 按本摘要审查目标是否清楚、可验证，与既有参数/realtime/latency/ownership 边界是否一致。
+2. 返回具体 finding：引用本条目或 HI 编号，说明冲突/不可验证点及最小需要补充的信息。
+   不必重新询问整套产品偏好，也不以更容易实现为理由替换用户意图。
+3. 完成用户已交接的 Decay 定义，明确其时间度量、起算/结束语义、持续输入及 automation 行为，
+   并说明与 Size、Motion 和 source-driven response 的关系；不要默认接受本文件中的历史 Agent 提案。
+4. 整理后续验证问题与材料缺口：优先 bass、鼓、pad；继续复用 TESTDATA-001 和已有 analyzer。
+   数值、频谱或 CPU 都不能代替水感判断；不需要为了初版 review 制作新 DSP 或 Golden。
+
+**边界**：如果阻塞的是 EXP-W-002 候选 DSP 实现，本初版不能替代 accepted Water instance。
+须按当前 framework 完成必要人工校准/合同验收及可行性审查后才能进入该阶段；本次只解除
+“必须把所有补充问答答完才能交给工程看”的人为等待，不改变 repository gate。
+
+### 0.4 初审回填（当前未执行）
+
+- Reviewer / date：PENDING。
+- Reviewed scope / evidence：PENDING。
+- Blocking findings（逐项注明影响的工作）：PENDING，不预设为零。
+- Non-blocking follow-ups：PENDING。
+- Decay definition reference：PENDING。
+- Decision / rationale：PENDING；初审结果不能冒充最终 formal approval。
+
+下文保留详细规则、历史提案和校准上下文。当前确认依据优先查看
+[LISTENING_LOG.md](LISTENING_LOG.md) 的 HI-01 至 HI-10；无需重走所有问题。
+
+## 1. 定位与依据
+
+Water 让输入本身具有液态材质、受激响应或流动感，同时保留其音乐身份。
+Fluid 与 Resonant 是**同等重要、互不从属**的 Water Character；分别验收，允许独立成功，
+不竞争 winner，不计算总 Water Score。这里的感知意图来自用户，尚不是参考音频听评结论。
+
+遵循 [Perceptual Contract framework](../../docs/PERCEPTUAL_CONTRACT.md)、
+[Coding Plan](../../docs/CODING_PLAN.md)、[Architecture](../../docs/FRAZIL_PROJECT_ARCHITECTURE_v0.3.md)、
+[Parameters](../../docs/PARAMETERS.md) 和 [Testing](../../docs/TESTING.md)。
+详细阶段对齐见 [执行计划](task_plan.md)；参考见 [索引](REFERENCE_INDEX.md)。
+本实例只定义产品目标，不授权候选 DSP。EXP-W-002 必须先消费已验收的本实例。
+
+### 已确认的 Human Intent 澄清（HI-01）
+
+用户已明确认可：**“与演奏有联系”是共同目标；“Resonant 可以相对平稳”符合意图。**
+两种模式的材质响应应与输入演奏有可感知的联系；Fluid 保持流动变化的侧重，Resonant 则允许
+相对平稳，不要求两者都持续出现明显的局部变化。相对平稳不等于完全静止，也不是降低质量。
+这一表述用于后续实验问题和听评标准，不指定算法、音量包络比例或参数映射。
+来源与修正过程见 [HI-01 校准记录](LISTENING_LOG.md#hi-01--human-calibrated-clarification)。
+此次确认属于 Human Intent，不代表参考听评、整份合同或 DSP 已验收。
+
+### 主体与融合的补充意图（HI-02）
+
+- **强材质感**：用户允许很强的材质转化，尤其在其所说的高 Amount 使用情境中；Water 响应始终
+  需要与原始素材有关联。常用设置的具体转化程度尚待细化，不放宽既有主体可辨识要求。
+- **瞬态优先**：用户将瞬态视为最重要的音乐质感因素。起音时序、攻击形状和次生响应各自的
+  容忍度已由后续 HI-03 作语言层澄清，具体听评边界尚未测定；不能直接翻译成“波形不变”
+  “完全零相位变化”或某种固定算法。
+- **允许可辨液态事件**：只要与演奏紧密相关、整体融合，可明显听到短促的液态响应。
+  “能单独辨认出水滴/气泡线索”本身不构成 Detached Foley；关键是关联性和音乐融合。
+- **音高与 Size**：用户更关注水材质中气泡尺度带来的明暗/氛围感，而非固定的水声音高。
+  这是产品感知偏好；不据此宣布水声普遍无音高，也不取消原音乐音高/和声的保留要求。
+
+现有 `water.amount` 只控制 **Serial Water stage dry/wet**，在 Parallel 中不参与计算；
+`global.mix` 控制整体干湿。上述强材质意图不自动将 Amount 改成内部算法强度，不注册新参数。
+输入关联性是感知目标，不足以证明瞬态和相位问题已解决；其验证仍归后续工程实验。
+详细记录见 [HI-02](LISTENING_LOG.md#hi-02--段落主体保留与融合)。
+
+### 瞬态与尾音的澄清（HI-03）
+
+- **保留主要起音和原节奏**：强材质设置允许攻击形状明显变化，但原节奏和主要起音仍须清楚。
+  不另设一套允许瞬态失序的“极端模式”；这不规定实际参数曲线或数值区域。
+- **有限软化**：允许适度 attack 变软。用户提到可用其他插件补偿，作为容忍度背景记录；
+  不将外部修复作为产品正常工作的必要条件，也不据此接受严重瞬态破坏。
+- **允许尾音**：原始攻击之后的液态尾音可接受。
+- **有限次生事件**：允许少量/受控的液态事件冲击；用户特别希望保留中低频的良好冲击质感。
+  过多、过强导致杂乱或干扰原节奏时应拒绝。数量、频段和力度界限等待实际参考校准。
+- **未来 Time 需求**：用户明确希望后续加入尾音长度控制。目前仅记录产品需求，当前九参数
+  registry 和 Mode/Size/Motion 候选合同均未增加 Time。正式采用前需明确与 Size/Motion 的分工、
+  两模式适用范围及 tail/parameter/state review；本阶段不冻结 ID/range/default 或实现。
+
+该澄清来自 Q4/Q5，完整过程见 [校准记录](LISTENING_LOG.md)。它不证明某种物理模型更容易实现，
+也不将 effect tail 等同于 processing latency。下一段校准 Fluid 的感知身份。
+
+### 总体解释草案 OVERVIEW-01 — AGENT INITIAL，待整体人工校准
+
+本节响应用户“先自行总结总体情况，再人工校准”的要求，综合项目目标、最新 plan 和 HI-01。
+下列例子是预期产品体验，不是已听到的参考内容或已实现的效果。概念判断标为 INTERPRETATION；
+已确认意图单独指出。它们未通过 reference saturation，也未替代后文的完整合同 review。
+
+#### 总体目标
+
+**让原来的声音获得水的材质：保留演奏主体，用 Fluid 表达流动中的水，用 Resonant 表达相对
+平稳的液态共振。** 两者同等重要，响应都与演奏有联系（项目方向及 HI-01 已确认）。
+
+| ID | 总体解释 | 具体预期例子 | 偏离目标的例子 | 依据/状态 |
+|---|---|---|---|---|
+| C1 | 音乐主体可辨，水的材质成为它的一部分 | 钢琴和弦仍能辨出和声与敲击关系，同时获得液态响应 | 不同和弦都被同一种水声覆盖，原旋律难以跟随 | 项目 source-preserving 方向；例子为 INTERPRETATION，待校准 |
+| C2 | 响应与演奏有可感知联系 | 一次击打引出相应材质响应，演奏变化能在结果中听出联系 | 不论输入节奏如何，都播放同一串前景水滴 | HI-01 已确认目标；不要求固定比例或逐音符一一触发 |
+| F1 | Fluid 强调可辨的流动、扰动与连续演变 | 持续 pad 的声音内部有流动；钢琴/鼓起音可引出短促液态活动 | 主要听到固定来回扫动、晕船音高或随机音效打断 | Fluid A/B/D 感知职责；INTERPRETATION，待校准 |
+| F2 | Fluid 的局部活动与整体运动应形成同一材质印象 | 短响应像从原声音中产生，能与持续的流动相连 | 清楚听成干乐器外加一条独立水滴轨 | INTERPRETATION；不要求所有 source 都同样呈现每种线索 |
+| R1 | Resonant 通过凝聚的液态共振表达 Water，允许相对平稳 | 持续音符保持相对稳定，起音和延音具有一致的液体材质 | 必须大幅摇摆才被认为是 Water，或只剩普通暗色滤波 | 相对平稳由 HI-01 确认；“怎样才有液态材质”仍待听评 |
+| R2 | Resonant 的共振应依附主体，不接管旋律 | 不同音符仍可辨，共振为其增加材质特征 | 所有输入都被同一个金属/钟声音高或长鸣盖住 | 项目 preserve/reject 方向；INTERPRETATION，待校准 |
+| S1 | Size 改变感知上的材质尺度 | 向小端感觉细小、精细、偏明亮；向大端感觉较大、较深 | 只是更响、更多湿声、更多事件或更快运动 | 既定候选语义；具体听感例子与标签待校准 |
+| M1 | Motion 改变时间活动度，两模式方向相同 | Fluid 从较平静到更活跃流动；Resonant 从较稳定到较细微的活动 | 主要改变音量或混合量，或自动把 Resonant 变成 Fluid | 既定候选语义；INTERPRETATION，待校准 |
+
+#### 同一输入的模式对照（INTERPRETATION，非渲染结果）
+
+- **钢琴**：Fluid 可侧重音符引起的局部液态活动及连贯流动；Resonant 可侧重起音和延音中
+  稳定凝聚的液态共振。两者都应让和声、击键关系与演奏仍可辨识。
+- **持续 pad**：Fluid 可更明显地展示持续运动；Resonant 即使较稳定，也应有可辨的液态材质。
+  相对稳定不能只靠压暗高频冒充水感，持续运动也不能只靠普通周期调制冒充水感。
+- **鼓组**：Fluid 可让击打引出短促液态活动；Resonant 可让击打带出凝聚的材质响应。
+  两者都不应为了效果而让 groove 无法辨认；这里不规定尾音时长或具体实现。
+
+#### 四类明确反例
+
+1. **脱离主体**：输入变化很大，前景水声仍像独立播放的相同素材。
+2. **效果类别取代目标**：Fluid 主要成为 chorus/flanger；Resonant 主要成为金属钟音或固定长鸣。
+3. **主体损失**：正常使用区间内，音符、节奏、发音或演奏特征难以辨认。
+4. **控制含义混淆**：Size 主要变音量，Motion 主要变效果量，Mode 被理解成高低质量档位。
+
+这些是 plan 已列方向的具体解释，不证明某个现有参考已经触发反例。拒绝门槛仍需人工实例校准。
+
+#### 参考材料目前能支持到哪里
+
+OBSERVATION：现有库含 12 个 pure 和 8 个 musical 文件；已做四参考的数值/图形 first-pass。
+两个 pure 参考有持续背景及局部尖峰；歌曲也有能量/结构变化，但这些并不专属于 Water。
+INTERPRETATION：真实水声可帮助校准“活动/受激响应”的描述；音乐片段可帮助判断该描述是否
+在音乐中有价值。当前没有依据将任何歌曲正式标成 FUSED、Fluid/Resonant 正例或 Golden。
+
+#### 优先保留的工程问题（ENGINEERING QUESTION）
+
+- 对相同演奏，什么让人听到“声音具有水的材质”，而非只是附加水声或普通效果？
+- Fluid 的运动和短响应各贡献什么；哪些线索可以因 source 而不同而仍保持身份？
+- Resonant 在相对稳定时，哪些可听特征使它具有液态感，而非金属共振或普通滤波？
+- Size 能否在两模式都表达更大/更深，Motion 能否增加活动而不主要提高音量/Amount？
+- 在正常设置及代表性 Water-only 100% Global Mix 下，哪些主体特征必须仍然清楚？
+
+本版可按 C1/C2、F1/F2、R1/R2、S1、M1 整体校准。HI-01 两项无需重新确认；其余可以保留、
+修改、拒绝或暂不确定。细节留待小批量参考校准，不通过本节自行宣布后续轮次或合同完成。
+
+## 2. Common Water：Positive / Negative / Must preserve
+
+以下五行是待校准的语义草案，不是五项已接受的参考规律。Round 0 明确的 Human Intent Seed 仅为：
+material transformation；两模式同等地位；Fluid 强调流动；Resonant 强调平稳液态共振；
+两者 source-driven、保留 recognizable input、不是独立 Foley。其他形容词须由多参考和反复人工保留支持。
+
+| 可听属性（Human Intent） | Positive | Negative / anti-example | Must preserve |
+|---|---|---|---|
+| 输入耦合 | 音符、击打、包络改变能影响液态响应 | 独立水声 sample 层、无输入仍产生新前景事件 | 节奏和主要起音时序 |
+| 液态材质 | 声音像被浸润、包裹或折射；材质来自 source | 通用 reverb、EQ 或 modulation 仅换水主题名称 | 输入乐器、声音角色和主要音高 |
+| 响应与演奏的联系（HI-01） | 材质响应与输入演奏有可感知的联系；Resonant 允许相对平稳 | 将更多起伏自动当作更强 Water；与演奏无关的干扰 | 乐句和动态结构 |
+| 音乐融合 | 效果与输入形成可用的整体 | Detached Foley、抢夺主体的共振或音效 | 人声可懂度、低频重量和可用立体声 |
+| 可控 Character | 正常区间有效且可预测；强风格区有明确边界 | 更响、更亮、更宽被自动当作更好 | 用户对尺度、运动和混合量的区分 |
+
+`W(x) = x + E_water(x)` 是项目的 source-preserving 产品/工程方向，不是从真实水声推出的物理定律。
+识别度不等于样本相等。必须在正常设置，以及代表性的 Water-only `global.mix=100%` 下检查；
+不能仅靠调低 Global Mix 掩盖主体破坏。本轮参考音乐没有 dry 对照，不能据此证明处理保真或输入耦合。
+
+## 3. Fluid
+
+### 已确认的 Fluid 意图（HI-04）
+
+对于持续 pad，用户选择**连续流动中带有部分可辨的气泡、涌动或短促液态冲击**，以增加质感、
+丰富度并避免乏味。事件仍应融入整体，遵守 HI-03 的数量/强度边界，不掩盖原节奏和主要起音。
+此偏好针对 pad，不自动要求所有输入使用相同事件密度。
+
+输入持续发声时，Fluid 应保持演变；不因音符保持不变就自动趋于平静。平静/稳定到明显活动的
+变化由 Motion 及用户自动化表达。这既不要求最低 Motion 也必须明显运动，也不授权无输入时
+生成无关前景事件；最低端行为、具体映射和实现方法仍待后续定义。
+该意图不取消自然衰减或未来 Time 对尾音长度的控制，不新增独立“自动平静”功能。
+Motion 仍为候选控制，当前 Host registry 未注册它。记录见 [HI-04 校准记录](LISTENING_LOG.md)。
+
+### 其余职责与边界
+
+- **Intent / Positive**：输入驱动的气泡/液体身份、水滴/冲击响应、连续不规则流动共存；
+  听起来有漂移、折射、多尺度运动，但不变成独立 Foley。项目方向仍为 A+B+D；
+  连续运动不是全部 Fluid，气泡/水滴也不是必须播放的采样。
+- **Negative**：F01 chorus、F02 flanger、F03 固定 LFO、F04 晕船音高、F09 随机干扰、
+  F10 瞬态涂抹、F13 主体丢失、F15 通用效果、F16 不自然运动。
+- **Must preserve**：groove、主要瞬态、音高中心、主体身份；运动不能主要表现为音量起伏。
+- **预期适用问题（HYPOTHESIZED）**：pad 能否暴露运动的周期性，鼓/拨弦能否显现输入相关的液态起音？
+  这些是后续测试问题，不是已验证优势。
+- **工程问题**：哪些可听线索共同支持 liquid identity？流动与气泡/瞬态响应如何融合？
+  如何界定有机变化与干扰？不在本合同选择 oscillator、delay、voice count 或 probability。
+
+## 4. Resonant
+
+### 已确认的 Resonant 意图（HI-05）
+
+用户选择同时保留**融合的、圆润凝聚的材质**和**可明确辨认的液态共鸣**，不将两者拆成
+新模式或预先指定控制映射。共鸣仍附着于输入，主体保留和瞬态边界继续适用。
+
+- **允许短暂可辨音高**的液态共鸣，不要求所有响应都无音调。
+- **允许相对稳定的共振频率**形成材质颜色，前提是不遮盖主体。频率稳定本身不是失败；
+  侵入性固定音高接管主体才是既有拒绝方向。
+- **金属/钟音边缘应尽量避免**。少量残留不自动否决，但不是需要追求的特色；
+  金属或钟音感主导、过度共振造成刺耳时，应拒绝。具体容忍边界留待听评，不冻结数值。
+
+来源见 [HI-05 校准记录](LISTENING_LOG.md)。这是产品意图，不证明已选参考或候选 DSP 满足要求。
+
+### 其余职责与边界
+
+- **Intent / Positive**：输入驱动、稳定凝聚、柔和湿润的液态材质；适度 modal response、
+  自然衰减及对 tonal/pitched source 的音乐兼容性。它是独立 Water 行为，不是 Fluid 的辅助层。
+  HI-01 已确认其可以相对平稳；缺少持续明显的局部变化本身不构成拒绝理由。
+- **Negative**：F05 金属/钟音感主导或刺耳、F06 侵入性固定 tonal peak、F07 过量 ringing、
+  F08 detached Foley、F11 浑浊、F13 source loss。稳定共振色彩及少量金属边缘按 HI-05 区分，
+  不因存在可辨音高就直接拒绝；不得让所有输入都被同一侵入音调覆盖。
+- **Must preserve**：主体音高关系、起音、乐句、和声及可预测响应；材质共振不能接管旋律。
+- **预期适用问题（HYPOTHESIZED）**：钢琴/吉他和人声能否保留音高与发音，同时获得凝聚的液体材质？
+- **工程问题**：怎样判断响应来自输入而非外挂 resonator？衰减和音调何时从 character 变成 artifact？
+  本合同不指定 modal topology、Q、频率集合或 damping 常数。
+
+## 5. Size / Motion 和 UX 合同
+
+| 概念 | 两模式共同方向 | 必须区分的错误含义 |
+|---|---|---|
+| Size | Fine / Small / Bright → Large / Deep 的材质尺度；Fluid 气泡尺度、Resonant 共振体尺度 | overall loudness、Amount、事件密度、能量 |
+| Motion | Calm / Stable → Active / Flowing 的时间活动；Resonant 变化按既定计划更 subtle | Amount、Global Mix、任意 random depth |
+| Mode | 两种同等地位的有意 Water 行为 | 质量档位、real/fake |
+
+`Fine ↔ Deep` 只作候选标签；数值范围、映射、默认值和 Host 注册均未冻结。
+`water.amount`、`global.mix`、`parallel.balance` 保持各自已有职责。
+`water.model/size/motion` 仍是候选概念，不进入当前 ParameterLayout 或 state schema。
+
+### Motion 最低端与优先级（HI-08，HI-09 已核对）
+
+用户针对固定 Size、基本恒定音高/音量的持续 pad，明确最低 Motion 的目标：
+
+- 持续段不再出现新的气泡/短促液态冲击事件；
+- 水材质的共鸣音高仍可轻微变化；
+- 液态响应强弱基本稳定；
+- 左右位置稳定（不等于取消立体声宽度）。
+
+用户已确认以上最低端表现**同时适用于 Fluid 和 Resonant**。这些描述不决定新输入击打是否
+触发响应，也不要求切断已有尾音。此前“保持演变”不等于最低端仍必须持续产生新气泡。
+提高 Motion 的感知优先级已核对为：**变化速度加快 > 液态事件更频繁 > 变化更不规则 >
+变化幅度增大**，前两项最重要。这是优先级，不是数值权重、DSP 公式或所有 source 上的硬性
+单调保证；不要求两模式使用相同映射或变化强度，Resonant 的既定较 subtle 方向保持。
+先前的字母歧义已解除，记录见 [HI-08/HI-09](LISTENING_LOG.md)。
+
+### Size / Time 校准进展（HI-06）
+
+> **当前处理状态：PENDING ENGINEERING DEFINITION / 讨论暂缓。** 用户已将该定义问题交给
+> Engineering Lead；未来正式文档使用 **Decay** 名称。下文 Time 保留为历史讨论用语，
+> 不代表已冻结的 Decay 定义。待工程定义完成并带回后，再恢复 Size–事件时长–Decay 关系讨论。
+> 既有 Agent 解耦建议、严格结束期限/起算方式均仍为未接受提案，不作为工程决定。
+> 本轮不修改参数合同、Host ID、范围或 state schema；先继续段落⑤ Motion。
+
+- **已确认**：Size 的 small/fine/bright → large/deep/full 方向整体认可；主要表达材质尺度，
+  不主要控制响度、事件数量或运动速度。这里的频率尺度指水材质共振，不是整体移调原输入。
+- **已确认的未来需求**：Time 必须严格控制总体尾音长度，服务音乐中的精确时间控制。
+  不能仅给一个衰减倾向却允许总体尾音无界延长。Time 仍未进入当前参数合同。
+- **尚未决定**：Size 增大是否也改变单个液态事件的持续时间；用户要求进一步讨论。
+- **Agent 建议，未接受**：第一版先将 Size 与尾音时间解耦。若后续听评证明个体事件的
+  Size/时长联动有价值，再在不突破 Time 总体边界的前提下研究；不新增联动开关。
+- **待确认的时间定义**：以外部输入激励结束为起点，Time 是否表示 Water 材质残余完全结束
+  的最长期限？内部晚发事件、共振和收尾过渡均计入该期限，不自行续期；持续输入不因此被截断。
+  起算规则、提前结束是否允许、自动化变化和极短 Time 下的处理尚未冻结。
+
+物理依据仅用于区分概念：气泡共振的频率和阻尼由不同项描述，气泡运动时间不能直接代替
+声学衰减时间。参见 [Ando et al., 2009, Review of the theory / Linearized dynamics](https://pmc.ncbi.nlm.nih.gov/articles/PMC2731495/)。
+该论文不是产品映射依据，不据此宣称“气泡越大必然上升越慢、插件尾音必然越长”。
+以上建议不接受任何 DSP/tail 架构，也不改变 Host processing-latency 合同。完整讨论记录见
+[HI-06](LISTENING_LOG.md)。
+
+UX review 必须覆盖：Semantic Predictability（无需 DSP 解释能预测方向）、Cross-Mode Consistency、
+Orthogonality、Discoverability（必要时提出短说明）、Interaction Cost（Enable/Mode/Size/Motion 足以做
+常用操作）、Automation Readability（未来 Host lane 使用产品概念）。本轮仅定义问题，未实施 UI 或通过 UX 测试。
+
+## 6. 参考证据与测量限制
+
+### 已确认的应用优先级与基准目标（HI-10）
+
+| 优先级 | 素材/用途 | 用户关注点 |
+|---|---|---|
+| 1 | Bass / waterbass | 第一优先的音乐应用；低频与液态材质的具体保留关系待细化 |
+| 2 | 鼓组 / 打击乐 | 充分呈现液态瞬态质感，遵守主要起音和节奏保留边界 |
+| 3 | 持续 pad / 氛围 | 氛围塑造及 FX，连续流动与可辨事件的丰富度 |
+| 4 | 钢琴 / 吉他等起音乐器 | 创意材质处理 |
+| 5 | 人声 | 特定效果，如“沉没在水中”；可懂度容忍范围待实例校准 |
+
+完整混音指已经混合在一起的音乐整体。用户不将这种完整混音/总线处理列为目标应用，
+本 Water brief 不新增该场景的听评验收要求；不据此改变插件技术兼容性或共享测试合同。
+这里的优先顺序用于后续材料选择，不声称对应素材已经完成验收。
+
+基准目标为**“水感明确，但强度不过分”**，具体声音和设置尚未选择。参数调节应支持不同场景，
+不预先把突出风格限定为某个独立模式或固定参数区域。低效果量允许细微染色，较强设置应具有
+明确 Water 身份；更响、更亮、更宽不能替代水感。既有主体、瞬态和共振拒绝边界仍然适用。
+未因该需求注册额外参数、冻结 preset 或 Golden；依据见 [HI-10](LISTENING_LOG.md)。
+
+真实水声用于观察运动、事件、短响应、容器/液面变化；歌曲用于观察音乐应用语境。
+文件名分类是来源提示，不是已听见的事实。歌曲先标 UNREVIEWED；人耳判定 FUSED / LAYERED /
+AMBIGUOUS 后，FUSED 优先，LAYERED 仅用于层次/密度/位置研究，AMBIGUOUS 降低解释信心。
+禁止拟合整曲频谱作为 Water ground truth。相同歌曲只有在人耳标注弱/强段和混杂变量后才能做差分；
+文件序号不是强度。Source separation 默认仅 diagnostic，不能提取所谓真实 DSP target。
+
+新增 reference statements 使用 OBSERVATION / INTERPRETATION / ENGINEERING QUESTION，分别区分
+观察、解释与后续问题；注明方法、时间窗、信心与原因。历史 OBSERVED/SUPPORTED/HYPOTHESIZED
+保留其来源含义，不冒充人工校准。语义候选只有经多个参考支持且被 Sound Lead 反复保留，才升为主条款。
+[Round 01 first-pass](ROUND_01_COMMON_WATER.md) 保存四个参考的独立数值/图形解释；
+Water Salience 未评估、Character 未确定，不能推断直接听辨或人工校准已完成。
+
+| Objective proxy | 可支持的问题 | 不能证明 |
+|---|---|---|
+| finite、sample peak、RMS、DC、crest factor | 基础数值/电平风险 | 听感合格、true peak、LUFS |
+| Welch/FFT、centroid/rolloff/flux（后几项待做） | 频谱趋势、变化位置 | 像水、乐器保真、审美排名 |
+| envelope、自相关、分频带变化（待做） | 周期/多尺度活动的候选解释 | Organic Movement 或自然感真值 |
+| modal peak/decay tracking（待做） | 受激频率与衰减轨迹 | liquid material 或正确物理机制 |
+| stereo correlation | 通道相关程度 | 空间美感、完整 mono compatibility |
+
+当前复用 `tools/analyze_testdata.py`；新增工具仅管理小批量、ID 和外部路径。
+没有 LUFS/true-peak、Level 2/3 或输入耦合测量完成声明。
+
+## 7. TESTDATA-001 → 下游工程问题
+
+以下十个既有 fixture 继续复用；不生成第二套 corpus，不用诊断音代替音乐验收。
+
+| Fixture（位于 testdata/input/） | 问题 |
+|---|---|
+| zero_input__silence.wav | reset 后零输入是否无自发前景、DC、非有限输出；有激励的尾音另测 |
+| zero_state_response__impulse.wav | 单次输入的响应、峰值、尾音是否有界且可解释 |
+| frequency_response__log_sweep.wav | 谱色是否出现固定尖峰、突变或频段异常 |
+| harmonic_response__stepped_sine_1khz.wav | 输入电平变化是否造成阈值颤动、突增或不受控谐波 |
+| intermodulation_response__two_tone.wav | 是否产生过量无关互调/边带 |
+| broadband_response__white_noise.wav | 活动是否机械周期或有明显谱洞（不判水感） |
+| envelope_response__gated_sine.wav | 起落、间隙和不同强度如何驱动响应；区分尾音与新事件 |
+| transient_response__pitch_decay.wav | 起音时序、低频音高衰减是否被破坏 |
+| aliasing_response__high_frequency_sine.wav | 不同采样率的 fold-back/峰值风险 |
+| stereo_isolation__channel_probe.wav | 是否符合声明的通道模型；有意扩散须有界、稳定、可复现 |
+
+Engineering Lead feasibility review 还需覆盖 prepare/reset、finite/极值、realtime、维护性、
+固定 seed/随机有界性、zero Host latency、effect tail 和 CPU 风险；本合同不冻结最终预算/机制。
+
+## 8. Reference calibration、Reject 与下游边界
+
+本阶段遵循 **Agent First → Human Calibration**。每轮 4–6 references 上限、一个主要语义问题；
+先保存 AGENT INITIAL，再由 Sound Lead 在独立 HUMAN CALIBRATED 记录中选择
+ACCEPT / MODIFY / REJECT / UNCERTAIN，记录修正原因、产品相关性以及 positive/negative/preserve/reject 贡献。
+原始判断不被人工修正覆盖。冲突时保留分歧并复查参考，Sound Lead 负责感知语义最终判断。
+
+本轮以 2 pure + 2 musical 探索 Common Water；之后依次校准 Fluid、Resonant、模式边界、
+negative/anti-example、Size、Motion。每轮只修改对应语义部分；没有足够参考或人工反复保留时保持草案。
+不要求固定连续两轮即冻结；不计算分类器或 mode distance/quality score。
+
+### Reject conditions（Human Intent / 待实例校准）
+
+- Common：独立无关 Foley 主导、正常设置主体/演奏身份破坏、只有通用 wet/reverb 印象而无目标材质。
+- Fluid：明显机械周期、generic chorus/flanger、过量 pitch wobble、无材质关系的随机干扰。
+- Resonant：金属/钟音主导、固定侵入音高、过量 ringing、脱离主体的 resonator 层。
+- Source preservation：重要瞬态时序、节奏、相关音高/和声、动态可懂度和演奏特征不能失去可辨识性。
+
+这些是未来可观察的拒绝条件，不是当前 DSP 数值阈值；真实水声含某种特征也不自动成为负例。
+图形不能单独确定上述拒绝。客观 finite/peak 等工程问题保留在下游验证责任内。
+
+### 明确不属于 EXP-W-001 Exit 的内容
+
+旧版计划的 1–5 candidate 数字门槛、固定 seed render、loudness-matched candidate acceptance、
+hidden-repeat pack、ablation、sweet spot、Golden/holdout 和 CPU 证据，不作为本阶段前置条件。
+正式候选 review 以后按 [Testing](../../docs/TESTING.md) 执行；当前仍记录播放电平/混音混杂，
+但不把“响度匹配完成”作为语义校准的虚构硬门槛。未接受本合同不得启动 EXP-W-002。
+
+## 9. Failure vocabulary（历史辅助标签，待参考校准）
+
+F01 CHORUS-LIKE；F02 FLANGER-LIKE；F03 PERIODIC-LFO；F04 SEASICK-PITCH；F05 METALLIC；
+F06 TONAL-LOCK；F07 EXCESS-RINGING；F08 DETACHED-FOLEY；F09 RANDOM-DISTRACTION；
+F10 TRANSIENT-SMEAR；F11 MUDDY；F12 OVER-BRIGHT；F13 SOURCE-LOSS；F14 TOO-SUBTLE；
+F15 GENERIC-FX；F16 UNNATURAL-MOTION；F17 OVER-PROCESSED。
+
+这些来自旧计划的标签仅辅助 negative round，不要求每个 reference 填完 17 项。需要记录严重度时
+用 NONE / WEAK / MODERATE / SEVERE，并保留时间定位/理由。尚未评定写 PENDING，
+不能填 NONE。真实水声或歌曲可能有某些线索，但不是因此自动成为失败音频。
+
+## 10. Human Review — 合同本身
+
+- Reviewer：Sound & Host Lead，PENDING。
+- Material and Environment：PENDING。
+- Evidence Reviewed：本 brief、reference provenance、Agent initial 与 Human calibrated records，PENDING。
+- Decision：PENDING（最终使用 ACCEPT / REVISE / REJECT）。
+- Rationale：PENDING。HI-01 至 HI-10 已确认部分产品意图；尚无参考听评及全篇 ACCEPT。
+
+本 review 审查 Perceptual Contract，不验收 DSP candidate。
+
+## 11. Engineering Feasibility Review — Human Review 后
+
+v0.1 可立即进行第 0 节的初步工程审阅，供并行推进；最终收口仍保留 Human Review 和独立
+Engineering Review 记录。初审不要求先补完 Q16/Q17，也不等同于正式验收。
+
+Reviewer：Engineering Lead，PENDING；Evidence / Decision / Rationale：PENDING。
+检查：术语能否理解；positive/negative 是否可验证；preserve/reject 是否可观察；工程问题可回答性；
+proxy 限制；是否误指定实现；是否冲突 realtime、parameter、architecture。
+不得为工程方便重定义 Water 审美。Agent 自检不替代该独立 review。
+
+## 12. Exit checklist / handoff
+
+- [x] Human Intent Seed 及 Fluid/Resonant equal-status 已记录。
+- [x] canonical brief 存在；Common/Fluid/Resonant、Size/Motion、recognizability、positive/negative、
+  preserve/reject、objective proxies、engineering questions 和六项 UX 维度均有草案。
+- [x] reference provenance/metadata 已记录；许可细节未知，音频仍本地。
+- [x] Round 01 AGENT INITIAL 数值/图形层已独立保存。
+- [ ] 直接听辨层的 Agent first-pass 完成（当前无可靠本地音频听辨入口）。
+- [x] 六段产品语义均已有初步对话输入（HI-01 至 HI-10）；Decay 相关定义按用户指示暂缓。
+- [ ] 基于实际 reference 的多轮 Sound Lead calibration 完成，足够支持主语义条款；当前 0 轮。
+- [ ] Human Review = ACCEPT。
+- [ ] Engineering Lead feasibility review 完成。
+- [x] 未实现/接受 candidate DSP；未改变 production parameter/state。
+
+交接只需 accepted brief 和必要 provenance/calibration evidence；算法、Golden、CPU、sweet spot
+不是本阶段完成条件。EXP-W-002 启动时同时读取 framework 与 accepted instance，并检查
+positive / negative / must preserve / reject / engineering questions 后才提出候选。

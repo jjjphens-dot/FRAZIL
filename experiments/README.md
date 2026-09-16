@@ -44,7 +44,13 @@ experiments/water/
   EXP-W-003/  review protocol, results and recommendation
 ```
 
-`EXP-W-001_PERCEPTUAL_BRIEF.md` 是当前 GitHub Issue #17 已定义的 planned deliverable；不要另建并行的
+`EXP-W-001_PERCEPTUAL_BRIEF.md` 是 GitHub Issue #17 的 canonical deliverable；本分支已建立
+[v0.1 工程审阅草案（CANDIDATE，含交接摘要）](water/EXP-W-001_PERCEPTUAL_BRIEF.md)、[参考索引](water/REFERENCE_INDEX.md)、
+[执行计划](water/task_plan.md)、[首轮 Agent 数值/图形解释](water/ROUND_01_COMMON_WATER.md) 和
+[Human calibration 记录单](water/LISTENING_LOG.md)。最新流程为 Agent First → Human Calibration；
+直接音频听辨和人工校准尚未完成。尚未接受该合同，
+不授权 EXP-W-002 候选 DSP。参考音频留在外部本地库；入库工具只复用既有 analyzer，输出留在 ignored tree。
+不要另建并行的
 `EXP-W-001/` 路径。`EXP-W-002` / `EXP-W-003` 只有在实际需要 configs/renders/analysis/review 时才目录化，
 不要为了整洁预建大量空文件。当前 Water-first；Ice experiment、Ice perceptual/parameter redesign 和 Ice
 production work 均 DEFERRED，只有在 M2 Exit 后通过 Explicit Joint Gate 确认 Water workflow 可复用于 Ice，

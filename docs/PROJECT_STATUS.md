@@ -278,8 +278,18 @@ PluginProcessor
   developer Dry/Processed path、prepared/latest diagnostics 和完整 draft config representation。它不是
   M5 Production UI；usability、DAW/listening evidence 和 Offline Sound Lab handoff 仍未完成。它是大规模
   `EXP-W-002` 前的 Water M2 effective-development-readiness prerequisite，但不是 M1 Exit hard gate。
-- M2 Water：**未开始**；`EXP-W-001` Perceptual Contract preparation 为 PLANNED，不表示 M2 或 Water DSP 已开始。
-- Perceptual Contract framework/template：当前已随批准并合入的 v1.3 baseline 成为 **CURRENT / CONTROLLED**。`EXP-W-001` Water contract instance 仍为 **PLANNED**，尚未产出或验收。
+- M2 Water：**未开始**；本分支于 2026-09-16 推进 `EXP-W-001` pre-M2 preparation，建立
+  [CANDIDATE brief](../experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md) 与本地参考入库；不表示 M2 DSP 已开始。
+- Perceptual Contract framework/template：当前已随批准并合入的 v1.3 baseline 成为 **CURRENT / CONTROLLED**。
+  `EXP-W-001` 草案已产出，但合同验收仍为 **PLANNED / NOT ACCEPTED**；20 个参考完成 metadata intake，
+  6 个完成基础 QA，人工听评和 Engineering Lead feasibility review 尚未执行。
+  最新 plan 下已保存 [Round 01 四参考数值/图形 first-pass](../experiments/water/ROUND_01_COMMON_WATER.md)，
+  采用 Agent First → Human Calibration；直接听辨层未完成，人工校准为 0 轮，不代表感知合同验收。
+  [HI-01](../experiments/water/LISTENING_LOG.md#hi-01--human-calibrated-clarification) 已获得用户对
+  “响应与演奏有联系”和“Resonant 可以相对平稳”的明确认可；属于意图澄清，四参考听评仍为 0/4。
+  后续 HI-02 至 HI-10 已补齐六段首轮产品意图；本分支 brief 已整理为 **v0.1 ENGINEERING REVIEW
+  DRAFT / NOT ACCEPTED**，可供工程初审。两道 bass 补充题暂缓；Decay 定义等待工程回传。
+  初版交接不表示 EXP-W-001 关闭，也不解除 EXP-W-002 的 accepted-instance prerequisite。
 - M3 Ice：**DEFERRED**；长期 milestone 保留，在 `M2 Exit + Explicit Joint Gate` 确认 Water workflow 可复用于 Ice 前，不启动 Ice experiment、perceptual/parameter redesign 或 production implementation。
 - M4 Routing：**未开始**。
 - M5 UI & Edit History：**未开始**。
@@ -322,6 +332,6 @@ HOST-000 产品目标已冻结；Live/FL 已满足本轮 `Development Validated`
 仍需后续 release compatibility/support gate，REAPER 无支持声明。
 已进入 `main` 的 M1 foundation/evidence 只按 regression/finding ownership 维护，不得建立平行实现。
 Debug/ASAN Developer UI 与 diagnostics implementation 已进入 `main`，但不得从本状态文档推断为产品
-UI 或已完成 usability/DAW acceptance；Water-specific Perceptual Contract instance 仍不得推断为已实现；
+UI 或已完成 usability/DAW acceptance；Water-specific Perceptual Contract 在本分支仅有 CANDIDATE 草案，仍未验收；
 Perceptual Contract framework/template 已在 v1.3 approval + merge 后成为 CURRENT/CONTROLLED。
 Water/Ice/Routing 仍未开始 production。

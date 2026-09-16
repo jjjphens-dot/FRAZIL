@@ -2,6 +2,7 @@
 
 > Framework status: CURRENT/CONTROLLED in the approved and merged v1.3 baseline ([PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23)).<br>
 > Water instance status: `EXP-W-001` Water Perceptual Contract is PLANNED until produced and accepted.<br>
+> This branch contains a [CANDIDATE Water brief](../experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md); human acceptance remains pending.<br>
 > This framework does not accept a DSP algorithm or register parameters.
 
 ## 1. Purpose
