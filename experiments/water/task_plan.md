@@ -4,15 +4,19 @@
 > Existing branch codex/exp-w-001-water-identity; earlier uncommitted intake work retained.
 > Implementation DRI: Sound & Host Lead. Engineering Lead: feasibility review after Human Review.
 
-## Current priority — v0.1 engineering handoff
+## Current priority — Decay Revision B
 
-User requested an initial deliverable now because engineering is waiting. Pause supplementary questions.
-Six primary paragraph groups have answers; only Q16/Q17 bass follow-ups are unanswered, and Decay/Size-time
-definition remains with Engineering Lead. These do not block a draft handoff.
-Canonical brief now opens with v0.1 engineering summary, evidence IDs, open-item impact and concrete review
-actions. No parallel contract created, no message dispatched, no implied whole-contract ACCEPT.
-Next step is engineer review of this draft and return of Decay/findings; ask only questions needed to resolve
-those findings or actual listening ambiguity. Accepted-instance prerequisite for candidate DSP remains intact.
+Status: blocked for EXP-W-001 closure; Revision B document synchronization and independent agent review complete.
+Goal: synchronize Issue #17 and the existing canonical brief to approved Model/Size/Motion/Decay
+baseline, then record engineering re-review and independent acceptance without inventing listening evidence.
+Success: text/issue agree, all six Revision B gates have attributable evidence before EXP-W-001 closure.
+Completed: main fc20370 merged into the existing brief branch; historical HI inputs retained; section 5
+contains four-macro perceptual/UX clauses and Motion x Decay review tasks. No new production path.
+Owners: Sound & Host Lead implementation; Engineering Lead feasibility/Acceptance DRI.
+Next checkpoint: real Engineering Lead feasibility review and independent Acceptance DRI decision on this revised brief.
+Blockers to closure: human reference calibration, whole-contract acceptance and real Engineering Lead/Acceptance DRI evidence remain unrecorded. User authorization to proceed is not a substitute for those results.
+Q16/Q17 remain optional follow-ups, not a renewed interview prerequisite.
+Historical sections below describe earlier rounds; current Decay interpretation is section 5 of the brief.
 
 ## Mission / scope
 
@@ -43,6 +47,7 @@ Earlier intake remains valid evidence; it does not become completed listening or
 | 5 | Negative / anti-example and reject meaning | Pending actual examples; no negative DSP generation |
 | 6 | Size: larger/deeper material scale; not loudness/Amount/Motion | Draft intent; calibration pending |
 | 7 | Motion: temporal activity; common direction, subtler Resonant | Draft intent; calibration pending |
+| 8 | Decay: response persistence and separation from Motion in both modes | Revision B text supplied; reference/listening calibration pending |
 
 One primary semantic question and at most 4–6 references per round. Do not analyze the full library
 in one semantic batch. Choose material using the current round's gaps; do not assign perceptual labels
@@ -117,3 +122,38 @@ continues to a concrete four-reference handoff; human decisions are not replaced
 Holdout/source-class generalization, parameter regions, candidate matching and performance are future work.
 Existing six analyzed development references remain used; do not relabel them unseen.
 Reference IDs and source grouping persist for later additions; 20 metadata records do not prove a full corpus.
+
+## Revision B validation and review record — 2026-09-16
+
+Scope: documentation changes after synchronization commit `04fb8ab`; six existing Markdown files only.
+The older brief/reference-intake work predates Revision B; no executable is changed by this revision.
+GitHub Issue #17 body synchronized via `gh issue edit 17 --body-file`; read-back matches the prepared body
+line-for-line after newline normalization. Issue remains OPEN; unchecked acceptance boxes remain unchecked.
+
+- Contract Review: approved PR #35 / main fc20370, Parameters, Coding Plan Revision B gate, Perceptual
+  Contract, Testing, Proposed ADR-0006, collaboration and governance requirements checked.
+- Implementation: four macro perceptual/UX clauses, Decay history reconciliation, listening scorecard and
+  downstream engineering questions; update six existing docs and Issue #17, no new production abstraction.
+- Functional Validation: Markdown links and portability checks PASS; remote issue read-back PASS.
+- Code Quality Review: independent read-only Codex review task returned PASS / READY FOR DOCUMENT HANDOFF,
+  no P0/P1/P2 findings. Reviewer task id `01a0a90d-89fd-7801-8464-5c21d44595f5`; reviewed the six-file working
+  tree after 04fb8ab and live Issue #17. This is an independent agent document review, NOT a formal GitHub
+  APPROVE, real second-developer review, Engineering Lead sign-off or human perceptual acceptance.
+- Comment & Documentation Pass: optional P3 noted an isolated historical “future Time” phrase in Fluid text;
+  clarified its historical status and explicit section-5 precedence. Prior HI records remain intact.
+- Final Validation: `python tools/check_markdown_links.py`, `python tools/check_portability.py`,
+  `git diff 04fb8ab --check` and six-file/production-boundary assertions PASS. Both author and reviewer ran
+  the first three checks independently before the final P3 clarification; author reran after clarification.
+
+Documentation Review: changed canonical brief, LISTENING_LOG, task_plan, experiments README,
+PERCEPTUAL_CONTRACT candidate-status note and PROJECT_STATUS draft fact. Reviewed without updates:
+PARAMETERS, CODING_PLAN, TESTING and Proposed ADR-0006 already supply the applicable four-macro/gate contract;
+DEVELOPER_SOUND_TOOLS and MODULE_INDEX retain current runtime/Planned production distinctions;
+COLLABORATION_ROLES and DOCUMENT_GOVERNANCE preserve real independent acceptance requirements.
+Consistency PASS for Issue/brief/plan and candidate versus implemented/accepted status. No Host/state,
+production algorithm, routing, realtime, formal performance or release contract change; impact N/A.
+
+NOT RUN: Debug/Release/ASAN builds, CTest, render/property/performance, pluginval/DAW, actual reference
+listening/calibration and Developer usability. Documentation-only revision supplies no runtime evidence.
+No push, merge to main, Issue closure or production acceptance performed. Branch-local merge of approved
+main for preparation is separate from a future reviewed merge of this brief into main.

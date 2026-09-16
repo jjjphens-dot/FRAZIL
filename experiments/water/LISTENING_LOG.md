@@ -297,3 +297,15 @@ Final contract Human Review and Engineering Feasibility Review are separate sect
 - Existing six-section answers consolidated at the start of the canonical brief as v0.1 engineering review
   draft. This is user authorization to prepare a draft, not full-contract ACCEPT or DSP implementation approval.
 - No new questions in this handoff. Engineering findings and reference calibration drive later questions.
+
+## Revision B — approved Decay definition returned (2026-09-16)
+
+Source: user explicitly requests completing Decay Revision B after Decay definitions were supplied;
+PR #35 is merged as fc20370 with final-head independent review and successful CI. This records
+implementation authorization and candidate-definition synchronization, not a new listening session.
+HI-06/07 remain historical: the absolute Time deadline proposal is not the current Decay contract.
+Current meaning is input-excited response persistence, Short/Tight -> Long/Lingering, separate from
+Motion activity and Size material scale; no precise end-time, whole-effect timer or forced Flow decay.
+See canonical brief section 5 for positive/negative/preserve/reject, anchors and UX review tasks.
+Reference human calibration, whole-contract Human Review and independent Engineering acceptance
+remain pending. No human decisions or listening outcomes are supplied by this edit.

@@ -47,7 +47,7 @@ experiments/water/
 ```
 
 `EXP-W-001_PERCEPTUAL_BRIEF.md` 是 GitHub Issue #17 的 canonical deliverable；本分支已建立
-[v0.1 工程审阅草案（CANDIDATE，含交接摘要）](water/EXP-W-001_PERCEPTUAL_BRIEF.md)、[参考索引](water/REFERENCE_INDEX.md)、
+[v0.2 Revision B 四 macro 工程审阅草案（CANDIDATE）](water/EXP-W-001_PERCEPTUAL_BRIEF.md)、[参考索引](water/REFERENCE_INDEX.md)、
 [执行计划](water/task_plan.md)、[首轮 Agent 数值/图形解释](water/ROUND_01_COMMON_WATER.md) 和
 [Human calibration 记录单](water/LISTENING_LOG.md)。最新流程为 Agent First → Human Calibration；
 直接音频听辨和人工校准尚未完成。尚未接受该合同，

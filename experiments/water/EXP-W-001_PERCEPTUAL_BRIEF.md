@@ -1,21 +1,21 @@
-# EXP-W-001 — Water Identity v0.1 感知合同草案
+# EXP-W-001 — Water Identity v0.2 — Decay Revision B 感知合同草案
 
-> Version: **v0.1 — ENGINEERING REVIEW DRAFT**。Status: **CANDIDATE / NOT ACCEPTED**。
+> Version: **v0.2 — DECAY REVISION B / ENGINEERING REVIEW DRAFT**。Status: **CANDIDATE / NOT ACCEPTED**。
 > 六段 Human Intent 已完成首轮对话整理；无参考音频听评或独立可行性签核。
 > ID：EXP-W-001。Human Intent：最新 Water Dual-Mode Perceptual/Product Brief plan；取代旧版 candidate-oriented 执行顺序。
 > 当前依据：明确 Human Intent + 未校准的语义候选；reference first-pass 仅完成数值/图形层，直接听辨未完成。
 > Implementation DRI：Sound & Host Lead；Engineering feasibility reviewer：Engineering Lead。
 > Tracking：[Issue #17](https://github.com/jjjphens-dot/FRAZIL/issues/17)。
 
-## 0. Engineering Lead 交接摘要 — v0.1
+## 0. Engineering Lead 交接摘要 — Revision B
 
-**用途**：当前即可用于初步可行性审查、工程问题拆分及 Decay 定义讨论。无需等待 Q16/Q17
+**用途**：当前即可用于初步可行性审查、工程问题拆分及四 macro 合同复审。无需等待 Q16/Q17
 bass 补充回答。本页是后文和 HI 记录的当前汇总；历史 Agent 提案不能覆盖用户已确认意图。
 本文件仍是唯一 canonical brief，不另建并行合同。
 
 ### 0.1 已确认的产品方向
 
-| 主题 | v0.1 要求 | 证据 |
+| 主题 | 当前要求 | 证据 |
 |---|---|---|
 | Common Water | 输入驱动的材质转化，响应与演奏有关联；两模式同等重要；保留可辨的音乐主体 | 最新 plan、HI-01/02 |
 | 瞬态 | 主要起音及原节奏清楚；有限允许 attack 软化，强材质设置允许攻击形状明显变化；不设独立失序极端模式 | HI-03 |
@@ -24,19 +24,20 @@ bass 补充回答。本页是后文和 HI 记录的当前汇总；历史 Agent �
 | Resonant | 融合材质及明显液态共鸣均有价值；可相对平稳；允许短暂音高和不遮盖主体的稳定共振 | HI-01/05；C 职责保留 |
 | Resonant 反例 | 尽量避免金属/钟音边缘；少量不自动否决，但不追求金属特色；刺耳、主导主体或侵入性固定音高拒绝 | HI-05 |
 | Size | 小/精细/偏亮 → 大/深/厚实；改变水材质频率尺度，不主要改响度、事件数量或运动速度，不等于整体移调输入 | HI-06 |
+| Decay | 输入激发响应由 Short/Tight 到 Long/Lingering；与 Motion activity 分工，允许有界 overlap/energy 交互 | PR #35；第 5 节 Revision B |
 | 最低 Motion | 恒定 pad、固定 Size 下：两模式均无新的气泡/冲击事件，共鸣音高轻微变化，响应强弱及左右位置稳定 | HI-08/09 |
 | 提高 Motion | 感知优先级：变化速度 > 事件频率 > 不规则性 > 变化幅度；前两项最重要；非数值权重/固定算法 | HI-09 |
 | 应用顺序 | bass > 鼓/打击乐 > pad/氛围 > 创意钢琴/吉他 > 特定人声效果；完整混音/总线处理不列为目标场景 | HI-10 |
 | 基准声音 | 水感明确但强度不过分；低效果量允许细微染色，较强设置应有明确水感；未指定实际 preset 或 Golden | HI-10 |
 
 现有 `water.amount` 是 Serial stage dry/wet，`global.mix` 是整体干湿；不能把用户的“高强度”
-描述自动变成新的算法强度参数。Mode/Size/Motion 仍是候选控制。没有修改当前九参数/state 合同。
+描述自动变成新的算法强度参数。Model/Size/Motion/Decay 仍是候选控制。没有修改当前九参数/state 合同。
 
 ### 0.2 待定项与是否阻挡当前交接
 
 | 项目 | 状态 / 责任 | 对本次交接的影响 |
 |---|---|---|
-| Decay（历史名称 Time） | 用户已交 Engineering Lead 定义；Size–事件时长–Decay 关系仍待回传讨论 | 不阻挡其他语义/可行性审阅；阻挡冻结相关时间/参数语义 |
+| Decay（历史名称 Time） | PR #35 已合入获准的 candidate 定义；本 Revision B 按 response persistence 同步 | 第 5 节明确取代旧 hard-deadline 提案；最终 mapping/state policy 和听评仍待后续证据 |
 | Q16 bass 液态表现偏重 | 暂停，后续具体试听时细化 | 非初版交接前置条件；不自行代填选择 |
 | Q17 bass 最低频保留程度 | 暂停；维持共同主体/起音/节奏边界 | 非初版交接前置条件；不据此指定分频或保留干声架构 |
 | 参考对应正例/反例、词汇听评 | 20 metadata、6 basic QA、4 numerical/visual first-pass；reference human calibration 0/4 | 不阻挡 draft review；不能宣称已完成 reference-grounded 验收 |
@@ -48,8 +49,8 @@ bass 补充回答。本页是后文和 HI 记录的当前汇总；历史 Agent �
 1. 按本摘要审查目标是否清楚、可验证，与既有参数/realtime/latency/ownership 边界是否一致。
 2. 返回具体 finding：引用本条目或 HI 编号，说明冲突/不可验证点及最小需要补充的信息。
    不必重新询问整套产品偏好，也不以更容易实现为理由替换用户意图。
-3. 完成用户已交接的 Decay 定义，明确其时间度量、起算/结束语义、持续输入及 automation 行为，
-   并说明与 Size、Motion 和 source-driven response 的关系；不要默认接受本文件中的历史 Agent 提案。
+3. 按获准的 PR #35 复审第 5 节 Decay 与 Size/Motion 的分工、持续输入及 automation 问题；
+   不重启旧 Time 截止期限提案，不以 prepare-time SPIKE 结果代替动态行为或听感证据。
 4. 整理后续验证问题与材料缺口：优先 bass、鼓、pad；继续复用 TESTDATA-001 和已有 analyzer。
    数值、频谱或 CPU 都不能代替水感判断；不需要为了初版 review 制作新 DSP 或 Golden。
 
@@ -63,7 +64,7 @@ bass 补充回答。本页是后文和 HI 记录的当前汇总；历史 Agent �
 - Reviewed scope / evidence：PENDING。
 - Blocking findings（逐项注明影响的工作）：PENDING，不预设为零。
 - Non-blocking follow-ups：PENDING。
-- Decay definition reference：PENDING。
+- Decay definition reference：PR #35 / 第 5 节；本实例复审决定仍 PENDING。
 - Decision / rationale：PENDING；初审结果不能冒充最终 formal approval。
 
 下文保留详细规则、历史提案和校准上下文。当前确认依据优先查看
@@ -117,7 +118,7 @@ Fluid 与 Resonant 是**同等重要、互不从属**的 Water Character；分�
 - **有限次生事件**：允许少量/受控的液态事件冲击；用户特别希望保留中低频的良好冲击质感。
   过多、过强导致杂乱或干扰原节奏时应拒绝。数量、频段和力度界限等待实际参考校准。
 - **未来 Time 需求**：用户明确希望后续加入尾音长度控制。目前仅记录产品需求，当前九参数
-  registry 和 Mode/Size/Motion 候选合同均未增加 Time。正式采用前需明确与 Size/Motion 的分工、
+  registry 和当时的 Mode/Size/Motion 候选合同均未增加 Time；当前以第 5 节 Revision B 为准。正式采用前需明确与 Size/Motion 的分工、
   两模式适用范围及 tail/parameter/state review；本阶段不冻结 ID/range/default 或实现。
 
 该澄清来自 Q4/Q5，完整过程见 [校准记录](LISTENING_LOG.md)。它不证明某种物理模型更容易实现，
@@ -210,7 +211,7 @@ material transformation；两模式同等地位；Fluid 强调流动；Resonant 
 输入持续发声时，Fluid 应保持演变；不因音符保持不变就自动趋于平静。平静/稳定到明显活动的
 变化由 Motion 及用户自动化表达。这既不要求最低 Motion 也必须明显运动，也不授权无输入时
 生成无关前景事件；最低端行为、具体映射和实现方法仍待后续定义。
-该意图不取消自然衰减或未来 Time 对尾音长度的控制，不新增独立“自动平静”功能。
+该意图不取消自然衰减或历史 Time 尾音长度诉求（当前以第 5 节 Decay 定义为准），不新增独立“自动平静”功能。
 Motion 仍为候选控制，当前 Host registry 未注册它。记录见 [HI-04 校准记录](LISTENING_LOG.md)。
 
 ### 其余职责与边界
@@ -254,17 +255,18 @@ Motion 仍为候选控制，当前 Host registry 未注册它。记录见 [HI-04
 - **工程问题**：怎样判断响应来自输入而非外挂 resonator？衰减和音调何时从 character 变成 artifact？
   本合同不指定 modal topology、Q、频率集合或 damping 常数。
 
-## 5. Size / Motion 和 UX 合同
+## 5. Model / Size / Motion / Decay 和 UX 合同
 
 | 概念 | 两模式共同方向 | 必须区分的错误含义 |
 |---|---|---|
 | Size | Fine / Small / Bright → Large / Deep 的材质尺度；Fluid 气泡尺度、Resonant 共振体尺度 | overall loudness、Amount、事件密度、能量 |
 | Motion | Calm / Stable → Active / Flowing 的时间活动；Resonant 变化按既定计划更 subtle | Amount、Global Mix、任意 random depth |
-| Mode | 两种同等地位的有意 Water 行为 | 质量档位、real/fake |
+| Model | 两种同等地位的有意 Water 行为 | 质量档位、real/fake |
+| Decay | Short / Tight -> Long / Lingering 的 input-excited response persistence | gain、Amount/mix、activity、源包络、全效果计时器；低端不是 Dry |
 
 `Fine ↔ Deep` 只作候选标签；数值范围、映射、默认值和 Host 注册均未冻结。
 `water.amount`、`global.mix`、`parallel.balance` 保持各自已有职责。
-`water.model/size/motion` 仍是候选概念，不进入当前 ParameterLayout 或 state schema。
+`water.model` / `water.size` / `water.motion` / `water.decay` 仍是候选概念，不进入当前 ParameterLayout 或 state schema。
 
 ### Motion 最低端与优先级（HI-08，HI-09 已核对）
 
@@ -282,34 +284,75 @@ Motion 仍为候选控制，当前 Host registry 未注册它。记录见 [HI-04
 单调保证；不要求两模式使用相同映射或变化强度，Resonant 的既定较 subtle 方向保持。
 先前的字母歧义已解除，记录见 [HI-08/HI-09](LISTENING_LOG.md)。
 
-### Size / Time 校准进展（HI-06）
+### Revision B authority and historical reconciliation
 
-> **当前处理状态：PENDING ENGINEERING DEFINITION / 讨论暂缓。** 用户已将该定义问题交给
-> Engineering Lead；未来正式文档使用 **Decay** 名称。下文 Time 保留为历史讨论用语，
-> 不代表已冻结的 Decay 定义。待工程定义完成并带回后，再恢复 Size–事件时长–Decay 关系讨论。
-> 既有 Agent 解耦建议、严格结束期限/起算方式均仍为未接受提案，不作为工程决定。
-> 本轮不修改参数合同、Host ID、范围或 state schema；先继续段落⑤ Motion。
+本修订依据 [PR #35](https://github.com/jjjphens-dot/FRAZIL/pull/35) 已于 2026-09-16 合入
+main（`fc20370`）的 DOC-W-DECAY-001 / v1.4 candidate baseline，以及用户本次明确要求完成 Revision B。
+[Parameters](../../docs/PARAMETERS.md#11-m2-water-candidate-controls未注册未冻结) 与
+[Coding Plan completion gate](../../docs/CODING_PLAN.md#decay-revision-b-completion-gate) 规定当前方向。
+这是获准 candidate 定义的实例同步，不是 Host adoption、DSP acceptance 或新增声音审美确认。
 
-- **已确认**：Size 的 small/fine/bright → large/deep/full 方向整体认可；主要表达材质尺度，
-  不主要控制响度、事件数量或运动速度。这里的频率尺度指水材质共振，不是整体移调原输入。
-- **已确认的未来需求**：Time 必须严格控制总体尾音长度，服务音乐中的精确时间控制。
-  不能仅给一个衰减倾向却允许总体尾音无界延长。Time 仍未进入当前参数合同。
-- **尚未决定**：Size 增大是否也改变单个液态事件的持续时间；用户要求进一步讨论。
-- **Agent 建议，未接受**：第一版先将 Size 与尾音时间解耦。若后续听评证明个体事件的
-  Size/时长联动有价值，再在不突破 Time 总体边界的前提下研究；不新增联动开关。
-- **待确认的时间定义**：以外部输入激励结束为起点，Time 是否表示 Water 材质残余完全结束
-  的最长期限？内部晚发事件、共振和收尾过渡均计入该期限，不自行续期；持续输入不因此被截断。
-  起算规则、提前结束是否允许、自动化变化和极短 Time 下的处理尚未冻结。
+HI-03/06/07 的 Time、绝对结束期限、输入停止起算和 Size/事件时长联动讨论保留在
+[LISTENING_LOG](LISTENING_LOG.md) 中，作为历史需求及未采纳解释。当前 Decay 不承诺 T60、
+固定秒数或“输入结束后到某一时刻精确归零”，不引入 whole-effect duration/hold/retrigger/restart。
+历史精确时间控制诉求不作为本 Decay 的已实现或已承诺能力；如以后重提，需单独产品/尾音合同审查。
+持续输入继续驱动材质响应，停止输入后已有响应自然消散；有限性、尾音终止及能量边界仍需工程验证。
+Size 保持材质尺度，不能直接变成 activity 或 response-lifetime 控制；声学二阶联动不等于直接目的地混用。
 
-物理依据仅用于区分概念：气泡共振的频率和阻尼由不同项描述，气泡运动时间不能直接代替
-声学衰减时间。参见 [Ando et al., 2009, Review of the theory / Linearized dynamics](https://pmc.ncbi.nlm.nih.gov/articles/PMC2731495/)。
-该论文不是产品映射依据，不据此宣称“气泡越大必然上升越慢、插件尾音必然越长”。
-以上建议不接受任何 DSP/tail 架构，也不改变 Host processing-latency 合同。完整讨论记录见
-[HI-06](LISTENING_LOG.md)。
+### Four macro perceptual contract
 
-UX review 必须覆盖：Semantic Predictability（无需 DSP 解释能预测方向）、Cross-Mode Consistency、
-Orthogonality、Discoverability（必要时提出短说明）、Interaction Cost（Enable/Mode/Size/Motion 足以做
-常用操作）、Automation Readability（未来 Host lane 使用产品概念）。本轮仅定义问题，未实施 UI 或通过 UX 测试。
+以下是供复审的产品条款，沿用 HI-01 至 HI-10 和获准 candidate 语义；例子是 listening anchors 的
+问题设计，未宣称实际参考片段或 DSP 已通过。Model 为离散行为选择，其余三项方向在两模式保持一致。
+
+| Macro / intent | Positive / perceptual anchor | Negative / anti-example | Must preserve | Reject / revise |
+|---|---|---|---|---|
+| Model：what behavior；Fluid / Resonant 两种同等 Water 行为 | 同一 bass/鼓/pad，Fluid 偏输入关联的液态活动与流动，Resonant 偏凝聚且可相对平稳的共鸣；分别按第 3/4 节判断 | real/fake、good/bad、质量或强弱档；强迫两者竞选胜者 | Common Water、演奏联系、主体起音/节奏/音高；Size/Motion/Decay 的含义 | 只能按质量高低解释差异，或任何模式靠失去主体制造身份；不设模式距离分数 |
+| Size：how large；Fine/Small/Bright -> Large/Deep | 固定 Motion/Decay，同一 bass 或短击打的水材质由精细偏亮变大、深、厚实 | 主要增益、Amount、事件频率、运动速度、尾音长度；整体移调输入 | 原输入音高/节奏、活动和持续性控制的职责 | 只能听出更响/更湿/更久，不能解释材质尺度；最终 label/曲线不在此冻结 |
+| Motion：how active；Calm/Stable -> Active/Flowing | 固定 Size/Decay，pad 中流动变化加快、输入关联事件更活跃；Resonant 可更 subtle；最低端遵守 HI-08/09 | 主要 gain/Amount、response persistence、机械 LFO 或无关随机干扰 | 主节奏/起音、源身份、Size/Decay 意义；不切断已有响应 | 变化只能由更响/更长解释；新增活动掩盖演奏或破坏模式职责 |
+| Decay：how persistent；Short/Tight -> Long/Lingering | 固定 Size/Motion，bass/鼓的单次输入响应由短紧变持久；Resonant 的液态共鸣可延续，Fluid 局部响应可更多重叠；pad 间隙便于比较余响 | 主要 gain、Amount、global mix、parallel balance、event rate、Flow speed、generic reverb wetness/size、source-envelope release、whole-effect duration 或 Foley playback length | 原节奏、主要瞬态时序、源身份、Size/Motion 含义；最低 Motion 不因长 Decay 自动生成新事件 | 无法区别持续性和活动/效果量；主体被拖尾遮盖、侵入性固定音高、不可接受 ringing/杂乱；修订或拒绝并定位素材/设置 |
+
+Decay 低端不用 Dry；短响应仍是 Water 材质。较高值表示更持久，不表示同一归一化值在两模式
+具有相同秒数。自然 overlap、apparent density 和 tail energy 可以增加，不要求 RMS 数学恒定。
+补偿、数值曲线、smoothing 及 existing-state policy 均留待工程证据，不能通过本表预选。
+
+### UX acceptance questions and evidence
+
+| Dimension | Review task | Required record / revise condition |
+|---|---|---|
+| Semantic Predictability | 不解释 DSP，先描述 Model 两种行为，并预测提高 Size、Motion、Decay 后的方向，再在许可素材上核对 | 分别记录预测、听到的方向、混淆及理由；Decay 被理解成 Dry/Wet、源包络或全效果计时器时修订文案/映射 |
+| Cross-Mode Consistency | 保持三个候选控制的值与 UI 位置，切换 Fluid/Resonant 后重复方向任务 | 高层含义与方向一致，不要求相同变化幅度/秒数；模式切换不能重置用户值；实际 transition/state 验证属后续实现 |
+| Responsibility orthogonality + perceptual separability + bounded interaction | 在每个模式分别听 Motion × Decay 四组合及固定另一项的 sweep；对照 Size、Serial water.amount、global.mix、Parallel parallel.balance 的各自职责 | 单独解释 activity 与 persistence，记录自然 overlap/energy 交互；不能仅靠响度猜测，不要求全部声学结果严格独立；混淆即 REVISE |
+| Discoverability | 仅看 Model 的名称和短说明，解释两种 Water 行为 | 记录是否误解成高低质量；必要时提出 tooltip，不在此实现 UI 或冻结最终文案 |
+| Interaction Cost | 使用 Enable、Model、Size、Motion、Decay 完成短紧 bass、较活跃鼓、较持久 pad 的目标描述 | 记录步骤、反复回调与含义混淆；不得要求理解 radius、Q、voice count、delay depth、event probability 或 seed |
+| Future Automation Readability | 阅读 Water Model / Water Size / Water Motion / Water Decay 的假设 Host lane 及其变化意图 | 能用产品语言解释；记录长转短后旧响应的 lag/预期问题；这些是未来 lane，当前九参数 registry/schemaVersion=1 不变 |
+
+### Motion × Decay listening and engineering handoff
+
+在 Fluid 与 Resonant 各自安排 Low Motion + Short Decay、Low + Long、High + Short、High + Long。
+固定输入、Size、seed 和其他设置，并分别进行 held-macro sweeps。固定 Decay 改 Motion 不直接
+改变 explicit decay targets；固定 Motion 改 Decay 不直接改变 scheduler/activity/trajectory-rate targets。
+Bubble/Droplet response decay 与 Resonant damping 是候选工程目的地；Flow 默认无直接 Decay mapping。
+不强迫 Resonant 实现气泡事件；活动和重叠按实际机制解释。Droplet refractory 不在本 brief 冻结。
+
+记录 tail/overlap、active voices、steals、peak/RMS、CPU、finite，以及 fixed-seed scheduling/RNG ownership；
+机制不适用的指标写 N/A 和理由。High + Long 特别检查掩蔽、能量累积、稳定性和音乐可用性。
+比较 live damping 与 event-latched 两类 existing-state policy，记录长转短、短转长、快速往返、
+旧响应持续/automation memory、突变和 lag；不得在 callback 里靠完整 prepare、分配或阻塞更新。
+这些是 EXP-W-002 的问题，prepare-time SPIKE 既不证明 realtime automation，也不完成此听测。
+
+Listening anchors：优先 bass 短音/留白（主体低频与起音、响应延续）、鼓/打击乐稀疏与密集段
+（groove 与重叠）、pad 持续及停顿（activity 对比 persistence）；再用钢琴/吉他及特定人声检查
+和声/发音与遮盖。正例是“响应更久但原演奏可辨”，反例是“只是更多事件/更湿/源音变长”或
+“延音接管主体”。这些是预期对照，不是已选 Golden 或已听参考结论。
+实际许可素材由 LISTENING-001 记录 provenance、时间窗、用途和分发限制；现有本地参考未取得
+再分发许可前不提交音频。四参考数值/图形 first-pass 不升级为听觉 anchor 验收。
+
+未来 loudness-matched scorecard 每条独立记录：reviewer、日期/环境/播放电平、素材 ID/许可/时间窗、
+mode、四 macro/其他配置、seed、baseline/candidate 身份、matching 方法与补偿量、预测/听到的方向、
+common/mode identity、source preservation、Motion/Decay separability、自然交互、artifact 定位、
+ACCEPT/REVISE/REJECT 与理由；未观察填 NOT ASSESSED。两位 reviewer 先各自记录再联合归纳，
+不平均成单一质量分数，不将不同模式视为胜负。响度匹配保留原始能量观测，不能隐藏能量增长。
+定义此表是 EXP-W-001 交付；执行 candidate loudness-matched listening 是后续工作。
 
 ## 6. 参考证据与测量限制
 
@@ -383,7 +426,7 @@ ACCEPT / MODIFY / REJECT / UNCERTAIN，记录修正原因、产品相关性以�
 原始判断不被人工修正覆盖。冲突时保留分歧并复查参考，Sound Lead 负责感知语义最终判断。
 
 本轮以 2 pure + 2 musical 探索 Common Water；之后依次校准 Fluid、Resonant、模式边界、
-negative/anti-example、Size、Motion。每轮只修改对应语义部分；没有足够参考或人工反复保留时保持草案。
+negative/anti-example、Size、Motion、Decay 及 Motion/Decay 可分辨性。每轮只修改对应语义部分；没有足够参考或人工反复保留时保持草案。
 不要求固定连续两轮即冻结；不计算分类器或 mode distance/quality score。
 
 ### Reject conditions（Human Intent / 待实例校准）
@@ -426,7 +469,7 @@ F15 GENERIC-FX；F16 UNNATURAL-MOTION；F17 OVER-PROCESSED。
 
 ## 11. Engineering Feasibility Review — Human Review 后
 
-v0.1 可立即进行第 0 节的初步工程审阅，供并行推进；最终收口仍保留 Human Review 和独立
+v0.2 Revision B 可立即进行第 0 节的初步工程审阅，供并行推进；最终收口仍保留 Human Review 和独立
 Engineering Review 记录。初审不要求先补完 Q16/Q17，也不等同于正式验收。
 
 Reviewer：Engineering Lead，PENDING；Evidence / Decision / Rationale：PENDING。
@@ -437,17 +480,18 @@ proxy 限制；是否误指定实现；是否冲突 realtime、parameter、archi
 ## 12. Exit checklist / handoff
 
 - [x] Human Intent Seed 及 Fluid/Resonant equal-status 已记录。
-- [x] canonical brief 存在；Common/Fluid/Resonant、Size/Motion、recognizability、positive/negative、
+- [x] canonical brief 存在；Common/Fluid/Resonant、Model/Size/Motion/Decay、recognizability、positive/negative、
   preserve/reject、objective proxies、engineering questions 和六项 UX 维度均有草案。
 - [x] reference provenance/metadata 已记录；许可细节未知，音频仍本地。
 - [x] Round 01 AGENT INITIAL 数值/图形层已独立保存。
 - [ ] 直接听辨层的 Agent first-pass 完成（当前无可靠本地音频听辨入口）。
-- [x] 六段产品语义均已有初步对话输入（HI-01 至 HI-10）；Decay 相关定义按用户指示暂缓。
+- [x] 六段产品语义均已有初步对话输入（HI-01 至 HI-10）；Decay 已按 PR #35 的获准 candidate 定义完成 Revision B 文本同步；不代表听评 ACCEPT。
 - [ ] 基于实际 reference 的多轮 Sound Lead calibration 完成，足够支持主语义条款；当前 0 轮。
 - [ ] Human Review = ACCEPT。
-- [ ] Engineering Lead feasibility review 完成。
+- [ ] Engineering Lead feasibility review 完成，并记录 reviewer、scope、复现/未复现、finding、decision 及 evidence。
+- [ ] Revision B Issue #17 与四 macro 文本一致，随后独立 Acceptance DRI 对精确 revision 作出决定。
 - [x] 未实现/接受 candidate DSP；未改变 production parameter/state。
 
 交接只需 accepted brief 和必要 provenance/calibration evidence；算法、Golden、CPU、sweet spot
-不是本阶段完成条件。EXP-W-002 启动时同时读取 framework 与 accepted instance，并检查
+不是本阶段完成条件。EXP-W-002 启动还须满足 M1 Exit 与适用 Developer workflow readiness，并同时读取 framework 与含 Revision B 的 accepted instance，并检查
 positive / negative / must preserve / reject / engineering questions 后才提出候选。
