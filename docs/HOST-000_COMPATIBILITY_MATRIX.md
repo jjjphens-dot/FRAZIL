@@ -1,6 +1,6 @@
 # [M0][HOST-000] 初始平台与 DAW 兼容性矩阵
 
-> 状态：**Product targets frozen by Sound & Host Lead; Engineering Lead review required; HOST-001 evidence required**
+> 状态：**Product targets frozen; HOST-001 closed; Ableton/FL Development Validated; official support remains pending**
 > Implementation DRI：Sound & Host Lead
 > Required reviewer：Engineering Lead
 > Initial HOST-000 and integration audits recorded historical `origin/main` snapshots only; those observations are not current repository truth. The pre-merge integration baseline for this review was `origin/main` `c065aad`（2026-09-08）；live remote HEAD 必须由 Git 命令确认
@@ -57,17 +57,17 @@ Support intent 与 evidence status 是两个独立维度，不得合并书写。
 | Not run | 本次任务明确未执行 |
 | Unknown | 当前没有足够证据判断 |
 
-当前尚无宿主可标为 `Development Validated` 或 `Officially Supported`。Ableton 与 FL Studio 的
-primary HOST-001 matrix 已由 Sound & Host Lead 记录为 `Passed`；正式 acceptance/支持分类仍需
-Engineering Lead 对更新后精确 PR HEAD 的 review。REAPER 延期且不形成支持声明。
+Ableton 与 FL Studio 的 primary HOST-001 matrix 已由 Sound & Host Lead 记录为 `Passed`，Engineering Lead
+已正式批准精确 PR #27 HEAD，且 PR #27 已合入，因此两个宿主达到本记录范围内的
+`Development Validated`。当前尚无宿主可标为 `Officially Supported`；REAPER 延期且不形成支持声明。
 
 ### 2.3 Compatibility classification
 
 | Compatibility classification | Required condition | Current HOST-000 result |
 |---|---|---|
 | Officially Supported | Support intent 已冻结、Engineering Lead 完成技术 review，并有足够的可复现 HOST-001 evidence | None; no host is officially supported yet |
-| Development Validated | 已按记录版本、设置和步骤完成真实运行验证，并保留 artifact/version、结果和 reviewer | None; Ableton/FL execution passed, but Engineering Lead review is pending |
-| Best Effort / Not Formally Supported | 可能工作，但没有完整支持承诺或完整验证证据 | 已执行但未完成独立 review 的 Ableton/FL；延期的 REAPER；其他未测 host |
+| Development Validated | 已按记录版本、设置和步骤完成真实运行验证，并保留 artifact/version、结果和 reviewer | Ableton Live 12.4.2 and FL Studio 25.1.4.4951 for the recorded Windows x64 Debug VST3 scope |
+| Best Effort / Not Formally Supported | 可能工作，但没有完整支持承诺或完整验证证据 | 延期的 REAPER；其他未测 host；Live/FL 在本轮开发验证范围之外的版本、build 或机器 |
 
 因此，`Official v1 target` 是产品支持意图，不能直接改写为 `Officially Supported`；`Development Validated` 是证据分类，必须由 HOST-001 真实运行结果支撑。
 
@@ -89,8 +89,8 @@ Engineering Lead 对更新后精确 PR HEAD 的 review。REAPER 延期且不形�
 |---|---|---|
 | Platform | Windows 11 x64 | Target frozen; release evidence pending |
 | Format | VST3 64-bit | Target frozen; format/DAW evidence pending |
-| Primary development DAW | Ableton Live 12 Suite `12.4.2` | Primary HOST-001 matrix `Passed` by Sound & Host Lead; Engineering review pending |
-| Primary validation DAW | FL Studio 2025 `25.1.4.4951` | Primary HOST-001 matrix `Passed` by Sound & Host Lead; Engineering review pending |
+| Primary development DAW | Ableton Live 12 Suite `12.4.2` | `Development Validated` for the recorded Windows x64 Debug VST3 scope; not officially supported |
+| Primary validation DAW | FL Studio 2025 `25.1.4.4951` | `Development Validated` for the recorded Windows x64 Debug VST3 scope; not officially supported |
 | Secondary validation host | REAPER | Deferred; exact version TBD; not validated and no support claim |
 | Development host | JUCE Standalone | Development-only; not DAW compatibility evidence |
 | AU/AAX/macOS/Linux | Out of v1 scope | Not supported / Not run |
@@ -103,8 +103,8 @@ Windows 11 x64 是当前 v1 support intent，不是对所有 Windows 11 机器�
 
 | Host | Exact version discovered | Executable evidence | Frozen role | Current status |
 |---|---|---|---|---|
-| Ableton Live 12 Suite | `12.4.2` | Executable discovered locally; exact machine path intentionally omitted from tracked documentation; ProductVersion/FileVersion `12.4.2` | Primary development DAW | HOST-001 primary matrix **Passed** by Sound & Host Lead; Engineering Lead review pending |
-| FL Studio 2025 | `25.1.4.4951` | Executable discovered locally; exact machine path intentionally omitted from tracked documentation; ProductVersion `25.1.4.4951` | Primary validation DAW | HOST-001 primary matrix **Passed** by Sound & Host Lead; Engineering Lead review pending |
+| Ableton Live 12 Suite | `12.4.2` | Executable discovered locally; exact machine path intentionally omitted from tracked documentation; ProductVersion/FileVersion `12.4.2` | Primary development DAW | HOST-001 **Passed / Development Validated** for the recorded scope; not officially supported |
+| FL Studio 2025 | `25.1.4.4951` | Executable discovered locally; exact machine path intentionally omitted from tracked documentation; ProductVersion `25.1.4.4951` | Primary validation DAW | HOST-001 **Passed / Development Validated** for the recorded scope; not officially supported |
 | REAPER | Exact version not discovered | No matching installed-app entry or executable found in the audited locations | Secondary/lightweight validation candidate | **Not run / deferred**; cannot claim validation or support |
 | JUCE Standalone | Project target; runtime version not separately frozen | Role defined by JUCE/CMake target | Development/debug host | **Not a DAW**; no DAW compatibility claim |
 
@@ -112,8 +112,8 @@ Windows 11 x64 是当前 v1 support intent，不是对所有 Windows 11 机器�
 
 | Candidate | Strength | Risk / unresolved decision |
 |---|---|---|
-| Ableton Live 12.4.2 | Installed exact version; primary HOST-001 matrix passed by Sound & Host Lead | Engineering review, audio-product listening and official support scope not inferred |
-| FL Studio 25.1.4.4951 | Installed exact version; independent host workflow and primary HOST-001 matrix passed by Sound & Host Lead | Engineering review, audio-product listening and official support scope not inferred |
+| Ableton Live 12.4.2 | Installed exact version; primary HOST-001 matrix passed and independently reviewed | Audio-product listening and official support scope not inferred |
+| FL Studio 25.1.4.4951 | Installed exact version; independent host workflow, primary HOST-001 matrix passed and independently reviewed | Audio-product listening and official support scope not inferred |
 | REAPER | Appropriate lightweight cross-validation candidate in the existing testing guidance | Deferred; not discovered locally and no validation/support claim |
 | JUCE Standalone | Fast developer feedback for lifecycle/audio callback smoke | Does not replace DAW validation and cannot establish DAW compatibility |
 
@@ -123,12 +123,14 @@ The following is the Sound & Host Lead product decision. It freezes support inte
 
 | Role | Frozen target | Evidence status |
 |---|---|---|
-| Primary development DAW | Ableton Live 12 Suite `12.4.2` | Primary HOST-001 matrix `Passed` by Sound & Host Lead; Engineering review pending |
-| Primary validation DAW | FL Studio 2025 `25.1.4.4951` | Primary HOST-001 matrix `Passed` by Sound & Host Lead; Engineering review pending |
+| Primary development DAW | Ableton Live 12 Suite `12.4.2` | `Development Validated` for the recorded scope; not officially supported |
+| Primary validation DAW | FL Studio 2025 `25.1.4.4951` | `Development Validated` for the recorded scope; not officially supported |
 | Secondary/lightweight validation host | REAPER, exact version TBD | `Not run`; deferred and not a support claim |
 | Standalone | JUCE Standalone | Development-only; not DAW compatibility evidence |
 
-The three product roles are frozen. No host is `Development Validated` or `Officially Supported` until the required Engineering Lead review and HOST-001 evidence exist.
+The three product roles are frozen. Ableton and FL Studio are `Development Validated` for the recorded HOST-001
+scope after Engineering Lead approval and merge. No host is `Officially Supported` until the later support and release
+compatibility gates are satisfied.
 
 ## 6. Verification layers
 
@@ -138,7 +140,7 @@ The following layers answer different questions and must not be substituted for 
 |---|---|---|---|
 | Layer 1 — VST3 format conformance | Steinberg VST3 Validator | Checks VST3 API, component, bundle and format conformance; suitable for CI | Validator was not configured/run in this task; `Planned` |
 | Layer 2 — Cross-host stress validation | Tracktion `pluginval` | Generic plugin stability/compatibility checks; HOST-001 strictness 5; higher-strictness nightly/Beta/Release runs are non-binding proposals and remain TBD until added to the canonical testing contract | Current Debug artifact strictness 5 `Verified` with seed 12345; local log is ignored and higher-strictness runs are not current acceptance gates |
-| Layer 3 — Real DAW acceptance | Ableton `12.4.2`, FL Studio `25.1.4.4951`; REAPER deferred | Scan/load, bus, parameter, automation, state, editor and offline render | Ableton/FL primary matrix `Passed` by Sound & Host Lead; Engineering review pending; REAPER `Not run`/no support claim |
+| Layer 3 — Real DAW acceptance | Ableton `12.4.2`, FL Studio `25.1.4.4951`; REAPER deferred | Scan/load, bus, parameter, automation, state, editor and offline render | Ableton/FL `Passed / Development Validated` for the recorded scope; REAPER `Not run`/no support claim |
 | Layer 4 — Release environment | Clean Windows 11 x64 machine | Install/uninstall, standard VST3 path, versioned artifact, multi-instance and long-running behavior | M6/M7 scope; not HOST-000 evidence |
 
 Validator PASS or pluginval PASS does not equal real DAW PASS. Standalone PASS does not equal DAW compatibility evidence.
@@ -196,7 +198,7 @@ expected result: Group A and parameter enumeration requirements pass.
 result: Passed (Sound & Host Lead / user confirmation)
 logs / screenshot / issue link: [HOST-001 primary DAW evidence](evidence/HOST-001-DAW-SMOKE-2026-09-13.md); no host log or screenshot retained.
 DRI: Sound & Host Lead / user observation
-reviewer: Engineering Lead exact-HEAD review pending
+reviewer: Engineering Lead formal approval on exact PR #27 HEAD `01d590f`
 limitations: exact OS build, audio driver and per-case time not captured; no Water/Ice sonic claim.
 ```
 
@@ -219,7 +221,7 @@ expected result: Group A and parameter enumeration requirements pass.
 result: Passed (Sound & Host Lead / user confirmation)
 logs / screenshot / issue link: [HOST-001 primary DAW evidence](evidence/HOST-001-DAW-SMOKE-2026-09-13.md); no host log or screenshot retained.
 DRI: Sound & Host Lead / user observation
-reviewer: Engineering Lead exact-HEAD review pending
+reviewer: Engineering Lead formal approval on exact PR #27 HEAD `01d590f`
 limitations: exact OS build, audio driver and per-case time not captured; no Water/Ice sonic claim.
 installation note: In this observed FL Studio environment, FRAZIL was discoverable from the Windows
                  default VST3 location; arbitrary custom scan placement was not treated as portable guidance.
@@ -408,11 +410,12 @@ The verification layers and host-format boundaries use the following primary ref
 - Ableton Live 12 Suite 12.4.2 and FL Studio 2025 25.1.4.4951 passed the primary HOST-001 execution matrix by
   Sound & Host Lead confirmation. Screenshots, DAW projects and WAVs were not retained; the
   [case record](evidence/HOST-001-DAW-SMOKE-2026-09-13.md) states the remaining evidence-form limitations.
-- Neither host is yet `Development Validated` or officially supported; exact-HEAD Engineering Lead review and
-  merge remain required.
+- Both primary hosts are `Development Validated` for the recorded Windows x64 Debug VST3 scope after exact-HEAD
+  Engineering Lead approval and PR #27 merge; neither is officially supported.
 - REAPER was not discovered and is deferred as a non-blocking secondary host; no REAPER support is claimed.
 - Windows 11 x64 is the frozen v1 platform target; the reference machine is not evidence that every Windows 11 machine is compatible.
-- Official v1 target intent is frozen by Sound & Host Lead; `Officially Supported` and `Development Validated` classifications require the review and HOST-001 evidence conditions above. Do not call this `Done` or `Development Validated` without those conditions.
+- Official v1 target intent is frozen by Sound & Host Lead. The `Development Validated` conditions are satisfied for
+  the recorded Live/FL scope; `Officially Supported` still requires later release compatibility/support gates.
 - No ADR is required because this records the existing Windows VST3 v1 boundary and does not change architecture or public parameter semantics. A new ADR is required only if a future decision changes a locked contract or product boundary.
 
 ## 13. Review checklist
@@ -424,4 +427,4 @@ The verification layers and host-format boundaries use the following primary ref
 - [x] HOST-001 records Ableton Group A, automation, save/reopen, render, H1-H7 and developer/Host boundary as `Passed` by Sound & Host Lead.
 - [x] HOST-001 records the equivalent FL Studio cases as `Passed` by Sound & Host Lead.
 - [x] REAPER is explicitly deferred as secondary/non-blocking and remains unavailable for any support claim.
-- [ ] Engineering Lead approves the updated exact PR HEAD and the HOST-001/M1 boundary interpretation.
+- [x] Engineering Lead approved exact PR #27 HEAD `01d590f` and the HOST-001/M1 boundary interpretation; Hosted CI passed and PR #27 merged.

@@ -56,7 +56,7 @@ app 层不得自行宣称算法 tail 或 latency。v1 Host-reported processing l
 
 ## Tests
 
-当前以 CTest smoke、`frazil_tests` 的 ProcessSpec/ParameterLayout/Snapshot/Mapper/StateModel/Host State Adapter unit cases、`frazil_plugin_integration` 的实际 PluginProcessor automation/state path、`frazil_processor_property` 的代表性 nominal/short-odd callback、silence、lifecycle/finite matrix、`frazil_latency_contract` 的 neutral/dry impulse/metadata 与 M1 skeleton-tail regression、手动运行的 `frazil_performance` steady-state/parameter-retarget baseline，以及 `frazil_render` 的 M1 pass-through offline smoke 为证据；完整 render matrix、真实 DAW restore 和完整 M1 gate 仍未完成。
+当前以 CTest smoke、`frazil_tests` 的 ProcessSpec/ParameterLayout/Snapshot/Mapper/StateModel/Host State Adapter unit cases、`frazil_plugin_integration` 的实际 PluginProcessor automation/state path、`frazil_processor_property` 的代表性 nominal/short-odd callback、silence、lifecycle/finite matrix、`frazil_latency_contract` 的 neutral/dry impulse/metadata 与 M1 skeleton-tail regression、手动运行的 `frazil_performance` steady-state/parameter-retarget baseline，以及 `frazil_render` 的 M1 pass-through offline smoke 为工程证据。真实 DAW restore、automation 和 render smoke 已在 Live/FL primary matrix 中通过，HOST-001 已关闭且 M1 Exit 已批准，详见 [`HOST-001 / M1 acceptance index`](../../docs/evidence/HOST-001_ACCEPTANCE_INDEX.md) 与 [`M1 Joint Exit record`](../../docs/evidence/M1_JOINT_EXIT.md)。`Development Validated` 仅适用于记录的 Windows x64 Debug VST3 范围，不表示 `Officially Supported`；REAPER 仍延期且无支持声明。完整未来 render matrix 仍待后续阶段执行。
 
 ## Related ADRs
 
