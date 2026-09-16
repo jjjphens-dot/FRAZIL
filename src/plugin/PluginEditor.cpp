@@ -623,17 +623,18 @@ void FRAZILAudioProcessorEditor::resized() {
     auto modelRow = right.removeFromTop(34);
     waterModelLabel_.setBounds(modelRow.removeFromLeft(72));
     waterModelBox_.setBounds(modelRow.reduced(2));
-    auto sizeRow = right.removeFromTop(90);
+    auto waterControls = right.removeFromTop(80);
+    auto sizeRow = waterControls.removeFromLeft(waterControls.getWidth() / 2);
     waterSizeLabel_.setBounds(sizeRow.removeFromTop(22));
     waterSizeSlider_.setBounds(sizeRow);
-    auto motionRow = right.removeFromTop(90);
+    auto motionRow = waterControls;
     waterMotionLabel_.setBounds(motionRow.removeFromTop(22));
     waterMotionSlider_.setBounds(motionRow);
 
     workflowLabel_.setBounds(right.removeFromTop(24));
-    auto workflowState = right.removeFromTop(40);
+    auto workflowState = right.removeFromTop(28);
     workflowStateLabel_.setBounds(workflowState.reduced(2));
-    auto workflow = right.removeFromTop(96);
+    auto workflow = right.removeFromTop(84);
     const auto buttonWidth = workflow.getWidth() / 4;
     const auto buttonHeight = workflow.getHeight() / 3;
     std::array<juce::Button*, 11> buttons{
@@ -650,7 +651,7 @@ void FRAZILAudioProcessorEditor::resized() {
                                       .reduced(2));
     }
 
-    diagnosticsView_.setBounds(right.removeFromTop(108));
+    diagnosticsView_.setBounds(right);
 }
 
 #else
