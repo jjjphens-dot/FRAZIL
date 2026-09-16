@@ -196,6 +196,34 @@ save/reopen、DAW render、H1-H7 及 Developer UI/Host restore boundary 均无�
 Engineering review、RENDER-001 确定性回归或 Water/Ice 声音产品验收。REAPER 作为 secondary host 延期，
 仍为 `Not run` 且不形成支持声明。
 
+## 2.9 Diagnostics GUI candidate
+
+2026-09-16，DEV-UI-001 diagnostics GUI follow-up 已形成本地 **implementation candidate / human usability
+acceptance pending**。呈现职责移至 `src/ui/DeveloperDiagnosticsView.*` 和 `DeveloperLevelMeter.*`：aggregate
+INPUT/OUTPUT 使用 RMS 填充、当前 Peak 竖线和 dBFS 数字，图形范围 -60 至 0 dBFS；保留 runtime metadata 和
+finite，10 Hz 刷新，无 smoothing、history 或 Peak Hold。用户对初版实际试用给出正向反馈并要求增大
+Size/Motion 旋钮；已增加其控件区域。该反馈不是完整 DEV-UI-001 workflow 或正式 Sound & Host acceptance。
+
+本次验证（不替代 §2.8 的历史 Host evidence）：
+
+| Check | Actual result / boundary |
+|---|---|
+| Debug / Release / ASAN | 每个 preset 均执行 `cmake --preset <preset>`、`python tools/build_safe.py --preset <preset>`、`ctest --preset <preset>`；安全构建 PASS，CTest 各 7/7 PASS，全部 pipeline 串行 |
+| Developer/Release isolation | compile commands 确认 Debug/ASAN macro=1 并编译呈现组件；Release macro=0 且无呈现组件源文件；实际 Release Standalone 保留 `Production editor pending` |
+| Debug / ASAN Standalone | 实际启动并观察 runtime、两个 meter、finite；静音显示 `-inf`、无 RMS 填充；ASAN 启动/观察期间未报告 sanitizer error。ASAN GUI 运行所需 runtime DLL 仅放在 ignored artifact 目录 |
+| Layout | 1000x720 默认、820x680 最小和 1200x800 较大 editor 图像已观察；最小尺寸的数字、runtime、刻度与现有控件无重叠。原最小/默认/最大窗口限制未修改 |
+| Synthetic signal | 临时本地预览入口使用实际 Processor/Editor，48 kHz、prepared 512/latest 480、双通道 1 kHz 正弦；输入 peak 0.25、RMS 0.176777 对应 -12.0/-15.1 dBFS；output gain -12 dB 后 meter 显示 -24.0/-27.1 dBFS；over-range 保留 +12.0 dBFS Peak，并饱和图形/显示警示 |
+| Editor reopen | 同一预览 Processor 关闭/重建 Editor，序列化 state 内容相同，重开后的输出 peak/RMS 不变；这是本地 fixture observation，不是 DAW save/reopen acceptance |
+| Warning fixture | 仅向独立 view 注入 `finite=false` / invalid amplitude，观察 `FINITE NO` / `INVALID`；不宣称真实 audio fault capture |
+| pluginval | 1.0.4，Debug VST3，`--strictness-level 5 --random-seed 12345 --validate <Debug VST3>`，`SUCCESS`；包含 Editor / Open editor whilst processing / Editor Automation；Steinberg validator 未配置 |
+| Scope audit | Processor、diagnostics transport、ParameterLayout、state adapter、app/DSP、existing tests 无 diff；9 个 Host 参数、state/automation、Dry/Processed 与 export 实现未改 |
+
+临时预览入口在常规回归前已移除，未提交额外 GUI framework；截图/日志保留在 ignored 本地
+`build/dev-ui-review/`。截图和合成信号观察不等于独立 human acceptance、实时峰值完整性或 DAW evidence。
+本次未重跑真实 DAW matrix、听测或 CPU benchmark，也未实现 L/R、true peak、LUFS、FFT/waveform、可靠跨 block
+Peak Hold、clip history 或 Production UI。正式 Engineering / Sound & Host review 和最终 usability acceptance
+仍待完成。
+
 ## 3. 当前源码映射
 
 ```text
@@ -215,6 +243,7 @@ AudioEngine
 
 PluginEditor
   ├─ Current-main Debug/ASAN implementation: Host/Water experiment controls, non-APVTS A/B/reset, Dry/Processed and draft config export
+  ├─ Diagnostics GUI follow-up candidate: value-fed src/ui/DeveloperDiagnosticsView -> DeveloperLevelMeter
   └─ Release: static non-developer placeholder
 ```
 

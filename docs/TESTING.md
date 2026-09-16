@@ -69,11 +69,17 @@ the corresponding compile/runtime CTest paths, including effective-state ownersh
 active, conditional token rejection of stale Editor edits after Host clear, same-session last-coherent fallback under
 continuous set-only publication, clear/session cache invalidation, Host-change/state-restore transitions,
 Dry/Processed path, bounded A/B slot round-trips and coherent latest-callback telemetry. Concurrent regressions
-require reader participation and coherent observations; the exact Editor/attachment lifecycle is still not automated.
+require reader participation and coherent observations; the exact Editor/attachment lifecycle is not covered by a committed GUI automation suite.
 This is engineering evidence, not GUI automation. Interactive usability/listening acceptance and Offline Sound Lab
 handoff remain acceptance work. Release builds intentionally retain the non-developer editor placeholder; the Debug/ASAN
 implementation is merged, while usability acceptance remains planned. Its status is Engineering Ready for Sound & Host
 Lead usability acceptance, not `Done`.
+
+The graphical diagnostics candidate additionally requires visible checks at minimum/default/larger sizes,
+silence and active aggregate input/output, gain differences, over-range numeric values, finite warning
+presentation, editor reopen and Release isolation. Local fixture-based rendering must remain distinct from
+real DAW/Host evidence. Current observations and remaining acceptance limits are recorded in
+[Project Status 2.9](PROJECT_STATUS.md#29-diagnostics-gui-candidate); no new GUI automation framework is required.
 
 ## 2. 自动化测试必须覆盖
 

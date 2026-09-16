@@ -142,6 +142,33 @@ sequence-check keeps the editor from accepting a torn snapshot and falls back to
 read is not coherent. The editor polls the snapshot on the message thread. Release builds select the non-developer
 placeholder and compile out the callback diagnostics publication path.
 
+### Graphical diagnostics presentation candidate
+
+The diagnostics GUI follow-up is an **implementation candidate / human usability acceptance pending**.
+`PluginEditor` passes the existing snapshot and Host routing text to `src/ui/DeveloperDiagnosticsView`, which
+owns two value-only `DeveloperLevelMeter` components. These components have no Processor, APVTS, engine or
+transport ownership. They are included only in Debug/ASAN targets; Release retains its existing placeholder.
+
+- INPUT and OUTPUT are aggregate channel-combined latest-block metrics. Peak is the maximum absolute sample;
+  RMS combines the channel/sample population. Input is measured before input gain; output is measured after
+  the engine, including output gain. The GUI does not change either measurement point.
+- RMS is the filled bar, Peak is the instantaneous line, and both retain one-decimal dBFS numeric values.
+  The graphical scale is -60 to 0 dBFS. Zero is shown as `-inf`; quiet numeric values remain below -60 dBFS.
+  Values above full scale retain positive dBFS numbers and show an immediate `OVER 0 dBFS` indication while
+  the bar saturates. Invalid amplitudes display `INVALID` rather than a misleading finite level.
+- Runtime text preserves sample rate, latest/prepared maximum block sizes in samples, channel count and
+  explicitly labelled **Host** routing; this routing readout is not an effective developer-override claim.
+  `FINITE OK` and warning-coloured `FINITE NO` reflect the existing snapshot flag.
+- The message-thread timer remains 10 Hz. There is no visual smoothing, decay, peak hold or accumulated history;
+  peaks between UI observations may be missed. The audio timing and diagnostics transport are unchanged.
+- The right panel uses side-by-side Water Size/Motion knobs with a larger control area following initial user
+  feedback. Host controls, Water control meaning, A/B/export behavior and the 820x680 minimum, 1000x720 default
+  and 1440x960 maximum editor size contract are unchanged.
+
+This candidate does not provide independent L/R metering, true peak, LUFS, waveform/FFT/spectrum analysis or
+production-grade metering. It does not establish a Production UI direction or final Sound & Host acceptance.
+Validation observations are recorded in [Project Status](PROJECT_STATUS.md#29-diagnostics-gui-candidate).
+
 A future reproducible debug bundle may contain input/output audio, experiment parameters, engine state, diagnostics,
 analysis, performance observations, plots, build provenance and a short README. Raw machine-specific paths and
 generated audio remain ignored/local or artifact-hosted according to repository storage rules.
