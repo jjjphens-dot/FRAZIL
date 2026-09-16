@@ -4,6 +4,9 @@
 #include "dsp/LiquidModalResonator.h"
 
 #include <charconv>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <initializer_list>
 #include <juce_core/juce_core.h>
 #include <limits>
@@ -22,37 +25,136 @@ inline bool validVoiceRepresentation(double voices) noexcept {
            std::floor(voices) == voices;
 }
 
-// JUCE accumulates integer literals into int64 without reporting overflow. Reject literals
-// outside that parser representation before parsing; strings/escaped quotes are not numbers.
-// Decimal/exponent values still go through the finite and size_t checks after JSON parsing.
-inline bool validJsonIntegerLiterals(std::string_view json) noexcept {
-    bool quoted{};
-    for (std::size_t i = 0; i < json.size(); ++i) {
-        if (quoted) {
-            if (json[i] == '\\')
-                ++i;
-            else if (json[i] == '"')
-                quoted = false;
-        } else if (json[i] == '"') {
-            quoted = true;
-        } else if (json[i] == '-' || (json[i] >= '0' && json[i] <= '9')) {
-            const auto start = i;
-            while (i < json.size() && json[i] != ',' && json[i] != '}' && json[i] != ']' &&
-                   json[i] != ' ' && json[i] != '\n' && json[i] != '\r' && json[i] != '\t')
-                ++i;
-            const auto token = json.substr(start, i - start);
-            if (token.find_first_of(".eE") == std::string_view::npos) {
-                std::int64_t integer{};
-                const auto result =
-                    std::from_chars(token.data(), token.data() + token.size(), integer);
-                if (result.ec != std::errc{} || result.ptr != token.data() + token.size())
+namespace detail {
+// Offline syntax gate for this two-level numeric config schema, not a general JSON parser.
+// JUCE accepts trailing documents and some non-JSON tokens. Validate RFC 8259 object/string/
+// number grammar and consume the entire input before JUCE decodes keys and numeric values.
+class ConfigJsonSyntax {
+  public:
+    explicit ConfigJsonSyntax(std::string_view text) noexcept : remaining_(text) {}
+
+    bool valid() noexcept {
+        const bool parsed = object(true);
+        whitespace();
+        return parsed && remaining_.empty();
+    }
+
+    std::size_t propertyCount() const noexcept {
+        return propertyCount_;
+    }
+
+  private:
+    bool take(char c) noexcept {
+        if (remaining_.empty() || remaining_.front() != c)
+            return false;
+        remaining_.remove_prefix(1);
+        return true;
+    }
+
+    void whitespace() noexcept {
+        while (!remaining_.empty() &&
+               std::string_view(" \t\r\n").find(remaining_.front()) != std::string_view::npos)
+            remaining_.remove_prefix(1);
+    }
+
+    bool digits() noexcept {
+        const auto before = remaining_.size();
+        while (!remaining_.empty() && remaining_.front() >= '0' && remaining_.front() <= '9')
+            remaining_.remove_prefix(1);
+        return remaining_.size() != before;
+    }
+
+    bool number() noexcept {
+        const auto start = remaining_;
+        take('-');
+        if (!take('0') && !digits())
+            return false;
+        bool integer = true;
+        if (take('.')) {
+            integer = false;
+            if (!digits())
+                return false;
+        }
+        if (take('e') || take('E')) {
+            integer = false;
+            if (!take('+'))
+                take('-');
+            if (!digits())
+                return false;
+        }
+        // JUCE's integer accumulation wraps outside int64; keep the existing global guard.
+        if (integer) {
+            const auto token = start.substr(0, start.size() - remaining_.size());
+            std::int64_t value{};
+            const auto result = std::from_chars(token.data(), token.data() + token.size(), value);
+            return result.ec == std::errc{} && result.ptr == token.data() + token.size();
+        }
+        return true;
+    }
+
+    bool key() noexcept {
+        if (!take('"'))
+            return false;
+        while (!remaining_.empty()) {
+            const auto c = static_cast<unsigned char>(remaining_.front());
+            remaining_.remove_prefix(1);
+            if (c == '"')
+                return true;
+            if (c < 0x20)
+                return false;
+            if (c != '\\')
+                continue;
+            if (take('u')) {
+                if (remaining_.size() < 4 || remaining_.substr(0, 4) == "0000")
+                    return false; // NUL cannot be part of any supported configuration key.
+                for (const char hex : remaining_.substr(0, 4))
+                    if (std::string_view("0123456789abcdefABCDEF").find(hex) ==
+                        std::string_view::npos)
+                        return false;
+                remaining_.remove_prefix(4);
+            } else {
+                if (remaining_.empty() || std::string_view("\"\\/bfnrt").find(remaining_.front()) ==
+                                              std::string_view::npos)
                     return false;
+                remaining_.remove_prefix(1);
             }
-            --i;
+        }
+        return false;
+    }
+
+    bool object(bool root) noexcept {
+        whitespace();
+        if (!take('{'))
+            return false;
+        whitespace();
+        if (take('}'))
+            return true;
+        for (;;) {
+            whitespace();
+            if (!key())
+                return false;
+            ++propertyCount_;
+            whitespace();
+            if (!take(':'))
+                return false;
+            whitespace();
+            // Fixed schema depth: modules contain numbers, never another container.
+            if (!(root ? object(false) : number()))
+                return false;
+            whitespace();
+            if (take('}'))
+                return true;
+            if (!take(','))
+                return false;
         }
     }
-    return true;
-}
+
+    // Borrowed file bytes; cursor lives only during offline validation.
+    std::string_view remaining_;
+    // Count both levels before JUCE can overwrite a repeated decoded key.
+    std::size_t propertyCount_{};
+};
+} // namespace detail
 
 inline bool readNumbers(const juce::var& value,
                         std::initializer_list<std::pair<const char*, double*>> fields) {
@@ -80,11 +182,33 @@ inline bool readNumbers(const juce::var& value,
 inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal) {
     if (!file.existsAsFile())
         return false;
-    const auto text = file.loadFileAsString();
-    if (!validJsonIntegerLiterals(text.toStdString()))
+    juce::MemoryBlock bytes;
+    if (!file.loadFileAsData(bytes) || bytes.getSize() == 0 ||
+        bytes.getSize() > static_cast<std::size_t>(std::numeric_limits<int>::max()))
+        return false;
+    std::string_view text(static_cast<const char*>(bytes.getData()), bytes.getSize());
+    if (text.starts_with("\xef\xbb\xbf"))
+        text.remove_prefix(3); // Tolerate a UTF-8 BOM, but never discard trailing file bytes.
+    detail::ConfigJsonSyntax syntax(text);
+    if (!syntax.valid() ||
+        !juce::CharPointer_UTF8::isValidString(text.data(), static_cast<int>(text.size())))
         return false;
     juce::var root;
-    if (juce::JSON::parse(text, root).failed() || !root.isObject())
+    if (juce::JSON::parse(juce::String::fromUTF8(text.data(), static_cast<int>(text.size())), root)
+            .failed() ||
+        !root.isObject())
+        return false;
+    auto decodedProperties =
+        static_cast<std::size_t>(root.getDynamicObject()->getProperties().size());
+    for (const auto& property : root.getDynamicObject()->getProperties()) {
+        const auto* module = property.value.getDynamicObject();
+        if (!module)
+            return false;
+        decodedProperties += static_cast<std::size_t>(module->getProperties().size());
+    }
+    // In this two-level schema, any duplicate loses at least one property on decoding.
+    // Reject it before applying fields so it cannot hide unknown/nonfinite representations.
+    if (decodedProperties != syntax.propertyCount())
         return false;
     for (const auto& property : root.getDynamicObject()->getProperties()) {
         const auto name = property.name.toString();

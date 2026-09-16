@@ -124,6 +124,51 @@ def main():
             config = root / "invalid.json"
             config.write_text(json.dumps(bad))
             assert subprocess.run([str(renderer), str(source), str(root/"bad.wav"), "abd", "128", "42", str(config)], capture_output=True).returncode != 0
+        # Raw text is essential: json.dumps would repair/reject malformed lexical fixtures.
+        malformed = [
+            '{} {"flow":{"residualGain":0}}', '{} garbage',
+            '{"bubble":{"voices":01}}', '{"bubble":{"voices":-01}}',
+            '{"flow":{"residualGain":0.}}', '{"flow":{"residualGain":.1}}',
+            '{"flow":{"residualGain":+1}}', '{"flow":{"residualGain":1e}}',
+            '{"flow":{"residualGain":1e+}}', '{"flow":{"residualGain":0x1}}',
+            r'{"\modal":{"residualGain":0}}', r'{"\u06":{"residualGain":0}}',
+            r'{"\u00xzodal":{"residualGain":0}}',
+            '{"flow":{"residualGain":0,}}', '{"flow":{},}',
+            '{"flow" {}}', '{"flow":{},,"modal":{}}', '{"flow":{',
+            '{"flow\n":{"residualGain":0}}', '{}\x00 garbage',
+            r'{"flow\u0000ignored":{"residualGain":0}}',
+            '{}\v', '', ' \t\r\n', '[]', 'true',
+            '{"bubble":{"voices":18446744073709551616}}',
+            '{"modal":{"residualGain":1e999}}',
+            '{"flow":{"unknown":1},"flow":{"residualGain":0}}',
+            '{"flow":{"residualGain":1e999,"residualGain":0}}',
+            '{"flow":{"residualGain":0.1,"residualGain":0}}',
+            r'{"flow":{},"\u0066low":{}}',
+        ]
+        payloads = [text.encode("utf-8") for text in malformed]
+        payloads.append(b'{"flow\xff":{"residualGain":0}}')
+        for index, payload in enumerate(payloads):
+            config = root / "raw-invalid.json"
+            config.write_bytes(payload)
+            # Syntax/representation rejection is global, even for inactive modules/baselines.
+            for mode in ("baseline", "residual", "a", "c", "d", "abd"):
+                output = root / f"raw-invalid-{index}-{mode}.wav"
+                result = subprocess.run([str(renderer), str(source), str(output), mode,
+                                         "128", "42", str(config)], capture_output=True)
+                assert result.returncode == 2, (index, mode, result.stderr)
+                assert b"Invalid research config" in result.stderr, (index, mode)
+                assert not output.exists(), (index, mode)
+        for index, text in enumerate((
+                ' \t\r\n{"flow":{"residualGain":0}} \t\r\n',
+                '{"flow":{"residualGain":0.0e+0},"bubble":{"voices":1.0e0}}',
+                r'{"\u0066low":{"residualGain":-0.0E-0}}',
+                '\ufeff{"flow":{"residualGain":0}}')):
+            config = root / "raw-valid.json"
+            config.write_bytes(text.encode("utf-8"))
+            output = root / f"raw-valid-{index}.wav"
+            subprocess.run([str(renderer), str(source), str(output), "d-residual", "128",
+                            "42", str(config)], check=True, capture_output=True)
+            assert all(value == 0 for value in read_float(output))
         for mode, block, seed in (("fluid", "128", "42"), ("baseline", "0", "42"),
                                  ("baseline", "128", "-1")):
             result = subprocess.run([str(renderer), str(source), str(root / "invalid.wav"),

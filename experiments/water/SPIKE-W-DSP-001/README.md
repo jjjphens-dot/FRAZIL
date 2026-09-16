@@ -58,7 +58,16 @@ independent lifecycle and ablation. No speculative shared production primitive i
 ## Engineering configs (not product macros)
 
 The checked-in [defaults](configs/defaults.json) reproduce the v0 candidate. Units are in field
-names. Omitted JSON fields retain C++ defaults. Unknown fields, nonnumeric/nonfinite values and
+names. Config files use UTF-8 (an initial UTF-8 BOM is tolerated) and must contain exactly one
+complete root object, whose module objects contain numeric fields. The offline syntax gate checks
+[RFC 8259](https://www.rfc-editor.org/rfc/rfc8259) object/string/number grammar before JUCE decodes
+values: concatenated roots, trailing garbage, malformed escapes, leading-zero numbers, incomplete
+fractions/exponents and unescaped control bytes fail. Raw file bytes are checked before string
+conversion so a NUL cannot silently truncate the document. Invalid configs fail before output creation,
+including baseline and inactive-module cases. This bounded schema check adds no general JSON framework.
+Duplicate decoded keys are rejected at either level, including escaped aliases, so JUCE's overwrite
+behavior cannot hide an unknown field or nonfinite value from the global checks.
+Omitted JSON fields retain C++ defaults. Unknown fields, nonnumeric/nonfinite values and
 invalid voice-count representation (negative, fractional or outside size_t) fail globally, even
 in unused modules. Integer literals outside JUCE’s signed int64 parser representation are rejected
 before parsing to prevent wraparound; decimal/exponent values must still be finite and voice counts

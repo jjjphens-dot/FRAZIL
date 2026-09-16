@@ -581,7 +581,11 @@ The opt-in `FRAZIL_BUILD_WATER_EXPERIMENT` option builds candidate-only tests, r
 manual research performance executable. CTest covers baseline, features, modal, bubble, flow,
 droplet, Fluid ablation, direct event-pool capacity invariants and decoded renderer output. Checks include lifecycle/numerical bounds,
 seed independence, zero/odd callbacks, silence/tail, stereo isolation, sample-rate/partition
-consistency and strict engineering-config representation validation. Only enabled DSP components
+consistency and strict engineering-config syntax/representation validation. Raw-text CLI regressions
+reject concatenated roots, trailing content, malformed numbers/escapes and control bytes globally,
+including baseline/inactive-module modes, before output creation. Duplicate decoded keys are rejected
+so overwritten fields cannot evade global validation. Valid whitespace, exponent forms, escaped known
+keys and an initial UTF-8 BOM remain supported. Only enabled DSP components
 validate semantic ranges or prepare; disabled state is reset and never processed. Baseline/C/Fluid
 renderer isolation and failure/recovery are explicit regressions. Fresh-directory typical-signal
 smoke uses seed 42/defaults and 7/128/1024 partitions; full corpus uses ten fixtures x eight modes.
