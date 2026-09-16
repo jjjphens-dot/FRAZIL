@@ -73,6 +73,12 @@ WaterProductValues is small/plain, state-free, allocation-free and JUCE/APVTS/UI
 not parameter objects/IDs, handles, processors, smoothers, buffers, random/voice/resonator/routing state.
 WaterMacroMapper owns no DSP runtime state, Host automation or serialization. No such production header or
 mapper is created by this revision; ADR-0006 remains Proposed.
+The planned Water `prepare(const ProcessSpec&)` refers to the future shared DSP/common-owned processing-environment
+value, not the currently existing `src/app/ProcessSpec.h`. Before production DSP consumes it, re-home the one
+canonical type downstream (recommended future `src/dsp/ProcessSpec.h`) or review an equivalent dependency-safe
+solution; never include the app header or create mirrored/module-specific copies with identical semantics.
+This common lifecycle boundary is distinct from WaterProductValues / WaterModel ownership. No relocation occurs
+here and no Water-specific Accepted decision is made by this clarification.
 Detailed ranges, defaults, nonlinear curves, transition duration, smoothing constants, and state evolution
 are not decided here.
 

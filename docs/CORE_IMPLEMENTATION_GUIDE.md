@@ -54,6 +54,30 @@ processor-property evidence、PERF-BASE-001 manual baseline 和 ARCH-LAT-001 lat
 
 当前 wet path 仍为 post-input pass-through。
 
+### ProcessSpec current location and future downstream migration
+
+当前 `ProcessSpec` 定义在 `src/app/ProcessSpec.h`，AudioEngine 使用其 `isValid()`：sample rate 必须 finite
+且大于 0，maximumBlockSize 与 numChannels 必须大于 0。它是 processing-environment value，不是 app business
+object。未来 Water/Ice/Routing prepare 签名里的 ProcessSpec 指向 **DSP/common-owned canonical type**；
+在生产 DSP 消费前，按 [Coding Plan](CODING_PLAN.md) 完成 re-home（推荐未来 `src/dsp/ProcessSpec.h`）或明确
+review 的等价方案。当前文件未移动；DSP 不得 include `src/app/ProcessSpec.h`，不保留同语义 app/dsp 镜像
+或 WaterProcessSpec/IceProcessSpec/RoutingProcessSpec。WaterProductValues/WaterModel 仍独立归 Water domain。
+
+未来迁移继续遵守既有 quality/realtime 规则，并须满足：
+
+- 保持 small/plain/copyable、state-free、allocation-free 的环境值；当前 sampleRate/maximumBlockSize/numChannels
+  单位为 Hz/samples/count。新命名遵循仓库规范并表达单位，如 sampleRateHz/maximumBlockSizeSamples；本轮不重命名字段。
+- 一个 shared validity contract 负责通用 finite/positive 检查；module prepare 只检查额外模块条件，避免各自
+  不一致地复制校验。既有 AudioEngine invalid-spec fallback 和 runtime buffer invariant 必须保持。
+- Header 只引入值定义所需的最少依赖，不经传递 include 带入 AudioEngine/PluginProcessor/APVTS/UI；不建 umbrella
+  header、runtime dictionaries 或无实际需求的 scalar strong-type 层。注释解释 ownership、单位、invariant 和迁移原因。
+- 后续迁移测试至少覆盖 valid spec、invalid sample rate/block size/channel count、NaN/Inf sample rate；验证
+  AudioEngine 行为保持及 Water/Ice/Routing 消费一个 canonical spec，没有 `dsp -> app` include。
+  可按实际风险增加轻量 include-policy regression，不建复杂依赖分析框架。本轮不新增/运行这些 executable tests。
+- 实际迁移的同一 PR 同步 Architecture、Module Index、app/dsp README、本指南及受影响 testing docs，更新 current
+  physical location，不能把此次 planned ownership 当成已移动事实。prepare-time allocation 仍按既有生命周期规则，
+  automation/callback 不调用完整 prepare 或隐藏初始化；本轮不修改 realtime 合同。
+
 ### M1 closeout evidence boundary
 
 以下是 M1 closeout 的证据类别；完成事实见 `PROJECT_STATUS.md` 与

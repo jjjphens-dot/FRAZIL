@@ -775,7 +775,31 @@ Global Dry/Wet
 Output Gain
 ```
 
-建议接口：
+### ProcessSpec ownership: current location and planned boundary
+
+当前 M1 的 `ProcessSpec` 实际定义在 `src/app/ProcessSpec.h`，由 AudioEngine 消费；文件尚未迁移。
+其语义是 lower-layer processing-environment value：sample rate（Hz）、maximum prepared block size
+（samples）与 channel count，不是 application-domain business object。当前字段名为 `sampleRate`、
+`maximumBlockSize`、`numChannels`；`isValid()` 检查 finite positive sample rate、positive block size/channels。
+
+在 WaterProcessor、IceProcessor、RoutingEngine 或其它生产 DSP 模块消费 ProcessSpec **之前**，必须把
+这个 canonical type re-home 到 DSP/common 下游纯值层，推荐未来位置 `src/dsp/ProcessSpec.h`；或采用经明确
+review、满足同一依赖约束的等价方案。app 与 DSP 共享一个下游类型，不保留同语义的 app/dsp 镜像及转换层，
+也不复制 WaterProcessSpec / IceProcessSpec / RoutingProcessSpec。只有真实的额外模块配置需求才研究独立
+prepare config，本修订不创建此类类型。迁移由首个需要它的 production integration issue 完成，本轮仅改文档。
+
+允许 `plugin -> app -> dsp/common`、`Water domain -> DSP/common values/primitives`；禁止 DSP/Water/Ice/Routing
+反向依赖 app/plugin/UI。**DSP modules MUST NOT include `src/app/ProcessSpec.h`.**
+ProcessSpec 是共享的 processing environment；WaterProductValues / WaterModel 仍是 Water-domain product
+intent，二者不是同一值类别，也不合并成 generic configuration object。
+
+ProcessSpec 保持 small/plain/copyable、deterministic、state-free、allocation-free、JUCE-independent pure value；
+不持有 APVTS、Host/PluginProcessor references、UI/serialization/routing state、Water/Ice parameters、buffers、
+processors、smoothers、random generators、logging 或 filesystem state。结构有效性由该 shared contract 统一
+提供；module prepare 只追加有实际需要的 module-specific 检查，不各自重写不同的通用校验规则。
+
+以下为 planned interface sketch；其中 ProcessSpec 定义归未来下游 DSP/common 层，不因与 AudioEngine
+同列而归 app。后续 Water/Ice/Routing prepare 签名同样引用该未来类型，不是当前 app header：
 
 ```cpp
 struct ProcessSpec
@@ -803,7 +827,9 @@ AudioEngine 不包含 Water / Ice 的具体算法。
 
 ## 5.3 WaterProcessor
 
-WaterProcessor 是计划中的双模式 input-driven material processor，公开接口保持小：
+WaterProcessor 是计划中的双模式 input-driven material processor，公开接口保持小。
+下方 `prepare(const ProcessSpec&)` 的 ProcessSpec 是未来 DSP/common-owned 类型；消费前须完成上述
+canonical-type migration，禁止引用当前 `src/app/ProcessSpec.h`：
 
 ```cpp
 enum class WaterModel
@@ -840,8 +866,8 @@ public:
 Water-domain value layer。不得把这两个类型的生产定义放在 app/plugin/ui，或复制 app/domain 两套定义。
 `ParameterMapper` 位于 `src/app/`，可以依赖下游类型来构造 normalized Water values；构造职责不等于类型所有权。
 允许依赖保持 `plugin -> app -> dsp/Water domain`；禁止 `dsp/Water domain -> app`，
-`WaterProcessor` 和 `WaterMacroMapper` 均不得 include/依赖 `src/app`。示意 prepare 签名也不授权 DSP
-include app 的 `ProcessSpec.h`；未来 lifecycle 接口须通过下游值或明确的工程量由 app 适配。
+`WaterProcessor` 和 `WaterMacroMapper` 均不得 include/依赖 `src/app`。WaterProcessor 的 prepare 消费同一
+下游-owned ProcessSpec；app 在迁移后直接消费该 canonical type，不引入同字段 app/DSP adapter copies。
 
 该值类型只携带 model 与 normalized size/motion/decay，应为 small/plain/value-oriented、state-free、
 JUCE/APVTS/UI-free、allocation-free；不得持有 parameter objects/IDs、APVTS references、UI handles、
@@ -922,6 +948,9 @@ public:
 };
 ```
 
+这里 IceProcessor 的 `prepare(const ProcessSpec&)` 引用未来 DSP/common-owned ProcessSpec；必须先完成
+canonical-type migration，不得 include `src/app/ProcessSpec.h`。这不启动或改变 deferred Ice 实现范围。
+
 候选内部机制：
 
 ```text
@@ -939,6 +968,8 @@ Water 与 Ice 可以共享生命周期和参数传递习惯，但不要求内部
 # 5.5 RoutingEngine
 
 路由是独立职责，不写死在 Water 或 Ice 中。
+下方 RoutingEngine 的 `prepare(const ProcessSpec&)` 同样引用未来 DSP/common-owned canonical ProcessSpec；
+消费前须完成迁移，不允许 include `src/app/ProcessSpec.h` 或创建同字段 RoutingProcessSpec。
 
 ```cpp
 enum class RoutingMode

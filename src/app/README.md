@@ -36,6 +36,12 @@ UI -> narrow app edit/history command interface -> EditHistoryManager (message t
 
 ## Parameter / Data Types
 
+`ProcessSpec` 当前物理位置是 `src/app/ProcessSpec.h`，属于已实现的 M1 skeleton 接口；其语义是 sample
+rate、maximum prepared block size、channel count 组成的下游 processing environment。未来 Water/Ice/Routing
+生产 DSP 消费该合同前，须将 canonical type re-home 到 DSP/common 层（推荐未来 `src/dsp/ProcessSpec.h`），
+或采用明确 reviewed 的等价方案；app 随后直接依赖下游类型。禁止 DSP include 当前 app header，也不建立
+同语义 app/dsp 镜像和转换器。当前文件未移动，现有 API 与运行时不变；迁移和行为保留测试归后续 integration issue。
+
 正式 Host 参数由 plugin 层 `src/plugin/ParameterLayout.*` 集中注册。app 层的 Snapshot 只接收由 plugin 缓存的原子参数指针，Mapper 输出不含 Host 对象的 `EngineParameters`；app 不依赖 ParameterLayout、PluginProcessor 或 Host adapter。
 
 未来 Water candidate 的 app mapping 只准备 normalized `WaterProductValues { model, size, motion, decay }`。

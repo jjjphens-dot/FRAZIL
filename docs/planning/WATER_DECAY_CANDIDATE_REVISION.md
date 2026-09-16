@@ -98,6 +98,30 @@ Sound Tools, Perceptual Contract and dsp/ui README already preserve the current/
 gate/dependency rules; governance, Accepted ADRs and Project Status require no new fact. The Revision B gate,
 formal EXP-W-002 gate, Developer Decay planned status and approval-before-finalization lifecycle remain unchanged.
 
+### ProcessSpec architecture remediation
+
+Reviewed previous HEAD: `891a7b7e7ba68cb638a0cf3626d9593c92a91de6`; base remains `c7e68ce`.
+The latest user-supplied REQUEST_CHANGES identifies a remaining P1: planned Water/Ice/Routing prepare signatures
+consume ProcessSpec while its current header is in app. Prior resolved findings remain preserved; this input is
+not approval evidence or a verified formal GitHub review submission.
+
+Verified current fact: `src/app/ProcessSpec.h` defines sampleRate, maximumBlockSize, numChannels and `isValid()`
+with finite/positive sample-rate and positive block/channel checks; AudioEngine consumes it. No file has moved.
+Planned ownership: one lower-layer DSP/common processing-environment type, recommended future
+`src/dsp/ProcessSpec.h`. The first production integration issue needing this shared contract must re-home the
+canonical type before downstream consumption, or record an explicitly reviewed equivalent preserving dependency
+direction. App and DSP share the canonical value; mirrored app/dsp copies/adapters and identical per-module specs
+are forbidden. Planned Water/Ice/Routing signatures explicitly mean that future type, never the current app header.
+WaterProductValues / WaterModel remain Water-domain values, a separate category from processing environment.
+
+This round changes eight Markdown files: Architecture, Coding Plan, Core Implementation Guide, Module Index,
+app/dsp README, Proposed ADR-0006 and this record. Existing Parameters, Testing, Developer Sound Tools,
+Perceptual Contract, ui/plugin README, governance, Accepted ADRs and Project Status require no new fact;
+future migration checks are documented in the guide, not claimed as executed tests. Prior mapping/Decay semantics,
+Revision B and formal EXP-W-002 gates, Host/state boundary and finalization lifecycle are unchanged.
+No source/include/CMake/test changes, physical relocation, production type creation or baseline finalization occur.
+After this bounded remediation and push, stop for independent re-review; no further architecture refactor begins.
+
 ## Review evidence and finalization gate
 
 Current status: **ready for independent re-review; required approval and finalization pending**.
@@ -185,11 +209,14 @@ formal performance-budget impacts are N/A. Audio evaluation remains future evide
 - `python tools/check_portability.py`: PASS.
 - `git diff --check` and `git diff --cached --check`: PASS.
 - Manual diff/semantic/scope review: PASS; 14 Markdown files across Revision A and remediation; the first
-  remediation changed 11, the final ownership remediation changes nine. Read-only Python assertions against the base
+  remediation changed 11, Water value ownership changed nine, and ProcessSpec ownership changes eight.
+  Read-only Python assertions against the base
   confirmed unchanged Host registry text, exact nine source IDs, schema 1, Proposed ADR, and identical M1 Exit
   and M3/PARAM-FREEZE sections. No executable sources, tests or configs changed.
 - Final ownership remediation also verifies unchanged Revision B/EXP-W-002 and finalization gate text (apart
   from the review-scope field), unchanged Developer/perceptual documents and no production Water headers/mapper.
+- ProcessSpec remediation verifies its current source header is identical to the reviewed head/base, no downstream
+  header or duplicate spec is created, and prior candidate/mapping documents and acceptance/finalization gates remain unchanged.
 - Debug/Release/ASAN builds, CTest, pluginval, render, CPU, DAW and listening: **NOT RUN / N/A** for this
   non-executable revision. Future UI/experiment code must run its own required validation, including actual
   Release Host enumeration; source isolation review is not a replacement for that runtime check.

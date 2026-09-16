@@ -177,8 +177,13 @@ revision，也可以是对应 planning issue 或 PR 中明确记录的 joint dec
 M1 期间不授权 production Water/Ice DSP 或 candidate production integration。Formal `EXP-W-002` candidate work
 从 M1 Joint Exit 后开始；下述 optional `SPIKE-W-DSP-001` 只允许提前做客观工程可行性研究。
 `PARAM-FREEZE-001` 必须在 M2/M3 完成后、M4 开始前完成；`ADR-R-001` 必须在任何 `ROUTE-006`
-实现前 Accepted。任何 Water/Ice 生产实现都依赖 M1 的 ProcessSpec、EngineParameters、Snapshot、统一测试
-素材和性能 baseline。
+实现前 Accepted。Water/Ice 生产集成复用 M1 的 processing-environment contract、EngineParameters/Snapshot
+application boundary、统一测试素材和性能 baseline；这是 foundation 依赖，不授权 DSP include app headers。
+ProcessSpec 当前位于 `src/app/ProcessSpec.h`。在 Water/Ice/Routing 生产 DSP 消费它之前，首个需要该共享
+prepare contract 的 production integration issue 必须将 canonical type re-home 到 DSP/common 下游值层
+（推荐未来 `src/dsp/ProcessSpec.h`），或完成满足同一依赖不变量的明确 reviewed 等价方案。
+保持一个共享类型；禁止同字段 app/dsp 镜像、Water/Ice/Routing-specific duplicates 和 `dsp -> app`。
+迁移与行为保留验证属于该后续 issue，本轮不移动文件、不改变 M1 完成事实或 Ice deferred gate。
 
 ## 3. 跨模块完成合同
 
