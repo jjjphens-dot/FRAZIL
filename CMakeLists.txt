@@ -121,6 +121,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     list(APPEND FRAZIL_PLUGIN_SOURCES
         src/ui/DeveloperDiagnosticsView.cpp
         src/ui/DeveloperDiagnosticsView.h
+        src/ui/DeveloperLevelMeter.cpp
+        src/ui/DeveloperLevelMeter.h
     )
 else()
     set(FRAZIL_DEVELOPER_BUILD 0)
