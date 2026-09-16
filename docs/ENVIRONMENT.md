@@ -97,6 +97,12 @@ object 为零依赖，不得信任 header-only 修改后的增量结果。在同
 
 ## Portable CI Workflow
 
+The independent `Review-Pack Python` job uses Ubuntu and Python 3.12, installs `requirements-dsp.txt`,
+runs `python -m py_compile tools/build_review_pack.py tools/test_review_pack.py`, then
+`python tools/test_review_pack.py`. Its ten-minute timeout bounds infrastructure validation using temporary
+synthetic fixtures; no retained audio upload or full SPIKE pack generation is added. The Windows job below
+retains its existing configure/build/test pipeline.
+
 GitHub Actions 和其他已初始化 MSVC developer environment 的 Windows 机器使用：
 
     .\tools\bootstrap_dependencies.ps1

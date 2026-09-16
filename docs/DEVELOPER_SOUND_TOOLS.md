@@ -120,7 +120,10 @@ The initial export uses `schema=frazil.dev-experiment`, `schemaVersion=1`, and `
 draft handoff format, not the plugin state schema or a frozen Offline Sound Lab contract.
 
 The `SOUNDLAB-RP-001` implementation candidate assembles dry, optional baseline and candidate WAVs, a manifest,
-per-artifact analysis, waveform/Welch PSD/spectrogram plots and blank `LISTENING_REVIEW.md`. The concrete
+per-artifact analysis, waveform/Welch PSD/spectrogram plots and blank `LISTENING_REVIEW.md`. Its
+validator checks generated README consistency while retaining editable human notes; it separates integrity
+from numerical reanalysis gated on matching known clean analyzer source/runtime. Config remains opaque JSON.
+Synthetic infrastructure regressions run in the independent Hosted CI Python job. The concrete
 [v0 contract](SOUNDLAB_REVIEW_PACK.md) preserves raw audio and measures level differences; automatic loudness
 matching and render orchestration remain deferred. Its spec is separate from `frazil.dev-experiment`; no implicit
 Developer UI export-to-render adapter or completed end-to-end handoff is claimed. Objective measurements are

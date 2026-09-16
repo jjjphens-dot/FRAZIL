@@ -73,6 +73,16 @@ class ReviewPackTests(unittest.TestCase):
         shutil.copytree(self.reference, result)
         return result
 
+    def comparable_pack(self):
+        # Simulate a known clean source identity, independent of the developer's working tree.
+        root = self.copied_pack()
+        manifest = pack.read_json(root / "manifest.json")
+        source = {"sourceCommit": "765abcd", "sourceState": "clean"}
+        for key in ("generator", "analysis"):
+            manifest[key].update(source)
+        pack.write_json(root / "manifest.json", manifest)
+        return root, mock.patch.object(pack, "tool_source", return_value=source)
+
     def tamper(self, change):
         root = self.copied_pack()
         manifest = pack.read_json(root / "manifest.json")
@@ -170,7 +180,112 @@ class ReviewPackTests(unittest.TestCase):
         root = self.copied_pack()
         with (root / "LISTENING_REVIEW.md").open("a", encoding="utf-8") as stream:
             stream.write("\nHuman notes: review pending.\n")
+        before = (root / "LISTENING_REVIEW.md").read_bytes()
         self.assertEqual(pack.validate_pack(root), self.manifest)
+        self.assertEqual((root / "LISTENING_REVIEW.md").read_bytes(), before)
+
+    def test_generated_readme_tampering_is_detected_without_overwrite(self):
+        root = self.copied_pack()
+        readme = root / "README.md"
+        content = readme.read_text(encoding="utf-8").replace("6.020600", "+8.3")
+        self.assertNotEqual(content, pack.render_readme(self.manifest))
+        readme.write_text(content, encoding="utf-8")
+        before = readme.read_bytes()
+        with self.assertRaisesRegex(pack.PackError, "README summary mismatch"):
+            pack.validate_pack(root)
+        self.assertEqual(readme.read_bytes(), before)
+
+    def test_generic_config_keys_are_opaque_and_metadata_order_is_stable(self):
+        spec = copy.deepcopy(self.spec)
+        config = {"rank": 4, "nested": [{key: 1 for key in pack.FORBIDDEN_DECISION_KEYS}]}
+        spec["candidates"][0]["config"] = config
+        spec["experiment"]["metadata"] = {"z-context": "first", "a-context": "second", "rank": 4}
+        spec["baseline"] = {key: value for key, value in spec["candidates"][0].items() if key != "id"}
+        manifest = self.build(spec)
+        self.assertEqual(manifest["candidates"][0]["config"], config)
+        self.assertEqual(manifest["baseline"]["config"], config)
+        self.assertEqual(pack.validate_pack(self.case / "pack"), manifest)
+
+    def test_config_rejects_non_json_and_nonfinite_data(self):
+        for value in ({1, 2}, object(), float("inf"), float("nan"), {1: "non-text key"}):
+            with self.subTest(value=value), self.assertRaises(pack.PackError):
+                spec = copy.deepcopy(self.spec)
+                spec["candidates"][0]["config"] = {"rank": value}
+                pack.validate_spec(spec)
+
+    def test_matching_environment_reanalyzes_every_audio(self):
+        root, source = self.comparable_pack()
+        report = {}
+        with source, mock.patch.object(pack, "normalized_analysis", wraps=pack.normalized_analysis) as analyzer:
+            pack.validate_pack(root, report=report)
+        self.assertEqual(analyzer.call_count, 2)
+        self.assertEqual(report, {"integrity": "PASS", "reanalysis": "PASS", "reasons": []})
+
+    def test_each_dependency_mismatch_skips_only_numerical_reanalysis(self):
+        root, source = self.comparable_pack()
+        original = pack.read_json(root / "manifest.json")
+        with source, mock.patch.object(pack, "normalized_analysis", side_effect=AssertionError("must skip")):
+            for name in original["analysis"]["runtime"]:
+                with self.subTest(dependency=name):
+                    manifest = copy.deepcopy(original)
+                    manifest["analysis"]["runtime"][name] = "historical-version"
+                    pack.write_json(root / "manifest.json", manifest)
+                    report = {}
+                    pack.validate_pack(root, report=report)
+                    self.assertEqual(report["integrity"], "PASS")
+                    self.assertEqual(report["reanalysis"], "NOT COMPARABLE")
+                    self.assertEqual(report["reasons"], [f"runtime.{name}"])
+
+    def test_source_mismatch_dirty_and_unknown_are_not_comparable(self):
+        root, _ = self.comparable_pack()
+        for source in ({"sourceCommit": "999abcd", "sourceState": "clean"},
+                       {"sourceCommit": "765abcd", "sourceState": "dirty"},
+                       {"sourceCommit": None, "sourceState": "unknown"}):
+            with self.subTest(source=source), mock.patch.object(pack, "tool_source", return_value=source), \
+                    mock.patch.object(pack, "normalized_analysis", side_effect=AssertionError("must skip")):
+                report = {}
+                pack.validate_pack(root, report=report)
+                self.assertEqual(report["integrity"], "PASS")
+                self.assertEqual(report["reanalysis"], "NOT COMPARABLE")
+
+    def test_mismatch_still_checks_analysis_shape_and_comparison_semantics(self):
+        root = self.copied_pack()
+        manifest = pack.read_json(root / "manifest.json")
+        manifest["analysis"]["runtime"]["numpy"] = "historical-version"
+        pack.write_json(root / "manifest.json", manifest)
+        path = root / "analysis/double.json"
+        original = pack.read_json(path)
+        # A historical numerical difference is not a corruption finding in another environment.
+        changed = copy.deepcopy(original)
+        changed["fftPeakMagnitude"] += 0.1
+        pack.write_json(path, changed)
+        pack.validate_pack(root)
+        for change in (lambda a: a.pop("rms"), lambda a: a.update(rms=True),
+                       lambda a: a.update(finite=False), lambda a: a.update(path="../outside.wav"),
+                       lambda a: a.update(rms=123.0)):
+            with self.subTest(change=change):
+                changed = copy.deepcopy(original)
+                change(changed)
+                pack.write_json(path, changed)
+                with self.assertRaises(pack.PackError):
+                    pack.validate_pack(root)
+        pack.write_json(path, original)
+        sf.write(root / "audio/02-double.wav", self.samples, 8000, subtype="FLOAT")
+        with self.assertRaisesRegex(pack.PackError, "digest mismatch"):
+            pack.validate_pack(root)
+
+    def test_cli_discloses_environment_mismatch_as_successful_integrity(self):
+        root = self.copied_pack()
+        manifest = pack.read_json(root / "manifest.json")
+        manifest["analysis"]["runtime"]["scipy"] = "historical-version"
+        pack.write_json(root / "manifest.json", manifest)
+        result = subprocess.run([sys.executable, str(ROOT / "tools/build_review_pack.py"), "--validate", str(root)],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Integrity validation PASS", result.stdout)
+        self.assertIn("Numerical reanalysis NOT COMPARABLE", result.stdout)
+        self.assertIn("REANALYSIS_ENVIRONMENT_MISMATCH", result.stdout)
+        self.assertNotIn("FAILED", result.stderr)
 
     def test_missing_required_spec_fields(self):
         for field in ("input", "candidates", "provenance", "experiment"):
@@ -223,9 +338,9 @@ class ReviewPackTests(unittest.TestCase):
         spec = copy.deepcopy(self.spec)
         spec["unknown"] = 1
         self.rejected_spec(spec)
-        for field in pack.FORBIDDEN_KEYS:
+        for field in pack.FORBIDDEN_DECISION_KEYS:
             spec = copy.deepcopy(self.spec)
-            spec["experiment"]["metadata"] = {field: 1}
+            spec["experiment"]["metadata"] = {"context": [{field: 1}]}
             self.rejected_spec(spec)
 
     def test_missing_and_unreadable_files(self):
@@ -333,14 +448,14 @@ class ReviewPackTests(unittest.TestCase):
             pack.validate_pack(root)
 
     def test_analysis_and_comparison_joint_tampering_is_rejected(self):
-        root = self.copied_pack()
+        root, source = self.comparable_pack()
         analysis = pack.read_json(root / "analysis/double.json")
         analysis["rms"] = 123.0
         pack.write_json(root / "analysis/double.json", analysis)
         manifest = pack.read_json(root / "manifest.json")
         manifest["comparisons"][0] = pack.level_comparison("double", "dry", 123., manifest["comparisons"][0]["referenceRms"])
         pack.write_json(root / "manifest.json", manifest)
-        with self.assertRaisesRegex(pack.PackError, "analysis.rms"):
+        with source, self.assertRaisesRegex(pack.PackError, "analysis.rms"):
             pack.validate_pack(root)
 
     def test_invalid_comparison_state(self):

@@ -5,6 +5,10 @@ Status: **implementation/self-review complete locally; independent review and wo
 Base: `origin/main` at `c7e68ce`; the recorded validation ran on uncommitted builder/tests/docs changes.
 Pack manifests disclose builder/analyzer `sourceState=dirty`. No clean-source or Hosted CI result is claimed.
 
+The sections below through "Final Validation and remaining acceptance" are the historical initial validation
+snapshot delivered as `8159d35`. Subsequent findings/results are recorded in
+[Review remediation](#review-remediation-of-8159d35); the historical CI and validation semantics are not current claims.
+
 ## Contract Review and phased implementation
 
 [RP-v0](../SOUNDLAB_REVIEW_PACK.md) defines the CLI, JSON boundaries, equal dimensions, raw copies,
@@ -157,3 +161,68 @@ Full revised-brief integration requires Sound-owned Resonant and shared macro cl
 accepted instance remains a prerequisite for subjective EXP-W-002 execution. At validation time, no issue/PR
 was created or closed and no push/merge was performed. Subsequent branch publication does not imply independent
 approval or workflow acceptance. The original worktree's unrelated changes remain untouched.
+
+## Review remediation of 8159d35
+
+Date: 2026-09-16. Work item: [Issue #33](https://github.com/jjjphens-dot/FRAZIL/issues/33).
+The user-supplied REQUEST_CHANGES review is addressed on the same branch. This is engineering self-review,
+not formal independent approval or Sound & Host acceptance.
+
+### Contract Review and Implementation
+
+- Integrity validation remains mandatory. Numerical reanalysis compares analyzer commit, meaningful source
+  state, Python, NumPy, SciPy, soundfile and matplotlib versions. Strict equivalence requires matching versions
+  and known clean source; mismatched/dirty/unknown source reports NOT COMPARABLE separately from integrity PASS.
+  Stored analysis shape, finite data, audio identity and RMS comparison semantics remain validated in either case.
+- JSON validity and decision policy are separate: candidate/baseline config keys are opaque; prohibited automatic
+  decision names are checked recursively only in experiment metadata. `rank` is not globally prohibited.
+- Pure `render_readme(manifest)` supplies generation and validation. Metadata ordering is deterministic across
+  serialization. Human-edited LISTENING_REVIEW is never regenerated or overwritten by validation.
+- The independent `Review-Pack Python` Hosted CI job installs existing requirements, compiles the tools and runs
+  synthetic regressions with a ten-minute timeout. No error suppression, pack upload or extra DSP/Host jobs added.
+- Issue #33 records scope, DRIs, inputs/outputs, handoff and review gates. SHA length policy (7..40 lowercase hex),
+  schema, raw audio, RMS states, existing analyzer and EXP-W-001 ownership are unchanged.
+
+### Functional Validation
+
+On the Windows/Python environment recorded above, `python tools/test_review_pack.py` ran **42 tests in 16.393s:
+41 PASS, 1 SKIP**. Real symlink creation still requires unavailable Windows privilege; the simulated guard passes.
+New/updated regressions cover each recorded runtime version mismatch, source mismatch/dirty/unknown, matching
+clean-source reanalysis (two real analyzer calls), jointly tampered analysis/comparisons, mismatched-environment
+structural/comparison/audio corruption, generic nested config, nested decision metadata, generated README tampering,
+stable metadata ordering, unchanged human notes and CLI success/disclosure. Clean identities in focused environment
+tests are explicitly simulated fixtures; they are not claims about the dirty local development checkout.
+
+### Code Quality Review
+
+Self-review checked separate responsibilities, naming, scope, ownership, global state, coupling and error paths.
+The new helpers separate JSON data from decision policy, stored-analysis validation from numerical reproduction,
+and pure summary rendering from file writing. No new dependency/framework/global mutable state was added.
+No source/authentication guarantee is inferred from version comparison. Clean source is required because equal
+dirty flags cannot prove equal analyzer content. Recorded numeric values cannot be independently reproduced when
+environments differ; coordinated numeric/summary rewriting remains outside that integrity claim. No audio-thread
+path is affected; realtime/performance/parameter/state/routing/ADR impacts are N/A.
+
+### Comment & Documentation Pass
+
+Updated RP-v0 contract, this evidence, TESTING, Developer Sound Tools, Module Index, Project Status, tools README,
+Environment and Coding Plan's Issue link. Public validation/report semantics, generated versus editable file ownership,
+and the new CI entry agree across code and documentation. New pure rendering and environment/shape checks serve the
+specific review findings; they do not duplicate the analyzer or introduce a second CLI.
+
+Reviewed without further edits: experiments README and EXP-W-001 engineering companion (generic assembly, four
+layers, E1–E4, draft status and existing observations remain accurate); repository README (links to Environment and
+retains correct Windows setup); GITHUB_WORKFLOW (existing executable-tooling/CI validation policy already covers this
+job); requirements-dsp (reused unchanged); DOCUMENT_GOVERNANCE and CODE_STANDARDS (existing rules followed).
+Architecture, parameter/state contracts and ADR-W-001 decisions are unaffected; no Sound-owned brief changed.
+Documentation Synchronization Gate covers the affected tool interface, CI/testing and capability facts; no milestone,
+support level or perceptual acceptance claim is advanced.
+
+### Final Validation and remaining gates
+
+`python -m py_compile tools/build_review_pack.py tools/test_review_pack.py`,
+`python tools/check_markdown_links.py`, `python tools/check_portability.py` and `git diff --check` PASS.
+Hosted CI will be verified on the linked remediation PR; this local record does not predeclare its result.
+No additional local C++ build/CTest, full SPIKE pack generation, benchmark, pluginval/DAW or listening was run for
+remediation. Existing Windows CI is retained and will supply its own configure/build/CTest evidence. Independent
+engineering and Sound & Host workflow review remain pending; no merge or perceptual acceptance is authorized here.

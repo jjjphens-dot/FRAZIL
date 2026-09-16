@@ -2,7 +2,8 @@
 
 Status: implementation contract candidate; independent review and workflow acceptance pending.
 This defines the v0 CLI/data boundary for the current implementation, not a production state schema or
-perceptual acceptance protocol. Work item: `SOUNDLAB-RP-001` (separate from EXP-W-001 / #17).
+perceptual acceptance protocol. Work item: [SOUNDLAB-RP-001 / #33](https://github.com/jjjphens-dot/FRAZIL/issues/33)
+(separate from EXP-W-001 / #17).
 Implementation DRI: Engineering Lead. Acceptance: Engineering correctness review plus Sound & Host Lead
 workflow review; sound decisions remain human-owned. No new Joint Gate or DSP adoption is introduced.
 
@@ -77,8 +78,11 @@ equals dry, declare that in its label/config rather than implying two independen
 - Optional `experiment.metadata` is a JSON object carrying questions/clauses/evidence rationale as data.
   It is copied into the manifest and shown as context; it does not activate an algorithm or decision rule.
 - Reject unknown structural fields, duplicate JSON keys, nonfinite numbers, wrong types and missing required
-  fields. Free-form config/metadata remain JSON data; reject `waterScore`, `fluidityScore`, `qualityScore`,
-  `winner`, `rank`, `bestCandidate`, `automaticDecision`, `automaticAccept`, `automaticReject` keys anywhere.
+  fields. Candidate/baseline `config` is opaque engineering JSON: field names, including `rank`, are not
+  interpreted. Only `experiment.metadata` recursively rejects `waterScore`, `fluidityScore`, `qualityScore`,
+  `winner`, `bestCandidate`, `automaticDecision`, `automaticAccept`, `automaticReject` (case-insensitive).
+  `rank` is not globally forbidden. The fixed manifest/comparison schema has no automatic ranking/result field;
+  preserving caller config does not generate or endorse a perceptual decision.
 - Audio must be readable WAV, nonempty, finite, with at least two frames for the existing analyzer. All paths
   must have identical sample rate, channel count and frame count. No implicit trim, padding, resample or mix.
   Finite decoded audio whose analysis overflows is rejected rather than serialized as NaN/Infinity.
@@ -122,7 +126,10 @@ Manifest `schema=frazil.review-pack`, `schemaVersion=1` includes:
 All generated artifact references are pack-relative POSIX paths, with no source-machine paths. Analysis JSON's
 `path` is normalized to the staged audio reference. Caller config/metadata are preserved verbatim JSON data;
 do not place secrets or personal paths in metadata intended for distribution. IDs determine filenames; labels
-are display text, escaped for Markdown. Human review is editable and is never read as an automatic decision.
+are display text, escaped for Markdown. `README.md` is a machine-owned generated summary; validation compares
+its text with pure `render_readme(manifest)` output (universal newline reading permits LF/CRLF). Metadata keys
+are sorted for stable rendering after JSON serialization. `LISTENING_REVIEW.md` remains human-editable and is
+checked only for safe path, presence and nonempty text; validation never rewrites either file or consumes a decision.
 
 SHA-256 is restricted to staged audio integrity, explicitly required by this work item. No source/dependency/
 build-tree hashing. Validation checks declared audio digests, decoded metadata/finite samples and analysis;
@@ -165,16 +172,40 @@ level observation, not LUFS, automatic normalization or proof of matched percept
 Standalone `--validate` rejects `.incomplete`, unknown schema/version, invalid/duplicate IDs, incomplete
 provenance/config/seed, unsafe/noncanonical paths or symlinked pack artifacts, unreadable/nonfinite or altered
 audio, dimension/metadata mismatch, inconsistent analysis/comparisons, missing/empty plots and missing review
-files. Recompute analysis via the existing analyzer; numeric values use tight roundoff tolerance. Plot checks
-verify nonempty PNG signature, not the correctness of image content. Both generation and validation stay offline.
+files or a generated README summary mismatch. Stored analysis always requires the analyzer's JSON shape,
+finite numbers, decoded-audio identity and valid RMS data; comparisons are recomputed from stored RMS values.
+Plot checks verify nonempty PNG signature, not the correctness of image content. Both generation and validation stay offline.
 Only the builder's internal final check may examine its marked partial pack before publishing completion.
+
+Integrity validation and numerical reanalysis are separate results. Compare recorded analyzer sourceCommit
+and sourceState plus Python, NumPy, SciPy, soundfile and matplotlib versions with the current environment.
+Strict numerical reanalysis through the existing analyzer runs only when the commits and versions match and
+both source states are `clean`; numbers retain `rel_tol=1e-10`, `abs_tol=0`. Dirty or unknown source cannot
+establish equivalence, even if the flags match. A mismatch does not itself fail integrity validation:
+
+```text
+Integrity validation PASS
+Numerical reanalysis NOT COMPARABLE: REANALYSIS_ENVIRONMENT_MISMATCH: <differing fields>
+```
+
+Exit 0 means required integrity checks passed; numerical `PASS` or `NOT COMPARABLE` is disclosed separately.
+When comparable, numerical disagreement still fails validation with exit 2. The optional Python API `report`
+dictionary receives `integrity`, `reanalysis` and mismatch `reasons` after success; the returned manifest is
+unchanged. No report is inserted into historical artifacts. Runtime versions and source state are bounded
+comparability evidence, not an authenticity guarantee or proof of identical hardware/native-library builds.
+In a different environment, coordinated changes to stored numerical values and their summaries cannot be
+detected by reanalysis; integrity PASS must not be described as numerical reproduction. Audio integrity,
+decoded metadata, analysis structure, RMS comparison semantics and generated summary consistency remain required.
 
 ## Validation and acceptance boundary
 
 `tools/test_review_pack.py` covers dry+candidate, optional baseline, multiple candidates, zero RMS, real
 analysis/plots, portable manifests, deterministic contents, byte-preserving copies, malformed spec/config,
 missing/unreadable/nonfinite audio, dimensions, output conflicts, failure injection and corrupted artifacts.
-Tests use temporary generated signals; they do not score sounds or require JUCE/DAW.
+Tests use temporary generated signals; they do not score sounds or require JUCE/DAW. The independent
+`Review-Pack Python` job in [FRAZIL CI](../.github/workflows/ci.yml) installs `requirements-dsp.txt`, compiles
+the two Python tools and runs this suite with a ten-minute job timeout. Existing Windows CI remains unchanged;
+the new job produces no retained pack/WAV upload and does not run the full SPIKE corpus.
 
 The infrastructure smoke may package unchanged SPIKE dry/ABD/C renders with precise source/config/seed
 attribution. It proves pack assembly, never Fluid/Resonant acceptance. The [Engineering Handoff](../experiments/water/EXP-W-001_ENGINEERING_HANDOFF.md)

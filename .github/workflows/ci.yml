@@ -10,6 +10,30 @@ permissions:
   contents: read
 
 jobs:
+  review-pack-python:
+    name: Review-Pack Python
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-dsp.txt
+
+      - name: Install DSP Python dependencies
+        run: python -m pip install -r requirements-dsp.txt
+
+      - name: Compile Review-Pack Python tools
+        run: python -m py_compile tools/build_review_pack.py tools/test_review_pack.py
+
+      - name: Test Review-Pack infrastructure
+        run: python tools/test_review_pack.py
+
   windows-debug:
     name: Windows Debug / CMake / CTest
     runs-on: windows-latest

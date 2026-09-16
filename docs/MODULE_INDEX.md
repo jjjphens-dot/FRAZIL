@@ -27,7 +27,7 @@
 
 | Tool | Path / interface | Responsibility / dependencies | Evidence / status |
 |---|---|---|---|
-| Review-Pack v0 | `tools/build_review_pack.py --spec ... --output ...` / `--validate ...`; [data contract](SOUNDLAB_REVIEW_PACK.md) | `SOUNDLAB-RP-001` from Coding Plan; offline assembly/validation of existing audio, manifest, analyzer/plots, level context and blank human review; reuses `analyze_testdata.py` and `requirements-dsp.txt`; no production/audio-thread dependency | `tools/test_review_pack.py`; [local evidence](evidence/SOUNDLAB-RP-001_VALIDATION.md); implementation candidate, independent/workflow review pending; no DSP/Host/perceptual adoption |
+| Review-Pack v0 | `tools/build_review_pack.py --spec ... --output ...` / `--validate ...`; [data contract](SOUNDLAB_REVIEW_PACK.md) | `SOUNDLAB-RP-001` from Coding Plan; offline assembly/integrity validation, environment-gated numerical reanalysis, generated summary and editable human review; reuses `analyze_testdata.py` and `requirements-dsp.txt`; no production/audio-thread dependency | `tools/test_review_pack.py` and Hosted CI `Review-Pack Python`; [validation evidence](evidence/SOUNDLAB-RP-001_VALIDATION.md); implementation candidate, independent/workflow review pending; no DSP/Host/perceptual adoption |
 
 ## Registration and update rules
 

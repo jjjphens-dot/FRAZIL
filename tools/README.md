@@ -73,8 +73,11 @@ Audio integrity hashes are limited to the staged pack audio required by this int
 algorithms, normalize, score or accept sounds. Equal rate/channel/frame dimensions are required; spec audio
 paths resolve relative to the spec file. Use fresh ignored output directories; failed assembly retains an
 `.incomplete` marker and cannot validate as complete. Existing outputs and human notes are never overwritten.
-The Python regression suite is standalone, requires the existing DSP analysis environment, and is not yet a
-CTest/Hosted CI job. Actual local checks and the historical-SPIKE infrastructure smoke are recorded in
+Validation always checks integrity and the machine-owned README; strict numerical reanalysis requires matching
+known clean analyzer source and runtime versions. Otherwise it reports `NOT COMPARABLE` separately from integrity
+PASS. `LISTENING_REVIEW.md` remains editable. Config keys are opaque; decision-key policy applies only to experiment
+metadata. The Python suite runs standalone and in the `Review-Pack Python` Hosted CI job using
+`requirements-dsp.txt`, independently of CTest. Actual checks and the historical-SPIKE infrastructure smoke are recorded in
 [SOUNDLAB-RP-001 validation](../docs/evidence/SOUNDLAB-RP-001_VALIDATION.md).
 
 Offline render smoke:

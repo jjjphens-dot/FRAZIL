@@ -374,8 +374,11 @@ Sound & Host Lead. Current validation and limitations are recorded in the
 assembly, unchanged audio copies, per-render config/seed/provenance, staged-audio integrity, existing analyzer
 JSON/plots, RMS zero/finite states, blank independent human reviews and standalone pack validation.
 [Contract and usage](SOUNDLAB_REVIEW_PACK.md); [phase validation and limitations](evidence/SOUNDLAB-RP-001_VALIDATION.md).
-Independent review and Sound & Host workflow acceptance remain pending. No Hosted CI or C++
-build result is implied. The candidate reuses historical SPIKE artifacts for infrastructure smoke; it neither
+Tracked by [Issue #33](https://github.com/jjjphens-dot/FRAZIL/issues/33). Review remediation separates integrity
+from environment-gated reanalysis, permits opaque engineering config, checks generated README consistency and
+wires synthetic regressions into the independent `Review-Pack Python` CI job. Independent review and
+Sound & Host workflow acceptance remain pending; actual validation/CI results are recorded in the evidence
+document above. The candidate reuses historical SPIKE artifacts for infrastructure smoke; it neither
 changes the SPIKE sound nor accepts Water/Fluid/Resonant, EXP-W-001, EXP-W-002 or an algorithm ADR.
 
 The [EXP-W-001 engineering companion](../experiments/water/EXP-W-001_ENGINEERING_HANDOFF.md) supplies clause

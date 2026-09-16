@@ -25,8 +25,8 @@ SCHEMA_VERSION = 1
 BUILDER_VERSION = "0.1"
 PROXY_NOTICE = "Proxy only. Not perceptual truth."
 PLOT_NAMES = ("waveform.png", "welch_psd.png", "spectrogram.png")
-FORBIDDEN_KEYS = frozenset({
-    "waterscore", "fluidityscore", "qualityscore", "winner", "rank", "bestcandidate",
+FORBIDDEN_DECISION_KEYS = frozenset({
+    "waterscore", "fluidityscore", "qualityscore", "winner", "bestcandidate",
     "automaticdecision", "automaticaccept", "automaticreject",
 })
 AUDIO_FIELDS = frozenset({
@@ -74,11 +74,10 @@ def integer(value: object, low: int, high: int, context: str) -> int:
 
 
 def json_values(value: object, context: str = "JSON") -> None:
-    """Reject non-standard numbers and decision fields even in free-form metadata/config."""
+    """Validate JSON data without interpreting opaque engineering config field names."""
     if isinstance(value, dict):
         for key, child in value.items():
             require(isinstance(key, str), f"{context}: object key must be text")
-            require(key.lower() not in FORBIDDEN_KEYS, f"{context}: prohibited field {key}")
             json_values(child, f"{context}.{key}")
     elif isinstance(value, list):
         for child in value:
@@ -87,6 +86,17 @@ def json_values(value: object, context: str = "JSON") -> None:
         require(math.isfinite(value), f"{context}: non-finite number")
     else:
         require(value is None or type(value) in (str, int, bool), f"{context}: not JSON data")
+
+
+def decision_metadata(value: object) -> None:
+    """Disallow automatic perceptual decisions only in experiment metadata, including nested data."""
+    if isinstance(value, dict):
+        for key, child in value.items():
+            require(key.lower() not in FORBIDDEN_DECISION_KEYS, f"experiment.metadata: prohibited field {key}")
+            decision_metadata(child)
+    elif isinstance(value, list):
+        for child in value:
+            decision_metadata(child)
 
 
 def read_json(path: Path) -> dict:
@@ -133,6 +143,7 @@ def render_identity(value: dict, context: str) -> None:
 
 
 def validate_spec(spec: dict) -> None:
+    json_values(spec)
     object_fields(spec, {"schema", "schemaVersion", "experiment", "provenance", "input", "candidates"},
                   {"baseline"}, "spec")
     require(spec["schema"] == SPEC_SCHEMA and type(spec["schemaVersion"]) is int
@@ -142,6 +153,7 @@ def validate_spec(spec: dict) -> None:
     nonempty(experiment["purpose"], "experiment.purpose")
     if "metadata" in experiment:
         require(isinstance(experiment["metadata"], dict), "experiment.metadata must be an object")
+        decision_metadata(experiment["metadata"])
     provenance(spec["provenance"], "provenance")
     source = object_fields(spec["input"], {"id", "file"}, set(), "input")
     identifier(source["id"], "input.id")
@@ -163,7 +175,6 @@ def validate_spec(spec: dict) -> None:
         nonempty(item["label"], "baseline.label")
         nonempty(item["file"], "baseline.file")
         render_identity(item, "baseline")
-    json_values(spec)
 
 
 def dependencies() -> dict:
@@ -330,8 +341,8 @@ def markdown_text(value: str) -> str:
     return "".join(escape + char if char in special else char for char in value)
 
 
-def write_review_files(root: Path, manifest: dict) -> None:
-    """Generate objective context and empty independent human records, without conclusions."""
+def render_context(manifest: dict) -> str:
+    """Render shared objective context; caller data never becomes a listening decision."""
     experiment = manifest["experiment"]
     heading = f"Experiment: {markdown_text(experiment['id'])}\n\n{markdown_text(experiment['purpose'])}\n"
     heading += (f"\nInput: {markdown_text(manifest['input']['id'])}\n\n"
@@ -358,14 +369,23 @@ def write_review_files(root: Path, manifest: dict) -> None:
     if "metadata" in experiment:
         context += "\n## Supplied experiment context (data, not a decision)\n\n"
         context += "\n".join("    " + line for line in json.dumps(
-            experiment["metadata"], indent=2, ensure_ascii=False, allow_nan=False).splitlines()) + "\n"
+            experiment["metadata"], indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False).splitlines()) + "\n"
+    return context
+
+
+def render_readme(manifest: dict) -> str:
+    """Pure rendering of the machine-owned summary for generation and integrity validation."""
     plot_links = "\n".join(f"- [{entry['id']} / {Path(path).name}]({path})"
-                           for entry in entries for path in entry["plots"])
-    readme = ("# Offline Review Pack\n\n" + context + "\n## Plots\n\n" + plot_links
+                           for entry in audio_entries(manifest) for path in entry["plots"])
+    return ("# Offline Review Pack\n\n" + render_context(manifest) + "\n## Plots\n\n" + plot_links
               + "\n\nHuman review: [LISTENING_REVIEW.md](LISTENING_REVIEW.md).\n"
               "Assembly completion does not establish sound quality or approved perception.\n"
               "Validate with `python tools/build_review_pack.py --validate <pack-directory>` from the tool repository.\n")
-    review = ("# Listening Review\n\n" + context + "\n## Review preparation\n\n"
+
+
+def write_review_files(root: Path, manifest: dict) -> None:
+    """Initialize a fresh pack's summary and human record; validation never invokes this writer."""
+    review = ("# Listening Review\n\n" + render_context(manifest) + "\n## Review preparation\n\n"
               "Contract clauses / accepted revision: ______\n\n"
               "Listening material / license evidence: ______\n\n"
               "Listening environment / monitoring level: ______\n\n"
@@ -384,7 +404,7 @@ def write_review_files(root: Path, manifest: dict) -> None:
                        "Decision (human ACCEPT / REVISE / REJECT): ______\n\n"
                        "Rationale / evidence limitations: ______\n")
     review += "\n## Joint Decision\n\nDecision: ______\n\nRationale: ______\n\nFollow-up: ______\n"
-    (root / "README.md").write_text(readme, encoding="utf-8")
+    (root / "README.md").write_text(render_readme(manifest), encoding="utf-8")
     (root / "LISTENING_REVIEW.md").write_text(review, encoding="utf-8")
 
 
@@ -480,14 +500,54 @@ def validate_manifest_shape(manifest: dict) -> None:
     validate_tool_identity(manifest)
 
 
-def validate_pack(root: Path, *, _allow_incomplete: bool = False) -> dict:
-    """Verify a self-contained pack, including decoded audio, regenerated analysis and level semantics."""
+def reanalysis_mismatches(recorded: dict, runtime: dict, source: dict) -> list[str]:
+    """Gate numerical equivalence on recorded identity, never infer clean source from dirty/unknown."""
+    reasons = [f"runtime.{key}" for key in runtime if recorded["runtime"][key] != runtime[key]]
+    if recorded["sourceCommit"] != source["sourceCommit"]:
+        reasons.append("analyzer.sourceCommit")
+    # Equal dirty flags cannot establish that the uncommitted analyzer contents are equal.
+    if recorded["sourceState"] != "clean" or source["sourceState"] != "clean":
+        reasons.append("analyzer.sourceState (clean source required)")
+    if recorded["sourceCommit"] is None or source["sourceCommit"] is None:
+        reasons.append("analyzer.sourceCommit (unknown)")
+    return reasons
+
+
+def validate_analysis(analysis: dict, entry: dict) -> None:
+    """Validate stored analysis shape and audio identity independently of numerical reanalysis."""
+    measurements = {"peak", "rms", "dc", "crestFactor", "stereoCorrelation", "fftPeakFrequencyHz",
+                    "fftPeakMagnitude", "welchPsdPeakFrequencyHz", "welchPsdPeakDensity"}
+    metadata = {"path": entry["file"], **{key: entry[key] for key in (
+        "sampleRate", "channels", "frames", "durationSeconds")}, "finite": True}
+    context = entry["id"] + " analysis"
+    object_fields(analysis, metadata.keys() | measurements | {"spectrogram"}, set(), context)
+    equivalent({key: analysis[key] for key in metadata}, metadata, context)
+    for key in measurements:
+        value = analysis[key]
+        if key == "stereoCorrelation" and entry["channels"] == 1:
+            require(value is None, f"{context}.{key}: mono requires null")
+            continue
+        require(type(value) in (int, float) and math.isfinite(value), f"{context}.{key}: expected finite number")
+        if key not in ("dc", "stereoCorrelation"):
+            require(value >= 0, f"{context}.{key}: expected nonnegative number")
+    spectrum = object_fields(analysis["spectrogram"], {"frequencyBins", "timeBins", "frequencyMaxHz"},
+                             set(), context + ".spectrogram")
+    for key in ("frequencyBins", "timeBins"):
+        integer(spectrum[key], 1, 2**63 - 1, context + ".spectrogram." + key)
+    value = spectrum["frequencyMaxHz"]
+    require(type(value) in (int, float) and math.isfinite(value) and 0 <= value <= entry["sampleRate"] / 2,
+            f"{context}.spectrogram.frequencyMaxHz: invalid frequency")
+
+
+def validate_pack(root: Path, *, report: dict | None = None, _allow_incomplete: bool = False) -> dict:
+    """Require artifact integrity; separately report numerical PASS or NOT COMPARABLE with reasons."""
     require(root.is_dir() and not root.is_symlink(), "Pack must be a regular directory")
     marker = root / ".incomplete"
     require(_allow_incomplete or not (marker.exists() or marker.is_symlink()), "Pack is marked incomplete")
     manifest = read_json(pack_file(root, "manifest.json"))
     validate_manifest_shape(manifest)
-    dependencies()
+    runtime = dependencies()
+    mismatches = reanalysis_mismatches(manifest["analysis"], runtime, tool_source())
     entries = audio_entries(manifest)
     positions = [0] + ([1] if manifest["baseline"] is not None else []) + list(range(2, 2 + len(manifest["candidates"])))
     analyses = {}
@@ -505,7 +565,9 @@ def validate_pack(root: Path, *, _allow_incomplete: bool = False) -> dict:
         for dimension in ("sampleRate", "channels", "frames"):
             require(entry[dimension] == manifest["dry"][dimension], f"{key}: incompatible {dimension}")
         analysis = read_json(pack_file(root, entry["analysisFile"]))
-        equivalent(analysis, normalized_analysis(root, entry), key + " analysis")
+        validate_analysis(analysis, entry)
+        if not mismatches:
+            equivalent(analysis, normalized_analysis(root, entry), key + " analysis")
         analyses[key] = analysis
         for plot in entry["plots"]:
             with pack_file(root, plot).open("rb") as stream:
@@ -516,10 +578,14 @@ def validate_pack(root: Path, *, _allow_incomplete: bool = False) -> dict:
     equivalent(manifest["artifacts"], artifact_index(manifest), "artifact index")
     for filename in ("README.md", "LISTENING_REVIEW.md"):
         require(bool(pack_file(root, filename).read_text(encoding="utf-8").strip()), f"Empty {filename}")
+    require(pack_file(root, "README.md").read_text(encoding="utf-8") == render_readme(manifest),
+            "Generated README summary mismatch")
+    if report is not None:
+        report.update(integrity="PASS", reanalysis="NOT COMPARABLE" if mismatches else "PASS", reasons=mismatches)
     return manifest
 
 
-def build_pack(spec_path: Path, output: Path) -> dict:
+def build_pack(spec_path: Path, output: Path, *, report: dict | None = None) -> dict:
     """Publish completion only after every required artifact passes validation."""
     manifest = stage_pack(spec_path, output)
     analyze_entries(output, manifest)
@@ -528,7 +594,7 @@ def build_pack(spec_path: Path, output: Path) -> dict:
     manifest["artifacts"] = artifact_index(manifest)
     write_review_files(output, manifest)
     write_json(output / "manifest.json", manifest)
-    validate_pack(output, _allow_incomplete=True)
+    validate_pack(output, report=report, _allow_incomplete=True)
     (output / ".incomplete").unlink()
     return manifest
 
@@ -542,14 +608,18 @@ def main() -> int:
     args = parser.parse_args()
     if (args.spec is not None) != (args.output is not None):
         parser.error("--output is required with --spec and forbidden with --validate")
+    report = {}
     try:
-        manifest = build_pack(args.spec, args.output) if args.spec else validate_pack(args.validate)
+        manifest = (build_pack(args.spec, args.output, report=report) if args.spec
+                    else validate_pack(args.validate, report=report))
     except Exception as error:
         print(f"Review pack FAILED: {error}", file=sys.stderr)
         if args.output is not None and (args.output / ".incomplete").is_file():
             print("Partial output remains marked .incomplete; retry with a fresh output directory.", file=sys.stderr)
         return 2
-    print(f"Review pack complete: {len(manifest['candidates'])} candidate(s). {PROXY_NOTICE}")
+    print(f"Integrity validation {report['integrity']}: {len(manifest['candidates'])} candidate(s). {PROXY_NOTICE}")
+    print(f"Numerical reanalysis {report['reanalysis']}"
+          + (": REANALYSIS_ENVIRONMENT_MISMATCH: " + ", ".join(report["reasons"]) if report["reasons"] else ""))
     return 0
 
 
