@@ -1,6 +1,7 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
-Research-only A/B/D/C mechanisms; Debug/Release/ASAN 16/16 each, 138 smoke renders and 80 corpus renders PASS.
+Research-only A/B/D/C mechanisms; local Debug/Release/ASAN 16/16 each, 138 core + 4 supplemental smoke renders
+and 80 corpus renders PASS. Exact-head Hosted CI is separately recorded in PR #30.
 No production WaterProcessor or perceptual acceptance. Source and limitations: [REVALIDATION.md](REVALIDATION.md).
 
 ## Scope and execution state
@@ -116,6 +117,17 @@ must be finite mono/stereo within full scale. Existing outputs are refused; fail
 not valid evidence and may leave a partial new file. Use a new ignored output directory each run.
 Offline diagnostics report A/B event counts, first event frames (-1 for none), and events on exactly
 zero source frames. They do not alter DSP state, output or the separate timed callback benchmark.
+
+The single `review_smoke.py` command runs 138 core renders and four supplemental controls.
+`observations.json` retains the 32 core signal/mode records. `supplemental_controls.json` records
+A/B high/low gate event counts derived from a canonical-input prefix, and dry-versus-Flow-D RMS
+differences and dominant frequencies. Gate boundaries come from TESTDATA-001's manifest; the
+prefix preserves initial detector/RNG history and matches the corresponding full-render samples.
+Two dry HF/sweep baselines use the same three-second appended silence as processed/residual runs.
+Existing analyzer PSD/spectrogram plots support inspection of coloration/ripple, without automatic
+alias attribution or subjective audibility claims. All derived inputs and outputs stay ignored.
+Hosted CI runs repository policy/tool checks, TESTDATA-001 verification and research-enabled
+configure/build/CTest; Water smoke, 80-render corpus and research timing are local evidence.
 
 The corpus script reuses all ten TESTDATA-001 fixtures and the existing analyzer: 80 processed
 renders, default-config tail checks, finite metrics and A/B/D ablation error checks. It does not

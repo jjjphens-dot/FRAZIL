@@ -5,13 +5,19 @@ Engineering feasibility only. No perceptual acceptance, formal EXP-W-002 closure
 
 ## Source, provenance and environment
 
-- Repaired executable/config/test/analysis source: `6b3b8f8e590acfc1164fe8dfe7f6d10108a8f041`.
+- Repaired executable/config/C++ test source: `6b3b8f8e590acfc1164fe8dfe7f6d10108a8f041`.
+- Supplemental smoke automation source: `f9a0e6ce69452b21d4ff23cb739f187a6f94e562`.
+  The rerun used identical Python contents immediately before that commit. It changes only
+  `analysis/review_smoke.py`; the final follow-up commit changes README/REVALIDATION Markdown only.
 - Reviewed predecessor: `646a8bc9cfe951333ef2a4ca02a88dc3a6622761`; main base: `3438593`.
 - Debug/Release builds initially compiled the identical source contents before the repaired-source
-  commit; ASAN and all subsequent smoke/corpus/timing ran with that committed source. The final
-  evidence commit changes Markdown only. The final submitted branch HEAD and exact-head Hosted CI
-  run are recorded in the associated PR body, avoiding a self-referential commit ID in this file.
-  Reviewers can verify `git diff 6b3b8f8..HEAD -- experiments ':!*.md'` has no executable differences.
+  commit; ASAN and the original smoke/corpus/timing ran at that committed source. The final smoke
+  rerun uses its unchanged Release renderer with the updated Python automation identified above.
+  Final submitted HEAD and exact-head Hosted CI are recorded in the associated PR body, avoiding
+  a self-referential commit ID in this file.
+  Reviewers can verify `git diff 6b3b8f8..HEAD -- experiments ':!*.md' ':!*/analysis/review_smoke.py'`
+  has no compiled-executable/config differences. Local three-preset, 80-render corpus and timing
+  evidence below remains attached to that unchanged DSP source; it was not rerun for Python-only work.
 - Windows 11 10.0.22631; Intel Core i9-14900HX; MSVC 19.43.34808; pinned JUCE 9.0.1;
   CMake 4.3.2; Python 3.12.4. No reference DAW: standalone offline/benchmark programs.
 - Local safety wrapper unchanged, six jobs, one configure/build/test pipeline at a time.
@@ -77,18 +83,25 @@ Additional checks: research C++ `clang-format --dry-run --Werror`, Python `py_co
 `python tools/check_portability.py`, `python tools/check_markdown_links.py`, and `git diff --check`
 PASS. Production `src/`, existing production tests, Host registry and state have no changes.
 
-Hosted CI: **pending at evidence-writing time**. The associated final PR records the actual final
-HEAD and completed run URL/result; do not infer Hosted CI success from these local results.
+Hosted CI is a separate evidence class: repository portability/policy/tool checks, TESTDATA-001
+verification, research-enabled configure/safe build and Windows Debug CTest. It does **not** run
+the local Release/ASAN presets, Water smoke, 80-render Water corpus or research timing.
+The prior exact-head [run 35062526836](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35062526836)
+passed 16/16 CTest on `daea4cb`; that is historical CI, not final-head validation for this change.
+PR #30 records the actual final HEAD and its completed Hosted run URL/result. No CI workflow changed.
 
 ## Typical-signal smoke
 
 ```powershell
 $renderer = 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe'
-python experiments/water/SPIKE-W-DSP-001/analysis/review_smoke.py --renderer $renderer --output build/water-review-smoke-6b3b8f8
+python experiments/water/SPIKE-W-DSP-001/analysis/review_smoke.py --renderer $renderer --output build/water-review-smoke-final-controls
 ```
 
 **32 signal/mode cases; 138 renders PASS**: each case has processed blocks 7/128/1024 and residual
 block 128, plus ten entirely-unexcited-channel probes derived from the canonical stereo fixture.
+The final automation rerun adds **four supplemental controls, 142 total PASS** using the unchanged
+Release renderer from `6b3b8f8`. Its complete 32-record `observations.json` exactly matches the
+prior `build/water-review-smoke-6b3b8f8/observations.json`; the table below remains applicable.
 Defaults, seed 42, 48 kHz, three appended seconds of silence. Decoded samples match exactly across
 partitions. Max carrier error `2.9802322387695312e-08`; max final-100-ms residual peak `3.15009e-15`.
 Every output is finite; no Bubble/Droplet event was scheduled on any exactly zero source frame.
@@ -158,12 +171,29 @@ plots show low-level ripple/sideband-like content and frequency-dependent colora
 spectrogram scales are not calibrated alias rejection measurements. No interpolation upgrade,
 compensation, drift or new excitation was introduced.
 
-Two appended-silence baseline controls (HF/sweep) and two first-gate prefix probes were generated
-separately in `build/water-review-spectrum-controls-6b3b8f8/`. Reproduce the baseline with the
-renderer `baseline 128 42 - 3`; reuse `analyze_audio`/`write_plots` from `tools/analyze_testdata.py`.
-For the prefix, copy the canonical gated sine's first 33600 frames at 48 kHz to an ignored PCM24
-file, then render A/B with `128 42 - 3`. This retains initial detector/RNG history and isolates the
-first gate; full-minus-prefix gives the second-section A count. No new analyzer is introduced.
+The same smoke command now generates two appended-silence baselines (HF/sweep) and two first-gate
+prefix probes automatically. It reads the canonical manifest's high gate end (33600 frames at
+48 kHz), copies from frame zero to retain detector/RNG history, and checks prefix PCM24 identity
+and processed-prefix equality with the full render. It verifies silence outside the two gates and
+zero-source event counts before subtracting prefix events from full events. Results: A high/low
+**25/5**, B **1/0**. Counts are observations, not perceptual thresholds.
+
+`build/water-review-smoke-final-controls/supplemental_controls.json` stores the counts, defaults,
+seed 42, block 128, three-second tail, baseline metrics, Flow processed/residual metrics and plot
+paths. Comparable dry/Flow durations and rates, PCM24 carrier tolerance and zero dry tail are checked.
+Using the existing `analyze_audio`/`write_plots`, full-render Flow-minus-dry RMS is **-0.696507 dB**
+for HF and **-0.835653 dB** for the sweep. HF dry and Flow FFT peaks both remain **10560 Hz**;
+their Welch maxima are both **10558.59375 Hz**. A single global sweep peak is not trajectory proof;
+the spectrogram supplies that inspection. All 18 dry/processed/residual comparison PNGs exist.
+Visual review reproduces F-D-01: HF PSD ripple and faint sweep off-main-track features. Automatic
+plot scales do not establish calibrated alias rejection or audibility. No new analyzer or DSP was added.
+The earlier manual controls remain historical in `build/water-review-spectrum-controls-6b3b8f8/`;
+manual WAV construction is no longer needed for these observations.
+
+Final automation validation: `python -m py_compile experiments/water/SPIKE-W-DSP-001/analysis/review_smoke.py`,
+the smoke command above, JSON/result/plot consistency checks, `python tools/check_portability.py`,
+`python tools/check_markdown_links.py` and `git diff --check` PASS. No new local C++ build, full-corpus
+or timing run was needed: DSP, renderer, configs, C++ tests and build/CI wiring did not change.
 
 ## Full corpus
 
@@ -253,6 +283,18 @@ Consistency: plan/framework/Agent rules all distinguish objective spike from acc
 EXP-W-002; module index/README/CMake/source agree on paths and isolation; TESTING matches current
 results; PROJECT_STATUS makes no production/M2/listening claim. No obsolete executable path remains.
 All necessary synchronization is in this single PR. Human review remains pending, not self-approved.
+
+Final supplemental-control follow-up uses a targeted Documentation Impact Check: only the smoke
+script, its README and this evidence report change. Code Quality Review checked the separate offline
+helper, reuse of the existing analyzer, manifest-derived bounds, prefix history, comparable durations,
+generated-file isolation and unchanged core assertions. Comment & Documentation Pass explains those
+invariants and separates local versus Hosted evidence. TESTING, bounded implementation plan,
+MODULE_INDEX, PROJECT_STATUS, Coding Plan and Perceptual Contract were reviewed without further
+edits: testing contracts, module/status claims and accepted-brief lifecycle remain accurate. Production
+contracts/ADRs and historical EVIDENCE.md are unchanged. Commands, counts, paths and provenance agree.
+PR #30 requests `jjjphens-dot` to independently review objective scope, disclosed risks, reproducibility,
+absence of production adoption and the accepted EXP-W-001 prerequisite for future EXP-W-002.
+The live request/decision status belongs in the PR; self-validation is not independent acceptance.
 
 ## Unexecuted / deferred acceptance
 
