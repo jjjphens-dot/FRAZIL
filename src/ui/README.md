@@ -44,10 +44,10 @@ history 或 Peak Hold。Release 不编译这些呈现源文件，并保留静态
 该 candidate 的人工可用性验收仍待完成，不创建生产参数依赖。
 
 若 M2 candidate controls 经 Water ADR、state compatibility 和 parameter freeze 正式采纳，planned Water
-主区保持 Enable、Mode（Fluid/Resonant）、Size 与 Motion 的固定层级；切换 mode 不替换完整 panel，
-Size/Motion 在两模式保持同一位置和高层语义。bubble radius、Q、modal count、event probability、Flow
+主区保持 Enable、Mode（Fluid/Resonant）、Size、Motion 与 Decay 的固定层级；切换 mode 不替换完整 panel，
+Size/Motion/Decay 在两模式保持同一位置和高层语义。bubble radius、Q、modal count、event probability、Flow
 delay depth 和 PRNG seed 等 engineering controls 不属于 first-pass main UI。以上均为 planned behavior，
-当前占位 editor 未实现。
+当前 Production UI 未实现；Developer surface 目前仅有 Model/Size/Motion，Decay 为单独的 planned 扩展。
 
 Size 的 compact display direction 候选为 `Fine <-> Deep`，tooltip/help 可解释 small/bright 到
 large/deep 的 material-scale 含义；最终 label 仍待 UX/listening review。Fluid/Resonant 的简短描述应帮助

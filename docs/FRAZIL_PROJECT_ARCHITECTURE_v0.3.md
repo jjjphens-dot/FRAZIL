@@ -310,13 +310,14 @@ OutputGain
 WaterModel
 WaterSize
 WaterMotion
+WaterDecay
 IceCharacter
 IceFracture
 ...
 ```
 
-Water 的当前 M2 candidate vocabulary 已收敛为 `water.model`、`water.size` 和
-`water.motion`；它们在实验、Water ADR、state compatibility 和 `PARAM-FREEZE-001` 完成前
+Water 的当前 M2 candidate vocabulary 已收敛为 `water.model`、`water.size`、
+`water.motion`、`water.decay`；它们在实验、Water ADR、state compatibility 和 `PARAM-FREEZE-001` 完成前
 仍不是当前九参数 Host registry。上面的通用示例不构成已注册或冻结参数清单。
 
 ### 引擎参数（Engine Parameters）
@@ -398,8 +399,8 @@ WaterProcessor
 
 为了 Parallel / Serial 两种 UI 逻辑承担额外职责。
 
-Water 的产品 macro 必须使用清晰、可验证的感知语义。当前候选是 `water.size` 与
-`water.motion`；不得用模糊的 `character`/`intensity` 偷偷同时控制 scale、activity、gain 和
+Water 的产品 macro 必须使用清晰、可验证的感知语义。当前候选是 `water.size`、
+`water.motion`、`water.decay`；不得用模糊的 `character`/`intensity` 偷偷同时控制 scale、activity、persistence、gain 和
 Serial stage mix。任何未来内部强度概念也不能与 `water.amount` 的 stage Dry/Wet 语义混为一谈。
 
 Water 不新增独立 public Dry/Wet。`water.amount`、`parallel.balance` 和 `global.mix` 继续分别拥有
@@ -431,7 +432,7 @@ residual-oriented。若 Resonant 输出已经包含 direct feedthrough，不得�
 `x + resonatorOutput`，以免重复 carrier、抬升增益或产生 comb/filter artifact。最终 residual extraction、
 resonator topology 和 mode transition 由 Water experiment 与 Proposed Water ADR 决定。
 
-`water.size` 与 `water.motion` 是跨两模式稳定的产品语义，详细 bubble radius、modal frequency、event
+`water.size`、`water.motion` 与 `water.decay` 是跨两模式一致的候选产品语义，详细 bubble radius、modal frequency、event
 density、micro-delay、drift 等属于 ParameterMapper 后的 engine quantities。WaterProcessor 不拥有
 Parallel/Serial routing、stage amount 或 Global Mix；Host/global routing responsibility 保持不变。
 
@@ -815,6 +816,7 @@ struct WaterParameters
     WaterModel model {};
     float size {};
     float motion {};
+    float decay {};
 };
 
 class WaterProcessor
@@ -829,7 +831,8 @@ public:
 };
 ```
 
-以上类型只表达 planned engine interface shape，不是当前源码、Host registry 或 state schema。
+以上类型只表达 planned production shape / candidate contract，不是当前源码、Host registry 或 state schema；
+零初始化语法不冻结产品默认值。Decay 修订见 [DOC-W-DECAY-001](planning/WATER_DECAY_CANDIDATE_REVISION.md)。
 ParameterMapper 负责把 normalized product controls 映射到 mode-specific engine quantities；
 WaterProcessor 不读取 APVTS，也不拥有 `water.amount`、`parallel.balance`、`global.mix` 或 RoutingMode。
 
@@ -844,7 +847,7 @@ WaterProcessor
     Flow Modulator
   Resonant
     Liquid/Modal Resonator
-  shared Size/Motion product semantics
+  shared Size/Motion/Decay product semantics
   bounded mode transition
 ```
 
@@ -1283,6 +1286,19 @@ ParameterMapper 负责：
 - 默认值；
 - 必要的非线性映射。
 
+Water 候选分责：Model = what behavior、Size = how large、Motion = how active、Decay = response persistence。
+推荐小型 value types：`WaterProductValues { model, size, motion, decay }` -> `WaterMacroMapper` 或等价
+显式映射 -> `FluidTargets` / `ResonantTargets` -> DSP components；这是后续实验方向，不创建新 production path。
+Mapper 应为 deterministic、allocation-free、unit-testable pure C++，不依赖 JUCE/APVTS/UI 或 DSP state。
+底层仅消费工程 quantity（如 bubble/droplet/modal decay seconds），不认识 `water.decay` 产品 ID。
+Motion 不直接控制 lifetime targets；Decay 不直接控制 event/trajectory-rate targets；允许可测、有界的
+overlap/tail/energy 交互。Flow 默认没有直接 Decay destination。最终 target type 和 mapping 由实验决定，
+不为四个 macro 建立 generic DSP graph、继承体系或 runtime parameter framework。
+
+Water 持续响应输入，输入停止后已有 state 自然消散；不增加 whole-effect Duration、trigger/retrigger、
+hold/release/restart 或 effect envelope。Decay 的动态 state policy 尚未选定；当前 prepare-time SPIKE
+不授权在 callback 中重新 prepare、分配或阻塞。
+
 ParameterMapper 不负责：
 
 - buffer；
@@ -1320,12 +1336,13 @@ output.gain
 water.model
 water.size
 water.motion
+water.decay
 
 ice.character
 ice.fracture
 ```
 
-Water 三项是 M2 candidate product controls，不是当前注册表；采用前必须完成 Water ADR、范围/default/
+Water 四项是 M2 candidate product controls，不是当前注册表；采用前必须完成 Water ADR、范围/default/
 choice ordering、mapping、smoothing/transition、automation、state evolution/compatibility 和测试证据。
 
 一旦进入公开版本并被 DAW automation / preset / session 使用，应把这些 ID 视为稳定 API。
@@ -1663,14 +1680,16 @@ WATER
   Mode: Fluid / Resonant
   Size: Fine / Small / Bright -> Large / Deep
   Motion: Calm / Stable -> Active / Flowing
+  Decay: Short / Tight -> Long / Lingering
 ```
 
-Mode 切换不替换完整 Water panel；Size 和 Motion 在两模式中位置不变、高层含义不变。compact display
+Mode 切换不替换完整 Water panel；Size、Motion 和 Decay 在两模式中位置不变、高层含义不变。compact display
 direction 可候选为 `Fine <-> Deep`，但 exact label 仍待 UX/listening review。tooltip 可以说明
 Fluid Size 映射 small/bright -> large/deep bubble population，Resonant Size 映射 small/bright ->
 large/deep resonant body，Motion 表示 temporal activity/fluid movement 而不是 Amount 或 loudness。
 主界面不暴露 bubble radius、Q、modal count、droplet probability、Flow delay depth 或 PRNG seed 等
-engineering controls。当前占位 UI 不实现上述控件。
+engineering controls。Production UI 尚未实现；Developer UI 的现有三控件和 planned Decay 扩展
+见 `DEVELOPER_SOUND_TOOLS.md`，不能冒充正式 Host controls。
 
 ---
 
@@ -1879,7 +1898,8 @@ Header 应：
 
 # 11. 开发阶段
 
-当前执行顺序以 [`CODING_PLAN.md`](CODING_PLAN.md) 为准：M1 late-stage closure 期间并行推进
+阶段依赖以 [`CODING_PLAN.md`](CODING_PLAN.md) 为准，当前完成状态以 `PROJECT_STATUS.md` 为准：
+M1 late-stage closure 期间允许并行推进
 `HOST-001`、`DEV-UI-001` 和 `EXP-W-001`，随后 Water-first；Ice 的以下长期 M3 architecture 保留，但当前
 DEFERRED。只有完成 M2 Exit，并通过 Explicit Joint Gate/controlled planning decision 确认 Water workflow
 可复用于 Ice 后，才恢复 M3。该阶段排序不改变 Water/Ice 模块边界或已接受的 Host/state/routing contract。
@@ -1973,7 +1993,7 @@ plugin works
 - [ ] WaterProcessor 生命周期
 - [ ] Fluid A+B+D 与 Resonant C 的实验、验证和 production cores
 - [ ] Water enable
-- [ ] candidate Water Mode / Size / Motion 的 mapping、automation 与 state compatibility
+- [ ] candidate Water Model / Size / Motion / Decay 的 mapping、automation 与 state compatibility
 - [ ] Fluid / Resonant click-free mode transition
 - [ ] parameter smoothing
 - [ ] click-free bypass

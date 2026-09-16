@@ -185,7 +185,7 @@ Objective measurement 只能作为 proxy，不得写成 perceptual truth，也�
 listening decision。
 
 Developer/Experiment control 不等于 production Host parameter。`water.model`、`water.size`、
-`water.motion` 在正式 evidence、Joint Gate、Water ADR 与 state/compatibility review 前，不得因 Developer UI
+`water.motion`、`water.decay` 在正式 evidence、Joint Gate、Water ADR 与 state/compatibility review 前，不得因 Developer UI
 需要而进入 `ParameterLayout` 或 state schema。Developer Control Surface 不得被当作 Production UI，也不得
 替代 `HOST-001` 或 deterministic Offline Sound Lab evidence。完整边界见
 [`docs/DEVELOPER_SOUND_TOOLS.md`](docs/DEVELOPER_SOUND_TOOLS.md)。

@@ -40,6 +40,7 @@ contract，不是当前九参数生产 registry、`ParameterLayout`、`schemaVer
 | `water.model` | M2 candidate；离散 choice，working order `Fluid`, `Resonant` | 选择两种有意区分的 Water material behavior；不是“real/fake”或质量档位 | 两模式选择器 | 若正式采用，需静态注册、确定 choice order、block snapshot、click-free bounded transition、rapid automation 与最终值测试 | Water ADR、transition/state ownership、range/default/choice freeze、save/restore 和 compatibility fixtures |
 | `water.size` | M2 candidate；normalized continuous product macro | `Fine / Small / Bright <-> Large / Deep`；回答“Water material 的尺度是什么”，不表示 loudness、Amount、density 或 energy | 两模式共享同一高层语义 | 连续 Host automation；sample-aware smoothing；映射在合适处保持单调、可感知一致 | 两模式 mapping、范围/default、非线性曲线、listening/property evidence 和 state evolution review |
 | `water.motion` | M2 candidate；normalized continuous product macro | `Calm / Stable <-> Active / Flowing`；回答“Water material 的时间活动度是什么” | 两模式共享语义；Resonant 的变化应刻意比 Fluid 更 subtle | 连续 Host automation；sample-aware smoothing；快速 automation 不得 click/zipper，能量变化须有界 | mode-specific mapping、loudness/energy strategy、范围/default、listening/property evidence 和 state evolution review |
+| `water.decay` | M2 candidate；experiment-only normalized `[0, 1]`，未注册、未冻结 | Water response persistence；`Short / Tight <-> Long / Lingering`；回答“一次输入激发的响应持续多久” | Fluid Bubble/Droplet response；Resonant modal response；Flow 默认无直接 destination | 若正式采用，需确定 live damping / event-latched policy、existing-state behavior、smoothing 和快速 automation 安全性 | EXP-W-001..003、Joint Gate、ADR-W-001、mode-specific curves、tail/overlap evidence 和 parameter/state compatibility |
 
 这些 candidate 的完整责任链必须在 M2 evidence 中逐项闭环：
 
@@ -59,11 +60,38 @@ user perceptual intention
 - `water.size`：Fluid 主要映射 bubble radius/population scale -> resonance-frequency distribution；
   Resonant 映射 modal/root frequency scale -> coherent mode-family scaling。较大尺度通常对应较低
   resonance scale，较小尺度对应较高 resonance scale。Size 不映射 overall amount、general loudness、
-  event density 或 Motion speed；最终频率范围和曲线必须由实验决定。
-- `water.motion`：Fluid 可协调映射 bubble/droplet event activity、Flow micro-delay depth/rate 和
-  bounded stochastic variation；Resonant 只允许更轻微的 modal-frequency drift、excitation
-  distribution 或 decay/excitation movement。预期方向是 Motion 越高，时间活动与流动感越强，
-  但不得主要变成 loudness、Amount 或任意 random depth；补偿策略必须基于测量，不能预先编造固定 dB。
+  event density、Motion speed 或 response lifetime；最终频率范围和曲线必须由实验决定。
+- `water.motion`：temporal activity。Fluid 可映射 bubble/droplet event activity/scheduling、Flow movement /
+  trajectory rate 和 bounded stochastic variation；Resonant 可映射 subtle modal drift、excitation-distribution
+  movement 和 bounded temporal variation。Motion mapper 不直接控制 bubble/droplet/modal decay targets，
+  不得主要变成 loudness、Amount 或任意 random depth；补偿策略由测量决定。
+- `water.decay`：response persistence intention -> normalized candidate -> mode-specific mapper -> bounded
+  bubble/droplet response-decay 或 modal-damping quantities -> audible persistence -> smoothing / existing-state
+  policy -> experiment/listening/property/state evidence。较高 Decay 指向更长响应；Resonant 对应较弱 damping，
+  较低值对应较强 damping。Decay mapper 不直接控制 event-rate / trajectory-rate targets；Flow 默认无直接
+  Decay destination，不为覆盖全部组件而创造 Flow decay。Droplet 的 `refractorySeconds` 是当前 SPIKE 的
+  scheduling quantity，不冻结为 Motion mapping；后续实验比较 sensitivity/probability/scheduling/refractory。
+
+本候选修订由 [DOC-W-DECAY-001 / #32](https://github.com/jjjphens-dot/FRAZIL/issues/32) 跟踪，
+review/merge 前不替代已批准 baseline。四个问题分别是 Model = what behavior、Size = how large、
+Motion = how active、Decay = how persistent。职责遵守
+**responsibility orthogonality + perceptual separability + bounded interaction**，不承诺所有声学结果严格正交。
+High Motion + Long Decay 可以自然增加 overlap、
+active voices、tail energy、apparent density 和 voice stealing；这些必须有界、可测并经音乐可用性 review。
+
+Decay 的 `[0, 1]` 只是实验归一化表达，不冻结 Host range、unit、default 或 curve。Bubble、Droplet、Modal
+分别研究 logarithmic/exponential/其他单调 perceptual curves；同一 normalized 值不意味着相同秒数。
+低端不用 `Dry`，以免与 Amount/global mix 混淆。Decay 不是 gain、Amount、mix/balance、event rate、
+Motion/Flow speed、generic reverb wetness/size、source-envelope release 或 Foley playback length。
+Water 保持 continuous input-driven transformation；输入停止后已有响应/延迟 state 自然消散，不增加
+Water Duration、Effect Duration、Run Time、Hold Time 或 whole-effect trigger/retrigger/hold/release/restart。
+
+现有 SPIKE 的 prepare-time `decaySeconds` 不证明 realtime-automatable `water.decay`。EXP-W-002 比较
+live damping（已有响应平滑采用新 damping）与 event-latched decay（新事件捕获值、旧事件保留值），记录
+latched automation memory/lag；允许跨模式采用不同策略，但不在此预选。audio callback 不得因旋钮变化
+调用完整 `prepare()`、分配、阻塞或重建不安全 state。正式采用仍须 EXP-W-001 accepted -> EXP-W-002/003
+evidence -> Joint Gate -> ADR-W-001 Accepted -> parameter/state compatibility -> WATER-003/007；
+`PARAM-FREEZE-001` 仍在 M2/M3 Exit 后。
 
 `water.size` 的 compact UI display direction 候选为 `Fine <-> Deep`；tooltip/help 可以解释
 small/bright 到 large/deep 的 material-scale 含义。最终 label、数值范围、默认值和曲线仍由
@@ -81,11 +109,12 @@ UX/listening/property evidence 决定，当前 candidate contract 不冻结这�
 ### 1.2 Developer/Experiment controls are not Host parameters
 
 `DEV-UI-001` may operate the nine current Host parameters through the existing narrow parameter interface. During
-Water experiments it may also display Developer/Experiment controls named Water Model, Water Size and Water Motion
-before their possible Host adoption. In that state:
+Water experiments it may also display Developer/Experiment controls named Water Model, Water Size, Water Motion
+and the planned Water Decay extension before their possible Host adoption. Current source only implements the
+first three experiment controls; Decay UI/export is a separate follow-up. In that state:
 
 - a developer control is not evidence of Host parameter adoption;
-- `water.model`, `water.size` and `water.motion` must not be added to `ParameterLayout` or `schemaVersion=1`;
+- `water.model`, `water.size`, `water.motion` and `water.decay` must not be added to `ParameterLayout` or `schemaVersion=1`;
 - no stable ID/order/range/default/automation/state compatibility promise is created;
 - export to an experiment config is a Sound Lab handoff, not a plugin state/preset format;
 - only evidence, Joint Gate, the applicable Water ADR and explicit state/compatibility work may promote a control
@@ -225,8 +254,8 @@ edit history: 永不序列化
 
 Current schemaVersion=1 contains the nine canonical STATE-001 Host parameters.
 This is the current schema contract, not a declaration that FRAZIL v1.0 will always expose exactly nine Host parameters.
-This Water documentation revision does not change schemaVersion=1. Candidate `water.model`, `water.size` and
-`water.motion` must not be silently added as new required fields. Future Water/Ice macros adopted during M2/M3
+This Water documentation revision does not change schemaVersion=1. Candidate `water.model`, `water.size`,
+`water.motion`, `water.decay` must not be silently added as new required fields. Future Water/Ice macros adopted during M2/M3
 must not be silently added as new required fields to schemaVersion=1.
 Adding a new persistent Host parameter requires explicit state compatibility review, migration/default fixtures and an
 agreed schema evolution strategy before registry/state changes are merged. This guard does not create schemaVersion=2.

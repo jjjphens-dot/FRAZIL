@@ -40,7 +40,7 @@ M1 `DSP-002`/`DSP-004`/`DSP-005` 已建立 `DryWetMixer`、sample-rate-aware `Li
 
 M2 Water 当前规划为 dual-mode、input-driven、source-preserving material processor：Fluid 研究
 Bubble Ensemble + Droplet/Impact Exciter + Flow Modulator，Resonant 研究 Liquid/Modal Resonator；两者
-优先使用明确的 residual semantics。该方向仍无 production source，candidate Mode/Size/Motion 也未加入
+优先使用明确的 residual semantics。该方向仍无 production source，candidate Model/Size/Motion/Decay 也未加入
 Host registry 或 state。技术闭环见 Proposed [ADR-0006](../../docs/adr/0006-water-dual-mode-architecture.md)。
 
 ## State / Tail / Latency

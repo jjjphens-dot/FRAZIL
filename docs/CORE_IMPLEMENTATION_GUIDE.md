@@ -20,7 +20,7 @@
 如果本文与上述合同或 Accepted ADR 冲突，应停止扩大实现范围，记录冲突并通过 issue/ADR
 解决，不能让实现或本文说明自行覆盖合同。
 
-## 1. 已建立 foundation 与当前 M1 remaining areas
+## 1. 已建立 foundation 与阶段上下文
 
 本文不定义 milestone status 或 work-item dependency。Exact work-item dependencies and ordering
 are authoritative only in `CODING_PLAN.md`; this guide explains implementation context and must
@@ -54,18 +54,19 @@ processor-property evidence、PERF-BASE-001 manual baseline 和 ARCH-LAT-001 lat
 
 当前 wet path 仍为 post-input pass-through。
 
-### Current M1 remaining areas
+### M1 closeout evidence boundary
 
-当前仍需收口的区域仅包括：
+以下是 M1 closeout 的证据类别；完成事实见 `PROJECT_STATUS.md` 与
+[`M1 Joint Exit record`](evidence/M1_JOINT_EXIT.md)，不是当前未完成项：
 
-- remaining Host/DAW automation、state restore、save/reopen 和 current-artifact plugin validation；
+- Host/DAW automation、state restore、save/reopen 和 current-artifact plugin validation；
   AUTO-001 integration evidence 已存在，但不等于完整 Host acceptance；
 - HOST-001 DAW/Host evidence；
 - M1 Joint Exit Review。
 
 Water、Ice、Routing、`EditHistoryManager` 和 production UI 属于后续 milestone，不在此处重定义。
 
-以下图示只表达已建立 foundation 与当前 remaining areas 的上下文，不是新的 dependency authority：
+以下图示只表达已建立 foundation 与 closeout evidence 的上下文，不是新的 dependency authority：
 
 ```text
 Established foundation:
@@ -75,7 +76,7 @@ Established foundation:
   RENDER-001 pass-through smoke
   TEST-002 / PERF-BASE-001 / ARCH-LAT-001 evidence
 
-Current M1 remaining:
+M1 closeout evidence categories:
   current-artifact plugin validation
   HOST-001 DAW/Host evidence
   M1 Joint Exit Review
@@ -377,7 +378,8 @@ WaterProcessor
   Resonant mode
     Liquid/Modal Resonator
   shared Size mapping
-  shared Motion mapping
+  shared Motion mapping (temporal activity)
+  shared Decay mapping (response persistence)
   bounded mode transition
   explicit random/seed and energy semantics
 ```
@@ -523,11 +525,12 @@ y_k[n]=2r_k\cos(\omega_k)y_k[n-1]-r_k^2y_k[n-2]+b_kx[n]
 
 Size 应 coherent scaling modal/root-frequency family：large/deep 通常映射较低 resonance scale，small/bright
 映射较高 scale。Motion 在 Resonant 中刻意更 subtle，只可评估 slow bounded modal drift、mild excitation-
-distribution variation 或小幅 decay/excitation movement；不得强烈随机化所有 resonator parameters。
+distribution movement；不直接控制 modal decay，不得强烈随机化所有 resonator parameters。
+Decay 才负责 modal damping / response persistence：较高值对应较弱 damping / 更长 ringing。
 
-### 5.5 Size / Motion macro mapping
+### 5.5 Model / Size / Motion / Decay macro mapping
 
-候选 `water.model`、`water.size`、`water.motion` 不属于当前九参数 registry。每个正式 macro 必须形成：
+候选 `water.model`、`water.size`、`water.motion`、`water.decay` 不属于当前九参数 registry。每个正式 macro 必须形成：
 
 ```text
 user perceptual intention
@@ -544,7 +547,8 @@ user perceptual intention
 |---|---|---|---|
 | `water.model` | 选择 A+B+D residual | 选择 C residual | deterministic choice ordering；click-free transition；state/value retention；rapid automation；两模式可辨识 |
 | `water.size` | bubble radius/population scale -> resonance-frequency distribution；可在证据支持时轻微联动 physically related droplet scale | modal/root frequency -> coherent mode-family scaling | high-level scale meaning 跨模式一致；适用 mapping 单调；不映射 Amount、general loudness、event density 或 Motion speed |
-| `water.motion` | bubble/droplet activity、Flow depth/rate、bounded stochastic variation | subtle modal drift、excitation distribution 或小幅 decay/excitation movement | temporal activity 随 Motion 增强；不得主要成为 gain/Amount；energy/loudness strategy 由测量决定 |
+| `water.motion` | bubble/droplet activity/scheduling、Flow movement/trajectory rate、bounded stochastic variation | subtle modal drift、excitation-distribution movement | temporal activity；不直接控制 decay targets，不主要成为 gain/Amount |
+| `water.decay` | Bubble response decay、Droplet/Impact resonant-response decay；Flow 默认无直接 mapping | modal damping / response persistence | Short/Tight -> Long/Lingering；不直接控制 event-rate / trajectory-rate targets；existing-state policy、tail/overlap/energy 由实验决定 |
 
 频率、事件率或时间常数可实验指数映射：
 
@@ -554,7 +558,31 @@ f(m)=f_{min}\left(\frac{f_{max}}{f_{min}}\right)^m,
 \]
 
 这不是最终 range/default/curve。每个 destination 必须有与 perceptual semantic 直接相关的理由；禁止
-Size 偷偷变成 Motion、Motion 偷偷变成 Amount，或任一 macro 主要变成 Gain。
+Size 偷偷变成 Motion/response lifetime、Motion 偷偷变成 Decay/Amount，或任一 macro 主要变成 Gain。
+
+#### Decay mapping and dynamic state candidates
+
+职责依据 `PARAMETERS.md` 的 responsibility orthogonality + perceptual separability + bounded interaction；
+不要求所有声学结果严格独立。产品值 `[0, 1]` 分别映射 Bubble、Droplet、Modal 的候选 monotonic curves，
+不承诺相同值等于相同秒数，也不冻结 range/default/curve。底层只消费带单位的 engine quantities；mapping
+使用小型 pure-C++ value types、显式 deterministic allocation-free 转换，独立于 JUCE/APVTS/UI/DSP state。
+
+SPIKE 的 A/B/C `decaySeconds` 在 prepare 中建立系数/voice lifetime；D 是持续的 fractional-delay residual，
+有 `targetIntervalSeconds`/trajectory/depth，没有天然 event lifetime。不为覆盖所有组件创造 Flow decay。
+B 的 `refractorySeconds` 是当前 trigger gate 的实现量；后续 Motion 可比较 sensitivity、probability、
+scheduling 或 refractory behavior，不预选。SPIKE 的数值范围不成为产品 range。
+
+EXP-W-002 比较 live damping（已有响应平滑采用新 damping）与 event-latched decay（新事件捕获、旧事件
+保留，须记录 automation lag/memory）。可采用 Fluid latched / Resonant live 等混合策略，但本修订不选择。
+动态 coefficient update 必须 bounded、finite、stable、click-free；评估 coefficient/excitation normalization、
+voice lifetime/expiry、stealing、tail termination、energy buildup、fast automation 和最终值。旋钮更新不得在
+callback 调用完整 prepare、分配、阻塞或重建不安全 state。当前静态配置可行性不等于 realtime automation。
+
+对两模式分别做 Motion × Decay 四组合和固定另一个 macro 的 sweeps；测 explicit destinations 和
+activity/voices/overlap/steals/tail/peak/RMS/CPU/finite，按 `TESTING.md` 记录 N/A 和理由。相同 seed 下 Decay
+不无理由重定义 scheduling sequence、RNG domain/ownership。长 tail 自然增加能量不自动失败，不要求 RMS
+数学恒定；是否 compensation 由测量与 loudness-matched listening 决定，不能预填固定 dB。
+Water 保持 continuous input-driven transform，不增加 whole-effect duration/envelope。
 
 ### 5.6 Internal modulation 与用户 LFO 边界
 
@@ -605,8 +633,8 @@ progression、transition duration、CPU upper bound、rapid repeated automation�
   root frequency 对应 modeled object scale，较低频率对应较大 object，并把 dry/wet 与 internal resonator
   分开。
 - AAS Chromaphone 3 的官方手册在 Home view 使用少量 high-level macro controls 映射多项 synthesis
-  parameters，支持 FRAZIL 主界面只呈现 Mode/Size/Motion，而把 radius、Q、modal count、event probability、
-  delay depth 和 seed 留在 engine/experiment 层。
+  parameters，作为少量产品 macro 的一般 UX 参考。FRAZIL 的 Model/Size/Motion/Decay 候选及把 radius、Q、
+  modal count、event probability、delay depth 和 seed 留在 engine/experiment 层的选择是本项目推论。
 
 这些产品只提供成熟 effect 的 architecture/UX patterns，不能作为真实 water acoustics 的科学证据。
 
@@ -1136,7 +1164,7 @@ dead code、buffer invariant、finite output 和 realtime safety。
 | 阶段 | 主要完成证据 |
 |---|---|
 | M1-C | versioned state、migration/fallback、inactive retention、licensed testdata、deterministic render、property harness、performance baseline、Host evidence |
-| M2 Water | Fluid A+B+D / Resonant C 分组件与集成 evidence、loudness-matched 双模式对照、Water ADR、source recognizability、Size/Motion consistency、有限/可重复输出、click-free mode/enable、automation/state、performance、listening |
+| M2 Water | Fluid A+B+D / Resonant C 分组件与集成 evidence、loudness-matched 双模式对照、Water ADR、source recognizability、Size/Motion/Decay consistency、有限/可重复输出、click-free mode/enable、automation/state、performance、listening |
 | M3 Ice | 与 Water 同级证据，并证明 Water/Ice 可稳定区分，crack event 有硬上界 |
 | Parameter Freeze | 最终 ID/order/index/range/default/unit/smoothing/inactive/state fixtures 全部冻结 |
 | M4 Routing | ADR-R-001、完整 routing matrix、state/random/tail ownership、click-free transition、0 reported latency、性能增量 |

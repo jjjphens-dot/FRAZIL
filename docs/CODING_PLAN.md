@@ -1,8 +1,8 @@
 # FRAZIL 分阶段 Coding Plan
 
-> 版本：1.3<br>
-> 状态：Approved Development Baseline（v1.3；已完成 formal approval + merge，见 [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23)）<br>
-> 日期：2026-09-11
+> 版本：1.4 proposed（Water Decay candidate revision）<br>
+> 状态：Proposed controlled revision；v1.3 已批准 baseline 保留至本修订完成 review + merge<br>
+> 日期：2026-09-16
 > 输入：`FRAZIL_PROJECT_ARCHITECTURE_v0.3.md` + 当前源码/构建/远端审计  
 > 目标：把产品语义转化为可排序、可分工、可验收、可在 GitHub 追踪的工程工作。
 
@@ -10,9 +10,15 @@
 
 本计划是 CONTROLLED 工程合同。工作项、依赖、验收标准和 exit gate 的修改必须通过 issue/review，并同步受影响的架构、测试、参数或治理文档；本文件不记录实时 issue 状态，也不以状态文字替代验证证据。
 
-本 `CODING_PLAN.md` v1.3 已由 [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23) 完成 required
+本次 v1.4 proposed 修订由 [DOC-W-DECAY-001 / #32](https://github.com/jjjphens-dot/FRAZIL/issues/32)
+跟踪，仅分离 Water candidate Motion/Decay 语义和同步下游验收；不授权 UI/DSP/Host/state 实现，
+不改变 M1 Exit、Ice deferred 或 PARAM-FREEZE ordering。范围与检查见
+[revision record](planning/WATER_DECAY_CANDIDATE_REVISION.md)。
+
+此前 `CODING_PLAN.md` v1.3 已由 [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23) 完成 required
 formal approval 并合入 `main`，现为 FRAZIL 的 Approved Development Baseline；这不等于 FRAZIL plugin
-v1.0 release。插件当前仍处于 M1 阶段，本文的 Water 目标不表示 M2 已开始或实现。
+v1.0 release。实时 milestone 状态见 `PROJECT_STATUS.md` 和 M1 Joint Exit evidence；下文 M1
+closure/readiness 图表示阶段依赖，不表示 M1 仍未退出或 Water production 已实现。
 
 ## 1. 计划使用方式
 
@@ -80,7 +86,7 @@ M1 late-stage closure
   +-> HOST-001 real DAW / Host Evidence
   |          + Engineering Evidence -> M1 Joint Exit Review --------+
   |                                                                  |
-  +-> DEV-UI-001 Developer Control Surface (PLANNED -> usable) ------+
+  +-> DEV-UI-001 Developer Control Surface (implementation -> usability acceptance) ------+
   +-> Human Water Intent -> EXP-W-001 -> Accepted Water Contract instance -+
                                                                      v
                                                           Water M2 Readiness
@@ -148,7 +154,7 @@ Current Water listening side dependency:
        +--> EXP-W-003
 ```
 
-当前执行顺序采用 Water-first。M1 late-stage 同时推进 `HOST-001`、`DEV-UI-001` 和 `EXP-W-001`；
+阶段依赖采用 Water-first。M1 late-stage 允许同时推进 `HOST-001`、`DEV-UI-001` 和 `EXP-W-001`；
 其中只有 Engineering Evidence + Sound/Host Evidence 进入 M1 Joint Exit，`DEV-UI-001` 与 `EXP-W-001`
 不新增 M1 architecture-correctness exit 条件。三者与 M1 Joint Exit 共同形成有效进入 Water M2 的 readiness：
 `DEV-UI-001` 必须在大规模 `EXP-W-002` 声音探索前可用，`EXP-W-001` 必须先给出已验收的 Water Perceptual
@@ -419,9 +425,9 @@ listening decision。
 
 | ID | P | 工作 | 交付/验收 |
 |---|---:|---|---|
-| EXP-W-001 | P0 | Water dual-mode perceptual/product brief | 从 Human Water Intent 创建 `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`；定义 common Water identity、Fluid/Resonant 各自职责、Size/Motion 语义、input recognizability、positive/negative/preserve/reject 和 objective proxies；本 definition stage 不要求预先存在同一 contract |
-| EXP-W-002 | P0 | 分组件工程实验与集成 | 必须遵守 `docs/PERCEPTUAL_CONTRACT.md` framework，并消费已产出且验收的 Water instance `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`；提出 candidate 前确认其 positive/negative/preserve/reject 条件；使用 `TESTDATA-001` 分别测量 Bubble Ensemble、Droplet/Impact、Flow Modulator、Liquid/Modal Resonator 及集成；Fluid 要求 A/B/D ablation，C 作为 Resonant baseline/mode；固定 test seed；记录参数空间、finite/DC/peak/tail 和 CPU 初测，不把 diagnostic WAV 当作 musical acceptance |
-| EXP-W-003 | P0 | 双模式方向验证与 refinement | 必须继续遵守 Perceptual Contract framework 并消费已验收的 Water instance `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`，再使用 `LISTENING-001` 做 loudness-matched 双人 review；Fluid/Resonant 分别按各自 mode-specific responsibilities 验收，并定性确认二者均为 intentional Water models 而非 good/bad switch；不要求 perceptual-distance metric、classification threshold 或 mode-separation score；同时验证 Size/Motion 语义、input recognizability、musical usefulness、mapping 理由、风险与 tradeoff |
+| EXP-W-001 | P0 | Water dual-mode perceptual/product brief | 从 Human Water Intent 创建 `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`；定义 common Water identity、Fluid/Resonant 各自职责、Size/Motion/Decay 语义、input recognizability、positive/negative/preserve/reject 和 objective proxies；本 definition stage 不要求预先存在同一 contract |
+| EXP-W-002 | P0 | 分组件工程实验与集成 | 必须遵守 `docs/PERCEPTUAL_CONTRACT.md` framework，并消费已产出且验收的 Water instance `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`；提出 candidate 前确认其 positive/negative/preserve/reject 条件；使用 `TESTDATA-001` 分别测量 Bubble Ensemble、Droplet/Impact、Flow Modulator、Liquid/Modal Resonator 及集成；Fluid 要求 A/B/D ablation，C 作为 Resonant baseline/mode；固定 test seed；完成下述 Motion × Decay 2×2、dynamic Decay existing-state policy 比较及 tail/overlap evidence；记录参数空间、finite/DC/peak/tail 和 CPU 初测，不把 diagnostic WAV 当作 musical acceptance |
+| EXP-W-003 | P0 | 双模式方向验证与 refinement | 必须继续遵守 Perceptual Contract framework 并消费已验收的 Water instance `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`，再使用 `LISTENING-001` 做 loudness-matched 双人 review；Fluid/Resonant 分别按各自 mode-specific responsibilities 验收，并定性确认二者均为 intentional Water models 而非 good/bad switch；不要求 perceptual-distance metric、classification threshold 或 mode-separation score；同时验证 Size/Motion/Decay 语义、Motion/Decay perceptual separability、有界交互、input recognizability、musical usefulness、mapping 理由、风险与 tradeoff |
 | ADR-W-001 | P0 | Water 双模式算法 ADR | 在 Joint Gate 后记录 Fluid A+B+D、Resonant C、source-preserving/residual 语义、macro mapping、random、latency/tail、mode transition、state implications、performance 与 failure modes；证据不足时保持 Proposed，不得标记 Accepted |
 
 ### EXP-W-001 Water UX acceptance dimensions（planned）
@@ -429,18 +435,20 @@ listening decision。
 `EXP-W-001` 的 perceptual/product brief 必须明确记录以下 UX 维度；这些是计划验收标准，不表示 UI、
 Host 参数或用户测试已经实现：
 
-- **Semantic Predictability**：不解释内部 DSP 时，用户能否预测 Size 与 Motion 的听感方向；Size 向右或
-  提高应表示更大、更深的 material scale，Motion 向右或提高应表示更活跃、更流动的 temporal behavior；
-- **Cross-Mode Consistency**：Fluid 与 Resonant 的具体 mapping 可以不同，但切换模式后 Size/Motion 的
+- **Semantic Predictability**：不解释内部 DSP 时，用户能否预测 Size、Motion 与 Decay 的听感方向；Size 向右或
+  提高应表示更大、更深的 material scale，Motion 向右或提高表示更活跃、更流动的 temporal activity，
+  Decay 向右或提高表示更持久的 response persistence（Short/Tight <-> Long/Lingering，低端不用 Dry）；
+- **Cross-Mode Consistency**：Fluid 与 Resonant 的具体 mapping 可以不同，但切换模式后 Size/Motion/Decay 的
   高层感知方向必须保持一致；
-- **Orthogonality**：用户应能区分 Size、Motion、`water.amount`、`global.mix` 和
+- **Responsibility orthogonality + perceptual separability + bounded interaction**：用户应能区分 Size、Motion、Decay、`water.amount`、`global.mix` 和
   `parallel.balance`；Motion 不得主要表现为 Amount，Size 不得主要表现为 loudness，Water Mode 不得
-  表现为 quality switch；
+  表现为 quality switch。Motion 不直接控制 decay targets；Decay 不直接控制 activity targets；允许
+  tail/overlap/energy 的有界二阶交互，不要求所有声学结果完全独立；
 - **Discoverability**：Fluid 与 Resonant 应被理解为两种 Water behavior，而不是 real/fake、good/bad 或
   high/low quality；必要时规划简短描述或 tooltip；
-- **Interaction Cost**：常用 Water sound design 应能由 Enable、Mode、Size、Motion 的小型控制集完成，
+- **Interaction Cost**：常用 Water sound design 应能由 Enable、Mode、Size、Motion、Decay 的小型控制集完成，
   不强迫用户理解 bubble radius、resonator Q、delay depth 或 event probability；
-- **Automation Readability**：Host lane 中的 Water Model、Water Size、Water Motion 应保持产品概念可读性，
+- **Automation Readability**：Host lane 中的 Water Model、Water Size、Water Motion、Water Decay 应保持产品概念可读性，
   不要求用户理解内部工程参数。
 
 Size 的 compact UI display direction 候选为 `Fine <-> Deep`，帮助文字可解释其 small/bright 到
@@ -451,16 +459,41 @@ large/deep 的 material-scale 含义；最终 label 仍由 UX/listening review �
 映射为有界、轻量的 synthesis primitives；具体算法、数值范围和非线性 mapping 仍由实验与
 `ADR-W-001` 决定。
 
+### Motion × Decay experiment requirements（planned）
+
+`EXP-W-001` 增加独立 Decay perceptual dimension：提高时输入激发的 response/tail 更持久，降低时更短、
+更紧凑；自然 overlap 可随之变化。保留 source rhythm、major transient timing、recognizability 和 Size/Motion
+语义；不得主要成为 gain、Amount/mix/balance、event rate、Flow speed、generic reverb wetness/size、source
+envelope release、whole-effect duration 或 independent Foley playback length。不要求 RMS 数学恒定，
+natural tail energy 需测量，compensation 由实验决定。实际 instance 仍由 EXP-W-001 产出并独立验收。
+
+`EXP-W-002` 在 Fluid、Resonant 各自执行最小四组合：Low Motion + Short Decay、Low + Long、High + Short、
+High + Long。固定输入、Size、seed 和其它配置：固定 Decay 扫 Motion 时 explicit decay targets 保持不变；
+固定 Motion 扫 Decay 时 explicit scheduler/activity targets 保持不变。记录 active voice count、overlap、
+steals、tail energy、peak/RMS、CPU、finite；不支持的观测明确记 N/A 并说明，例如 fixed modal bank 没有
+event voice stealing。High + Long 重点验证 bounded/stable，再由听测确认 musical usability。
+
+动态 Decay 对已有 state 的影响必须比较 live damping 与 event-latched decay，记录平滑/系数更新、voice
+lifetime、tail termination、fast automation 和 latched response lag；允许 Fluid/Resonant 策略不同但不预选。
+Decay 不得无理由改变 fixed-seed scheduling sequence、RNG domain 或 random stream ownership；必要耦合须
+记录具体架构理由。现有 SPIKE prepare-time 配置不是 live automation；不得在 callback 因控件变化 reprepare。
+Bubble/Droplet/Modal 分别评估 normalized mapping curves，Flow 默认无直接 Decay destination。
+
+`EXP-W-003` / `WATER-006` 使用代表性音乐素材做 loudness-matched review：分别固定 Motion 或 Decay，
+判断另一个维度是否可稳定感知、四组合是否有音乐意义、跨模式 persistence 方向是否一致，以及 source
+recognizability 是否保留。检查 masking、runaway ringing、excessive steals/CPU/gain buildup；工程 proxy
+不替代 human decision。完整验证边界见 `TESTING.md`，后续采纳仍需 Joint Gate / ADR-W-001。
+
 ### 生产实现
 
 | ID | P | 模块/工作 | 具体要求 | 验收 |
 |---|---:|---|---|---|
 | WATER-001 | P0 | `WaterProcessor` dual-engine lifecycle/ownership | `prepare/reset/process(buffer, WaterParameters)`；明确 Fluid/Resonant state、tail、random 和 residual/complete-signal ownership；mono/stereo；无 routing/amount/APVTS | lifecycle/property/ownership review |
 | WATER-002 | P0 | Fluid + Resonant cores | Fluid 实现经采纳的 A+B+D 有界组合，Resonant 实现经采纳的 C；固定 test seed 可复现；component ablation、输入驱动、参数极值和 source-preserving output 有证据 | render + finite + ablation + recognizability evidence |
-| WATER-003 | P0 | shared product macros | 评估 candidate `water.model`、`water.size`、`water.motion`；ParameterMapper 集中 mode-specific mapping；完整语义链、自动化/平滑、state evolution 和兼容性证据齐备后才可正式注册；不得增加 `water.dryWet` | mapping/automation/listening/state compatibility tests |
+| WATER-003 | P0 | shared product macros | 评估 candidate `water.model`、`water.size`、`water.motion`、`water.decay`；ParameterMapper 集中 mode-specific mapping；完整语义链、自动化/平滑、state evolution 和兼容性证据齐备后才可正式注册；不得增加 `water.dryWet` | mapping/automation/listening/state compatibility tests |
 | WATER-004 | P0 | click-free enable | disabled=pass-through；重新开启保留 macro；过渡无异常峰值 | transient automation render |
 | WATER-005 | P0 | dual-mode performance/tail | 分别记录 Fluid、Resonant 和 mode-transition 相对 `PERF-BASE-001` 的 mean/P95/P99/worst；不引入非零 Host-reported processing latency；intentional effect delay/tail 由 Water ADR/tests 描述；M2 不预设最终硬预算 | benchmark + plugin metadata |
-| WATER-006 | P0 | dual-mode listening pack | 使用 `LISTENING-001` 做 dry/baseline/Fluid/Resonant loudness-matched review；验证 Water identity、模式区分、Size/Motion 方向、正常设置及 `global.mix=100%` 下 input recognizability；工程诊断仍由 `TESTDATA-001` 提供 | rubric accepted；未触发 Reject Criteria |
+| WATER-006 | P0 | dual-mode listening pack | 使用 `LISTENING-001` 做 dry/baseline/Fluid/Resonant loudness-matched review；验证 Water identity、模式区分、Size/Motion/Decay 方向、正常设置及 `global.mix=100%` 下 input recognizability；工程诊断仍由 `TESTDATA-001` 提供 | rubric accepted；未触发 Reject Criteria |
 | WATER-007 | P0 | parameter/state/integration | Water-only AudioEngine 临时路径；如正式采纳新 Host controls，先完成静态注册、choice ordering、automation、inactive retention、state compatibility/evolution fixtures；不引入 routing 语义 | pluginval + DAW automation + state compatibility |
 | WATER-008 | P0 | Water model transition | 在 `ADR-W-001` Accepted 后实现 Fluid/Resonant click-free bounded transition；定义 dual-engine execution、state/tail/random progression、rapid automation、reset/prepare/restore 和 CPU upper bound；不预设 transition duration | automation stress + render + property + performance |
 
@@ -480,8 +513,9 @@ large/deep 的 material-scale 含义；最终 label 仍由 UX/listening review �
 Water-only 的 Fluid 与 Resonant 在 `LISTENING-001` 代表性素材上分别满足各自 mode-specific Water
 responsibilities，并定性确认两者不是 good/bad 或 quality switch；不要求 perceptual-distance metric、
 classification threshold 或 mode-separation score。正常产品设置及代表性的 `global.mix=100%` Water-only
-评估中输入仍具音乐可辨识性；Size/Motion
-在两模式保持一致高层语义且 Motion 不主要表现为增益。工程诊断在 `TESTDATA-001` 上通过；所有正式
+评估中输入仍具音乐可辨识性；Size/Motion/Decay
+在两模式保持一致高层语义，Motion = activity、Decay = persistence，二者不主要表现为增益/Amount；
+Motion × Decay 四组合、dynamic state policy、tail/overlap/voice stealing/energy/CPU evidence 及听测须通过。工程诊断在 `TESTDATA-001` 上通过；所有正式
 宏符合 `AUTO-001` 且无明显 zipper；mode/enable transition、state/seed/render/property/performance/
 pluginval 通过；Water listening rubric 和 Reject Criteria 通过；
 WaterProcessor 未依赖 Host、UI 或 RoutingMode。
@@ -585,7 +619,7 @@ M1 只负责 `core contract stabilization`：建立静态参数、Snapshot、map
 | UI-002 | P0 | layout system | Header、Input、Water/Ice、Routing、Mix、Output；明确最小尺寸/resize | size matrix screenshots |
 | UI-003 | P0 | routing selector | 三模式、信号流顺序清晰；Host attachment | automation + keyboard test |
 | UI-004 | P0 | mode controls | Parallel 只显示 balance；Serial 显示两个 amount 且视觉顺序随 flow | retention/visibility test |
-| UI-005 | P0 | module/gain controls | enabled、Water Mode（Fluid/Resonant）、共享 Size/Motion、Ice macros、Input/Global Mix/Output；Water mode 不替换完整 Water panel；0 dB reset；仅显示已正式采纳并静态注册的参数 | attachment/default/semantic consistency tests |
+| UI-005 | P0 | module/gain controls | enabled、Water Mode（Fluid/Resonant）、共享 Size/Motion/Decay、Ice macros、Input/Global Mix/Output；Water mode 不替换完整 Water panel；0 dB reset；仅显示已正式采纳并静态注册的参数 | attachment/default/semantic consistency tests |
 | HIST-001 | P0 | EditHistoryManager skeleton | bounded transaction store/API；message thread only；由 UI transaction 驱动；不记录 Host automation/restore | unit tests for capacity/clear/source isolation |
 | HIST-002 | P0 | gesture transactions | mouseDown/begin -> changes -> mouseUp/end 为一步；离散操作一步 | undo boundary tests |
 | HIST-003 | P0 | Undo/Redo controls | disabled state、redo branch、action label；不注册参数 | interaction tests |
@@ -654,7 +688,7 @@ Release gate：`CI PASS && validators PASS && DAW matrix acceptable && state com
 | M0 | Git/CI/dependency/test framework、GH-001/002 | compatibility/support/licensing/workflow usability | fresh clone + governance gate |
 | M1 Engineering lane | RENDER/TEST/PERF/latency infrastructure | workload、risk scenarios、product latency/tail input | Engineering Evidence |
 | M1 Host lane | handed-back engineering findings | HOST-001 Ableton -> FL Studio -> REAPER | Sound / Host Evidence |
-| Current M1 late-stage | DEV-UI-001 implementation；HOST findings | HOST-001；EXP-W-001；Developer UI usability acceptance | M1 Joint Exit + Water M2 readiness |
+| M1 late-stage / Water readiness | DEV-UI-001 implementation；HOST findings | HOST-001；EXP-W-001；Developer UI usability acceptance | M1 Joint Exit + Water M2 readiness |
 | M2 Water experiment | Water candidate engineering、offline tools and findings | Water rubric、listening and Developer UI workflow review | Water experiment/ADR gate |
 | M2 Water production | Accepted Water implementation | Water final acceptance | M2 Exit |
 | M3 Ice (deferred now) | Ice work resumes only after M2 Exit + Explicit Joint Gate | Ice perceptual/listening inputs resume after the controlled reuse decision | M3 Exit |
@@ -686,7 +720,7 @@ P2 只有在用户研究/真实声音问题证明价值、且通过新的 ADR �
 | 参数兼容性提前冻结错误 | `.enable`/`.enabled` 并存 | M1 首个 PR 锁定 registry 与测试 |
 | Water/Ice 变成加样本拟音 | dry input 被掩盖、算法只触发 one-shot | perceptual brief 强制“输入驱动/可辨识”；Water 在正常设置及代表性 `global.mix=100%` 下单独验收 source recognizability |
 | Water residual ownership 模糊 | Resonant 已含 direct feedthrough，上层仍执行 `x + output` | 每个 sub-engine 声明 residual/complete-signal semantics；ADR 和 unit/render 证据阻断重复 carrier、增益抬升及 comb artifact |
-| Water macro 语义交叉 | Size 改变事件密度、Motion 主要改变 loudness/Amount | 强制完整 perceptual -> Mapper -> engine -> DSP -> audible -> validation chain；单调性、响度补偿和 mode consistency 由实验验证 |
+| Water macro 语义交叉 | Size 主控 lifetime/density、Motion 主控 decay 或 loudness/Amount、Decay 主控 scheduling | 强制完整 perceptual -> Mapper -> engine -> DSP -> audible -> validation chain；Motion × Decay destination separation、dynamic state policy、tail/overlap/energy 和 mode consistency 由实验验证；不要求声学结果完全独立 |
 | routing 侵入模块 | Processor 出现 setParallelMode | review 阻断，移至 RoutingEngine |
 | automation click | 快速 ramp/离散切换爆峰 | 专门 stress render + transition policy |
 | 随机 DSP 无法回归 | 相同配置每次输出不可比较 | injectable fixed seed |

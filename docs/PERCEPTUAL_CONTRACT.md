@@ -61,6 +61,26 @@ Stochastic scheduling, flow modulation, micro-delay and event activity are engin
 contract clauses. Fluid and Resonant are assessed against their own responsibilities; no extra metric is required
 solely to prove that the two models are perceptually distant.
 
+The planned Water Decay dimension expresses **Water response persistence**, separately from Motion's temporal
+activity. It is an application of this framework, not an accepted EXP-W-001 instance or a predetermined DSP answer:
+
+- intent: independently control how long an input-excited Water event/resonant response persists;
+- positive: Short/Tight -> Long/Lingering; longer responses/tails may naturally overlap more, shorter responses
+  may become more articulated; both Fluid and Resonant retain that high-level direction;
+- negative: mainly gain, Water Amount, global mix, parallel balance, event rate, Motion/Flow speed, generic reverb
+  wetness/size, source-envelope release, whole-effect duration or independent Foley playback length;
+- preserve: source rhythm, major transient timing, recognizability and Size/Motion meaning;
+- question: can a listener distinguish activity from persistence while their natural interaction remains useful?
+- proxies: tail/overlap/energy observations support review; do not require mathematically constant RMS or decide
+  compensation without evidence;
+- reject/revise: persistence cannot be distinguished from Amount/activity, source identity is masked, or prolonged
+  responses produce unacceptable ringing/artifacts; human listening determines musical acceptance.
+
+Use responsibility orthogonality + perceptual separability + bounded interaction, not strict independence of every
+acoustic outcome. Exact decay seconds, coefficients, voice lifetime, mapping curves and live/event-latched policies
+remain engineering questions. The Water instance owner must incorporate and review this dimension through
+EXP-W-001; this example does not create or accept that deliverable.
+
 ## 5. Lifecycle and agent rules
 
 The authoritative lifecycle distinguishes definition from downstream consumption:

@@ -1,0 +1,113 @@
+# Water Decay candidate revision — DOC-W-DECAY-001
+
+> Scope: Revision A, controlled documentation only; proposed / independent review and merge pending.<br>
+> Issue: [#32](https://github.com/jjjphens-dot/FRAZIL/issues/32). Baseline inspected: `origin/main@c7e68ce`, 2026-09-16.<br>
+> Input: user-provided Water Decay Candidate Macro Revision Plan; no production adoption is recorded here.
+
+## Task boundary and authority
+
+Motion currently mixes temporal activity with possible decay destinations in the candidate documentation.
+This revision separates Motion = temporal activity and Decay = Water response persistence, with candidate
+vocabulary Model / Size / Motion / Decay. The normative semantic detail stays in
+[Parameters §1.1](../PARAMETERS.md); this record tracks scope and review.
+
+Engineering Lead owns the controlled-document synchronization; Sound & Host Lead owns candidate-semantic
+acceptance, with independent Engineering review of feasibility/boundaries. No substantial production ownership
+transfer occurs. Allowed writes are affected documentation and module README/index, plus narrowly related
+AGENTS candidate-boundary clarification. C++/DSP/UI, executable tooling/tests, Host registry,
+APVTS, state schema, routing/Ice changes and production adoption are excluded.
+
+The previous approved v1.3 baseline remains authoritative until this proposed v1.4 revision receives required
+review and merge. Proposed ADR-0006 remains Proposed; Accepted ADRs are unchanged. No production Joint Gate
+is closed. Human acceptance of the Water instance, listening decisions and later adoption cannot be inferred
+from this branch or its documentation checks.
+
+## Verified baseline and discrepancies
+
+| Area | Observed fact and revision treatment |
+|---|---|
+| M1 | [Joint Exit record](../evidence/M1_JOINT_EXIT.md) and Project Status record approved Exit; M1 criteria unchanged |
+| Water | Production DSP absent; optional objective SPIKE exists, without accepted EXP-W-001 or EXP-W-002 closure |
+| Host/state | ParameterLayout declares nine current IDs; StateModel current schema is 1; all executable files unchanged |
+| Developer UI | Snapshot and explicit export currently carry Model/Size/Motion only; Decay stays PLANNED |
+| SPIKE | A/B/C decay prepares coefficients/lifetimes; Flow has trajectory/depth controls and no event decay; no live automation |
+| Config | Developer draft `frazil.dev-experiment` v1 differs from SPIKE engineering JSON; SPIKE rejects unknown product fields |
+| Historical input | The pasted/old-worktree AGENTS snapshot described pre-Exit M1; latest main AGENTS already records Exit, so its baseline section is unchanged |
+| Planning text | Coding Plan/guide described M1 as currently incomplete; those passages now describe dependency/evidence categories and defer actual status to Project Status |
+
+The absent `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md` is a planned deliverable on this main baseline.
+Other worktrees/branches are not acceptance evidence and were not modified or imported. Issue #17 still owns
+that instance; its previous three-macro wording needs the Revision B owner to synchronize after this revision
+is accepted. This task neither edits the other owner's issue nor claims its completion.
+
+## Handoff by revision
+
+| Revision | Deliverable / prerequisite |
+|---|---|
+| A — this branch | Candidate contract, planned experiments/tests, tool boundary and documentation synchronization |
+| B — EXP-W-001 | Owner incorporates Decay positive/negative/preserve/reject and listening anchors into the actual brief; Engineering feasibility review; synchronize #17 |
+| C — Developer control | Separate UI/snapshot/export scope; provisional experiment default 0.5; consumer inventory, schema decision and isolation regressions before implementation acceptance |
+| D — EXP-W-002 | Accepted brief + developer readiness; reuse/revise SPIKE, pure value mapping, per-mode Motion × Decay 2×2 and destination checks |
+| E — dynamic decay | Compare live damping/event-latched existing-state policies, automation lag, stable bounded updates, lifetime/tail/voice/energy behavior; no preselected policy |
+| F — EXP-W-003 | LISTENING-001 ready; loudness-matched independent review, separability, recognizability and musical usefulness |
+| G — ADR-W-001 | Joint Gate closes evidence/open decisions; only then may ADR become Accepted |
+| H — adoption | Explicit parameter/state compatibility and WATER-003/007; later PARAM-FREEZE-001 after M2/M3; no adoption in A |
+
+## Documentation Review
+
+Full Gate trigger: candidate product semantics, planned architecture/UI and downstream testing/acceptance contract.
+
+Changed:
+
+- `CODING_PLAN.md`: proposed revision authority, EXP-W-001..003, WATER-003/006, M2 Exit, UI-005 and risk vocabulary.
+- `PARAMETERS.md`: Decay responsibility chain, Motion restriction, bounded interaction and non-Host/state boundary.
+- Architecture, `CORE_IMPLEMENTATION_GUIDE.md`, Proposed ADR-0006: planned shape, destinations, small mapper
+  direction, prepare-time limitations and unresolved dynamic policies.
+- `PERCEPTUAL_CONTRACT.md`: Water Decay application example; no framework structural change or accepted instance.
+- `DEVELOPER_SOUND_TOOLS.md`, `TESTING.md`: planned snapshot/UI/export, consumer compatibility, isolation and
+  future engineering/listening requirements; no executable evidence claimed.
+- `MODULE_INDEX.md`, `src/ui/README.md`, `src/dsp/README.md`: planned four-macro vocabulary; current UI fact
+  remains three controls and Water production remains unimplemented.
+- `AGENTS.md`: Decay exclusion from Host/state; synchronized through Coding Plan and issue #32.
+- This record: reviewable scope, authority, staged handoff and verification limits, required by the controlled revision.
+
+Reviewed, no update required:
+
+- `PROJECT_STATUS.md`: retains verified M1 Exit, SPIKE and Developer facts; no Decay implemented/accepted claim.
+- `DOCUMENT_GOVERNANCE.md`, `CODE_STANDARDS.md`, `COLLABORATION_ROLES.md`, `GITHUB_WORKFLOW.md`: existing
+  Full Gate, quality, ownership and push/review rules apply unchanged.
+- `src/app/README.md`, `src/plugin/README.md`: no current interface, state or DSP changes.
+- Accepted ADR-0001/0002/0003/0005: routing, state, realtime and zero-latency contracts unchanged.
+- SPIKE README/config/parser and existing parameter/state tests: inspected for boundaries; static engineering
+  evidence remains attributed to its original source, not promoted to product macro or automation evidence.
+
+Consistency:
+
+- Project Status / M1 evidence / main: approved M1 Exit preserved; no future status manufactured.
+- Module Index / source / module README: WaterProcessor remains Planned, Developer Decay unimplemented.
+- Parameters / registry / state: nine existing parameters, schemaVersion=1; no executable diff.
+- Testing / evidence: new requirements are planned, existing SPIKE prepare-time results do not prove automation.
+- Coding Plan / milestones: M1 gate, Ice deferral, M2/M3-before-PARAM-FREEZE and independent listening gates retained.
+
+Result: **PASS for local documentation consistency and scope checks**. Independent human review and merge
+remain pending; this is agent self-review, not formal GitHub approval.
+
+Execution phases: Contract Review complete; Implementation limited to documentation; Functional Validation
+N/A (no executable change); separate Code Quality Review checked proposed value-type/mapping ownership,
+coupling and absence of speculative implementation; Comment & Documentation Pass complete; Final Validation
+passed below. Architecture impact is planned candidate shape only; production parameter/state, realtime and
+formal performance-budget impacts are N/A. Audio evaluation remains future evidence.
+
+## Validation
+
+- `python tools/check_markdown_links.py`: PASS, including the staged new revision record; local target paths only.
+- `python tools/check_portability.py`: PASS.
+- `git diff --check` and `git diff --cached --check`: PASS.
+- Manual diff/semantic/scope review: PASS; 13 Markdown files only. Read-only Python assertions against the base
+  confirmed unchanged Host registry text, exact nine source IDs, schema 1, Proposed ADR, and identical M1 Exit
+  and M3/PARAM-FREEZE sections. No executable sources, tests or configs changed.
+- Debug/Release/ASAN builds, CTest, pluginval, render, CPU, DAW and listening: **NOT RUN / N/A** for this
+  non-executable revision. Future UI/experiment code must run its own required validation, including actual
+  Release Host enumeration; source isolation review is not a replacement for that runtime check.
+- Hosted CI on this branch: **NOT RUN** by this local documentation task; no historical CI is reused as its result.
+- No source/artifact/content hashes calculated. Git commit IDs are identity references only.
