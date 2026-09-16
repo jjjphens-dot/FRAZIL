@@ -18,12 +18,12 @@
 - Agent 不得在本机并发运行多个 configure/build/test pipeline；Debug、Release、ASAN 和其他重型 preset 必须串行执行。
 ## 1. 当前基线
 
-- 当前阶段：M1 late-stage closure + Water pre-M2 preparation + Developer Sound/Debug Tooling；M1 尚未完成。
+- 当前阶段：M1 Exit 已批准并完成状态收口；下一阶段为 Water pre-M2 preparation + Developer Sound/Debug Tooling acceptance follow-up。
 - 已有：JUCE 9.0.1、CMake/Ninja presets、VST3/Standalone、pass-through wet path、APVTS 状态保存、集中式 ParameterLayout、ParameterSnapshot/Mapper、基础 gain/mix/smoothing、9 个 Host 参数和 smoke test。
 - 已有：可移植 CI preset 与 Hosted CI 验证；M1-A/M1-B 的首块 priming、retarget 和 runtime buffer invariant regression 已建立；STATE-001 的 schema migration/fallback、XML restore、STATE-002 mode-value-retention 和 AUTO-001 PluginProcessor integration evidence 已建立。
 - 已有：`TESTDATA-001` 可复现 engineering corpus 与 `RENDER-001` pass-through offline smoke 已进入 `main`；这些能力只按 regression/finding 维护，不另建平行实现。
 - 已有：`TEST-002` processor property、`PERF-BASE-001` 和 `ARCH-LAT-001` engineering evidence 已进入 `main`。
-- 已有：Sound & Host Lead 已在 Ableton Live 与 FL Studio 完成 HOST-001 primary-host matrix 并签认为 `Passed`；截图、工程和 WAV 未留存，Engineering Lead 对更新后精确 PR HEAD 的 review 与 M1 Joint Exit 尚待完成。REAPER 作为 secondary host 延期且不形成支持声明。编辑历史、Water/Ice/Routing DSP、正式 UI、公开参数 freeze 与完整 release compatibility evidence 仍待后续阶段完成。当前 closeout candidate 的 Debug/Release/ASAN 工程验证与 exact Debug artifact strictness-5 pluginval 已完成，详见 `docs/evidence/HOST-001_ACCEPTANCE_INDEX.md`。
+- 已有：Sound & Host Lead 已在 Ableton Live 与 FL Studio 完成 HOST-001 primary-host matrix 并签认为 `Passed`；Engineering Lead 已对精确 PR #27 HEAD `01d590f` 正式批准，Hosted CI 成功，PR #27 已合入 `main@3438593`，因此 HOST-001 关闭、两个 primary host 达到 `Development Validated`，M1 Joint Exit 已批准。截图、工程和 WAV 未留存；REAPER 作为 secondary host 延期且不形成支持声明。`Development Validated` 不等于 `Officially Supported`。编辑历史、Water/Ice/Routing DSP、正式 UI、公开参数 freeze 与完整 release compatibility evidence 仍待后续阶段完成。当前 closeout artifact 的 Debug/Release/ASAN 工程验证与 exact Debug artifact strictness-5 pluginval 已完成，详见 `docs/evidence/HOST-001_ACCEPTANCE_INDEX.md`。
 - `DEV-UI-001` Debug/ASAN Developer Control Surface implementation 已进入 `main`；final workflow usability 与 DiagnosticsSnapshot/debug bundle workflow 仍为 PLANNED，不得写成已完成验收；Developer Control Surface 不是当前 placeholder，也不是 M5 Production UI。Perceptual Contract framework/template 已随批准并合入的 v1.3 baseline 成为 CURRENT/CONTROLLED；`EXP-W-001` Water contract instance 在实际产出并验收前仍为 PLANNED。
 - 当前 Water-first；Ice 的长期 M3 合同保留，但在 `M2 Exit + Explicit Joint Gate` 前，Ice experiment、perceptual/parameter redesign 和 production implementation 均为 DEFERRED。Ice-resume joint decision 必须在已批准的 controlled-plan revision 或对应 planning issue/PR 中留下可审查的 repository/GitHub evidence；除非决定本身命中既有 ADR trigger，否则不自动要求新 ADR。
 - 当前参数合同已将历史 `water.enable` / `ice.enable` 迁移为 `water.enabled` / `ice.enabled`；现有 state migration evidence 已建立，公开兼容性基线前仍需完整 compatibility evidence 与正式参数 freeze。
