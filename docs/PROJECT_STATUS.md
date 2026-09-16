@@ -202,7 +202,8 @@ Engineering review、RENDER-001 确定性回归或 Water/Ice 声音产品验收�
 acceptance pending**。呈现职责移至 `src/ui/DeveloperDiagnosticsView.*` 和 `DeveloperLevelMeter.*`：aggregate
 INPUT/OUTPUT 使用 RMS 填充、当前 Peak 竖线和 dBFS 数字，图形范围 -60 至 0 dBFS；保留 runtime metadata 和
 finite 与 effective `Route:`，10 Hz 刷新，无 smoothing、history 或 Peak Hold。Diagnostics 位于左侧参数
-网格下方；Water Size/Motion 与 workflow geometry 恢复既有 main 基线，人工可用性验收仍待完成。
+网格下方；Water Size/Motion 保持既有 main 基线。人工 usability review 要求稍增 workflow 按钮：区域
+由 96 增至 108 px，4x3 排列、间距及行为不变；整体仍为 implementation candidate，human usability review ongoing。
 
 本次验证（不替代 §2.8 的历史 Host evidence）：
 
@@ -211,7 +212,7 @@ finite 与 effective `Route:`，10 Hz 刷新，无 smoothing、history 或 Peak 
 | Debug / Release / ASAN | 每个 preset 均执行 `cmake --preset <preset>`、`python tools/build_safe.py --preset <preset>`、`ctest --preset <preset>`；安全构建 PASS，CTest 各 7/7 PASS，全部 pipeline 串行 |
 | Developer/Release isolation | compile commands 确认 Debug/ASAN macro=1 并编译呈现组件；Release macro=0 且无呈现组件源文件；实际 Release Standalone 保留 `Production editor pending` |
 | Debug / ASAN Standalone | 实际启动并观察 runtime、两个 meter、finite；静音 Peak/RMS 均显示 `-inf dBFS`、无 RMS 填充；ASAN 启动/观察期间未报告 sanitizer error。ASAN GUI 运行所需 runtime DLL 仅放在 ignored artifact 目录 |
-| Layout | 1000x720 默认、820x680 最小和 1200x800 较大 editor 图像已观察；最小尺寸的数字、runtime、刻度与现有控件无重叠；Water/workflow 与 main geometry 相同。原最小/默认/最大窗口限制未修改 |
+| Layout | 1000x720 默认、820x680 最小和 1200x800 较大 editor 图像已观察；最小尺寸各区域无重叠；既有 `Processed` 标签在最小尺寸仍显示省略号，本轮仅调整高度，文字适配留待单独处理；Water geometry、diagnostics 布局和窗口限制不变，workflow 按钮实际高度由 28 增至 32 px |
 | Synthetic signal | 临时本地预览入口使用实际 Processor/Editor，48 kHz、prepared 512/latest 480、双通道 1 kHz 正弦；输入 peak 0.25、RMS 0.176777 对应 -12.0/-15.1 dBFS；output gain -12 dB 后 meter 显示 -24.0/-27.1 dBFS；over-range 保留 +12.0 dBFS Peak，并饱和图形/显示警示 |
 | Effective routing | Host `Water -> Ice` / `Ice -> Water` 后读取正确；Capture A / Apply A 后底层 Host 保持 `Ice -> Water`，`Route:` 显示 effective `Water -> Ice`；Return Host 恢复 `Ice -> Water` |
 | Editor reopen | 同一预览 Processor 关闭/重建 Editor，序列化 state 内容相同，重开后的输出 peak/RMS 不变；这是本地 fixture observation，不是 DAW save/reopen acceptance |

@@ -162,9 +162,9 @@ components have no Processor, APVTS, engine or transport ownership. They are inc
   `FINITE OK` and warning-coloured `FINITE NO` reflect the existing snapshot flag.
 - The message-thread timer remains 10 Hz. There is no visual smoothing, decay, peak hold or accumulated history;
   peaks between UI observations may be missed. The audio timing and diagnostics transport are unchanged.
-- Diagnostics occupies a reserved area below the left parameter grid. Water Size/Motion and workflow geometry
-  match the existing baseline. Control meaning, A/B/export behavior and the 820x680 minimum, 1000x720 default
-  and 1440x960 maximum editor size contract are unchanged.
+- Diagnostics occupies a reserved area below the left parameter grid. Water Size/Motion retains its baseline;
+  workflow buttons use a modestly taller 4x3 grid. Control meaning, A/B/export behavior and the 820x680 minimum,
+  1000x720 default and 1440x960 maximum editor size contract are unchanged.
 
 This candidate does not provide independent L/R metering, true peak, LUFS, waveform/FFT/spectrum analysis or
 production-grade metering. It does not establish a Production UI direction or final Sound & Host acceptance.

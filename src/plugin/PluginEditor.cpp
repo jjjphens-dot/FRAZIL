@@ -638,7 +638,7 @@ void FRAZILAudioProcessorEditor::resized() {
     workflowLabel_.setBounds(right.removeFromTop(24));
     auto workflowState = right.removeFromTop(40);
     workflowStateLabel_.setBounds(workflowState.reduced(2));
-    auto workflow = right.removeFromTop(96);
+    auto workflow = right.removeFromTop(108);
     const auto buttonWidth = workflow.getWidth() / 4;
     const auto buttonHeight = workflow.getHeight() / 3;
     std::array<juce::Button*, 11> buttons{
