@@ -3,13 +3,17 @@
 Date: 2026-09-16. Work item: [#29](https://github.com/jjjphens-dot/FRAZIL/issues/29).
 Engineering feasibility only. No perceptual acceptance, formal EXP-W-002 closure or production adoption.
 
-## Source, provenance and environment
+The sections below preserve pre-review evidence through `d3bae57`. The subsequent independent-review
+JSON parser repair and its fresh executable validation are recorded in the final section. Older
+measurements keep their original source attribution; they are not silently relabelled as new runs.
+
+## Pre-review source, provenance and environment (through d3bae57)
 
 - Repaired executable/config/C++ test source: `6b3b8f8e590acfc1164fe8dfe7f6d10108a8f041`.
 - Initial supplemental smoke automation source: `f9a0e6ce69452b21d4ff23cb739f187a6f94e562`;
   the subsequent `e842e50` changed README/REVALIDATION only. The final terminology cleanup changes
   only the smoke field name, adds plot-existence checks and synchronizes these two documents.
-  Its automation source is the final submitted HEAD recorded in PR #30. The latest smoke rerun
+  Its automation source is `d3bae57916cc62dfa12564651d052b19fbb999e5`. That smoke rerun
   used identical Python contents immediately before that cleanup commit; the calculation is unchanged.
 - Reviewed predecessor: `646a8bc9cfe951333ef2a4ca02a88dc3a6622761`; main base: `3438593`.
 - Debug/Release builds initially compiled the identical source contents before the repaired-source
@@ -17,7 +21,7 @@ Engineering feasibility only. No perceptual acceptance, formal EXP-W-002 closure
   rerun uses its unchanged Release renderer with the updated Python automation identified above.
   Final submitted HEAD and exact-head Hosted CI are recorded in the associated PR body, avoiding
   a self-referential commit ID in this file.
-  Reviewers can verify `git diff 6b3b8f8..HEAD -- experiments ':!*.md' ':!*/analysis/review_smoke.py'`
+  Reviewers can verify `git diff 6b3b8f8..d3bae57 -- experiments ':!*.md' ':!*/analysis/review_smoke.py'`
   has no compiled-executable/config differences. Local three-preset, 80-render corpus and timing
   evidence below remains attached to that unchanged DSP source; it was not rerun for Python-only work.
 - Windows 11 10.0.22631; Intel Core i9-14900HX; MSVC 19.43.34808; pinned JUCE 9.0.1;
@@ -319,3 +323,116 @@ work. Pluginval/DAW, production WaterProcessor/AudioEngine Water path, routing/I
 changes, production transitions, formal CPU budget and release compatibility are not this spike.
 WaterProcessor is still not production-implemented. EXP-W-002 is not formally closed; ADR-W-001
 is not Accepted. Stop at independent Engineering + Sound/Host PR review; no automatic merge.
+
+## Independent-review JSON parser repair (current)
+
+Finding: [P2 / discussion 4023469841](https://github.com/jjjphens-dot/FRAZIL/pull/30#discussion_r4023469841),
+reviewed at `d3bae57`. JUCE accepted concatenated/trailing input and non-JSON number/escape forms,
+contradicting the global strict-config contract. The new raw-text regression first failed against
+the old Debug renderer on a concatenated document in baseline mode (exit 0 and output created).
+Separate probes also reproduced duplicate-key overwrite hiding unknown/nonfinite fields.
+
+Repair source: **`06443b474c3e4c9c8d1fe0317718e737f96e0373`**. Debug/Release/ASAN tested identical
+source contents before that commit; smoke, corpus and timing below ran after it. The subsequent
+evidence commit changes this Markdown report only; final submitted HEAD/Hosted CI are in PR #30.
+The offline `ReadConfig.h` executable path and CLI regression changed. DSP algorithms, defaults,
+renderer processing loop, benchmark implementation, production source, Host/state/routing/Ice
+and CMake/CI wiring did not change. Do not call this a Python/docs-only follow-up.
+
+### Contract Review / Implementation / Code Quality Review
+
+- A bounded two-level numeric-config syntax gate checks [RFC 8259](https://www.rfc-editor.org/rfc/rfc8259)
+  object/string/number grammar and complete input before JUCE decodes values. No new dependency,
+  general JSON framework, unbounded recursion, realtime parsing or DSP refinement is introduced.
+- Raw UTF-8 file bytes are validated before string conversion (initial UTF-8 BOM tolerated), so NUL
+  or invalid encoding cannot truncate/repair the input silently. Unknown keys, finite numeric types,
+  int64 integer-literal and size_t voice representation checks remain global. Only enabled DSP
+  enforces semantic ranges or prepares.
+- Compare lexical versus decoded member counts in this fixed two-level schema to reject duplicate
+  decoded keys, including escaped aliases. This prevents JUCE overwrite from hiding fields before
+  global representation/unknown-field checks. No duplicate-key precedence is silently selected.
+- Independent post-functional code review checked cursor progress/bounds, at-most-two-level stack
+  depth, borrowed-buffer lifetime, exact byte-length conversion, integer overflow, key decoding,
+  failure before output creation, globals/includes/naming and unchanged processing ownership.
+
+### Functional and final validation
+
+Serial commands from the initialized MSVC shell, for each preset:
+
+```powershell
+chcp 65001
+cmake --fresh --preset <preset> -DFRAZIL_BUILD_WATER_EXPERIMENT=ON
+python tools/build_safe.py --preset <preset> --jobs 4
+ctest --preset <preset> --output-on-failure
+```
+
+The final small header correction used safe incremental Debug/Release rebuilds after their fresh
+configure; ASAN was freshly configured afterward. Local safety checks passed; four jobs were chosen
+for available memory, without bypassing the wrapper. Compiler: MSVC 19.43.34809.0; Python 3.12.4.
+
+| Preset | Safe build | Final full CTest | Time | Sanitizer |
+|---|---|---|---:|---|
+| windows-debug | PASS | 16/16 PASS | 18.92 s | N/A |
+| windows-release | PASS | 16/16 PASS | 9.37 s | N/A |
+| windows-asan | PASS | 16/16 PASS | 38.42 s | No ASAN finding |
+
+Within the existing renderer CLI CTest: **33 rejected raw inputs x 6 modes = 198 rejection probes**,
+each requiring exit 2, an invalid-config diagnostic and no output creation. Modes: baseline,
+residual, A, C, D, ABD. Cases cover the five review examples, lexical/container/control/encoding
+edges, duplicate keys/escaped aliases, oversized integers and nonfinite values. Four accepted raw
+configurations cover whitespace, exponent forms, escaped known keys and UTF-8 BOM; their zero-gain
+Flow residual is verified by decoded samples. Existing active-invalid/unused-invalid tests still pass.
+
+One final Debug CTest attempt exited `0xc0000409` in the Python CLI runner without test output.
+Windows Application error identified `python.exe` / `python312.dll`, not a renderer crash report.
+The same full CLI test with `python -X faulthandler -u` passed; complete Debug/Release/ASAN runs with
+`PYTHONFAULTHANDLER=1` then passed. Root cause remains unconfirmed. The failed attempt and successful
+diagnostic runs are retained in ignored `build/water-strict-json-*.log`; this does not erase the
+earlier pre-review Python runner incident or claim it cannot recur.
+
+```powershell
+$renderer = 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe'
+python -X faulthandler experiments/water/SPIKE-W-DSP-001/analysis/review_smoke.py --renderer $renderer --output build/water-json-review-smoke
+python -X faulthandler experiments/water/SPIKE-W-DSP-001/analysis/render_corpus.py --renderer $renderer --output build/water-json-review-corpus
+& 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_performance.exe'
+```
+
+**142 smoke renders PASS; 80 corpus renders PASS.** The smoke's 32 observations and supplemental
+JSON exactly equal the `d3bae57` results, including A high/low 25/5, B 1/0 and the processed-vs-dry
+RMS level deltas. Decoded samples/rates for all 142 renders + 3 derived inputs exactly match the
+prior smoke. All 80 corpus decoded renders and metric rows match the `6b3b8f8` corpus. Thus the
+earlier numerical tables remain applicable to valid defaults; invalid-input acceptance changed.
+No content hashes were calculated. Existing plots/metrics remain objective, not audibility evidence.
+
+Fresh same-run Release timing, identical 48 kHz/128 stereo, seed 20260916, 2000 warmup/20000 measured
+blocks, nearest-rank wall-duration method; raw output: `build/water-json-review-performance.txt`:
+
+| Case | Mean us | P95 us | P99 us | Worst observed us | Mean increment over same-run M1 us |
+|---|---:|---:|---:|---:|---:|
+| M1 | 0.558245 | 0.6 | 0.6 | 11.5 | 0 |
+| M1+C | 2.35619 | 2.7 | 2.9 | 93.8 | 1.79794 |
+| M1+D | 3.98146 | 4.1 | 5.2 | 101.7 | 3.42321 |
+| M1+A | 2.93094 | 3.6 | 3.9 | 74.7 | 2.37269 |
+| M1+B | 2.4315 | 2.8 | 3.2 | 156.1 | 1.87325 |
+| M1+AB | 4.28841 | 5.2 | 9.2 | 142.3 | 3.73016 |
+| M1+AD | 6.59437 | 7.3 | 9.8 | 241.0 | 6.03613 |
+| M1+BD | 6.24103 | 6.6 | 8.1 | 105.3 | 5.68278 |
+| M1+ABD | 7.8923 | 8.7 | 11.0 | 264.6 | 7.33405 |
+
+Formal performance provenance remains **NOT RUN**. The parser is outside the timed callback;
+differences from the historical table are not evidence of a DSP optimization or a CPU-budget pass.
+
+### Comment & Documentation Pass / final handoff
+
+Changed: README config syntax/encoding/duplicate-key behavior, TESTING raw-input rejection coverage,
+this source-separated evidence, and comments explaining the bounded syntax gate/member-count check.
+Reviewed without edits: implementation plan, MODULE_INDEX, PROJECT_STATUS, Coding Plan, Perceptual
+Contract, production contracts/ADRs, DOCUMENT_GOVERNANCE and GITHUB_WORKFLOW. The strict-global,
+active-only-semantic contract is repaired rather than relaxed; no module/milestone/production claim
+changes. Historical EVIDENCE.md is preserved. Cross-document terminology, paths, scope and evidence agree.
+
+`py_compile`, `clang-format --dry-run --Werror`, `check_portability.py`, `check_markdown_links.py`
+and `git diff --check` PASS. Hosted CI remains separate from these local runs; PR #30 records its
+exact final source checkout and CTest result. The independent REQUEST_CHANGES decision requires
+reviewer revalidation; author self-checks do not resolve/approve the review. No merge performed.
+Human listening, pluginval/DAW, formal allocation instrumentation and production adoption remain NOT RUN.
