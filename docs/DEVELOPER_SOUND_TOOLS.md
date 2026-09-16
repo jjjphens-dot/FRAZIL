@@ -65,8 +65,10 @@ realtime boundaries.
 
 When the developer override is inactive, normal Host controls use APVTS attachments. While the override is active,
 those attachments are detached so the visible controls remain authoritative for the effective developer state;
-Return Host clears the override, reattaches the APVTS controls and restores Host/APVTS as effective state. Water
-Model/Size/Motion remain outside the Host registry, automation and plugin state. Dry/Processed comparison reuses the
+Return Host clears the override, reattaches the APVTS controls and restores Host/APVTS as effective state. The currently
+implemented Water Model/Size/Motion controls remain outside the Host registry, automation and plugin state.
+The planned Decay experiment control must remain outside those production contracts as well; its UI/snapshot/export
+extension is not implemented. Dry/Processed comparison reuses the
 preallocated dry reference and does not change `global.mix`; the candidate still requires workflow usability
 acceptance and does not provide the full debug-bundle workflow required for final DEV-UI-001 acceptance.
 

@@ -396,7 +396,10 @@ Resonant，并分别记录：
 
 #### Motion × Decay separation and dynamic-state evidence (planned)
 
-EXP-W-002 requires the following in **each** of Fluid and Resonant after accepted EXP-W-001:
+EXP-W-002 requires the following in **each** of Fluid and Resonant after accepted EXP-W-001 **including mandatory
+Decay Revision B**, with M1 Exit and applicable Developer readiness. Apply the
+[completion/start gate](CODING_PLAN.md#decay-revision-b-completion-gate); Revision A alone, an old three-macro brief
+or prepare-time SPIKE decay cannot satisfy it:
 
 | Case | Motion | Decay |
 |---|---|---|

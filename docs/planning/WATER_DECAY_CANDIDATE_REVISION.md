@@ -2,7 +2,7 @@
 
 > Scope: Revision A, controlled documentation only; proposed / independent review and merge pending.<br>
 > Issue: [#32](https://github.com/jjjphens-dot/FRAZIL/issues/32). Baseline inspected: `origin/main@c7e68ce`, 2026-09-16.<br>
-> Input: user-provided Water Decay Candidate Macro Revision Plan; no production adoption is recorded here.
+> Input: user-provided Water Decay Candidate Macro Revision Plan and REQUEST_CHANGES remediation; no production adoption is recorded here.
 
 ## Task boundary and authority
 
@@ -36,22 +36,82 @@ from this branch or its documentation checks.
 | Planning text | Coding Plan/guide described M1 as currently incomplete; those passages now describe dependency/evidence categories and defer actual status to Project Status |
 
 The absent `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md` is a planned deliverable on this main baseline.
-Other worktrees/branches are not acceptance evidence and were not modified or imported. Issue #17 still owns
-that instance; its previous three-macro wording needs the Revision B owner to synchronize after this revision
-is accepted. This task neither edits the other owner's issue nor claims its completion.
+Other worktrees/branches are not acceptance evidence and were not modified or imported. Read-only inspection of
+`origin/experiment/water-perceptual-brief` found a draft without an independent Decay dimension; open Issue #17
+still describes the old three-macro scope. Revision B is an EXP-W-001 completion prerequisite, not optional cleanup.
+This task neither edits the other owner's issue/brief nor claims its completion.
 
 ## Handoff by revision
 
 | Revision | Deliverable / prerequisite |
 |---|---|
 | A — this branch | Candidate contract, planned experiments/tests, tool boundary and documentation synchronization |
-| B — EXP-W-001 | Owner incorporates Decay positive/negative/preserve/reject and listening anchors into the actual brief; Engineering feasibility review; synchronize #17 |
+| B — EXP-W-001 | Mandatory before acceptance/closure: A accepted and merged; owner synchronizes #17 and rebases/revises the brief to four macros; Decay intent, positive/negative/anti-examples, preserve/reject/revise and anchors; UX updates; recorded Engineering feasibility review |
 | C — Developer control | Separate UI/snapshot/export scope; provisional experiment default 0.5; consumer inventory, schema decision and isolation regressions before implementation acceptance |
-| D — EXP-W-002 | Accepted brief + developer readiness; reuse/revise SPIKE, pure value mapping, per-mode Motion × Decay 2×2 and destination checks |
+| D — EXP-W-002 | M1 Exit AND applicable Developer readiness AND accepted brief including mandatory B; never consume the old three-macro brief or start from A alone; reuse/revise SPIKE, pure value mapping, per-mode Motion × Decay 2×2 and destination checks |
 | E — dynamic decay | Compare live damping/event-latched existing-state policies, automation lag, stable bounded updates, lifetime/tail/voice/energy behavior; no preselected policy |
 | F — EXP-W-003 | LISTENING-001 ready; loudness-matched independent review, separability, recognizability and musical usefulness |
 | G — ADR-W-001 | Joint Gate closes evidence/open decisions; only then may ADR become Accepted |
 | H — adoption | Explicit parameter/state compatibility and WATER-003/007; later PARAM-FREEZE-001 after M2/M3; no adoption in A |
+
+**EXP-W-001 MUST NOT be accepted or closed until Decay Revision B is synchronized.** The owner must meet every
+item in the [canonical completion gate](../CODING_PLAN.md#decay-revision-b-completion-gate), including Semantic
+Predictability, Cross-Mode Consistency, Motion/Decay separability, Interaction Cost and future Automation Readability.
+**Formal EXP-W-002 MUST NOT start based only on Revision A docs.** Existing SPIKE prepare-time `decaySeconds`
+remain objective feasibility evidence, not completion of the Decay perceptual contract.
+
+## Review remediation
+
+Reviewed base: `c7e68ceb4023a6cf886af607cc314ce98e68b84e`.
+Reviewed head before fixes: `9b37b4b9bff398df16e3d1d7e55063d28d111f78`.
+The user supplied a REQUEST_CHANGES review; reviewer identity and formal GitHub submission were not established
+by that attachment. These edits resolve its findings for independent re-review, not for self-approval:
+
+| Finding | Resolution |
+|---|---|
+| P1 mapping ownership | ParameterMapper owns raw/application -> normalized WaterProductValues; WaterMacroMapper alone owns mode-specific bounded DSP targets. App does not know component configs or lifetimes; no implementation/framework added. |
+| P1 EXP-W-001 handoff | Mandatory Revision B completion gate and formal EXP-W-002 prerequisites in the plan, framework, testing and Proposed ADR; Issue #17 and its draft remain owner work. |
+| P2 Developer residue | Explicitly separate current Model/Size/Motion from planned Decay; all four excluded from production Host/state contracts. |
+| P1 baseline lifecycle | Proposed retained; independent evidence and separate post-approval finalization are mandatory below. No approval or merge claimed. |
+
+Targeted semantic scan retained current Developer Model/Size/Motion and Size/Motion layout facts. References to
+preserving Size/Motion while changing Decay describe held semantics, not incomplete vocabulary. Future candidate
+lists use Model/Size/Motion/Decay. No runtime/export capability was inferred from documentation.
+
+## Review evidence and finalization gate
+
+Current status: **ready for independent re-review; required approval and finalization pending**.
+No open PR existed for this branch at the remediation preflight. Before merge, record real independent evidence
+in the PR and link it here; agent consistency checks do not satisfy this requirement.
+
+| Required evidence | Current record |
+|---|---|
+| Reviewer and reviewed HEAD | Independent re-review pending; no reviewer identity claimed |
+| Review scope | Requested: candidate semantics, mapping ownership, handoff gates, Developer boundary and authority lifecycle |
+| Evidence reproduced / not reproduced | Reviewer must state both; local checks below are agent checks only |
+| Findings | Supplied REQUEST_CHANGES and remediation table above; independent resolution pending |
+| Decision | Required independent decision pending; no APPROVE claimed |
+| Formal GitHub review type and link | Not recorded; use actual APPROVE, COMMENT or REQUEST_CHANGES and its permalink if submitted; manual evidence is not formal approval |
+
+Lifecycle: remediation -> independent review -> findings resolved -> required approval/evidence -> separate
+`docs(water): finalize Decay candidate baseline` commit -> required review/checks on the final HEAD -> merge.
+This remediation does not execute the finalization or authorize merge. The merge gate requires:
+
+1. Required independent approval exists, including Engineering / Sound & Host scope as applicable. Record the
+   actual reviewer, commit and evidence above before preparing the bounded finalization commit.
+2. Finalization updates `CODING_PLAN.md` and this record to version 1.4's approved decision, names v1.3 as the
+   previous baseline and defines v1.4 as the Approved Development Baseline **effective upon merge**. Replace
+   active proposed/review-pending/merge-pending and v1.3-current-authority wording; do not claim a merge that has
+   not occurred. This activation rule lets merged main carry the approved baseline without a false pre-merge claim.
+3. Synchronize `PROJECT_STATUS.md`'s opening current-baseline statement and the Decay review-pending notes in
+   `PARAMETERS.md` and ADR-0006. Check `DEVELOPER_SOUND_TOOLS.md` and `PERCEPTUAL_CONTRACT.md` headers/current
+   authority references. Keep v1.3/PR #23 as historical framework origin in those docs, AGENTS and M1 evidence;
+   do not relabel historical evidence. ADR-0006 itself remains Proposed until its separate Water adoption gate.
+4. Re-run the documentation checks and obtain/verify required review on the final commit under repository policy;
+   approval of a preceding head is not proof of approval of the final head. Link actual checks without inventing CI.
+5. Merge only through the authorized GitHub workflow after the finalization gate passes. Once GitHub confirms
+   merge, record the actual PR/merge evidence; any follow-up repository evidence edit follows the normal PR flow.
+   Never merge this proposal unchanged and rely on later cleanup to fix stale main authority text.
 
 ## Documentation Review
 
@@ -68,6 +128,7 @@ Changed:
   future engineering/listening requirements; no executable evidence claimed.
 - `MODULE_INDEX.md`, `src/ui/README.md`, `src/dsp/README.md`: planned four-macro vocabulary; current UI fact
   remains three controls and Water production remains unimplemented.
+- `src/app/README.md`: planned application/domain mapping boundary; current API and runtime unchanged.
 - `AGENTS.md`: Decay exclusion from Host/state; synchronized through Coding Plan and issue #32.
 - This record: reviewable scope, authority, staged handoff and verification limits, required by the controlled revision.
 
@@ -76,7 +137,7 @@ Reviewed, no update required:
 - `PROJECT_STATUS.md`: retains verified M1 Exit, SPIKE and Developer facts; no Decay implemented/accepted claim.
 - `DOCUMENT_GOVERNANCE.md`, `CODE_STANDARDS.md`, `COLLABORATION_ROLES.md`, `GITHUB_WORKFLOW.md`: existing
   Full Gate, quality, ownership and push/review rules apply unchanged.
-- `src/app/README.md`, `src/plugin/README.md`: no current interface, state or DSP changes.
+- `src/plugin/README.md`: no current interface, state or DSP changes.
 - Accepted ADR-0001/0002/0003/0005: routing, state, realtime and zero-latency contracts unchanged.
 - SPIKE README/config/parser and existing parameter/state tests: inspected for boundaries; static engineering
   evidence remains attributed to its original source, not promoted to product macro or automation evidence.
@@ -100,10 +161,11 @@ formal performance-budget impacts are N/A. Audio evaluation remains future evide
 
 ## Validation
 
-- `python tools/check_markdown_links.py`: PASS, including the staged new revision record; local target paths only.
+- `python tools/check_markdown_links.py`: PASS, including the revision record; local target paths only.
 - `python tools/check_portability.py`: PASS.
 - `git diff --check` and `git diff --cached --check`: PASS.
-- Manual diff/semantic/scope review: PASS; 13 Markdown files only. Read-only Python assertions against the base
+- Manual diff/semantic/scope review: PASS; 14 Markdown files across Revision A and remediation, 11 changed by
+  remediation. Read-only Python assertions against the base
   confirmed unchanged Host registry text, exact nine source IDs, schema 1, Proposed ADR, and identical M1 Exit
   and M3/PARAM-FREEZE sections. No executable sources, tests or configs changed.
 - Debug/Release/ASAN builds, CTest, pluginval, render, CPU, DAW and listening: **NOT RUN / N/A** for this

@@ -104,6 +104,13 @@ For current Water work, that instance is `experiments/water/EXP-W-001_PERCEPTUAL
 framework document does not satisfy the Perceptual Contract prerequisite. Experiment controls remain outside the
 production Host registry until evidence, Joint Gate and the applicable ADR/state compatibility work approve adoption.
 
+For the Decay candidate revision, the [Coding Plan Revision B gate](CODING_PLAN.md#decay-revision-b-completion-gate)
+is mandatory before EXP-W-001 acceptance/closure: accepted and merged DOC-W-DECAY-001, owner-synchronized
+Issue #17 and four-macro brief, Decay perceptual/UX content and recorded Engineering feasibility review.
+Formal EXP-W-002 requires M1 Exit, applicable Developer readiness and the accepted instance including Revision B;
+Revision A documentation or the old three-macro brief cannot satisfy this prerequisite. Existing prepare-time
+SPIKE decay evidence remains objective feasibility only.
+
 ## 6. Optional objective feasibility before the Water instance
 
 [SPIKE-W-DSP-001 / #29](https://github.com/jjjphens-dot/FRAZIL/issues/29) is a bounded,

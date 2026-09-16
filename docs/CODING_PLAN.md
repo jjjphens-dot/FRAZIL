@@ -15,6 +15,12 @@
 不改变 M1 Exit、Ice deferred 或 PARAM-FREEZE ordering。范围与检查见
 [revision record](planning/WATER_DECAY_CANDIDATE_REVISION.md)。
 
+本 review branch 在 required independent approval 前保持 Proposed。approval 后必须追加独立的
+`docs(water): finalize Decay candidate baseline` commit，更新本文件、revision record 及会过期的直接相关
+authority statement，并对最终 HEAD 完成 required review/checks；不得将当前 proposed / merge-pending /
+v1.3-authoritative-until-merge 文案原样合入 main。具体 evidence 字段、收尾范围与生效规则见
+[review lifecycle](planning/WATER_DECAY_CANDIDATE_REVISION.md#review-evidence-and-finalization-gate)。
+
 此前 `CODING_PLAN.md` v1.3 已由 [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23) 完成 required
 formal approval 并合入 `main`，现为 FRAZIL 的 Approved Development Baseline；这不等于 FRAZIL plugin
 v1.0 release。实时 milestone 状态见 `PROJECT_STATUS.md` 和 M1 Joint Exit evidence；下文 M1
@@ -429,6 +435,28 @@ listening decision。
 | EXP-W-002 | P0 | 分组件工程实验与集成 | 必须遵守 `docs/PERCEPTUAL_CONTRACT.md` framework，并消费已产出且验收的 Water instance `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`；提出 candidate 前确认其 positive/negative/preserve/reject 条件；使用 `TESTDATA-001` 分别测量 Bubble Ensemble、Droplet/Impact、Flow Modulator、Liquid/Modal Resonator 及集成；Fluid 要求 A/B/D ablation，C 作为 Resonant baseline/mode；固定 test seed；完成下述 Motion × Decay 2×2、dynamic Decay existing-state policy 比较及 tail/overlap evidence；记录参数空间、finite/DC/peak/tail 和 CPU 初测，不把 diagnostic WAV 当作 musical acceptance |
 | EXP-W-003 | P0 | 双模式方向验证与 refinement | 必须继续遵守 Perceptual Contract framework 并消费已验收的 Water instance `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md`，再使用 `LISTENING-001` 做 loudness-matched 双人 review；Fluid/Resonant 分别按各自 mode-specific responsibilities 验收，并定性确认二者均为 intentional Water models 而非 good/bad switch；不要求 perceptual-distance metric、classification threshold 或 mode-separation score；同时验证 Size/Motion/Decay 语义、Motion/Decay perceptual separability、有界交互、input recognizability、musical usefulness、mapping 理由、风险与 tradeoff |
 | ADR-W-001 | P0 | Water 双模式算法 ADR | 在 Joint Gate 后记录 Fluid A+B+D、Resonant C、source-preserving/residual 语义、macro mapping、random、latency/tail、mode transition、state implications、performance 与 failure modes；证据不足时保持 Proposed，不得标记 Accepted |
+
+### Decay Revision B completion gate
+
+**EXP-W-001 MUST NOT be accepted or closed until Decay Revision B is synchronized.**
+Revision B 是 completion prerequisite，不是验收后的 optional cleanup。必须全部满足：
+
+1. `DOC-W-DECAY-001` 已获得 required acceptance 并合入 main；
+2. Sound & Host Lead / EXP-W-001 owner 已同步 [Issue #17](https://github.com/jjjphens-dot/FRAZIL/issues/17)；
+3. owner 已将 `experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md` rebase/revise 到获准的
+   Model / Size / Motion / Decay 四 macro baseline；
+4. brief 含独立 Decay intent、positive、negative/anti-examples、must-preserve、reject/revise criteria，
+   以及适用的 perceptual/listening anchors；
+5. UX contract 已覆盖 Semantic Predictability、Cross-Mode Consistency、Motion/Decay separability、
+   Interaction Cost 和 future Automation Readability；
+6. Engineering Lead feasibility review 已记录，随后按既有独立验收规则决定 EXP-W-001 是否可关闭。
+
+**Formal EXP-W-002 MUST NOT start based only on Revision A docs.** 正式 subjective/candidate experiment
+必须满足 `M1 Exit AND usable Developer workflow/readiness as required AND accepted EXP-W-001 including
+Decay Revision B`；不得消费仍代表 pre-Decay 三 macro 合同的 brief。大规模探索前 `DEV-UI-001` 可用性要求
+不变。`SPIKE-W-DSP-001` 继续仅作 objective feasibility evidence；已有 prepare-time `decaySeconds`
+不等于 Decay perceptual acceptance，也不满足上述 gate。本 Revision A 不编辑 owner 的 Issue #17 或 brief，
+不代替其 perceptual work 或独立验收。
 
 ### EXP-W-001 Water UX acceptance dimensions（planned）
 

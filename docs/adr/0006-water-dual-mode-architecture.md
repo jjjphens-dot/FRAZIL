@@ -111,9 +111,11 @@ with user evidence and a separate parameter/state review.
 ## Consequences
 
 - `EXP-W-001` defines common/Fluid/Resonant identity, Size/Motion/Decay semantics, anti-examples, and source
-  recognizability.
+  recognizability. It must not be accepted/closed before the mandatory
+  [Decay Revision B completion gate](../CODING_PLAN.md#decay-revision-b-completion-gate).
 - `EXP-W-002` measures Bubble, Droplet/Impact, Flow, and Resonant components separately and in integration with
-  fixed test seeds where randomness is involved.
+  fixed test seeds where randomness is involved. Formal work requires M1 Exit, applicable Developer readiness
+  and accepted EXP-W-001 including Revision B; neither Revision A nor the old three-macro brief suffices.
 - `EXP-W-003` validates and refines the dual-mode direction instead of selecting only one Water slice.
 - `water.model`, `water.size`, `water.motion`, and `water.decay` remain outside the current nine-parameter registry and
   `schemaVersion=1` until explicit adoption and compatibility work.
