@@ -1,3 +1,4 @@
+#include "ReadConfig.h"
 #include "dsp/ResearchBaseline.h"
 
 #include <charconv>
@@ -5,7 +6,6 @@
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <memory>
 #include <string_view>
-#include <vector>
 
 using namespace frazil::water::research;
 
@@ -16,24 +16,46 @@ template <typename Integer> bool parse(std::string_view text, Integer& value) {
 }
 
 int render(int argc, char** argv) {
-    if (argc != 6) {
-        std::cerr
-            << "Usage: renderer <input.wav> <output.wav> <baseline|residual> <block> <seed>\n";
+    if (argc < 6 || argc > 8) {
+        std::cerr << "Usage: renderer input.wav NEW-output.wav mode block seed [config.json|-] "
+                     "[tail-seconds]\n"
+                     "Modes: baseline, residual (zero), a, b, d, ab, ad, bd, abd, c; append "
+                     "-residual for E only.\n";
         return 2;
     }
-    const std::string_view mode(argv[3]);
-    int blockSize{};
-    ResearchConfig config;
-    if ((mode != "baseline" && mode != "residual") || !parse(argv[4], blockSize) || blockSize < 1 ||
-        blockSize > 8192 || !parse(argv[5], config.baseSeed))
+    std::string_view mode(argv[3]);
+    bool residualOnly = mode == "residual";
+    if (mode.ends_with("-residual")) {
+        residualOnly = true;
+        mode.remove_suffix(9);
+    }
+    const bool baselineMode = mode == "baseline" || mode == "residual";
+    if (!baselineMode && mode != "a" && mode != "b" && mode != "d" && mode != "ab" &&
+        mode != "ad" && mode != "bd" && mode != "abd" && mode != "c")
         return 2;
-
-    const auto input = juce::File::getCurrentWorkingDirectory().getChildFile(argv[1]);
-    const auto output = juce::File::getCurrentWorkingDirectory().getChildFile(argv[2]);
+    int blockSize{}, tailSeconds{};
+    ResearchConfig config;
+    if (!parse(argv[4], blockSize) || blockSize < 1 || blockSize > 8192 ||
+        !parse(argv[5], config.baseSeed) ||
+        (argc == 8 && (!parse(argv[7], tailSeconds) || tailSeconds < 0 || tailSeconds > 30)))
+        return 2;
+    const auto cwd = juce::File::getCurrentWorkingDirectory();
+    const auto input = cwd.getChildFile(argv[1]);
+    const auto output = cwd.getChildFile(argv[2]);
     if (input == output || output.exists()) {
         std::cerr << "Output must be a new file, distinct from input.\n";
         return 2;
     }
+    FluidConfig fluidConfig;
+    ModalConfig modalConfig;
+    if (argc >= 7 && std::string_view(argv[6]) != "-" &&
+        !readConfig(cwd.getChildFile(argv[6]), fluidConfig, modalConfig)) {
+        std::cerr << "Invalid research config\n";
+        return 2;
+    }
+    fluidConfig.bubbleEnabled = mode.find('a') != std::string_view::npos;
+    fluidConfig.dropletEnabled = mode.find('b') != std::string_view::npos;
+    fluidConfig.flowEnabled = mode.find('d') != std::string_view::npos;
     auto inputStream = input.createInputStream();
     if (!inputStream)
         return 2;
@@ -45,44 +67,74 @@ int render(int argc, char** argv) {
         return 2;
     config.sampleRateHz = reader->sampleRate;
     ResearchBaseline baseline;
-    if (!baseline.prepare(config))
+    FluidCandidate fluid;
+    LiquidModalResonator modal;
+    if (!baseline.prepare(config) || !fluid.prepare(config, fluidConfig) ||
+        !modal.prepare(config.sampleRateHz, modalConfig))
         return 2;
     const auto channels = static_cast<int>(reader->numChannels);
+    const auto totalFrames =
+        reader->lengthInSamples + static_cast<juce::int64>(tailSeconds * config.sampleRateHz);
     juce::AudioBuffer<float> buffer(channels, blockSize);
-    std::vector<float> residual(static_cast<std::size_t>(blockSize));
     std::unique_ptr<juce::OutputStream> stream = output.createOutputStream();
     if (!stream)
         return 1;
-    auto writer = format.createWriterFor(stream, juce::AudioFormatWriterOptions{}
-                                                     .withSampleRate(reader->sampleRate)
-                                                     .withNumChannels(channels)
-                                                     .withBitsPerSample(24));
+    auto options = juce::AudioFormatWriterOptions{}
+                       .withSampleRate(reader->sampleRate)
+                       .withNumChannels(channels);
+    // Float candidate WAVs preserve peaks above full scale for analysis; no clipping/makeup.
+    options = baselineMode ? options.withBitsPerSample(24)
+                           : options.withBitsPerSample(32).withSampleFormat(
+                                 juce::AudioFormatWriterOptions::SampleFormat::floatingPoint);
+    auto writer = format.createWriterFor(stream, options);
     if (!writer)
         return 1;
-    for (juce::int64 start = 0; start < reader->lengthInSamples; start += blockSize) {
-        const auto count =
-            static_cast<int>(std::min<juce::int64>(blockSize, reader->lengthInSamples - start));
-        if (!reader->read(&buffer, 0, count, start, true, true))
+    double peak{}, squareSum{}, dcSum{}, residualSquareSum{};
+    for (juce::int64 start = 0; start < totalFrames; start += blockSize) {
+        const auto count = static_cast<int>(std::min<juce::int64>(blockSize, totalFrames - start));
+        buffer.clear();
+        const auto fromInput = static_cast<int>(std::min<juce::int64>(
+            count, std::max<juce::int64>(0, reader->lengthInSamples - start)));
+        if (fromInput > 0 && !reader->read(&buffer, 0, fromInput, start, true, true))
             return 1;
-        for (int channel = 0; channel < channels; ++channel) {
-            auto audio =
-                std::span(buffer.getWritePointer(channel), static_cast<std::size_t>(count));
-            for (const auto sample : audio)
-                if (!std::isfinite(sample) || std::abs(sample) > 1.0f)
-                    return 1; // PCM output must not silently clip invalid input.
-            if (!baseline.processResidual(audio, std::span(residual).first(audio.size())))
+        for (int sample = 0; sample < count; ++sample) {
+            StereoFrame frame{buffer.getSample(0, sample),
+                              channels == 2 ? buffer.getSample(1, sample) : 0.0f};
+            for (float value : frame)
+                if (!std::isfinite(value) || std::abs(value) > 1.0f)
+                    return 1;
+            StereoFrame effect{};
+            if (mode == "c")
+                effect = modal.process(frame);
+            else if (!baselineMode)
+                effect = fluid.process(frame);
+            else if (!baseline.processResidual(frame, effect))
                 return 1;
-            for (std::size_t i = 0; i < audio.size(); ++i)
-                audio[i] = mode == "residual" ? residual[i] : audio[i] + residual[i];
+            for (int channel = 0; channel < channels; ++channel) {
+                const float value =
+                    residualOnly ? effect[channel] : frame[channel] + effect[channel];
+                if (!std::isfinite(value))
+                    return 1;
+                buffer.setSample(channel, sample, value);
+                peak = std::max(peak, std::abs(static_cast<double>(value)));
+                squareSum += static_cast<double>(value) * value;
+                dcSum += value;
+                residualSquareSum += static_cast<double>(effect[channel]) * effect[channel];
+            }
         }
         if (!writer->writeFromAudioSampleBuffer(buffer, 0, count))
             return 1;
     }
     if (!writer->flush())
         return 1;
-    std::cout << "LOCAL-WDSP-00 mode=" << mode << " seed=" << config.baseSeed
-              << " samples=" << reader->lengthInSamples << " rate=" << config.sampleRateHz
-              << " block=" << blockSize << " (no Water algorithm)\n";
+    const double samples = static_cast<double>(totalFrames) * channels;
+    std::cout << "research mode=" << argv[3] << " seed=" << config.baseSeed
+              << " frames=" << totalFrames << " rate=" << config.sampleRateHz
+              << " block=" << blockSize << " peak=" << peak
+              << " rms=" << std::sqrt(squareSum / samples) << " dc=" << dcSum / samples
+              << " residual_rms=" << std::sqrt(residualSquareSum / samples)
+              << " bubble_events=" << fluid.bubbleEvents()
+              << " droplet_events=" << fluid.dropletEvents() << '\n';
     return 0;
 }
 } // namespace

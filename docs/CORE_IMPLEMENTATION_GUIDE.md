@@ -568,6 +568,17 @@ destination、state 和 automation complexity。未来若真实用户证据支�
 `Motion Mod` foldout：Source=LFO/Random、Rate、Depth、Smooth、destination fixed to Motion；这仍需新的
 parameter/state/automation review，不能进入当前 schemaVersion=1。
 
+### Standalone research implementation
+
+The [EXP-W-002 research implementation](../experiments/water/EXP-W-002/README.md) evaluates
+independent A/B/D random streams, fixed-capacity event pools with deterministic oldest-voice
+stealing, Flow residual `gain*(xd-x)` with bounded linear interpolation, and fixed C modes using
+normalized complex-pole state. Tests check ablation, reset, isolation, bounds and determinism;
+these implementation observations do not accept a production topology or product mapping.
+Independent bubbles omit coupled-cloud behavior, and numerical validity does not prove Water
+identity. The research README records the Engineering Lead's session authorization to proceed
+before accepted EXP-W-001, with brief reconciliation and Sound Lead listening still outstanding.
+
 ### 5.7 Water mode transition candidate
 
 若两个 engine 都输出 residual，可评估：

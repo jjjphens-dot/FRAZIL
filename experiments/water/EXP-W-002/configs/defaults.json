@@ -1,0 +1,31 @@
+{
+  "bubble": {
+    "minimumFrequencyHz": 250.0,
+    "maximumFrequencyHz": 2800.0,
+    "decaySeconds": 0.07,
+    "maximumEventRateHz": 120.0,
+    "excitationThreshold": 0.0001,
+    "residualGain": 0.2,
+    "voices": 16
+  },
+  "droplet": {
+    "minimumFrequencyHz": 600.0,
+    "maximumFrequencyHz": 4500.0,
+    "decaySeconds": 0.012,
+    "transientThreshold": 0.015,
+    "refractorySeconds": 0.02,
+    "residualGain": 0.15,
+    "voices": 8
+  },
+  "flow": {
+    "baseDelaySeconds": 0.004,
+    "depthSeconds": 0.001,
+    "targetIntervalSeconds": 0.25,
+    "residualGain": 0.1
+  },
+  "modal": {
+    "rootFrequencyHz": 260.0,
+    "decaySeconds": 0.12,
+    "residualGain": 0.18
+  }
+}

@@ -50,9 +50,11 @@ experiments/water/
 production work 均 DEFERRED，只有在 M2 Exit 后通过 Explicit Joint Gate 确认 Water workflow 可复用于 Ice，
 才恢复 M3 planning/work。
 
-## Water research infrastructure checkpoint
+## Water research candidates
 
-[LOCAL-WDSP-00](water/EXP-W-002/README.md) adds opt-in baseline/test/render infrastructure only.
-No sonic Water candidate exists yet. The Engineering Lead authorized a bounded research spike with
-brief integration and listening deferred; formal acceptance still requires those steps. See the
-[research proposal and session scope note](water/EXP-W-002_DSP_IMPLEMENTATION_PLAN.md).
+[EXP-W-002 bounded research spike](water/EXP-W-002/README.md) contains independently testable
+Bubble A, Droplet B, Flow D and Resonant C plus Fluid ablation, engineering configs and offline
+render/analysis entry points. This is experiment-only code, not production WaterProcessor.
+The Engineering Lead authorized algorithm research before accepted EXP-W-001, deferring brief
+integration and listening to collaboration with Sound Lead. Formal evidence closure/production
+adoption still require those steps; see the [proposal and scope note](water/EXP-W-002_DSP_IMPLEMENTATION_PLAN.md).

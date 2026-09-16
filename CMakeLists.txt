@@ -323,7 +323,7 @@ add_test(
 )
 
 # Research targets are opt-in and never linked into the production plugin.
-option(FRAZIL_BUILD_WATER_EXPERIMENT "Build the LOCAL-WDSP-00 research baseline" OFF)
+option(FRAZIL_BUILD_WATER_EXPERIMENT "Build the standalone Water DSP research candidates" OFF)
 if(FRAZIL_BUILD_WATER_EXPERIMENT)
     add_subdirectory(experiments/water/EXP-W-002)
 endif()

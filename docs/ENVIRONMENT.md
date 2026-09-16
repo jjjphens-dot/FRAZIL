@@ -98,9 +98,13 @@ GitHub Actions 和其他已初始化 MSVC developer environment 的 Windows 机�
     python tools/check_portability.py
     python tools/check_markdown_links.py
     python tools/check_vscode_tasks.py
-    cmake --preset ci-windows-debug
+    cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON
     python tools/build_safe.py --preset ci-windows-debug
     ctest --preset ci-windows-debug
+
+Hosted CI explicitly enables the standalone Water research targets so their property and decoded-render
+tests run alongside the production regression suite. Local builds leave the option OFF unless explicitly
+requested; details are in [the research README](../experiments/water/EXP-W-002/README.md).
 
 ci-windows-debug 不引用个人盘符、用户名或工具安装目录。CI 在 configure 前运行 portability scan。
 

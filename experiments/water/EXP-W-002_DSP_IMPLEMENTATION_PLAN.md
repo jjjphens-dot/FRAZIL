@@ -2,23 +2,23 @@
 > The Engineering Lead explicitly authorized a bounded algorithm research spike in this session,
 > deferring EXP-W-001 integration and listening to later collaboration with Sound Lead.
 > This does not amend canonical contracts or establish formal acceptance/production readiness.
-> LOCAL-WDSP-00 Debug validation passed after memory recovery; further algorithms follow local checkpoints.
+> LOCAL-WDSP-00..06 engineering checkpoints are implemented; current evidence and deferred acceptance are recorded in the research README.
 > PR/push instructions in this proposal do not authorize publication.
 > See [research checkpoint](EXP-W-002/README.md) for actual implementation, evidence and next action.
 
 # FRAZIL Water DSP Research Coding Plan
 ## Agent-Ready / Local Iteration + Single Final PR / Bounded Scope
 
-> Recommended repository path: `experiments/water/EXP-W-002_DSP_IMPLEMENTATION_PLAN.md`  
-> Status at creation: **Proposed engineering execution plan**  
-> Scope: **Water DSP research coding only**  
+> Recommended repository path: `experiments/water/EXP-W-002_DSP_IMPLEMENTATION_PLAN.md`
+> Status at creation: **Proposed engineering execution plan**
+> Scope: **Water DSP research coding only**
 > Out of scope: Developer/experiment parameter transport, Host parameter registration, plugin state/schema evolution, production WaterProcessor adoption, Ice, RoutingEngine, production UI.
 
 ---
 
 ## 0. Executive Directive
 
-Implement the Water DSP research core through **multiple small local iterations**, with module-by-module local validation and **one consolidated final PR** after the research implementation and evidence are complete. Do not build a monolithic `WaterProcessor` first.  
+Implement the Water DSP research core through **multiple small local iterations**, with module-by-module local validation and **one consolidated final PR** after the research implementation and evidence are complete. Do not build a monolithic `WaterProcessor` first.
 The goal of this work is to create four independently testable, independently renderable, ablatable DSP mechanisms:
 
 1. **Bubble Ensemble (A)** — input-driven bubble/liquid acoustic identity.

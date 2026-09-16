@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dsp/primitives/RandomSource.h"
+#include "WaterDspConfig.h"
 
 #include <algorithm>
 #include <cmath>
@@ -8,18 +8,6 @@
 #include <span>
 
 namespace frazil::water::research {
-
-// Experiment identifiers are stable seed domains, not Host parameters or persisted state.
-enum class RandomDomain : std::uint64_t { bubble = 1, droplet = 2, flow = 3 };
-
-struct ResearchConfig final {
-    double sampleRateHz{48000.0};
-    RandomSource::Seed baseSeed{20260916u};
-
-    [[nodiscard]] RandomSource::Seed seedFor(RandomDomain domain) const noexcept {
-        return RandomSource::deriveInstanceSeed(baseSeed, static_cast<std::uint64_t>(domain));
-    }
-};
 
 // LOCAL-WDSP-00 baseline only: emits E(x)=0. The renderer owns the single carrier addition.
 // All calls belong to one processing owner; spans are borrowed for the duration of the call.

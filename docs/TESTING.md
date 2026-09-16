@@ -575,10 +575,13 @@ pluginval 路径与完整 MSVC 环境初始化见 `docs/ENVIRONMENT.md`。CI 命
 - M6：全矩阵、ASAN、长稳、多实例、DAW、CPU/memory、listening regression PASS。
 - M7：Release clean build、VST3 validation、兼容性和 packaging 签核，known blockers=0。
 
-### LOCAL-WDSP-00 research infrastructure
+### EXP-W-002 standalone research checks
 
-The opt-in `FRAZIL_BUILD_WATER_EXPERIMENT` CMake option adds `frazil_water_experiment_unit` and
-`frazil_water_experiment_render_cli` to CTest. These check zero residual, carrier ownership, lifecycle,
-seed plumbing, decoded PCM, stereo isolation and callback partitions at 44.1/48/96 kHz.
-They are infrastructure checks, not Water algorithm, component-ablation or perceptual acceptance.
-Commands, scope and actual evidence are maintained in the [research README](../experiments/water/EXP-W-002/README.md).
+The opt-in `FRAZIL_BUILD_WATER_EXPERIMENT` option builds candidate-only tests, renderer and a
+manual research performance executable. CTest covers baseline, features, modal, bubble, flow,
+droplet, Fluid ablation and decoded renderer output. Checks include lifecycle/numerical bounds,
+seed independence, zero/odd callbacks, silence/tail, stereo isolation, sample-rate/partition
+consistency and strict engineering-config validation. The corpus runner reuses TESTDATA-001 and
+`analyze_testdata.py`; generated WAV/metrics remain ignored. These engineering checks do not
+establish Water identity, source recognizability, musical acceptance or production readiness.
+Commands, actual results and limitations: [research README](../experiments/water/EXP-W-002/README.md).

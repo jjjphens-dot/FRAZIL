@@ -323,9 +323,11 @@ UI 或已完成 usability/DAW acceptance；Water-specific Perceptual Contract in
 Perceptual Contract framework/template 已在 v1.3 approval + merge 后成为 CURRENT/CONTROLLED。
 Water/Ice/Routing 仍未开始 production。
 
-## Branch-local Water research preparation (2026-09-16)
+## Branch-local Water research spike (2026-09-16)
 
-LOCAL-WDSP-00 baseline/test/render infrastructure exists under `experiments/water/EXP-W-002/`
-in this working change. It is not merged or a sonic candidate, and does not complete EXP-W-002.
-The accepted EXP-W-001 instance remains absent from the inspected main baseline.
-Validation and continuation status: [research checkpoint](../experiments/water/EXP-W-002/README.md).
+The EXP-W-002 research branch now contains Bubble A, Droplet B, Flow D, Resonant C and Fluid
+ablation under `experiments/water/EXP-W-002/`, with opt-in tests, engineering JSON configs,
+offline rendering and performance measurement. These are standalone candidates, not production
+Water DSP or a completed EXP-W-002 acceptance gate. The Engineering Lead authorized research
+before accepted EXP-W-001; brief integration and listening remain deferred to work with Sound Lead.
+Current validation and limitations: [research checkpoint](../experiments/water/EXP-W-002/README.md).
