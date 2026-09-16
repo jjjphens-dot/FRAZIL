@@ -32,11 +32,12 @@ Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未实现�
 和 model transition 均未实现或注册；Debug/ASAN 开发面板中的 experiment-only controls 不属于该
 production scope。
 
-[DOC-W-PROTECT-001 / #36](planning/WATER_PROTECT_CANDIDATE_REVISION.md) 新增 **PROPOSED / NOT ACCEPTED**
-的 Wave 1 理论、感知定义草案和分波实验计划。Protect 没有 DSP、Developer/Host control、render、性能或听测
-evidence；没有第五个已接受 macro。Issue #17 已同步四 macro，但 owner brief/Decay Revision B、精确版本
-engineering re-review 和独立 whole-contract acceptance 仍待完成。Protect Wave 2 必须满足文档独立审查、
-适用感知定义验收、既有 EXP-W-002 readiness 和单独 implementation scope；不能扩展旧 SPIKE exception。
+[DOC-W-PROTECT-001 / #36](planning/WATER_PROTECT_CANDIDATE_REVISION.md) 是历史 Wave 1 提案。用户后续授权
+逐波工程自审并最终统一上传；[PROTECT-EXP-001 execution](planning/WATER_PROTECT_EXECUTION.md) 记录现有
+独立 experiment 中的 detector、residual gain、Fluid placement、renderer 与数值验证，及每项实际结果。
+没有 production Water/Developer/Host Protect control 或第五个已接受 macro。Issue #17 的 owner brief/
+Decay Revision B、精确版本 re-review 和 whole-contract acceptance 仍待完成。该 objective follow-up 不等于
+formal EXP-W-002 或 product adoption；用户将后续提供音频/结论，人类听测和产品决定明确待验收。
 
 当前阻塞性差距：
 

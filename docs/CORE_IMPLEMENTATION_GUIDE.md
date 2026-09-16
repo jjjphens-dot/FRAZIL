@@ -736,10 +736,12 @@ Official product documentation：
 ### 5.10 Water Protect theory (candidate)
 
 Status: **PROPOSED**, `DOC-W-PROTECT-001` / [#36](https://github.com/jjjphens-dot/FRAZIL/issues/36).
-This is a research hypothesis, not a fifth accepted Water macro, experiment authorization or production
-algorithm. The [audit, perceptual draft and seven-wave plan](planning/WATER_PROTECT_CANDIDATE_REVISION.md)
-retain the v1.4 baseline and EXP-W-001/Decay Revision B gates. Tests are specified in
-[Testing](TESTING.md#water-protect-proposed-validation); no Protect listening or runtime result exists here.
+This is a research hypothesis, not a fifth accepted Water macro or production algorithm. The
+[audit, perceptual draft and seven-wave plan](planning/WATER_PROTECT_CANDIDATE_REVISION.md) retain v1.4.
+The user subsequently authorized sequential objective research with per-wave self-review and one final
+upload; implementation/evidence is tracked in [PROTECT-EXP-001](planning/WATER_PROTECT_EXECUTION.md).
+Formal EXP-W-001/Decay Revision B acceptance, human listening and product adoption are not inferred from it.
+Tests are specified in [Testing](TESTING.md#water-protect-proposed-validation).
 
 #### Physical and perceptual rationale
 
@@ -849,9 +851,11 @@ than division by zero. Detector smoothing and gain smoothing are independent; th
 
 Static/reset `P=0` can be exactly baseline. After active ducking, an exponential release approaches unity
 asymptotically: it cannot also promise immediate exact identity. Dynamic OFF needs a reviewed bounded,
-click-free transition followed by explicit unity snap (duration/error criterion still undecided), preserving
+smooth transition followed by explicit unity snap, preserving
 generator state. Test exact continuation after completion separately from transition continuity. Do not
-claim bit-exact identity merely because a floating-point value is close to one.
+claim bit-exact identity merely because a floating-point value is close to one. PROTECT-EXP-001 implements
+a finite linear ramp in dB (10 ms experimental default, validated 1–100 ms config); tests bound the step and
+prove completion, not perceptual click-inaudibility or an adopted automation contract.
 
 Zero lookahead means causal source -> detector -> gain -> residual order without future samples. It does not
 mean instantaneous response, protection of the first impulse sample, or undoing preceding masking. Preserve

@@ -523,18 +523,21 @@ Bubble/Droplet/Modal 分别评估 normalized mapping curves，Flow 默认无直�
 recognizability 是否保留。检查 masking、runaway ringing、excessive steals/CPU/gain buildup；工程 proxy
 不替代 human decision。完整验证边界见 `TESTING.md`，后续采纳仍需 Joint Gate / ADR-W-001。
 
-### Proposed Protect research addendum (not authorized implementation)
+### Protect objective research follow-up (no production adoption)
 
 `DOC-W-PROTECT-001` / [#36](https://github.com/jjjphens-dot/FRAZIL/issues/36) proposes source-keyed residual
 attenuation around attacks. Its [audit, perceptual draft and seven-wave plan](planning/WATER_PROTECT_CANDIDATE_REVISION.md)
-are **Wave 1 / PROPOSED / NOT ACCEPTED**. v1.4 remains the approved four-macro baseline; Protect is not an
+are **Wave 1 / PROPOSED / NOT ACCEPTED**. The subsequent user-authorized
+[PROTECT-EXP-001 execution](planning/WATER_PROTECT_EXECUTION.md) permits local objective research after each
+wave's self-review, followed by one overall review/upload. v1.4 remains the approved four-macro baseline; Protect is not an
 additional M2 Exit requirement or a fifth accepted product macro.
 
 Engineering owns theory and bounded implementation proposals; Sound & Host owns perceptual acceptance and
-the product-control decision, with independent engineering review of theory/scope. Wave 1 changes documents
-only. Wave 2 requires review and merge of this proposal, accepted Protect intent reconciled with EXP-W-001,
-all existing EXP-W-002 readiness including mandatory Decay Revision B, and a separately scoped implementation
-issue. SPIKE-W-DSP-001's pre-contract exception does not extend to Protect.
+the product-control decision. The task-specific user instruction supersedes the proposal's per-wave external
+review/merge wait for this objective follow-up, not the accepted-instance prerequisite for formal EXP-W-002
+or subjective tuning/selection. No EXP-W-001/Decay Revision B or Developer readiness acceptance is inferred.
+The closed SPIKE-W-DSP-001 scope is not retrospectively expanded. Human listening is deferred until the user
+supplies audio/conclusions; self-review is not formal independent GitHub approval or product acceptance.
 
 Proposed sequence: detector comparison -> whole-residual gain -> Fluid topology comparison -> Motion/Decay
 interaction -> human listening -> Reject / Internal safeguard / User macro decision. Each is separately

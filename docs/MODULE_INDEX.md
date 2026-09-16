@@ -30,10 +30,12 @@ ProcessSpec 当前实际位于 `src/app/ProcessSpec.h`，由 M1 AudioEngine 消�
 
 ## Proposed Protect research
 
-[DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) records theory and a gated experiment plan,
-not a new module, implemented detector or fifth accepted Water macro. No module row/interface/dependency
-changes are implied. Possible detector/gain/envelope responsibilities remain candidate experiment scope;
-production Water-domain ownership and existing adoption gates apply if evidence later supports adoption.
+[DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) records the theory. The user-authorized
+[PROTECT-EXP-001](planning/WATER_PROTECT_EXECUTION.md) adds `ProtectDetector`, `ResidualProtect` and pure
+`applyFluidProtect` in the existing opt-in research tree. They own linked detection/gain state and residual
+composition, with prepare/reset/sample processing and research unit/CLI tests; no production target depends
+on them. See the [research README](../experiments/water/SPIKE-W-DSP-001/README.md#protect-follow-up--protect-exp-001).
+Production Water-domain ownership/adoption gates remain; no fifth accepted macro or production module is created.
 
 ## Registration and update rules
 

@@ -87,8 +87,10 @@ EXP-W-001; this example does not create or accept that deliverable.
 contains an unaccepted definition draft using this framework: positive/negative/must-preserve behavior,
 questions, materials, proxies, reject conditions and pending whole-definition Human Review. It adds no
 accepted fifth macro to EXP-W-001 and is not a second canonical Water instance. Sound & Host must reconcile
-and accept its intent against the accepted Water brief before Protect experiments. Existing EXP-W-002 and
-mandatory Decay Revision B prerequisites remain intact; documentation review alone cannot replace them.
+and accept its intent against the accepted Water brief before subjective Protect selection. The subsequent
+[PROTECT-EXP-001 task](planning/WATER_PROTECT_EXECUTION.md) records the user's authorization for sequential
+objective experiments/self-review and deferred human audio/conclusions. This does not close EXP-W-001 or
+satisfy formal EXP-W-002/mandatory Decay Revision B prerequisites; no perceptual acceptance is inferred.
 
 ## 5. Lifecycle and agent rules
 

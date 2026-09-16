@@ -16,9 +16,9 @@ template <typename Integer> bool parse(std::string_view text, Integer& value) {
 }
 
 int render(int argc, char** argv) {
-    if (argc < 6 || argc > 8) {
+    if (argc < 6 || argc > 9) {
         std::cerr << "Usage: renderer input.wav NEW-output.wav mode block seed [config.json|-] "
-                     "[tail-seconds]\n"
+                     "[tail-seconds] [NEW-protect-trace.csv]\n"
                      "Modes: baseline, residual (zero), a, b, d, ab, ad, bd, abd, c; append "
                      "-residual for E only.\n";
         return 2;
@@ -37,7 +37,7 @@ int render(int argc, char** argv) {
     ResearchConfig config;
     if (!parse(argv[4], blockSize) || blockSize < 1 || blockSize > 8192 ||
         !parse(argv[5], config.baseSeed) ||
-        (argc == 8 && (!parse(argv[7], tailSeconds) || tailSeconds < 0 || tailSeconds > 30)))
+        (argc >= 8 && (!parse(argv[7], tailSeconds) || tailSeconds < 0 || tailSeconds > 30)))
         return 2;
     const auto cwd = juce::File::getCurrentWorkingDirectory();
     const auto input = cwd.getChildFile(argv[1]);
@@ -48,8 +48,9 @@ int render(int argc, char** argv) {
     }
     FluidConfig fluidConfig;
     ModalConfig modalConfig;
+    ProtectRenderConfig protectConfig;
     if (argc >= 7 && std::string_view(argv[6]) != "-" &&
-        !readConfig(cwd.getChildFile(argv[6]), fluidConfig, modalConfig)) {
+        !readConfig(cwd.getChildFile(argv[6]), fluidConfig, modalConfig, protectConfig)) {
         std::cerr << "Invalid research config\n";
         return 2;
     }
@@ -69,11 +70,24 @@ int render(int argc, char** argv) {
     ResearchBaseline baseline;
     FluidCandidate fluid;
     LiquidModalResonator modal;
+    ResidualProtect protect;
+    if (!protect.prepare(config.sampleRateHz, protectConfig.gain, protectConfig.depth))
+        return 2;
     const bool prepared = baselineMode  ? baseline.prepare(config)
                           : mode == "c" ? modal.prepare(config.sampleRateHz, modalConfig)
                                         : fluid.prepare(config, fluidConfig);
     if (!prepared)
         return 2;
+    // Optional diagnostic trace is offline-only, outside DSP and timing; refuse any overwrite.
+    std::unique_ptr<juce::FileOutputStream> trace;
+    if (argc == 9) {
+        const auto traceFile = cwd.getChildFile(argv[8]);
+        if (traceFile == output || traceFile == input || traceFile.exists())
+            return 2;
+        trace = traceFile.createOutputStream();
+        if (!trace || !trace->writeText("frame,d0,d1_db,gr_db\n", false, false, "\n"))
+            return 1;
+    }
     const auto channels = static_cast<int>(reader->numChannels);
     const auto totalFrames =
         reader->lengthInSamples + static_cast<juce::int64>(tailSeconds * config.sampleRateHz);
@@ -109,14 +123,25 @@ int render(int argc, char** argv) {
                 if (!std::isfinite(value) || std::abs(value) > 1.0f)
                     return 1;
             StereoFrame effect{};
+            const double gain = protect.processSource(frame);
             const auto beforeBubble = fluid.bubbleEvents();
             const auto beforeDroplet = fluid.dropletEvents();
             if (mode == "c")
-                effect = modal.process(frame);
+                effect = ResidualProtect::apply(modal.process(frame), gain);
             else if (!baselineMode)
-                effect = fluid.process(frame);
+                effect =
+                    applyFluidProtect(fluid.processComponents(frame), gain, protectConfig.topology);
             else if (!baseline.processResidual(frame, effect))
                 return 1;
+            if (trace) {
+                const auto detection = protect.detection();
+                const auto line = juce::String(start + sample) + "," +
+                                  juce::String(detection.difference, 12) + "," +
+                                  juce::String(detection.logRatioDb, 12) + "," +
+                                  juce::String(protect.reductionDb(), 12) + "\n";
+                if (!trace->writeText(line, false, false, "\n"))
+                    return 1;
+            }
             const auto newBubble = fluid.bubbleEvents() - beforeBubble;
             const auto newDroplet = fluid.dropletEvents() - beforeDroplet;
             if (frame == StereoFrame{}) {
@@ -144,6 +169,11 @@ int render(int argc, char** argv) {
     }
     if (!writer->flush())
         return 1;
+    if (trace) {
+        trace->flush();
+        if (trace->getStatus().failed())
+            return 1;
+    }
     const double samples = static_cast<double>(totalFrames) * channels;
     std::cout << "research mode=" << argv[3] << " seed=" << config.baseSeed
               << " frames=" << totalFrames << " rate=" << config.sampleRateHz

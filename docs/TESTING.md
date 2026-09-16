@@ -467,9 +467,10 @@ save/reopen、schema evolution/default/migration fixtures 和 compatibility fall
 
 ### Water Protect proposed validation
 
-Status: **PROPOSED / NOT RUN**, [DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md). This protocol
-does not authorize implementation or create a new M2 Exit requirement. Use the accepted applicable perceptual
-definition and all existing EXP-W-002/Decay Revision B gates before execution. The
+Protocol: [DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md); actual test/render results and
+remaining gaps are recorded in the user-authorized [PROTECT-EXP-001 execution](planning/WATER_PROTECT_EXECUTION.md).
+No new M2 Exit requirement or formal EXP-W-002 readiness is created. Accepted perceptual definition and
+Decay Revision B remain prerequisites for subjective selection. The
 [theory](CORE_IMPLEMENTATION_GUIDE.md#510-water-protect-theory-candidate) defines D0/D1, F0–F3 and their limits.
 
 #### Staged functional and property evidence

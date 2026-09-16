@@ -54,11 +54,12 @@ production work 均 DEFERRED，只有在 M2 Exit 后通过 Explicit Joint Gate �
 
 ## Proposed Protect research
 
-[DOC-W-PROTECT-001](../docs/planning/WATER_PROTECT_CANDIDATE_REVISION.md) is a Wave 1 theory/perceptual-definition/
-planning draft. No Protect experiment implementation or directory is created. Future work must first satisfy
-its independent review, accepted intent, EXP-W-002/Decay Revision B readiness and separate scope gates.
-Reuse the existing Water spike engines when authorized; do not expand the closed SPIKE-W-DSP-001 exception
-or treat this documentation as new pre-contract experiment authorization.
+[DOC-W-PROTECT-001](../docs/planning/WATER_PROTECT_CANDIDATE_REVISION.md) is the historical Wave 1 proposal.
+The user's follow-up authorizes sequential local objective experiments/self-review and one final upload:
+[PROTECT-EXP-001](../docs/planning/WATER_PROTECT_EXECUTION.md) reuses the existing spike engines/renderer/tests.
+No parallel Water implementation or production dependency is created. This separate follow-up does not
+retroactively expand closed SPIKE scope or accept EXP-W-001/Decay Revision B, formal EXP-W-002 or product DSP.
+Human audio/conclusions will be supplied later; listening and product adoption remain pending.
 
 ## Water objective feasibility
 

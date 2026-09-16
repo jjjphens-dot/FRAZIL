@@ -1,5 +1,10 @@
 # Water Protect — DOC-W-PROTECT-001
 
+> Historical Wave 1 proposal/audit at `08df5f4`. The user's subsequent authorization replaces its per-wave
+> external-review/merge wait with local self-review and a final combined upload. Current scope, deviations,
+> evidence and pending human acceptance are tracked in [PROTECT-EXP-001](WATER_PROTECT_EXECUTION.md).
+> The original proposed gates below are historical; EXP-W-001/listening/adoption remain unaccepted.
+
 > Status: **PROPOSED / Wave 1 documentation; NOT ACCEPTED**.<br>
 > Issue: [#36](https://github.com/jjjphens-dot/FRAZIL/issues/36). Audit date: 2026-09-17.<br>
 > Approved baseline remains Coding Plan v1.4. This proposal is not experiment authorization,

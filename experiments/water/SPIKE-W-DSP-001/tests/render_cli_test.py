@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import wave
+import csv
 
 
 def main():
@@ -88,6 +89,59 @@ def main():
         output = root / "mono.wav"
         subprocess.run([str(renderer), str(source), str(output), "c", "7", "0"], check=True, capture_output=True)
         assert len(read_float(output)) == 1031
+        # Protect is opt-in and defaults to exact OFF. Decode F1 contraction and partition
+        # invariance; F2/F3 may change cancellation and intentionally have no such assertion.
+        for mode in ("abd", "c"):
+            baseline_path = root / f"protect-original-{mode}.wav"
+            subprocess.run([str(renderer), str(source), str(baseline_path), mode+"-residual",
+                            "128", "42"], check=True, capture_output=True)
+            original = read_float(baseline_path)
+            for topology in (1, 2, 3):
+                if mode == "c" and topology != 1:
+                    continue
+                for depth in (0.0, .5, 1.0):
+                    reference = None
+                    for block in (7, 128):
+                        config = root / "protect.json"
+                        config.write_text(json.dumps({"protect": {"depth":depth, "topology":topology}}))
+                        output = root / f"protect-{mode}-{topology}-{depth}-{block}.wav"
+                        trace = output.with_suffix(".csv")
+                        subprocess.run([str(renderer), str(source), str(output), mode+"-residual",
+                                        str(block), "42", str(config), "0", str(trace)],
+                                       check=True, capture_output=True)
+                        actual = read_float(output)
+                        assert len(actual) == len(original)
+                        assert all(math.isfinite(x) for x in actual)
+                        if depth == 0:
+                            assert actual == original
+                        elif topology == 1:
+                            assert all(abs(y) <= abs(x) for x,y in zip(original,actual))
+                            assert actual != original
+                        if reference is not None:
+                            assert actual == reference
+                        reference = actual
+                        with trace.open() as stream:
+                            rows = list(csv.DictReader(stream))
+                        assert len(rows) == len(actual)
+                        assert [int(row["frame"]) for row in rows] == list(range(len(actual)))
+                        assert all(0 <= float(row["gr_db"]) <= 9 for row in rows)
+                        if depth == 0:
+                            assert all(float(row["gr_db"]) == 0 for row in rows)
+        for index, bad in enumerate(({"depth":-1}, {"depth":2}, {"detector":.5},
+                {"topology":4}, {"capDb":13}, {"epsilon":0}, {"offSeconds":0},
+                {"thresholdLow":10}, {"attackSeconds":0}, {"unknown":0},
+                {"depth":True}, {"depth":"0"})):
+            config = root / "protect-invalid.json"
+            config.write_text(json.dumps({"protect":bad}))
+            output = root / f"protect-invalid-{index}.wav"
+            result = subprocess.run([str(renderer), str(source), str(output), "baseline",
+                                     "128", "42", str(config)], capture_output=True)
+            assert result.returncode == 2 and not output.exists()
+        # Trace creation also refuses collisions and preserves the source payload.
+        output = root / "trace-collision.wav"
+        result = subprocess.run([str(renderer), str(source), str(output), "abd", "128",
+                                 "42", "-", "0", str(source)], capture_output=True)
+        assert result.returncode == 2 and not output.exists()
         # Representation is globally strict; type-valid unused DSP ranges are independent.
         invalid_modules = {
             "bubble": {"voices": 0}, "droplet": {"voices": 17},

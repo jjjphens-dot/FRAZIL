@@ -114,8 +114,9 @@ and Developer-control exclusion. GUI/build/plugin validation follows `TESTING.md
 
 ### Proposed Protect research control
 
-[DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) is Wave 1 documentation only. Protect has no
-Developer snapshot/editor/export implementation and does not extend DEV-UI-001 acceptance. Current Water
+[DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) is the historical Wave 1 proposal. The
+user-authorized [PROTECT-EXP-001](planning/WATER_PROTECT_EXECUTION.md) adds offline research only. Protect has
+no Developer snapshot/editor/export implementation and does not extend DEV-UI-001 acceptance. Current Water
 experiment controls remain Model/Size/Motion; the Decay follow-up above remains planned. A future Protect
 experiment-control change needs its own accepted scope/readiness, bounded state handoff and config tests;
 it cannot register an APVTS/Host parameter or alter the production schema for convenience.

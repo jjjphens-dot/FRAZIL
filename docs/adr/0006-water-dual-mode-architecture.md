@@ -135,9 +135,10 @@ does not change this ADR's Proposed status, four-macro baseline, Water topology 
 The theory distinguishes whole-residual contraction from component attenuation, which can reduce phase
 cancellation and increase the summed residual. Source, state, RNG and zero Host latency remain boundaries.
 
-Wave 1 adds theory, intent draft and tests-to-run only. Experiment scope requires independent review, accepted
-applicable perceptual definition and EXP-W-002 readiness including Decay Revision B. Reject / Internal
-safeguard / User macro remain open decisions. A later adopted algorithm must update this ADR through the
+Wave 1 added theory, intent draft and tests-to-run. The user-authorized
+[PROTECT-EXP-001 follow-up](../planning/WATER_PROTECT_EXECUTION.md) executes objective research with per-wave
+self-review; it does not satisfy formal EXP-W-002/Decay Revision B or human acceptance. Reject / Internal
+safeguard / User macro remain open product decisions. A later adopted algorithm must update this ADR through the
 existing Joint Gate; user-control adoption separately requires parameter/state compatibility work.
 
 ## Consequences
