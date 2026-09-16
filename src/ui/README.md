@@ -20,13 +20,13 @@
 ```text
 UI -> narrow plugin parameter interface -> Host/APVTS
 UI -> narrow app edit/history command interface -> EditHistoryManager (message thread)
-PluginEditor -> DeveloperDiagnosticsView (snapshot values + Host routing text) -> DeveloperLevelMeter (linear amplitudes)
+PluginEditor -> DeveloperDiagnosticsView (snapshot values + effective routing text) -> DeveloperLevelMeter (linear amplitudes)
 Audio thread -> no UI dependency
 ```
 
 ## Public Interfaces
 
-`DeveloperDiagnosticsView::update` 在 message thread 接收既有 `DeveloperDiagnosticsSnapshot` 和 Host routing 文本；`DeveloperLevelMeter::setLevels` 仅接收 linear peak/RMS。Meter 不读取 Processor、APVTS 或 transport。正式产品 UI component/attachment API 仍为 Planned。
+`DeveloperDiagnosticsView::update` 在 message thread 接收既有 `DeveloperDiagnosticsSnapshot` 和 effective routing 文本（包含 active developer override）；`DeveloperLevelMeter::setLevels` 仅接收 linear peak/RMS。Meter 不读取 Processor、APVTS 或 transport。正式产品 UI component/attachment API 仍为 Planned。
 
 ## Ownership & Lifetime
 

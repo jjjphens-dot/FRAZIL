@@ -26,7 +26,7 @@ DeveloperDiagnosticsView::DeveloperDiagnosticsView() {
     finiteLabel_.setJustificationType(juce::Justification::centredRight);
     levelsLabel_.setText("LEVELS  /  RMS fill  |  Peak line", juce::dontSendNotification);
     levelsLabel_.setTooltip("Aggregate channels; latest observed block only. No peak hold.");
-    routingLabel_.setTooltip("Current Host routing snapshot; developer override may differ.");
+    routingLabel_.setTooltip("Effective routing, including the active developer override.");
     runtimeLabel_.setTooltip("Block: latest / prepared maximum, in samples.");
     addAndMakeVisible(inputMeter_);
     addAndMakeVisible(outputMeter_);
@@ -40,7 +40,7 @@ void DeveloperDiagnosticsView::update(const plugin::DeveloperDiagnosticsSnapshot
                               juce::String(diagnostics.preparedBlockSize) + " | " +
                               juce::String(diagnostics.channelCount) + " ch",
                           juce::dontSendNotification);
-    routingLabel_.setText("Host: " + routing, juce::dontSendNotification);
+    routingLabel_.setText("Route: " + routing, juce::dontSendNotification);
     finiteLabel_.setText(diagnostics.finite ? "FINITE OK" : "FINITE NO",
                          juce::dontSendNotification);
     finiteLabel_.setColour(juce::Label::textColourId, diagnostics.finite ? kAccent : kWarning);

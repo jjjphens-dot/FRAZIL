@@ -26,9 +26,9 @@ juce::String amplitudeText(float amplitude) {
     if (!isValidAmplitude(amplitude))
         return "INVALID";
     if (amplitude == 0.0f)
-        return "-inf";
+        return "-inf dBFS";
     const auto decibels = decibelsForAmplitude(amplitude);
-    return (decibels > 0.0f ? "+" : "") + juce::String(decibels, 1);
+    return (decibels > 0.0f ? "+" : "") + juce::String(decibels, 1) + " dBFS";
 }
 } // namespace
 
@@ -85,7 +85,7 @@ void DeveloperLevelMeter::paint(juce::Graphics& graphics) {
                       numbers.removeFromLeft(numbers.getWidth() / 2),
                       juce::Justification::centredLeft);
     graphics.setColour(kAccent);
-    graphics.drawText("RMS " + amplitudeText(rmsAmplitude_) + " dBFS", numbers,
+    graphics.drawText("RMS " + amplitudeText(rmsAmplitude_), numbers,
                       juce::Justification::centredRight);
 }
 

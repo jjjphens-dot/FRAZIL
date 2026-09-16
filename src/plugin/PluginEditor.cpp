@@ -558,9 +558,10 @@ void FRAZILAudioProcessorEditor::setWorkflowStatus(const juce::String& text) {
 void FRAZILAudioProcessorEditor::timerCallback() {
     ensureHostParameterAttachmentMode();
     const auto diagnostics = processor_.getDeveloperDiagnosticsSnapshot();
-    const auto host = processor_.getDeveloperHostParameterSnapshot();
-    const auto routingIndex = static_cast<int>(std::lround(host.rawValues[static_cast<std::size_t>(
-        frazil::plugin::DeveloperHostParameter::routingMode)]));
+    const auto effective = processor_.getDeveloperHostParameterSnapshot();
+    const auto routingIndex =
+        static_cast<int>(std::lround(effective.rawValues[static_cast<std::size_t>(
+            frazil::plugin::DeveloperHostParameter::routingMode)]));
     const juce::StringArray routingNames{"Parallel", "Water -> Ice", "Ice -> Water"};
     const auto routing = routingNames[juce::jlimit(0, routingNames.size() - 1, routingIndex)];
     diagnosticsView_.update(diagnostics, routing);
@@ -606,6 +607,10 @@ void FRAZILAudioProcessorEditor::resized() {
     routingModeBox_.setBounds(route.removeFromRight(180).reduced(2));
     routingModeBox_.setTextWhenNothingSelected("Routing Mode");
 
+    // Reserve readable diagnostics space without changing Water/workflow geometry.
+    constexpr int kDiagnosticsAreaHeight = 208;
+    diagnosticsView_.setBounds(
+        left.removeFromBottom(kDiagnosticsAreaHeight).withTrimmedTop(8).withTrimmedBottom(10));
     auto grid = left.reduced(0, 8);
     const auto cellWidth = grid.getWidth() / 3;
     const auto cellHeight = grid.getHeight() / 2;
@@ -623,20 +628,17 @@ void FRAZILAudioProcessorEditor::resized() {
     auto modelRow = right.removeFromTop(34);
     waterModelLabel_.setBounds(modelRow.removeFromLeft(72));
     waterModelBox_.setBounds(modelRow.reduced(2));
-    // Keep both experiment knobs usable while reserving meter space at the minimum height.
-    constexpr int kWaterControlsHeight = 104;
-    auto waterControls = right.removeFromTop(kWaterControlsHeight);
-    auto sizeRow = waterControls.removeFromLeft(waterControls.getWidth() / 2);
+    auto sizeRow = right.removeFromTop(90);
     waterSizeLabel_.setBounds(sizeRow.removeFromTop(22));
     waterSizeSlider_.setBounds(sizeRow);
-    auto motionRow = waterControls;
+    auto motionRow = right.removeFromTop(90);
     waterMotionLabel_.setBounds(motionRow.removeFromTop(22));
     waterMotionSlider_.setBounds(motionRow);
 
     workflowLabel_.setBounds(right.removeFromTop(24));
-    auto workflowState = right.removeFromTop(28);
+    auto workflowState = right.removeFromTop(40);
     workflowStateLabel_.setBounds(workflowState.reduced(2));
-    auto workflow = right.removeFromTop(84);
+    auto workflow = right.removeFromTop(96);
     const auto buttonWidth = workflow.getWidth() / 4;
     const auto buttonHeight = workflow.getHeight() / 3;
     std::array<juce::Button*, 11> buttons{
@@ -652,8 +654,6 @@ void FRAZILAudioProcessorEditor::resized() {
                                                        buttonWidth, buttonHeight)
                                       .reduced(2));
     }
-
-    diagnosticsView_.setBounds(right.withTrimmedBottom(10));
 }
 
 #else

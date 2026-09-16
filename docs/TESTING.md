@@ -77,7 +77,8 @@ Lead usability acceptance, not `Done`.
 
 The graphical diagnostics candidate additionally requires visible checks at minimum/default/larger sizes,
 silence and active aggregate input/output, gain differences, over-range numeric values, finite warning
-presentation, editor reopen and Release isolation. Local fixture-based rendering must remain distinct from
+presentation, effective routing with Host/A/B override, editor reopen and Release isolation. Attach review
+screenshots to the PR; local fixture-based rendering must remain distinct from
 real DAW/Host evidence. Current observations and remaining acceptance limits are recorded in
 [Project Status 2.9](PROJECT_STATUS.md#29-diagnostics-gui-candidate); no new GUI automation framework is required.
 
