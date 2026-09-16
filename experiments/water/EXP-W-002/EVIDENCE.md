@@ -5,7 +5,8 @@ Water sound design, production DSP, M2 Exit or formal EXP-W-002 closure.
 
 ## Source and environment
 
-- Source: research working changeset based on `3438593`; measured before the candidate commit.
+- Source: candidate code/config changeset `f17cbf5`, based on `3438593`; measurements ran against
+  the same DSP/config working contents before that commit. This does not imply clean-tree formal performance provenance.
 - Formal performance provenance: **NOT RUN**. The standalone harness intentionally reports this;
   these are preliminary research observations, not a replacement for PERF-BASE-001 provenance.
 - OS: Windows 11, 10.0.22631; CPU: Intel Core i9-14900HX.
