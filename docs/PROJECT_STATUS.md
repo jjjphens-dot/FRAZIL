@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-16（仅追加 Decay baseline review/finalization 事实，其余 evidence 保留原适用范围）<br>
+> 快照日期：2026-09-16（追加 Decay baseline 和 EXP-W-001 remote draft 工程初审事实，其余 evidence 保留原适用范围）<br>
 > 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -315,8 +315,11 @@ PluginProcessor
   developer Dry/Processed path、prepared/latest diagnostics 和完整 draft config representation。它不是
   M5 Production UI；usability、DAW/listening evidence 和 Offline Sound Lab handoff 仍未完成。它是大规模
   `EXP-W-002` 前的 Water M2 effective-development-readiness prerequisite，但不是 M1 Exit hard gate。
-- M2 Water：**未开始**；`EXP-W-001` Perceptual Contract preparation 为 PLANNED，不表示 M2 或 Water DSP 已开始。
-- Perceptual Contract framework/template：当前已随批准并合入的 v1.3 baseline 成为 **CURRENT / CONTROLLED**。`EXP-W-001` Water contract instance 仍为 **PLANNED**，尚未产出或验收。
+- M2 Water：**未开始**；`EXP-W-001` 已有 remote review draft，仍属 pre-M2 perceptual preparation，不表示 M2 或 production Water DSP 已开始。
+- Perceptual Contract framework/template：当前已随批准并合入的 v1.3 baseline 成为 **CURRENT / CONTROLLED**。
+  `EXP-W-001` Water contract instance 在 main 尚未落地；协作者 `e811051` 为 **CANDIDATE / NOT ACCEPTED**，
+  已有[工程初审与 Decay 回传](evidence/EXP-W-001_ENGINEERING_REVIEW_2026-09-16.md)。
+  Decay Revision B、reference human calibration 和最终独立验收仍待完成；不得把初审视为 EXP-W-001 closure。
 - M3 Ice：**DEFERRED**；长期 milestone 保留，在 `M2 Exit + Explicit Joint Gate` 确认 Water workflow 可复用于 Ice 前，不启动 Ice experiment、perceptual/parameter redesign 或 production implementation。
 - M4 Routing：**未开始**。
 - M5 UI & Edit History：**未开始**。

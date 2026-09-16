@@ -52,6 +52,13 @@ experiments/water/
 production work 均 DEFERRED，只有在 M2 Exit 后通过 Explicit Joint Gate 确认 Water workflow 可复用于 Ice，
 才恢复 M3 planning/work。
 
+### EXP-W-001 engineering intake
+
+协作者的 `e811051` 初稿尚未合入 main，也未通过 Decay Revision B 或整体验收。
+[2026-09-16 工程初审与 Decay 回传](../docs/evidence/EXP-W-001_ENGINEERING_REVIEW_2026-09-16.md)
+记录精确版本、条款到证据的对应关系、材料缺口和 owner 后续动作；它不是另一份 Perceptual Contract。
+正式下游实验仍遵守 [Revision B completion gate](../docs/CODING_PLAN.md#decay-revision-b-completion-gate)。
+
 ## Water objective feasibility
 
 [SPIKE-W-DSP-001](water/SPIKE-W-DSP-001/README.md) contains independently testable Bubble A,
