@@ -623,7 +623,9 @@ void FRAZILAudioProcessorEditor::resized() {
     auto modelRow = right.removeFromTop(34);
     waterModelLabel_.setBounds(modelRow.removeFromLeft(72));
     waterModelBox_.setBounds(modelRow.reduced(2));
-    auto waterControls = right.removeFromTop(80);
+    // Keep both experiment knobs usable while reserving meter space at the minimum height.
+    constexpr int kWaterControlsHeight = 104;
+    auto waterControls = right.removeFromTop(kWaterControlsHeight);
     auto sizeRow = waterControls.removeFromLeft(waterControls.getWidth() / 2);
     waterSizeLabel_.setBounds(sizeRow.removeFromTop(22));
     waterSizeSlider_.setBounds(sizeRow);
@@ -651,7 +653,7 @@ void FRAZILAudioProcessorEditor::resized() {
                                       .reduced(2));
     }
 
-    diagnosticsView_.setBounds(right);
+    diagnosticsView_.setBounds(right.withTrimmedBottom(10));
 }
 
 #else
