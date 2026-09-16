@@ -29,7 +29,7 @@ State:
 Host state <-> Plugin Host State Adapter -> app StateModel
 
 PluginEditor -> plugin parameter interface
-processBlock -> bounded DeveloperDiagnostics snapshot -> Developer editor (Debug/ASAN only)
+processBlock -> bounded DeveloperDiagnostics snapshot -> PluginEditor -> src/ui/DeveloperDiagnosticsView (Debug/ASAN only)
 PluginEditor -> effective developer state / Return Host -> developer-only comparison override -> ParameterSnapshot (Debug/ASAN only)
 ```
 
@@ -38,6 +38,11 @@ PluginEditor -> effective developer state / Return Host -> developer-only compar
 当前 `PluginProcessor` 暴露 JUCE lifecycle、`prepareToPlay`、`processBlock`、editor、state API 和 Debug/ASAN-only 的 diagnostics/developer comparison consumer API；APVTS 仍为 public member，是后续需要收窄审查的技术债。参数 layout 已迁移到 `src/plugin/ParameterLayout.*`，并由 M1 合同测试固定顺序和 ID。`HostStateAdapter` 将 APVTS state 转换为带 `schemaVersion=1` 的稳定 envelope，并把 restore 留在非音频线程；developer override 不参与该 envelope，state restore 会清除该临时 override。
 
 `ParameterLayout` 只参与 Plugin construction/setup 的稳定 Host 参数注册，不参与 per-block audio runtime chain；runtime 从 Host Parameter Atomics 建立 `ParameterSnapshot` 开始。
+
+The diagnostics presentation follow-up delegates runtime text and graphical aggregate Peak/RMS to
+editor-owned `src/ui/DeveloperDiagnosticsView` / `DeveloperLevelMeter` components. The Editor remains the
+10 Hz snapshot consumer; child components receive values only. This is an implementation candidate with
+human usability acceptance pending; Processor, transport, parameter/state and audio behavior are unchanged.
 
 ## Parameter / State Contract
 
@@ -53,11 +58,11 @@ PluginProcessor 拥有 APVTS、AudioEngine 和 editor 生命周期；JUCE factor
 
 ## Implementation Overview
 
-M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing 的 gain/mix skeleton；wet path 仍为 pass-through。M1-C 已把 `processBlock` 之外的 state save/restore 接入 versioned `HostStateAdapter`/`StateModel` boundary；plugin integration evidence 已覆盖连续 gain automation 进入 audio path，以及三种 routing mode 切换后的 inactive value retention/state reopen。DEV-UI-001 已合入当前 `main`，仅在 Debug/ASAN 中提供九个当前 Host 参数的 attachment、experiment-only Water controls、active override 时由 effective developer state 接管的可见 controls、显式 Return Host、外部 Host restore 后的 attachment/comparison reconciliation、非 APVTS 临时 A/B/Reset、Dry/Processed path、完整 draft config export 和 coherent prepared/latest diagnostics；其 Editor attachment 回归是纯决策 helper 覆盖，不是实际 JUCE Editor/attachment 生命周期自动化。它不改变 Host registry/state schema，也不替代 HOST-001。当前 Debug artifact 已完成 pluginval strictness 5 验证；HOST-001 的 Ableton/FL Studio 窄范围用户观察已记录在 [`HOST-001 DAW smoke evidence`](../../docs/evidence/HOST-001-DAW-SMOKE-2026-09-13.md)，workflow usability、完整真实 DAW matrix 或 listening acceptance 仍待完成；`EditHistoryManager` remains planned for M5 (HIST-001..004)。
+M1 当前已把 `processBlock` 接入一次 Snapshot、Mapper 和带 smoothing 的 gain/mix skeleton；wet path 仍为 pass-through。M1-C 已把 `processBlock` 之外的 state save/restore 接入 versioned `HostStateAdapter`/`StateModel` boundary；plugin integration evidence 已覆盖连续 gain automation 进入 audio path，以及三种 routing mode 切换后的 inactive value retention/state reopen。DEV-UI-001 已合入当前 `main`，仅在 Debug/ASAN 中提供九个当前 Host 参数的 attachment、experiment-only Water controls、active override 时由 effective developer state 接管的可见 controls、显式 Return Host、外部 Host restore 后的 attachment/comparison reconciliation、非 APVTS 临时 A/B/Reset、Dry/Processed path、完整 draft config export 和 coherent prepared/latest diagnostics；其 Editor attachment 回归是纯决策 helper 覆盖，不是实际 JUCE Editor/attachment 生命周期自动化。它不改变 Host registry/state schema，也不替代 HOST-001。当前 Debug artifact 已完成 pluginval strictness 5 验证；HOST-001 的 Live/FL primary matrix 已验收并关闭，M1 Exit 已批准，详见 [`HOST-001 / M1 acceptance index`](../../docs/evidence/HOST-001_ACCEPTANCE_INDEX.md) 与 [`M1 Joint Exit record`](../../docs/evidence/M1_JOINT_EXIT.md)。`Development Validated` 仅适用于记录的 Windows x64 Debug VST3 范围，不表示 `Officially Supported`；REAPER 仍延期且无支持声明。完整 DEV-UI workflow usability、listening acceptance 和未来 render matrix 仍待完成；`EditHistoryManager` remains planned for M5 (HIST-001..004)。
 
 ## Tests
 
-当前证据为 CTest smoke/lifecycle、参数/mapper/engine/state unit tests、实际 PluginProcessor integration、TEST-002 processor property matrix（含 silence DC/max-magnitude、短/奇数 callback 和标准 reprepare lifecycle）、ARCH-LAT-001 neutral/dry impulse/metadata 与 M1 skeleton-tail regression、PERF-BASE-001 callback baseline 和 RENDER-001 offline smoke；这些测试覆盖参数类型/名称/单位/choice、versioned state round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、legacy ID migration、duplicate/nonnumeric/malformed invalid parser fallback、三种 routing、inactive retention、smoothing block regression、首 block priming、reset、runtime buffer invariant、finite output 和 M1 neutral/deterministic path repeatability。当前 DEV-UI-001 Debug/Release/ASAN build + CTest evidence 记录在 [`PROJECT_STATUS.md`](../../docs/PROJECT_STATUS.md#27-dev-ui-001-engineering-validation)；其中 Editor attachment 回归为纯决策 helper，实际 GUI attachment lifecycle 和交互 usability 仍需按 acceptance scope 执行。HOST-001 的 Ableton/FL Studio 窄范围 DAW smoke 与 current-artifact pluginval 结果记录在 [`HOST-000_COMPATIBILITY_MATRIX.md`](../../docs/HOST-000_COMPATIBILITY_MATRIX.md#721-recorded-ableton-enumeration-result)，原始 case observations 见 [`HOST-001 DAW smoke evidence`](../../docs/evidence/HOST-001-DAW-SMOKE-2026-09-13.md)。
+当前证据为 CTest smoke/lifecycle、参数/mapper/engine/state unit tests、实际 PluginProcessor integration、TEST-002 processor property matrix（含 silence DC/max-magnitude、短/奇数 callback 和标准 reprepare lifecycle）、ARCH-LAT-001 neutral/dry impulse/metadata 与 M1 skeleton-tail regression、PERF-BASE-001 callback baseline 和 RENDER-001 offline smoke；这些测试覆盖参数类型/名称/单位/choice、versioned state round-trip、JUCE `ValueTree::createXml()`/`fromXml()` XML/API restore path、legacy ID migration、duplicate/nonnumeric/malformed invalid parser fallback、三种 routing、inactive retention、smoothing block regression、首 block priming、reset、runtime buffer invariant、finite output 和 M1 neutral/deterministic path repeatability。当前 DEV-UI-001 Debug/Release/ASAN build + CTest evidence 记录在 [`PROJECT_STATUS.md`](../../docs/PROJECT_STATUS.md#27-dev-ui-001-engineering-validation)；其中 Editor attachment 回归为纯决策 helper，实际 GUI attachment lifecycle 和交互 usability 仍需按 acceptance scope 执行。HOST-001 的 Live/FL primary matrix、current-artifact pluginval 与验收边界记录在 [`HOST-001 / M1 acceptance index`](../../docs/evidence/HOST-001_ACCEPTANCE_INDEX.md)，原始 case observations 见 [`HOST-001 DAW evidence`](../../docs/evidence/HOST-001-DAW-SMOKE-2026-09-13.md)，最终门槛结论见 [`M1 Joint Exit record`](../../docs/evidence/M1_JOINT_EXIT.md)。
 
 ## Related ADRs
 

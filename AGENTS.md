@@ -169,6 +169,11 @@ tests -> 被测模块
 
 ## 6. 实验进入生产的门槛
 
+Optional `SPIKE-W-DSP-001` 可在 accepted EXP-W-001 前做有界客观工程可行性研究；
+仅限独立 experiment，不允许主观调音/选择、macro 决策、算法采纳或生产集成。
+其范围与交接由 [Perceptual Contract section 6](docs/PERCEPTUAL_CONTRACT.md#6-optional-objective-feasibility-before-the-water-instance)
+及 [Issue #29](https://github.com/jjjphens-dot/FRAZIL/issues/29) 约束，不放宽正式 EXP-W-002 前提。
+
 Perceptual-definition work（例如 `EXP-W-001`）负责从 Human Intent 创建 Perceptual Contract instance，不要求
 预先存在同一 instance。下游主观 DSP experiment/refinement（`EXP-W-002+`）不得把“自然”“柔和”“更流动”等
 形容词直接翻译成某个 DSP 参数或实现；必须同时遵守
@@ -180,7 +185,7 @@ Objective measurement 只能作为 proxy，不得写成 perceptual truth，也�
 listening decision。
 
 Developer/Experiment control 不等于 production Host parameter。`water.model`、`water.size`、
-`water.motion` 在正式 evidence、Joint Gate、Water ADR 与 state/compatibility review 前，不得因 Developer UI
+`water.motion`、`water.decay` 在正式 evidence、Joint Gate、Water ADR 与 state/compatibility review 前，不得因 Developer UI
 需要而进入 `ParameterLayout` 或 state schema。Developer Control Surface 不得被当作 Production UI，也不得
 替代 `HOST-001` 或 deterministic Offline Sound Lab evidence。完整边界见
 [`docs/DEVELOPER_SOUND_TOOLS.md`](docs/DEVELOPER_SOUND_TOOLS.md)。

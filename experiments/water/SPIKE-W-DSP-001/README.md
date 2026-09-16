@@ -1,0 +1,210 @@
+# Water DSP objective feasibility — SPIKE-W-DSP-001
+
+Research-only A/B/D/C mechanisms; local Debug/Release/ASAN 16/16 each, 138 core + 4 supplemental smoke renders
+and 80 corpus renders PASS. Exact-head Hosted CI is separately recorded in PR #30.
+No production WaterProcessor or perceptual acceptance. Source and limitations: [REVALIDATION.md](REVALIDATION.md).
+
+## Scope and execution state
+
+The optional pre-EXP-W-002 work item is defined in [Coding Plan](../../../docs/CODING_PLAN.md),
+[Perceptual Contract section 6](../../../docs/PERCEPTUAL_CONTRACT.md#6-optional-objective-feasibility-before-the-water-instance)
+and [Issue #29](https://github.com/jjjphens-dot/FRAZIL/issues/29). The
+[implementation plan](../SPIKE-W-DSP-001_IMPLEMENTATION_PLAN.md) bounds objective numerical,
+realtime, lifecycle, isolation, render and performance work. Engineering Lead implements;
+Sound & Host Lead independently reviews scope/evidence.
+
+Formal EXP-W-002 still requires accepted EXP-W-001 (#17). Subjective tuning/selection, Water
+identity acceptance, macro mapping and Fluid/Resonant quality rankings are forbidden before that
+brief. This spike does not close EXP-W-002, accept ADR-W-001 or authorize production integration.
+Future EXP-W-002 reuses/revises these results against the accepted brief without duplicating DSP.
+LOCAL-WDSP-00..06 are engineering checkpoints; LOCAL-WDSP-07 remains deferred. No listening
+finding justifies additional synthesis complexity in this remediation.
+
+Current remediation evidence is recorded in [REVALIDATION.md](REVALIDATION.md); the earlier
+[EVIDENCE.md](EVIDENCE.md) remains explicitly historical and applies only to its original source.
+
+## Module map and output contract
+
+All DSP lives here and is excluded from production plugin targets. State belongs to the calling
+processing owner; prepare/reset/process must not execute concurrently. Controls are fixed by
+prepare; no runtime parameter transport, automation smoothing or mode transitions are claimed.
+
+| Module | Responsibility | State/reset/tail |
+|---|---|---|
+| `WaterDspConfig.h` | Sample-rate/seed values; stable A/B/D seed domains | No Host/state registration |
+| `WaterExcitationFeatures.h` | Linked max(abs(L),abs(R)), fast/slow envelopes, positive difference | Reset zero; control magnitude capped at 1; source audio unchanged |
+| `LiquidModalResonator.h` | Independent Resonant C; six fixed complex-pole modes | Separate stereo quadratures; reset zero; exponential tail, floor 1e-25 |
+| `BubbleEnsemble.h` | A; input/envelope-gated stochastic events | Own PRNG and feature state; reset reseeds and clears pool |
+| `DropletImpactExciter.h` | B; transient threshold, hysteresis and refractory gate | Own PRNG chooses frequency family; no autonomous event timing |
+| `FlowModulator.h` | D; source-activity-scaled smooth random fractional delay | Prepare-only allocation; reset clears both channel buffers/index/trajectory; tail <=20 ms |
+| `FluidCandidate.h` | A+B+D residual sum and fixed-config ablation | Each component has independent state; disabled components are not advanced |
+| `detail/DampedResonator.h` | Cartesian complex pole update | No imaginary direct feedthrough from current real excitation |
+| `detail/EventVoicePool.h` | Fixed 16-slot stereo impulse-excited pool | Inactive-first, otherwise oldest-age steal; lowest-index tie break; expiry at 24 decay constants |
+| `ResearchBaseline.h` | Zero-residual infrastructure control | No audio state or tail |
+
+Every sonic module returns **E**, not x+E. The renderer adds the source exactly once. Flow returns
+`gain*(xd-x)`. Modal weights sum to its residual gain, and its `(1-r)` excitation bounds the
+absolute impulse sum by that gain. Event voices receive bounded signed source impulses, not sample
+playback or added noise; total pool weighting bounds residual amplitude by the configured gain.
+There is no limiter, compressor, automatic makeup or hidden normalization after composition.
+Event gain normalization is an explicit design bound, not perceptual loudness matching.
+
+Stereo timing/control may be linked; audio and resonator/delay states remain isolated. Each RNG
+is derived from the base seed with a stable module ID. Reset/reprepare restarts the same stream.
+Repeatability is tested within the same build/platform; cross-compiler bit identity is not promised.
+Feature detection is implemented once as a reusable type; A/B/D keep local instances to preserve
+independent lifecycle and ablation. No speculative shared production primitive is added.
+
+## Engineering configs (not product macros)
+
+The checked-in [defaults](configs/defaults.json) reproduce the v0 candidate. Units are in field
+names. Config files use UTF-8 (an initial UTF-8 BOM is tolerated) and must contain exactly one
+complete root object, whose module objects contain numeric fields. The offline syntax gate checks
+[RFC 8259](https://www.rfc-editor.org/rfc/rfc8259) object/string/number grammar before JUCE decodes
+values: concatenated roots, trailing garbage, malformed escapes, leading-zero numbers, incomplete
+fractions/exponents and unescaped control bytes fail. Raw file bytes are checked before string
+conversion so a NUL cannot silently truncate the document. Invalid configs fail before output creation,
+including baseline and inactive-module cases. This bounded schema check adds no general JSON framework.
+Duplicate decoded keys are rejected at either level, including escaped aliases, so JUCE's overwrite
+behavior cannot hide an unknown field or nonfinite value from the global checks.
+Omitted JSON fields retain C++ defaults. Unknown fields, nonnumeric/nonfinite values and
+invalid voice-count representation (negative, fractional or outside size_t) fail globally, even
+in unused modules. Integer literals outside JUCE’s signed int64 parser representation are rejected
+before parsing to prevent wraparound; decimal/exponent values must still be finite and voice counts
+representable as size_t. Type-valid semantic errors (e.g. voices=0/17 or negative decay) fail only when
+that DSP is enabled. Only the selected baseline/C/Fluid subset prepares; disabled components are
+reset and never processed or advanced. Active DSP remains strict. `water.model/size/motion` are
+not accepted. Flags are fixed at prepare, not live bypass/transition controls.
+
+| Config | Default | Valid research range |
+|---|---|---|
+| Sample rate | 48000 Hz | 44100..96000; tested 44100/48000/96000 |
+| Features | fast attack/release .001/.03 s; slow .03/.2 s | Each .0001..2 s in C++ config; renderer uses defaults |
+| A frequency/decay | 250..2800 Hz / .07 s | 40 Hz..0.45*fs, ordered; .002..0.5 s |
+| A rate/threshold/gain/voices | 120/s / .0001 / .2 / 16 | 0..2000/s / 0..1 / 0..0.3 / 1..16 |
+| B frequency/decay | 600..4500 Hz / .012 s | 40 Hz..0.45*fs, ordered; .002..0.1 s |
+| B threshold/refractory/gain/voices | .015 / .02 s / .15 / 8 | .0001..1 / .001..1 s / 0..0.3 / 1..16 |
+| D base/depth | .004/.001 s | base-depth >=1 sample; base+depth <=.02 s; depth >=0 |
+| D target interval/gain | .25 s / .1 | .02..10 s / 0..0.15 |
+| C root/decay/gain | 260 Hz / .12 s / .18 | root >=40 Hz; root*4.17 <=.45*fs; .002..1 s / 0..0.3 |
+
+C mode ratios 1/1.41/1.93/2.57/3.31/4.17 and A/B's 16-frequency log-spaced families are engineering
+choices. Bubble radius/frequency direction is inspired by isolated-bubble acoustics; the code
+uses frequency controls and does not claim a calibrated physical radius model. B v0 has deterministic
+threshold timing; stochastic timing is optional in the proposal and is not implemented.
+
+## Build, tests, render and measurement
+
+From an initialized MSVC developer environment at repository root:
+
+```powershell
+cmake --preset windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON
+python tools/build_safe.py --preset windows-debug
+ctest --preset windows-debug --output-on-failure
+```
+
+Repeat serially with `windows-release` and `windows-asan`. The opt-in option defaults OFF. Existing
+safe presets build research through `frazil_smoke` dependencies; no research code is linked into
+FRAZIL. CTest includes baseline/features/modal/bubble/flow/droplet/fluid/event-pool plus decoded renderer tests.
+ASAN tests receive the compiler runtime path, and executables receive the runtime DLL. Hosted CI
+explicitly enables this option; no Hosted CI result is claimed from the local runs.
+
+```powershell
+$renderer = 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe'
+& $renderer testdata/input/zero_state_response__impulse.wav build/water-c.wav c 128 42 experiments/water/SPIKE-W-DSP-001/configs/defaults.json 3
+python tools/analyze_testdata.py build/water-c.wav --json-out build/water-c.analysis.json
+python experiments/water/SPIKE-W-DSP-001/analysis/review_smoke.py --renderer $renderer --output build/water-review-smoke
+python experiments/water/SPIKE-W-DSP-001/analysis/render_corpus.py --renderer $renderer --output build/water-corpus
+& 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_performance.exe'
+```
+
+Renderer arguments: input WAV, **new** output WAV, mode, block (1..8192), uint32 seed, optional
+JSON path (or `-` for defaults), optional integer tail seconds (0..30). Modes: `a`, `b`, `d`, `ab`,
+`ad`, `bd`, `abd`, `c`; append `-residual` for E only. `baseline` is pass-through PCM24; `residual`
+is its zero residual. Sonic renders are float32 WAV, retaining peaks above 1 for analysis. Input
+must be finite mono/stereo within full scale. Existing outputs are refused; failed renders are
+not valid evidence and may leave a partial new file. Use a new ignored output directory each run.
+Offline diagnostics report A/B event counts, first event frames (-1 for none), and events on exactly
+zero source frames. They do not alter DSP state, output or the separate timed callback benchmark.
+
+The single `review_smoke.py` command runs 138 core renders and four supplemental controls.
+`observations.json` retains the 32 core signal/mode records. `supplemental_controls.json` records
+A/B high/low gate event counts derived from a canonical-input prefix, and Flow-D
+processed-vs-dry RMS level delta and dominant frequencies. Gate boundaries come from TESTDATA-001's manifest; the
+prefix preserves initial detector/RNG history and matches the corresponding full-render samples.
+Two dry HF/sweep baselines use the same three-second appended silence as processed/residual runs.
+Existing analyzer PSD/spectrogram plots support inspection of coloration/ripple, without automatic
+alias attribution or subjective audibility claims. All derived inputs and outputs stay ignored.
+The script checks that all 18 expected dry/processed/residual plot files exist; it does not inspect pixels.
+
+RMS metrics use the full render, including appended silence, and remain distinct:
+
+| Supplemental JSON field | Meaning |
+|---|---|
+| `processed_rms` | Processed signal RMS(y), linear amplitude |
+| `baseline.rms` | Dry/source RMS(x), linear amplitude |
+| `processed_vs_dry_rms_delta_db` | Processed-vs-dry RMS level delta: 20 log10(RMS(y) / RMS(x)), dB |
+| `residual.rms` | RMS(E) for E = y - x, linear amplitude; a separate measurement |
+
+Hosted CI runs repository policy/tool checks, TESTDATA-001 verification and research-enabled
+configure/build/CTest; Water smoke, 80-render corpus and research timing are local evidence.
+
+The corpus script reuses all ten TESTDATA-001 fixtures and the existing analyzer: 80 processed
+renders, default-config tail checks, finite metrics and A/B/D ablation error checks. It does not
+replace licensed musical fixtures or loudness-matched listening. Float/PCM quantization is
+accounted for in render comparisons; in-memory deterministic tests require exact equality.
+
+The performance executable measures M1 alone and M1 plus each candidate/ablation on the same
+48 kHz/128 stereo gated workload. It uses 2000 warmup/20000 measured blocks, steady-clock wall
+callback duration, mean/nearest-rank P95/P99/worst and mean increment from the same-run baseline.
+Input copying is outside timing; the periodic gate exercises repeated Droplet onsets after warmup.
+This is preliminary research timing, not process CPU percent, formal provenance/budget or a
+production AudioEngine integration claim. Production sources and baseline harness are unchanged.
+
+## Validation checkpoints
+
+LOCAL-WDSP-00..06 cover baseline, features, C, A, D, B and Fluid integration respectively.
+Historical measurements are retained in [EVIDENCE.md](EVIDENCE.md). Current source, three-preset
+regression, isolation/capacity fixes, typical-signal smoke, 80 renders and preliminary timing are
+separately identified in [REVALIDATION.md](REVALIDATION.md). No checkpoint is sound acceptance.
+
+## Code quality, documentation and limitations
+
+Code-path review: fixed bounded loops and pools, prepare-only Flow allocation/coefficient generation,
+no processing I/O/locks/UI/APVTS, no mutable global state, explicit reset/seed/tail, no production
+source edits. ASAN complements bounds tests; allocation/lock absence is a code-path review, not a
+runtime allocation-instrumentation result. The complex-pole realization was chosen over the proposed
+direct-form recurrence for bounded quadrature state and clear excitation normalization.
+
+Known limitations: isolated bubbles omit coupling/geometry/pitch-rise; hard stealing can click;
+linear interpolation can color high frequencies; fixed modal ratios may sound generic or metallic;
+source-linked smooth random delay can still sound chorus-like. There is no evidence yet to justify
+refinements, macro mappings or production adoption. The modal normalization may be too subtle on
+some material; objective stability is not a Water-identity judgment. No claim of correct tonal
+recognizability is made from the source-carrier arithmetic alone.
+
+Documentation synchronization covers the controlled optional-spike scope, Agent/Code Standards
+cross-references, Coding Plan, Perceptual Contract, experiment plan/index/README, module/testing
+entry points, implementation guide, Environment paths and merge-stable project status. Architecture,
+Parameters and Accepted ADRs retain their production contracts; see the detailed documentation
+review in [REVALIDATION.md](REVALIDATION.md).
+
+## Primary sources and inference boundaries
+
+- [Smith: pole radius and bandwidth](https://ccrma.stanford.edu/~jos/filters/Relating_Pole_Radius_Bandwidth.html): exponential pole mapping informs decay stability; local normalization still requires tests.
+- [Smith: delay-line interpolation](https://ccrma.stanford.edu/~jos/pasp/Delay_Line_Signal_Interpolation.html): linear interpolation is inexpensive but has frequency-dependent error; it does not guarantee a Flow percept.
+- [Pumphrey et al., DTU, 1989](https://orbit.dtu.dk/en/publications/underwater-sound-produced-by-individual-drop-impacts-and-rainfall/): impact emission and entrained-bubble ringing motivate separate A/B mechanisms.
+- [van den Doel, UBC](https://www.cs.ubc.ca/labs/lci/lci-forum/03/vandendoel-040312.html): isolated bubble models and stochastic populations support the approximation strategy, not our exact event law.
+- [RSC: acoustic interaction between cubic bubbles](https://pubs.rsc.org/en/content/articlehtml/2020/sm/c9sm02423a): discusses the inverse-radius Minnaert reference and deviations through interaction.
+- [Xue et al., Stanford, 2023](https://graphics.stanford.edu/papers/coupledbubbles/): coupling affects low-frequency emissions; independent oscillators omit that behavior.
+
+Smith primary references are Julius O. Smith III, *Introduction to Digital Filters with Audio
+Applications* (W3K Publishing, 2007), “Relating Pole Radius to Bandwidth,” and *Physical Audio Signal
+Processing* (W3K Publishing, 2010), “Delay-Line and Signal Interpolation,” hosted by Stanford CCRMA.
+The institutional pages restrict automated retrieval; book provenance was cross-checked against
+[Smith’s DAFx-09 keynote references 2–3](https://www.dafx.de/paper-archive/2009/tutorials/DAFx09-knp-jos.pdf) and the
+[Stanford 2010 book notice](https://cm-mail.stanford.edu/pipermail/planetccrma/2010-September/017292.html).
+Mirror hosting is not the primary authority. Citation correction changes no algorithm.
+
+References were reviewed on 2026-09-16. FRAZIL's residual composition, Fluid/Resonant names, gains,
+frequency families and scheduling are engineering hypotheses, not formulas endorsed by these papers.

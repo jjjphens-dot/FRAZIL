@@ -310,13 +310,14 @@ OutputGain
 WaterModel
 WaterSize
 WaterMotion
+WaterDecay
 IceCharacter
 IceFracture
 ...
 ```
 
-Water 的当前 M2 candidate vocabulary 已收敛为 `water.model`、`water.size` 和
-`water.motion`；它们在实验、Water ADR、state compatibility 和 `PARAM-FREEZE-001` 完成前
+Water 的当前 M2 candidate vocabulary 已收敛为 `water.model`、`water.size`、
+`water.motion`、`water.decay`；它们在实验、Water ADR、state compatibility 和 `PARAM-FREEZE-001` 完成前
 仍不是当前九参数 Host registry。上面的通用示例不构成已注册或冻结参数清单。
 
 ### 引擎参数（Engine Parameters）
@@ -398,8 +399,8 @@ WaterProcessor
 
 为了 Parallel / Serial 两种 UI 逻辑承担额外职责。
 
-Water 的产品 macro 必须使用清晰、可验证的感知语义。当前候选是 `water.size` 与
-`water.motion`；不得用模糊的 `character`/`intensity` 偷偷同时控制 scale、activity、gain 和
+Water 的产品 macro 必须使用清晰、可验证的感知语义。当前候选是 `water.size`、
+`water.motion`、`water.decay`；不得用模糊的 `character`/`intensity` 偷偷同时控制 scale、activity、persistence、gain 和
 Serial stage mix。任何未来内部强度概念也不能与 `water.amount` 的 stage Dry/Wet 语义混为一谈。
 
 Water 不新增独立 public Dry/Wet。`water.amount`、`parallel.balance` 和 `global.mix` 继续分别拥有
@@ -431,8 +432,9 @@ residual-oriented。若 Resonant 输出已经包含 direct feedthrough，不得�
 `x + resonatorOutput`，以免重复 carrier、抬升增益或产生 comb/filter artifact。最终 residual extraction、
 resonator topology 和 mode transition 由 Water experiment 与 Proposed Water ADR 决定。
 
-`water.size` 与 `water.motion` 是跨两模式稳定的产品语义，详细 bubble radius、modal frequency、event
-density、micro-delay、drift 等属于 ParameterMapper 后的 engine quantities。WaterProcessor 不拥有
+`water.size`、`water.motion` 与 `water.decay` 是跨两模式一致的候选产品语义，详细 bubble radius、modal frequency、event
+density、micro-delay、drift 等属于 WaterMacroMapper 输出的 bounded DSP targets；app ParameterMapper
+只准备 normalized WaterProductValues。WaterProcessor 不拥有
 Parallel/Serial routing、stage amount 或 Global Mix；Host/global routing responsibility 保持不变。
 
 本次 Water-focused revision 不改变 Ice architecture；Ice 将在后续独立修订中评审。
@@ -773,7 +775,31 @@ Global Dry/Wet
 Output Gain
 ```
 
-建议接口：
+### ProcessSpec ownership: current location and planned boundary
+
+当前 M1 的 `ProcessSpec` 实际定义在 `src/app/ProcessSpec.h`，由 AudioEngine 消费；文件尚未迁移。
+其语义是 lower-layer processing-environment value：sample rate（Hz）、maximum prepared block size
+（samples）与 channel count，不是 application-domain business object。当前字段名为 `sampleRate`、
+`maximumBlockSize`、`numChannels`；`isValid()` 检查 finite positive sample rate、positive block size/channels。
+
+在 WaterProcessor、IceProcessor、RoutingEngine 或其它生产 DSP 模块消费 ProcessSpec **之前**，必须把
+这个 canonical type re-home 到 DSP/common 下游纯值层，推荐未来位置 `src/dsp/ProcessSpec.h`；或采用经明确
+review、满足同一依赖约束的等价方案。app 与 DSP 共享一个下游类型，不保留同语义的 app/dsp 镜像及转换层，
+也不复制 WaterProcessSpec / IceProcessSpec / RoutingProcessSpec。只有真实的额外模块配置需求才研究独立
+prepare config，本修订不创建此类类型。迁移由首个需要它的 production integration issue 完成，本轮仅改文档。
+
+允许 `plugin -> app -> dsp/common`、`Water domain -> DSP/common values/primitives`；禁止 DSP/Water/Ice/Routing
+反向依赖 app/plugin/UI。**DSP modules MUST NOT include `src/app/ProcessSpec.h`.**
+ProcessSpec 是共享的 processing environment；WaterProductValues / WaterModel 仍是 Water-domain product
+intent，二者不是同一值类别，也不合并成 generic configuration object。
+
+ProcessSpec 保持 small/plain/copyable、deterministic、state-free、allocation-free、JUCE-independent pure value；
+不持有 APVTS、Host/PluginProcessor references、UI/serialization/routing state、Water/Ice parameters、buffers、
+processors、smoothers、random generators、logging 或 filesystem state。结构有效性由该 shared contract 统一
+提供；module prepare 只追加有实际需要的 module-specific 检查，不各自重写不同的通用校验规则。
+
+以下为 planned interface sketch；其中 ProcessSpec 定义归未来下游 DSP/common 层，不因与 AudioEngine
+同列而归 app。后续 Water/Ice/Routing prepare 签名同样引用该未来类型，不是当前 app header：
 
 ```cpp
 struct ProcessSpec
@@ -801,7 +827,9 @@ AudioEngine 不包含 Water / Ice 的具体算法。
 
 ## 5.3 WaterProcessor
 
-WaterProcessor 是计划中的双模式 input-driven material processor，公开接口保持小：
+WaterProcessor 是计划中的双模式 input-driven material processor，公开接口保持小。
+下方 `prepare(const ProcessSpec&)` 的 ProcessSpec 是未来 DSP/common-owned 类型；消费前须完成上述
+canonical-type migration，禁止引用当前 `src/app/ProcessSpec.h`：
 
 ```cpp
 enum class WaterModel
@@ -810,11 +838,12 @@ enum class WaterModel
     resonant
 };
 
-struct WaterParameters
+struct WaterProductValues
 {
     WaterModel model {};
     float size {};
     float motion {};
+    float decay {};
 };
 
 class WaterProcessor
@@ -825,12 +854,39 @@ public:
 
     void process(
         juce::AudioBuffer<float>&,
-        const WaterParameters&) noexcept;
+        const WaterProductValues&) noexcept;
 };
 ```
 
-以上类型只表达 planned engine interface shape，不是当前源码、Host registry 或 state schema。
-ParameterMapper 负责把 normalized product controls 映射到 mode-specific engine quantities；
+以上类型只表达 planned production shape / candidate contract，不是当前源码、Host registry 或 state schema；
+零初始化语法不冻结产品默认值。Decay 修订见 [DOC-W-DECAY-001](planning/WATER_DECAY_CANDIDATE_REVISION.md)。
+
+`WaterProductValues` 是 **Water-domain pure value type**，推荐未来定义于
+`src/dsp/water/WaterProductValues.h` 或等价的狭窄 Water-domain value header；`WaterModel` 在同一或相邻
+Water-domain value layer。不得把这两个类型的生产定义放在 app/plugin/ui，或复制 app/domain 两套定义。
+`ParameterMapper` 位于 `src/app/`，可以依赖下游类型来构造 normalized Water values；构造职责不等于类型所有权。
+允许依赖保持 `plugin -> app -> dsp/Water domain`；禁止 `dsp/Water domain -> app`，
+`WaterProcessor` 和 `WaterMacroMapper` 均不得 include/依赖 `src/app`。WaterProcessor 的 prepare 消费同一
+下游-owned ProcessSpec；app 在迁移后直接消费该 canonical type，不引入同字段 app/DSP adapter copies。
+
+该值类型只携带 model 与 normalized size/motion/decay，应为 small/plain/value-oriented、state-free、
+JUCE/APVTS/UI-free、allocation-free；不得持有 parameter objects/IDs、APVTS references、UI handles、
+DSP processor objects、smoothers、buffers、RandomSource state、voice pools、resonators 或 routing state。
+`FluidTargets` / `ResonantTargets` 同属 Water domain；`WaterMacroMapper` 不拥有 voice/delay/resonator/random
+runtime state、buffers、Host automation 或 state serialization。这里只约束未来架构，不创建任何 header/mapper。
+
+| Layer / planned Water type | Owns | Must not own |
+|---|---|---|
+| Plugin / ParameterLayout | Host IDs/types/ranges/registration | Water DSP semantics |
+| ParameterSnapshot | coherent per-block Host values | smoothing/DSP |
+| ParameterMapper (app) | Host/app interpretation -> normalized domain values | Water DSP destination mapping |
+| WaterProductValues + WaterModel (Water domain) | normalized Water product intent | Host/UI/DSP state |
+| WaterMacroMapper (Water domain) | product values -> bounded Water DSP targets | DSP runtime state |
+| WaterProcessor (Water domain) | Water lifecycle/state/composition | Host/APVTS/routing/stage amount |
+| DSP primitives | algorithmic quantities/state | product parameter IDs |
+
+ParameterMapper 只准备 normalized WaterProductValues；WaterProcessor 使用 Water domain 的 WaterMacroMapper
+将其映射为 FluidTargets / ResonantTargets 后交给 components，state 和 lifecycle 留在 processor/components；
 WaterProcessor 不读取 APVTS，也不拥有 `water.amount`、`parallel.balance`、`global.mix` 或 RoutingMode。
 
 候选内部结构：
@@ -844,7 +900,7 @@ WaterProcessor
     Flow Modulator
   Resonant
     Liquid/Modal Resonator
-  shared Size/Motion product semantics
+  shared Size/Motion/Decay product semantics
   bounded mode transition
 ```
 
@@ -892,6 +948,9 @@ public:
 };
 ```
 
+这里 IceProcessor 的 `prepare(const ProcessSpec&)` 引用未来 DSP/common-owned ProcessSpec；必须先完成
+canonical-type migration，不得 include `src/app/ProcessSpec.h`。这不启动或改变 deferred Ice 实现范围。
+
 候选内部机制：
 
 ```text
@@ -909,6 +968,8 @@ Water 与 Ice 可以共享生命周期和参数传递习惯，但不要求内部
 # 5.5 RoutingEngine
 
 路由是独立职责，不写死在 Water 或 Ice 中。
+下方 RoutingEngine 的 `prepare(const ProcessSpec&)` 同样引用未来 DSP/common-owned canonical ProcessSpec；
+消费前须完成迁移，不允许 include `src/app/ProcessSpec.h` 或创建同字段 RoutingProcessSpec。
 
 ```cpp
 enum class RoutingMode
@@ -1255,7 +1316,7 @@ struct EngineParameters
     float waterStageAmount {};
     float iceStageAmount {};
 
-    WaterParameters water {};
+    WaterProductValues water {};
     IceParameters ice {};
 
     float inputGain {};
@@ -1277,11 +1338,31 @@ public:
 
 ParameterMapper 负责：
 
-- 参数范围归一化；
-- UI 语义 → engine 语义；
-- mode-dependent 参数选择；
-- 默认值；
-- 必要的非线性映射。
+- Host/raw parameter interpretation；
+- finite fallback 与 clamp；
+- choice -> enum 与 dB -> linear；
+- normalized product/domain value preparation；未来构造 Water domain 定义的 `WaterProductValues`，
+  不把其类型定义归入 app。`WaterModel` 同属下游 Water domain，保持 `app -> dsp` 单向依赖。
+
+ParameterMapper 不认识 BubbleConfig、DropletConfig、FlowConfig、ModalConfig，不决定 decay seconds、
+event probability、trajectory interval、modal coefficient 或 voice lifetime；这些属于 Water domain。
+
+Water 候选分责：Model = what behavior、Size = how large、Motion = how active、Decay = response persistence。
+唯一 planned chain：Host / Developer Control -> ParameterSnapshot -> ParameterMapper
+-> `WaterProductValues { model, size, motion, decay }` -> `WaterMacroMapper` (Water domain)
+-> `FluidTargets` / `ResonantTargets` -> DSP components。`WaterMacroMapper` 唯一拥有 normalized Water values
+到 mode-specific bounded DSP targets 的转换，应为 deterministic、allocation-free、unit-testable pure C++，
+不依赖 JUCE/APVTS/UI 或 DSP state。当前九参数 runtime 和独立 Developer experiment snapshot 不变；
+本图不声称候选值已进入 Snapshot/EngineParameters，不创建新 production path 或重复 destination mapper。
+底层仅消费工程 quantity（如 decaySeconds、eventRateHz、targetIntervalSeconds、rootFrequencyHz），
+不认识 `water.decay` / `water.motion` 产品 ID。
+Motion 不直接控制 lifetime targets；Decay 不直接控制 event/trajectory-rate targets；允许可测、有界的
+overlap/tail/energy 交互。Flow 默认没有直接 Decay destination。最终 target type 和 mapping 由实验决定，
+不为四个 macro 建立 generic DSP graph、继承体系或 runtime parameter framework。
+
+Water 持续响应输入，输入停止后已有 state 自然消散；不增加 whole-effect Duration、trigger/retrigger、
+hold/release/restart 或 effect envelope。Decay 的动态 state policy 尚未选定；当前 prepare-time SPIKE
+不授权在 callback 中重新 prepare、分配或阻塞。
 
 ParameterMapper 不负责：
 
@@ -1320,12 +1401,13 @@ output.gain
 water.model
 water.size
 water.motion
+water.decay
 
 ice.character
 ice.fracture
 ```
 
-Water 三项是 M2 candidate product controls，不是当前注册表；采用前必须完成 Water ADR、范围/default/
+Water 四项是 M2 candidate product controls，不是当前注册表；采用前必须完成 Water ADR、范围/default/
 choice ordering、mapping、smoothing/transition、automation、state evolution/compatibility 和测试证据。
 
 一旦进入公开版本并被 DAW automation / preset / session 使用，应把这些 ID 视为稳定 API。
@@ -1663,14 +1745,16 @@ WATER
   Mode: Fluid / Resonant
   Size: Fine / Small / Bright -> Large / Deep
   Motion: Calm / Stable -> Active / Flowing
+  Decay: Short / Tight -> Long / Lingering
 ```
 
-Mode 切换不替换完整 Water panel；Size 和 Motion 在两模式中位置不变、高层含义不变。compact display
+Mode 切换不替换完整 Water panel；Size、Motion 和 Decay 在两模式中位置不变、高层含义不变。compact display
 direction 可候选为 `Fine <-> Deep`，但 exact label 仍待 UX/listening review。tooltip 可以说明
 Fluid Size 映射 small/bright -> large/deep bubble population，Resonant Size 映射 small/bright ->
 large/deep resonant body，Motion 表示 temporal activity/fluid movement 而不是 Amount 或 loudness。
 主界面不暴露 bubble radius、Q、modal count、droplet probability、Flow delay depth 或 PRNG seed 等
-engineering controls。当前占位 UI 不实现上述控件。
+engineering controls。Production UI 尚未实现；Developer UI 的现有三控件和 planned Decay 扩展
+见 `DEVELOPER_SOUND_TOOLS.md`，不能冒充正式 Host controls。
 
 ---
 
@@ -1879,7 +1963,8 @@ Header 应：
 
 # 11. 开发阶段
 
-当前执行顺序以 [`CODING_PLAN.md`](CODING_PLAN.md) 为准：M1 late-stage closure 期间并行推进
+阶段依赖以 [`CODING_PLAN.md`](CODING_PLAN.md) 为准，当前完成状态以 `PROJECT_STATUS.md` 为准：
+M1 late-stage closure 期间允许并行推进
 `HOST-001`、`DEV-UI-001` 和 `EXP-W-001`，随后 Water-first；Ice 的以下长期 M3 architecture 保留，但当前
 DEFERRED。只有完成 M2 Exit，并通过 Explicit Joint Gate/controlled planning decision 确认 Water workflow
 可复用于 Ice 后，才恢复 M3。该阶段排序不改变 Water/Ice 模块边界或已接受的 Host/state/routing contract。
@@ -1973,7 +2058,7 @@ plugin works
 - [ ] WaterProcessor 生命周期
 - [ ] Fluid A+B+D 与 Resonant C 的实验、验证和 production cores
 - [ ] Water enable
-- [ ] candidate Water Mode / Size / Motion 的 mapping、automation 与 state compatibility
+- [ ] candidate Water Model / Size / Motion / Decay 的 mapping、automation 与 state compatibility
 - [ ] Fluid / Resonant click-free mode transition
 - [ ] parameter smoothing
 - [ ] click-free bypass

@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-15<br>
+> 快照日期：2026-09-16（仅追加 Decay baseline review/finalization 事实，其余 evidence 保留原适用范围）<br>
 > 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -20,8 +20,13 @@ Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未实现�
 
 仓库文档已记录 HOST-000 兼容性矩阵和正式的 FRAZIL 产品身份；HOST-000 的 support intent 与实际 evidence status 分别由矩阵中的对应字段表示，PR、CI 和合并状态以 GitHub 为准。
 
-`CODING_PLAN.md` v1.3 已由 [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23) 完成 required formal
-approval 并合入 `main`，当前是 Approved Development Baseline。这不代表 FRAZIL plugin v1.0 release，
+`CODING_PLAN.md` v1.4 的 candidate contract / engineering boundaries 已获
+[PR #35 proposal HEAD 765f42a 的独立 APPROVE](https://github.com/jjjphens-dot/FRAZIL/pull/35#pullrequestreview-5223609754)，
+该 HEAD 的 [Hosted Windows Debug / CMake / CTest](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35103827055) 已通过。
+本 finalization 定义 v1.4 为 Approved Development Baseline，随 PR #35 合入 main 生效；最终 HEAD 仍须满足
+review/check gates，不能复用 proposal approval/CI 作为最终提交证据。v1.3 / [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23)
+是 previous approved baseline；实际 merge 与 final-head review/check 以 GitHub evidence 为准。本段不宣称已合并。
+这不代表 FRAZIL plugin v1.0 release，
 也不改变 M1、Water/Ice/Routing 的实际完成状态：Water production DSP、production candidate controls
 和 model transition 均未实现或注册；Debug/ASAN 开发面板中的 experiment-only controls 不属于该
 production scope。
@@ -198,6 +203,37 @@ HEAD `01d590f`；Hosted CI run 34864859407 通过，PR #27 合入 `main@3438593`
 RENDER-001 确定性回归或 Water/Ice 声音产品验收。REAPER 作为 secondary host 延期，
 仍为 `Not run` 且不形成支持声明。
 
+## 2.9 Diagnostics GUI candidate
+
+2026-09-16，DEV-UI-001 diagnostics GUI follow-up 已形成本地 **implementation candidate / human usability
+acceptance pending**。呈现职责移至 `src/ui/DeveloperDiagnosticsView.*` 和 `DeveloperLevelMeter.*`：aggregate
+INPUT/OUTPUT 使用 RMS 填充、当前 Peak 竖线和 dBFS 数字，图形范围 -60 至 0 dBFS；保留 runtime metadata 和
+finite 与 effective `Route:`，10 Hz 刷新，无 smoothing、history 或 Peak Hold。Diagnostics 位于左侧参数
+网格下方；Water Size/Motion 保持既有 main 基线。人工 usability review 要求稍增 workflow 按钮：区域
+由 96 增至 108 px，4x3 排列、间距及行为不变；整体仍为 implementation candidate，human usability review ongoing。
+
+本次验证（不替代 §2.8 的历史 Host evidence）：
+
+| Check | Actual result / boundary |
+|---|---|
+| Debug / Release / ASAN | 每个 preset 均执行 `cmake --preset <preset>`、`python tools/build_safe.py --preset <preset>`、`ctest --preset <preset>`；安全构建 PASS，CTest 各 7/7 PASS，全部 pipeline 串行 |
+| Developer/Release isolation | compile commands 确认 Debug/ASAN macro=1 并编译呈现组件；Release macro=0 且无呈现组件源文件；实际 Release Standalone 保留 `Production editor pending` |
+| Debug / ASAN Standalone | 实际启动并观察 runtime、两个 meter、finite；静音 Peak/RMS 均显示 `-inf dBFS`、无 RMS 填充；ASAN 启动/观察期间未报告 sanitizer error。ASAN GUI 运行所需 runtime DLL 仅放在 ignored artifact 目录 |
+| Layout | 1000x720 默认、820x680 最小和 1200x800 较大 editor 图像已观察；最小尺寸各区域无重叠；既有 `Processed` 标签在最小尺寸仍显示省略号，本轮仅调整高度，文字适配留待单独处理；Water geometry、diagnostics 布局和窗口限制不变，workflow 按钮实际高度由 28 增至 32 px |
+| Synthetic signal | 临时本地预览入口使用实际 Processor/Editor，48 kHz、prepared 512/latest 480、双通道 1 kHz 正弦；输入 peak 0.25、RMS 0.176777 对应 -12.0/-15.1 dBFS；output gain -12 dB 后 meter 显示 -24.0/-27.1 dBFS；over-range 保留 +12.0 dBFS Peak，并饱和图形/显示警示 |
+| Effective routing | Host `Water -> Ice` / `Ice -> Water` 后读取正确；Capture A / Apply A 后底层 Host 保持 `Ice -> Water`，`Route:` 显示 effective `Water -> Ice`；Return Host 恢复 `Ice -> Water` |
+| Editor reopen | 同一预览 Processor 关闭/重建 Editor，序列化 state 内容相同，重开后的输出 peak/RMS 不变；这是本地 fixture observation，不是 DAW save/reopen acceptance |
+| Warning fixture | 仅向独立 view 注入 `finite=false` / invalid amplitude，观察 `FINITE NO` / `Peak INVALID` / `RMS INVALID`（无 dBFS 后缀）；不宣称真实 audio fault capture |
+| pluginval | 1.0.4，Debug VST3，`--strictness-level 5 --random-seed 12345 --validate <Debug VST3>`，`SUCCESS`；包含 Editor / Open editor whilst processing / Editor Automation；Steinberg validator 未配置 |
+| Scope audit | Processor、diagnostics transport、ParameterLayout、state adapter、app/DSP、existing tests 无 diff；9 个 Host 参数、state/automation、Dry/Processed 与 export 实现未改 |
+
+临时预览入口在常规回归前已移除，未提交额外 GUI framework；日志保留在 ignored 本地
+`build/dev-ui-review/`；review 截图附于 [PR #31](https://github.com/jjjphens-dot/FRAZIL/pull/31)，不提交到仓库。
+截图和合成信号观察不等于独立 human acceptance、实时峰值完整性或 DAW evidence。
+本次未重跑真实 DAW matrix、听测或 CPU benchmark，也未实现 L/R、true peak、LUFS、FFT/waveform、可靠跨 block
+Peak Hold、clip history 或 Production UI。正式 Engineering / Sound & Host review 和最终 usability acceptance
+仍待完成。
+
 ## 3. 当前源码映射
 
 ```text
@@ -217,6 +253,7 @@ AudioEngine
 
 PluginEditor
   ├─ Current-main Debug/ASAN implementation: Host/Water experiment controls, non-APVTS A/B/reset, Dry/Processed and draft config export
+  ├─ Diagnostics GUI follow-up candidate: value-fed src/ui/DeveloperDiagnosticsView -> DeveloperLevelMeter
   └─ Release: static non-developer placeholder
 ```
 
@@ -278,18 +315,8 @@ PluginProcessor
   developer Dry/Processed path、prepared/latest diagnostics 和完整 draft config representation。它不是
   M5 Production UI；usability、DAW/listening evidence 和 Offline Sound Lab handoff 仍未完成。它是大规模
   `EXP-W-002` 前的 Water M2 effective-development-readiness prerequisite，但不是 M1 Exit hard gate。
-- M2 Water：**未开始**；本分支于 2026-09-16 推进 `EXP-W-001` pre-M2 preparation，建立
-  [CANDIDATE brief](../experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md) 与本地参考入库；不表示 M2 DSP 已开始。
-- Perceptual Contract framework/template：当前已随批准并合入的 v1.3 baseline 成为 **CURRENT / CONTROLLED**。
-  `EXP-W-001` 草案已产出，但合同验收仍为 **PLANNED / NOT ACCEPTED**；20 个参考完成 metadata intake，
-  6 个完成基础 QA，人工听评和 Engineering Lead feasibility review 尚未执行。
-  最新 plan 下已保存 [Round 01 四参考数值/图形 first-pass](../experiments/water/ROUND_01_COMMON_WATER.md)，
-  采用 Agent First → Human Calibration；直接听辨层未完成，人工校准为 0 轮，不代表感知合同验收。
-  [HI-01](../experiments/water/LISTENING_LOG.md#hi-01--human-calibrated-clarification) 已获得用户对
-  “响应与演奏有联系”和“Resonant 可以相对平稳”的明确认可；属于意图澄清，四参考听评仍为 0/4。
-  后续 HI-02 至 HI-10 已补齐六段首轮产品意图；本分支 brief 已整理为 **v0.1 ENGINEERING REVIEW
-  DRAFT / NOT ACCEPTED**，可供工程初审。两道 bass 补充题暂缓；Decay 定义等待工程回传。
-  初版交接不表示 EXP-W-001 关闭，也不解除 EXP-W-002 的 accepted-instance prerequisite。
+- M2 Water：**未开始**；`EXP-W-001` Perceptual Contract preparation 为 PLANNED，不表示 M2 或 Water DSP 已开始。
+- Perceptual Contract framework/template：当前已随批准并合入的 v1.3 baseline 成为 **CURRENT / CONTROLLED**。`EXP-W-001` Water contract instance 仍为 **PLANNED**，尚未产出或验收。
 - M3 Ice：**DEFERRED**；长期 milestone 保留，在 `M2 Exit + Explicit Joint Gate` 确认 Water workflow 可复用于 Ice 前，不启动 Ice experiment、perceptual/parameter redesign 或 production implementation。
 - M4 Routing：**未开始**。
 - M5 UI & Edit History：**未开始**。
@@ -332,6 +359,16 @@ HOST-000 产品目标已冻结；Live/FL 已满足本轮 `Development Validated`
 仍需后续 release compatibility/support gate，REAPER 无支持声明。
 已进入 `main` 的 M1 foundation/evidence 只按 regression/finding ownership 维护，不得建立平行实现。
 Debug/ASAN Developer UI 与 diagnostics implementation 已进入 `main`，但不得从本状态文档推断为产品
-UI 或已完成 usability/DAW acceptance；Water-specific Perceptual Contract 在本分支仅有 CANDIDATE 草案，仍未验收；
+UI 或已完成 usability/DAW acceptance；Water-specific Perceptual Contract instance 仍不得推断为已实现；
 Perceptual Contract framework/template 已在 v1.3 approval + merge 后成为 CURRENT/CONTROLLED。
 Water/Ice/Routing 仍未开始 production。
+
+## Water objective engineering feasibility
+
+A standalone bounded `SPIKE-W-DSP-001` exists under `experiments/water/SPIKE-W-DSP-001/`.
+It contains A/B/D/C research mechanisms, deterministic Fluid ablation, engineering JSON configs,
+offline rendering and preliminary performance measurement. Its controlled scope is objective
+feasibility before the accepted brief, not production Water DSP or perceptual acceptance.
+It does not close EXP-W-002. Brief integration and human listening remain outstanding with
+Sound & Host Lead. Current validation and limitations are recorded in the
+[research checkpoint](../experiments/water/SPIKE-W-DSP-001/README.md).

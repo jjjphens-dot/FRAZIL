@@ -22,6 +22,13 @@ app EngineParameters -> RoutingEngine -> StageMixer -> Water/Ice processors
 
 依赖方向只能由 app 指向 dsp；DSP 不反向依赖 app/plugin/ui。模块边界和计划路径见 [MODULE_INDEX.md](../../docs/MODULE_INDEX.md)。
 
+Planned shared preparation contract：ProcessSpec 的 sample rate/block size/channel count 语义归下游 DSP/common
+纯值层，推荐未来位置 `src/dsp/ProcessSpec.h`。当前文件仍是 `src/app/ProcessSpec.h`；在 Water/Ice/Routing
+生产模块消费它前，须先迁移 canonical type 或落实明确 reviewed 的等价方案。DSP 不得 include app header。
+app 和 DSP 应直接共享一个类型，不复制 app/dsp 或 Water/Ice/Routing 同字段 specs；结构有效性统一由 shared
+contract 提供，模块只增加特有条件。ProcessSpec 不承载 DSP runtime/Host/UI state，也不取代 Water domain 的
+WaterProductValues/WaterModel。此迁移尚未实现，Water/Ice/Routing 生产实现仍不存在。
+
 ## Public Interfaces
 
 `DryWetMixer`、`LinearSmoother` 和 `RandomSource` 已提供 M1 基础接口；`LinearSmoother` 对跨 block 的重复 target 不重启 in-flight ramp，并对真正变化的 target 从当前值 retarget。Water/Ice/Routing 等材质和拓扑接口仍为 Planned。正式接口必须使用小型值类型、明确的 prepare/reset/process 生命周期和可测试的 transition contract。
@@ -40,7 +47,7 @@ M1 `DSP-002`/`DSP-004`/`DSP-005` 已建立 `DryWetMixer`、sample-rate-aware `Li
 
 M2 Water 当前规划为 dual-mode、input-driven、source-preserving material processor：Fluid 研究
 Bubble Ensemble + Droplet/Impact Exciter + Flow Modulator，Resonant 研究 Liquid/Modal Resonator；两者
-优先使用明确的 residual semantics。该方向仍无 production source，candidate Mode/Size/Motion 也未加入
+优先使用明确的 residual semantics。该方向仍无 production source，candidate Model/Size/Motion/Decay 也未加入
 Host registry 或 state。技术闭环见 Proposed [ADR-0006](../../docs/adr/0006-water-dual-mode-architecture.md)。
 
 ## State / Tail / Latency

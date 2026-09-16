@@ -118,6 +118,12 @@ set(FRAZIL_PLUGIN_SOURCES
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(FRAZIL_DEVELOPER_BUILD 1)
+    list(APPEND FRAZIL_PLUGIN_SOURCES
+        src/ui/DeveloperDiagnosticsView.cpp
+        src/ui/DeveloperDiagnosticsView.h
+        src/ui/DeveloperLevelMeter.cpp
+        src/ui/DeveloperLevelMeter.h
+    )
 else()
     set(FRAZIL_DEVELOPER_BUILD 0)
 endif()
@@ -321,6 +327,12 @@ add_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/test_render_cli.py
             --renderer $<TARGET_FILE:frazil_render>
 )
+
+# Research targets are opt-in and never linked into the production plugin.
+option(FRAZIL_BUILD_WATER_EXPERIMENT "Build the standalone Water DSP research candidates" OFF)
+if(FRAZIL_BUILD_WATER_EXPERIMENT)
+    add_subdirectory(experiments/water/SPIKE-W-DSP-001)
+endif()
 
 # MSVC ASAN uses a dynamic runtime DLL. Keep test execution independent from the
 # shell that launched CTest and make the test artifacts directly runnable.

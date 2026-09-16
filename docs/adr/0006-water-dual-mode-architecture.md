@@ -46,15 +46,51 @@ WaterProcessor does not own Parallel/Serial routing, `water.amount`, `parallel.b
 
 ### Product controls
 
-M2 evaluates these candidate Host-visible controls:
+M2 evaluates these experiment-only candidate controls for possible later Host adoption:
+Decay candidate revision: [DOC-W-DECAY-001 / #32](https://github.com/jjjphens-dot/FRAZIL/issues/32),
+proposal approved; baseline effective upon PR #35 merge under the
+[final-head review/check gate](../planning/WATER_DECAY_CANDIDATE_REVISION.md#review-evidence-and-finalization-gate).
+This planning approval does not Accept ADR-0006 or authorize production adoption.
 
 - `water.model`: working choice order `Fluid`, `Resonant`;
-- `water.size`: `Fine / Small / Bright <-> Large / Deep / Full`;
-- `water.motion`: `Calm / Stable <-> Active / Flowing`.
+- `water.size`: `Fine / Small / Bright <-> Large / Deep`;
+- `water.motion`: temporal activity, `Calm / Stable <-> Active / Flowing`;
+- `water.decay`: Water response persistence, `Short / Tight <-> Long / Lingering` (not Dry).
 
-Size and Motion retain the same high-level meaning and UI position in both modes. ParameterMapper owns the
-normalized-product-to-mode-specific-engine mapping. Detailed ranges, defaults, nonlinear curves, transition
-duration, smoothing constants, and state evolution are not decided here.
+Size, Motion and Decay retain the same high-level meaning and UI position in both modes. The planned chain is
+Host / Developer Control -> ParameterSnapshot -> ParameterMapper -> WaterProductValues { model, size, motion, decay }
+-> WaterMacroMapper (Water domain) -> FluidTargets / ResonantTargets -> DSP components.
+ParameterMapper owns raw interpretation, finite fallback, clamp, choice-to-enum, dB-to-linear and normalized
+product/domain value preparation. It does not know component configs, decay seconds, event probabilities,
+trajectory intervals, modal coefficients or voice lifetimes. WaterMacroMapper alone owns normalized Water
+values -> mode-specific bounded DSP targets: pure C++, deterministic, allocation-free, unit-testable and
+independent of JUCE/APVTS/UI/DSP state. Primitives consume engineering quantities, not product parameter IDs.
+This is a future boundary, not an implemented Developer/Host path or a new generic mapping framework.
+Proposed value ownership: WaterProductValues belongs to the Water domain, preferably in the future
+`src/dsp/water/WaterProductValues.h` or an equivalent narrow domain header. WaterModel belongs in the same or
+adjacent Water-domain value layer; FluidTargets / ResonantTargets also belong to that domain. ParameterMapper
+may construct these downstream product values without owning their definition. The allowed dependency remains
+`plugin -> app -> dsp/Water domain`; `dsp/Water domain -> app` is forbidden, including WaterProcessor and
+WaterMacroMapper. Do not define these domain types in app/plugin/ui or duplicate them across layers.
+WaterProductValues is small/plain, state-free, allocation-free and JUCE/APVTS/UI-free; it carries normalized intent,
+not parameter objects/IDs, handles, processors, smoothers, buffers, random/voice/resonator/routing state.
+WaterMacroMapper owns no DSP runtime state, Host automation or serialization. No such production header or
+mapper is created by this revision; ADR-0006 remains Proposed.
+The planned Water `prepare(const ProcessSpec&)` refers to the future shared DSP/common-owned processing-environment
+value, not the currently existing `src/app/ProcessSpec.h`. Before production DSP consumes it, re-home the one
+canonical type downstream (recommended future `src/dsp/ProcessSpec.h`) or review an equivalent dependency-safe
+solution; never include the app header or create mirrored/module-specific copies with identical semantics.
+This common lifecycle boundary is distinct from WaterProductValues / WaterModel ownership. No relocation occurs
+here and no Water-specific Accepted decision is made by this clarification.
+Detailed ranges, defaults, nonlinear curves, transition duration, smoothing constants, and state evolution
+are not decided here.
+
+Responsibility orthogonality + perceptual separability + bounded interaction: Motion does not directly drive
+decay targets; Decay does not directly drive event/trajectory-rate targets. High Motion + Long Decay may increase
+overlap, voices, tail energy and steals; measure bounds and listening usability, not strict acoustic independence.
+Droplet refractory is an implementation quantity, not a frozen Motion destination. Water remains a continuous
+input-driven transform; no whole-effect duration/hold/restart/envelope is introduced. Prepare-time SPIKE decay
+is not realtime automation and does not authorize callback reprepare/allocation/blocking.
 
 ### Mode transition candidate
 
@@ -77,7 +113,12 @@ with user evidence and a separate parameter/state review.
 
 - exact residual extraction and resonator feedthrough topology;
 - final Bubble/Droplet/Flow/Resonant structures and ablation results;
-- Size and Motion engine destinations, ranges, defaults, nonlinear curves, and energy compensation;
+- Size, Motion and Decay engine destinations, ranges, defaults, nonlinear curves, and energy compensation;
+- validate Decay perceptual separability and cross-mode persistence direction against the accepted brief;
+- Bubble/Droplet response-decay destinations and Resonant damping curves; no forced Flow decay;
+- normalized per-mechanism curves (equal normalized values need not mean equal seconds);
+- live damping versus event-latched policy, existing-state response, coefficient/excitation updates and automation lag;
+- voice lifetime/stealing, overlap, tail termination, energy buildup, smoothing/rapid automation and state compatibility;
 - whether both engines run during a mode transition;
 - engine state, tail, random-state progression, rapid-automation, reset/prepare, and restore behavior;
 - final transition duration and CPU upper bound;
@@ -88,12 +129,14 @@ with user evidence and a separate parameter/state review.
 
 ## Consequences
 
-- `EXP-W-001` defines common/Fluid/Resonant identity, Size/Motion semantics, anti-examples, and source
-  recognizability.
+- `EXP-W-001` defines common/Fluid/Resonant identity, Size/Motion/Decay semantics, anti-examples, and source
+  recognizability. It must not be accepted/closed before the mandatory
+  [Decay Revision B completion gate](../CODING_PLAN.md#decay-revision-b-completion-gate).
 - `EXP-W-002` measures Bubble, Droplet/Impact, Flow, and Resonant components separately and in integration with
-  fixed test seeds where randomness is involved.
+  fixed test seeds where randomness is involved. Formal work requires M1 Exit, applicable Developer readiness
+  and accepted EXP-W-001 including Revision B; neither Revision A nor the old three-macro brief suffices.
 - `EXP-W-003` validates and refines the dual-mode direction instead of selecting only one Water slice.
-- `water.model`, `water.size`, and `water.motion` remain outside the current nine-parameter registry and
+- `water.model`, `water.size`, `water.motion`, and `water.decay` remain outside the current nine-parameter registry and
   `schemaVersion=1` until explicit adoption and compatibility work.
 - High-fidelity coupled-bubble/full-fluid/FDTD methods inform approximation risk but are not v1 realtime
   requirements.
@@ -105,7 +148,10 @@ with user evidence and a separate parameter/state review.
   responsibilities, plus qualitative confirmation that both are intentional Water models rather than a good/bad
   switch; no perceptual-distance metric, classification threshold, or mode-separation score is required;
 - source recognizability at normal settings, including representative `global.mix=100%` Water-only evaluation;
-- Size and Motion semantic consistency across both modes, with Motion shown not to act primarily as gain;
+- Size, Motion and Decay semantic consistency across both modes, with Motion = activity and Decay = persistence; neither primarily gain/Amount;
+- per-mode Motion x Decay 2x2, held-macro destination isolation, dynamic-state-policy and tail/overlap evidence;
+- fixed-seed scheduling/RNG ownership review when changing Decay; explained architecture-dependent interactions;
+- loudness-matched separability, source rhythm/transient preservation and masking/ringing/stealing/energy review;
 - component ablation and fixed-seed engineering evidence;
 - finite output, extreme parameters, DC/peak/tail, reset/prepare, 44.1/48/96 kHz, representative block-size,
   rapid mode automation, click/zipper, and instance-isolation evidence;

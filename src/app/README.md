@@ -36,7 +36,25 @@ UI -> narrow app edit/history command interface -> EditHistoryManager (message t
 
 ## Parameter / Data Types
 
+`ProcessSpec` 当前物理位置是 `src/app/ProcessSpec.h`，属于已实现的 M1 skeleton 接口；其语义是 sample
+rate、maximum prepared block size、channel count 组成的下游 processing environment。未来 Water/Ice/Routing
+生产 DSP 消费该合同前，须将 canonical type re-home 到 DSP/common 层（推荐未来 `src/dsp/ProcessSpec.h`），
+或采用明确 reviewed 的等价方案；app 随后直接依赖下游类型。禁止 DSP include 当前 app header，也不建立
+同语义 app/dsp 镜像和转换器。当前文件未移动，现有 API 与运行时不变；迁移和行为保留测试归后续 integration issue。
+
 正式 Host 参数由 plugin 层 `src/plugin/ParameterLayout.*` 集中注册。app 层的 Snapshot 只接收由 plugin 缓存的原子参数指针，Mapper 输出不含 Host 对象的 `EngineParameters`；app 不依赖 ParameterLayout、PluginProcessor 或 Host adapter。
+
+未来 Water candidate 的 app mapping 只准备 normalized `WaterProductValues { model, size, motion, decay }`。
+`WaterProductValues` 和 `WaterModel` 的类型定义归 Water domain，推荐未来放在
+`src/dsp/water/WaterProductValues.h` 或同域相邻 pure-value header，不在 app/plugin/ui 定义。
+app 可依赖并构造下游 domain values；构造职责不改变类型所有权。允许 `plugin -> app -> dsp/Water domain`，
+禁止 `dsp/Water domain -> app`；WaterProcessor 和 WaterMacroMapper 不依赖 app。
+
+raw interpretation、finite fallback、clamp、choice -> enum 和 dB -> linear 属于 `ParameterMapper`。
+Water domain 的 `WaterMacroMapper` 唯一负责这些值到 `FluidTargets` / `ResonantTargets` 的转换；app 不认识
+Bubble/Droplet/Flow/Modal configs、decay seconds、event probability、trajectory interval、modal coefficients
+或 voice lifetime。这是 [Parameters §1.1 的 planned mapping boundary](../../docs/PARAMETERS.md)，
+不表示当前 Snapshot/EngineParameters 已包含 Water candidates，也不改变独立的 Developer experiment snapshot。
 
 ## Ownership & Lifetime
 
@@ -56,7 +74,7 @@ app 层不得自行宣称算法 tail 或 latency。v1 Host-reported processing l
 
 ## Tests
 
-当前以 CTest smoke、`frazil_tests` 的 ProcessSpec/ParameterLayout/Snapshot/Mapper/StateModel/Host State Adapter unit cases、`frazil_plugin_integration` 的实际 PluginProcessor automation/state path、`frazil_processor_property` 的代表性 nominal/short-odd callback、silence、lifecycle/finite matrix、`frazil_latency_contract` 的 neutral/dry impulse/metadata 与 M1 skeleton-tail regression、手动运行的 `frazil_performance` steady-state/parameter-retarget baseline，以及 `frazil_render` 的 M1 pass-through offline smoke 为证据；完整 render matrix、真实 DAW restore 和完整 M1 gate 仍未完成。
+当前以 CTest smoke、`frazil_tests` 的 ProcessSpec/ParameterLayout/Snapshot/Mapper/StateModel/Host State Adapter unit cases、`frazil_plugin_integration` 的实际 PluginProcessor automation/state path、`frazil_processor_property` 的代表性 nominal/short-odd callback、silence、lifecycle/finite matrix、`frazil_latency_contract` 的 neutral/dry impulse/metadata 与 M1 skeleton-tail regression、手动运行的 `frazil_performance` steady-state/parameter-retarget baseline，以及 `frazil_render` 的 M1 pass-through offline smoke 为工程证据。真实 DAW restore、automation 和 render smoke 已在 Live/FL primary matrix 中通过，HOST-001 已关闭且 M1 Exit 已批准，详见 [`HOST-001 / M1 acceptance index`](../../docs/evidence/HOST-001_ACCEPTANCE_INDEX.md) 与 [`M1 Joint Exit record`](../../docs/evidence/M1_JOINT_EXIT.md)。`Development Validated` 仅适用于记录的 Windows x64 Debug VST3 范围，不表示 `Officially Supported`；REAPER 仍延期且无支持声明。完整未来 render matrix 仍待后续阶段执行。
 
 ## Related ADRs
 
