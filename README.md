@@ -2,7 +2,7 @@
 
 FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器，首要格式为 VST3，并保留 Standalone 作为开发与测试宿主。
 
-当前处于 M1 收口后期（late-stage closure），并进行 Water pre-M2 preparation 与 Developer Sound/Debug Tooling acceptance follow-up：Windows + JUCE 9.0.1 构建链路、静态参数合同、Snapshot/Mapper 和基础 gain/mix skeleton 已接入，wet path 仍为 pass-through，Water / Ice / Routing 生产 DSP 尚未实现。详细事实基线见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)，实施顺序见 [`docs/CODING_PLAN.md`](docs/CODING_PLAN.md)。
+M1 Exit 已批准并完成状态收口，当前进入 Water pre-M2 preparation 与 Developer Sound/Debug Tooling acceptance follow-up：Windows + JUCE 9.0.1 构建链路、静态参数合同、Snapshot/Mapper 和基础 gain/mix skeleton 已接入，wet path 仍为 pass-through，Water / Ice / Routing 生产 DSP 尚未实现。HOST-001 的 Live/FL primary matrix 已验收；`Development Validated` 仅适用于记录的 Windows x64 Debug VST3 范围，不表示 `Officially Supported`，REAPER 仍延期且无支持声明。详细事实基线见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)，实施顺序见 [`docs/CODING_PLAN.md`](docs/CODING_PLAN.md)。
 
 ## 产品合同摘要
 
@@ -31,7 +31,9 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 - [参数与状态合同](docs/PARAMETERS.md)
 - [测试与发布门槛](docs/TESTING.md)
 - [核心实现指南](docs/CORE_IMPLEMENTATION_GUIDE.md)
-- [HOST-000 平台与 DAW 兼容性矩阵（产品目标已冻结，HOST-001 窄范围 Verified observation 已记录）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
+- [HOST-000 平台与 DAW 兼容性矩阵（HOST-001 primary Live/FL matrix 已验收，支持边界见记录）](docs/HOST-000_COMPATIBILITY_MATRIX.md)
+- [HOST-001 / M1 验收索引](docs/evidence/HOST-001_ACCEPTANCE_INDEX.md)
+- [M1 Joint Exit 记录](docs/evidence/M1_JOINT_EXIT.md)
 - [GitHub 协作流程](docs/GITHUB_WORKFLOW.md)
 - [双人协作分工](docs/COLLABORATION_ROLES.md)
 - [开发环境](docs/ENVIRONMENT.md)
