@@ -1,6 +1,6 @@
 # FRAZIL Perceptual Contract
 
-> Framework status: CURRENT/CONTROLLED in the approved and merged v1.3 baseline ([PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23)).<br>
+> Framework status: CURRENT/CONTROLLED; first established by v1.3 / [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23). Decay candidate revision follows the [v1.4 activation rule](CODING_PLAN.md).<br>
 > Water instance status: `EXP-W-001` Water Perceptual Contract is PLANNED until produced and accepted.<br>
 > This framework does not accept a DSP algorithm or register parameters.
 

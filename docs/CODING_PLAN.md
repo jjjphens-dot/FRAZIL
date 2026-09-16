@@ -1,7 +1,7 @@
 # FRAZIL 分阶段 Coding Plan
 
-> 版本：1.4 proposed（Water Decay candidate revision）<br>
-> 状态：Proposed controlled revision；v1.3 已批准 baseline 保留至本修订完成 review + merge<br>
+> 版本：1.4（Water Decay candidate revision）<br>
+> 状态：Approved Development Baseline，随 PR #35 合入 main 生效（effective upon merge）<br>
 > 日期：2026-09-16
 > 输入：`FRAZIL_PROJECT_ARCHITECTURE_v0.3.md` + 当前源码/构建/远端审计  
 > 目标：把产品语义转化为可排序、可分工、可验收、可在 GitHub 追踪的工程工作。
@@ -10,19 +10,19 @@
 
 本计划是 CONTROLLED 工程合同。工作项、依赖、验收标准和 exit gate 的修改必须通过 issue/review，并同步受影响的架构、测试、参数或治理文档；本文件不记录实时 issue 状态，也不以状态文字替代验证证据。
 
-本次 v1.4 proposed 修订由 [DOC-W-DECAY-001 / #32](https://github.com/jjjphens-dot/FRAZIL/issues/32)
+本次 v1.4 修订由 [DOC-W-DECAY-001 / #32](https://github.com/jjjphens-dot/FRAZIL/issues/32)
 跟踪，仅分离 Water candidate Motion/Decay 语义和同步下游验收；不授权 UI/DSP/Host/state 实现，
 不改变 M1 Exit、Ice deferred 或 PARAM-FREEZE ordering。范围与检查见
 [revision record](planning/WATER_DECAY_CANDIDATE_REVISION.md)。
 
-本 review branch 在 required independent approval 前保持 Proposed。approval 后必须追加独立的
-`docs(water): finalize Decay candidate baseline` commit，更新本文件、revision record 及会过期的直接相关
-authority statement，并对最终 HEAD 完成 required review/checks；不得将当前 proposed / merge-pending /
-v1.3-authoritative-until-merge 文案原样合入 main。具体 evidence 字段、收尾范围与生效规则见
+候选合同与工程边界已获 [proposal HEAD 765f42a 的独立 APPROVE](https://github.com/jjjphens-dot/FRAZIL/pull/35#pullrequestreview-5223609754)。
+本独立 finalization 同步 baseline authority；v1.4 随 [PR #35](https://github.com/jjjphens-dot/FRAZIL/pull/35)
+合入 main 生效，不以 proposal approval 代替 final HEAD 的 required review/checks，也不宣称已发生合并。
+具体 evidence 字段、收尾范围与生效规则见
 [review lifecycle](planning/WATER_DECAY_CANDIDATE_REVISION.md#review-evidence-and-finalization-gate)。
 
 此前 `CODING_PLAN.md` v1.3 已由 [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23) 完成 required
-formal approval 并合入 `main`，现为 FRAZIL 的 Approved Development Baseline；这不等于 FRAZIL plugin
+formal approval 并合入 `main`，是 v1.4 的 previous approved baseline；上述生效规则不等于 FRAZIL plugin
 v1.0 release。实时 milestone 状态见 `PROJECT_STATUS.md` 和 M1 Joint Exit evidence；下文 M1
 closure/readiness 图表示阶段依赖，不表示 M1 仍未退出或 Water production 已实现。
 

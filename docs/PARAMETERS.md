@@ -101,7 +101,9 @@ JUCE/APVTS/UI 和 DSP state。DSP primitive 只消费 `decaySeconds`、`eventRat
   scheduling quantity，不冻结为 Motion mapping；后续实验比较 sensitivity/probability/scheduling/refractory。
 
 本候选修订由 [DOC-W-DECAY-001 / #32](https://github.com/jjjphens-dot/FRAZIL/issues/32) 跟踪，
-review/merge 前不替代已批准 baseline。四个问题分别是 Model = what behavior、Size = how large、
+其 proposal 已获独立 review；candidate baseline 随 PR #35 合入 main 生效，详见
+[review/finalization evidence](planning/WATER_DECAY_CANDIDATE_REVISION.md#review-evidence-and-finalization-gate)。
+这不是 Host adoption 或 Water instance acceptance。四个问题分别是 Model = what behavior、Size = how large、
 Motion = how active、Decay = how persistent。职责遵守
 **responsibility orthogonality + perceptual separability + bounded interaction**，不承诺所有声学结果严格正交。
 High Motion + Long Decay 可以自然增加 overlap、

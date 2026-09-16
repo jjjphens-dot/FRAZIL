@@ -47,7 +47,10 @@ WaterProcessor does not own Parallel/Serial routing, `water.amount`, `parallel.b
 ### Product controls
 
 M2 evaluates these experiment-only candidate controls for possible later Host adoption:
-Decay revision: [DOC-W-DECAY-001 / #32](https://github.com/jjjphens-dot/FRAZIL/issues/32), pending review/merge.
+Decay candidate revision: [DOC-W-DECAY-001 / #32](https://github.com/jjjphens-dot/FRAZIL/issues/32),
+proposal approved; baseline effective upon PR #35 merge under the
+[final-head review/check gate](../planning/WATER_DECAY_CANDIDATE_REVISION.md#review-evidence-and-finalization-gate).
+This planning approval does not Accept ADR-0006 or authorize production adoption.
 
 - `water.model`: working choice order `Fluid`, `Resonant`;
 - `water.size`: `Fine / Small / Bright <-> Large / Deep`;

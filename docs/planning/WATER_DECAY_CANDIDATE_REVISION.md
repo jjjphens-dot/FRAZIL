@@ -1,12 +1,12 @@
 # Water Decay candidate revision — DOC-W-DECAY-001
 
-> Scope: Revision A, controlled documentation only; proposed / independent review and merge pending.<br>
+> Scope: Revision A, controlled documentation only; proposal approved, v1.4 Approved Development Baseline effective upon PR #35 merge.<br>
 > Issue: [#32](https://github.com/jjjphens-dot/FRAZIL/issues/32). Baseline inspected: `origin/main@c7e68ce`, 2026-09-16.<br>
 > Input: user-provided Water Decay Candidate Macro Revision Plan and REQUEST_CHANGES remediation; no production adoption is recorded here.
 
 ## Task boundary and authority
 
-Motion currently mixes temporal activity with possible decay destinations in the candidate documentation.
+The previous candidate documentation mixed temporal activity with possible decay destinations.
 This revision separates Motion = temporal activity and Decay = Water response persistence, with candidate
 vocabulary Model / Size / Motion / Decay. The normative semantic detail stays in
 [Parameters §1.1](../PARAMETERS.md); this record tracks scope and review.
@@ -17,8 +17,9 @@ transfer occurs. Allowed writes are affected documentation and module README/ind
 AGENTS candidate-boundary clarification. C++/DSP/UI, executable tooling/tests, Host registry,
 APVTS, state schema, routing/Ice changes and production adoption are excluded.
 
-The previous approved v1.3 baseline remains authoritative until this proposed v1.4 revision receives required
-review and merge. Proposed ADR-0006 remains Proposed; Accepted ADRs are unchanged. No production Joint Gate
+The v1.4 candidate-contract decision is approved at proposal HEAD `765f42a`; its baseline authority takes effect
+upon PR #35 merge after final-head review/checks. v1.3 is the previous approved baseline. ADR-0006 remains Proposed;
+Accepted ADRs are unchanged. No production Joint Gate
 is closed. Human acceptance of the Water instance, listening decisions and later adoption cannot be inferred
 from this branch or its documentation checks.
 
@@ -60,7 +61,7 @@ Predictability, Cross-Mode Consistency, Motion/Decay separability, Interaction C
 **Formal EXP-W-002 MUST NOT start based only on Revision A docs.** Existing SPIKE prepare-time `decaySeconds`
 remain objective feasibility evidence, not completion of the Decay perceptual contract.
 
-## Review remediation
+## Review remediation history
 
 Reviewed base: `c7e68ceb4023a6cf886af607cc314ce98e68b84e`.
 Reviewed head before fixes: `9b37b4b9bff398df16e3d1d7e55063d28d111f78`.
@@ -124,36 +125,41 @@ After this bounded remediation and push, stop for independent re-review; no furt
 
 ## Review evidence and finalization gate
 
-Current status: **ready for independent re-review; required approval and finalization pending**.
-No open PR existed for this branch at the remediation preflight. Before merge, record real independent evidence
-in the PR and link it here; agent consistency checks do not satisfy this requirement.
+The proposal received independent approval on 2026-09-16. This separate finalization records that evidence and
+sets v1.4 authority **effective upon merge** of [PR #35](https://github.com/jjjphens-dot/FRAZIL/pull/35).
+The following evidence belongs to proposal HEAD `765f42a`, not to a later finalization HEAD. Approval and successful
+checks for the final HEAD are required before merge; consult the PR for those actual events.
 
 | Required evidence | Current record |
 |---|---|
-| Reviewer and reviewed HEAD | Independent re-review pending; no reviewer identity claimed |
-| Review scope | Requested: candidate semantics, mapping/type ownership and dependency direction, handoff gates, Developer boundary and authority lifecycle |
-| Evidence reproduced / not reproduced | Reviewer must state both; local checks below are agent checks only |
-| Findings | Supplied REQUEST_CHANGES and remediation table above; independent resolution pending |
-| Decision | Required independent decision pending; no APPROVE claimed |
-| Formal GitHub review type and link | Not recorded; use actual APPROVE, COMMENT or REQUEST_CHANGES and its permalink if submitted; manual evidence is not formal approval |
+| Reviewer and reviewed HEAD | `jjjphens-dot`, distinct from PR creator `Aspartameqwq`; `765f42ae4a1a14af024b9dc0156608a129ea2ebf` |
+| Review scope | Independent engineering/documentation review: candidate semantics, mapper/type ownership, ProcessSpec current/future boundary, handoff/Developer and finalization gates |
+| Evidence reproduced | Reviewer reports Markdown links, portability, base-to-head diff check, scope/contract assertions and Host/schema/Developer source inspection on a detached exact-head checkout |
+| Evidence not reproduced | Local builds/CTest, render/property/performance, pluginval/DAW, human listening/usability; future DSP behavior remains unproven |
+| Findings | No actionable blocking findings on the proposal; finalization and final-head review/checks explicitly required |
+| Decision | APPROVED for the proposal candidate contract and engineering boundaries; not final-head merge readiness, perceptual acceptance or production adoption |
+| Formal GitHub review type and link | [APPROVED review 5223609754](https://github.com/jjjphens-dot/FRAZIL/pull/35#pullrequestreview-5223609754), submitted 2026-09-16; no fallback evidence substituted |
+
+Applicable Sound & Host acceptance remains a review responsibility; the engineering review above is not relabeled
+as human listening, Developer workflow acceptance or EXP-W-001 acceptance. Those downstream gates remain intact.
+The proposal's [Hosted Windows Debug / CMake / CTest run](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35103827055)
+subsequently completed successfully; it was still running when the reviewer submitted approval.
+
+Finalization scope: Coding Plan/version authority, this record, Project Status, Parameters/Proposed ADR Decay notes,
+and Developer/Perceptual framework headers. Historical v1.3 origin and evidence remain; candidate semantics,
+production contracts and all downstream acceptance gates are unchanged. No merge is claimed by this commit.
 
 Lifecycle: remediation -> independent review -> findings resolved -> required approval/evidence -> separate
 `docs(water): finalize Decay candidate baseline` commit -> required review/checks on the final HEAD -> merge.
-This remediation does not execute the finalization or authorize merge. The merge gate requires:
+This commit is the bounded finalization step; the merge gate still requires:
 
-1. Required independent approval exists, including Engineering / Sound & Host scope as applicable. Record the
-   actual reviewer, commit and evidence above before preparing the bounded finalization commit.
-2. Finalization updates `CODING_PLAN.md` and this record to version 1.4's approved decision, names v1.3 as the
-   previous baseline and defines v1.4 as the Approved Development Baseline **effective upon merge**. Replace
-   active proposed/review-pending/merge-pending and v1.3-current-authority wording; do not claim a merge that has
-   not occurred. This activation rule lets merged main carry the approved baseline without a false pre-merge claim.
-3. Synchronize `PROJECT_STATUS.md`'s opening current-baseline statement and the Decay review-pending notes in
-   `PARAMETERS.md` and ADR-0006. Check `DEVELOPER_SOUND_TOOLS.md` and `PERCEPTUAL_CONTRACT.md` headers/current
-   authority references. Keep v1.3/PR #23 as historical framework origin in those docs, AGENTS and M1 evidence;
-   do not relabel historical evidence. ADR-0006 itself remains Proposed until its separate Water adoption gate.
-4. Re-run the documentation checks and obtain/verify required review on the final commit under repository policy;
+1. Required independent approval covers the final HEAD, including Engineering / Sound & Host scope as applicable;
+   preserve the actual reviewer, commit, scope and decision in GitHub. Agent consistency checks are not independent approval.
+2. The synchronized v1.4 Approved Development Baseline activates only upon merge. v1.3/PR #23 remains historical
+   framework origin; ADR-0006 itself stays Proposed until its separate Water adoption gate.
+3. Re-run the documentation checks and obtain/verify required review on the final commit under repository policy;
    approval of a preceding head is not proof of approval of the final head. Link actual checks without inventing CI.
-5. Merge only through the authorized GitHub workflow after the finalization gate passes. Once GitHub confirms
+4. Merge only through the authorized GitHub workflow after the finalization gate passes. Once GitHub confirms
    merge, record the actual PR/merge evidence; any follow-up repository evidence edit follows the normal PR flow.
    Never merge this proposal unchanged and rely on later cleanup to fix stale main authority text.
 
@@ -163,7 +169,8 @@ Full Gate trigger: candidate product semantics, planned architecture/UI and down
 
 Changed:
 
-- `CODING_PLAN.md`: proposed revision authority, EXP-W-001..003, WATER-003/006, M2 Exit, UI-005 and risk vocabulary.
+- `CODING_PLAN.md`: revision authority/activation, EXP-W-001..003, WATER-003/006, M2 Exit, UI-005 and risk vocabulary.
+- `PROJECT_STATUS.md`: verified proposal approval/CI and conditional baseline activation; no future implementation or merge claimed.
 - `PARAMETERS.md`: Decay responsibility chain, Motion restriction, bounded interaction and non-Host/state boundary.
 - Architecture, `CORE_IMPLEMENTATION_GUIDE.md`, Proposed ADR-0006: planned shape, destinations, small mapper
   direction, prepare-time limitations and unresolved dynamic policies.
@@ -178,7 +185,6 @@ Changed:
 
 Reviewed, no update required:
 
-- `PROJECT_STATUS.md`: retains verified M1 Exit, SPIKE and Developer facts; no Decay implemented/accepted claim.
 - `DOCUMENT_GOVERNANCE.md`, `CODE_STANDARDS.md`, `COLLABORATION_ROLES.md`, `GITHUB_WORKFLOW.md`: existing
   Full Gate, quality, ownership and push/review rules apply unchanged.
 - `src/plugin/README.md`: no current interface, state or DSP changes.
@@ -194,8 +200,8 @@ Consistency:
 - Testing / evidence: new requirements are planned, existing SPIKE prepare-time results do not prove automation.
 - Coding Plan / milestones: M1 gate, Ice deferral, M2/M3-before-PARAM-FREEZE and independent listening gates retained.
 
-Result: **PASS for local documentation consistency and scope checks**. Independent human review and merge
-remain pending; this is agent self-review, not formal GitHub approval.
+Result: **PASS for local documentation consistency and scope checks**. Proposal approval is attributed above;
+local agent checks do not supply independent final-head approval. The GitHub merge gate controls activation.
 
 Execution phases: Contract Review complete; Implementation limited to documentation; Functional Validation
 N/A (no executable change); separate Code Quality Review checked proposed value-type/mapping ownership,
@@ -208,8 +214,9 @@ formal performance-budget impacts are N/A. Audio evaluation remains future evide
 - `python tools/check_markdown_links.py`: PASS, including the revision record; local target paths only.
 - `python tools/check_portability.py`: PASS.
 - `git diff --check` and `git diff --cached --check`: PASS.
-- Manual diff/semantic/scope review: PASS; 14 Markdown files across Revision A and remediation; the first
+- Manual diff/semantic/scope review: PASS; 15 Markdown files across Revision A, remediation and finalization; the first
   remediation changed 11, Water value ownership changed nine, and ProcessSpec ownership changes eight.
+  This authority-only finalization changes seven Markdown files, adding Project Status to the overall scope.
   Read-only Python assertions against the base
   confirmed unchanged Host registry text, exact nine source IDs, schema 1, Proposed ADR, and identical M1 Exit
   and M3/PARAM-FREEZE sections. No executable sources, tests or configs changed.
@@ -220,5 +227,5 @@ formal performance-budget impacts are N/A. Audio evaluation remains future evide
 - Debug/Release/ASAN builds, CTest, pluginval, render, CPU, DAW and listening: **NOT RUN / N/A** for this
   non-executable revision. Future UI/experiment code must run its own required validation, including actual
   Release Host enumeration; source isolation review is not a replacement for that runtime check.
-- Hosted CI on this branch: **NOT RUN** by this local documentation task; no historical CI is reused as its result.
+- Hosted CI for proposal HEAD `765f42a`: **PASS**, linked above. That result is not finalization-HEAD or merge-commit CI evidence.
 - No source/artifact/content hashes calculated. Git commit IDs are identity references only.

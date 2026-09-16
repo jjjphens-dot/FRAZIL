@@ -1,6 +1,6 @@
 # FRAZIL Developer Sound Tools
 
-> Document status: CURRENT/CONTROLLED in the approved and merged v1.3 baseline ([PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23)).<br>
+> Document status: CURRENT/CONTROLLED; first established by v1.3 / [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23). Decay candidate revision follows the [v1.4 activation rule](CODING_PLAN.md).<br>
 > Capability implementation status: tracked individually as CURRENT / PLANNED / CANDIDATE / DEFERRED below.<br>
 > The Debug/ASAN Developer Control Surface implementation is merged on `main` and is engineering-ready for Sound &
 > Host Lead usability acceptance; final workflow acceptance and Offline Sound Lab handoff remain in progress.
@@ -28,7 +28,7 @@ experimentation. It is not an M1 architecture-correctness exit gate, and `HOST-0
   RENDER-001 offline smoke, manual performance harness, and `tools/analyze_testdata.py` using the
   `requirements-dsp.txt` Python environment. The analyzer already provides waveform diagnostics, FFT, Welch PSD,
   RMS, DC, stereo correlation and STFT/spectrogram analysis.
-- **CURRENT**: the Perceptual Contract framework, template and Agent usage rules from the approved v1.3 baseline.
+- **CURRENT**: the Perceptual Contract framework, template and Agent usage rules first established by the approved v1.3 baseline; current plan authority follows `CODING_PLAN.md`.
 - **CURRENT implementation / acceptance pending**: a Debug/ASAN-only `DEV-UI-001` surface in
   `src/plugin/PluginEditor.*` binds the nine current Host parameters, keeps Water Model/Size/Motion
   experiment-only, detaches APVTS attachments while a temporary non-APVTS override is active, and provides an
