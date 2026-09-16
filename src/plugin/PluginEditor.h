@@ -9,6 +9,10 @@
 #define FRAZIL_ENABLE_DEVELOPER_UI 0
 #endif
 
+#if FRAZIL_ENABLE_DEVELOPER_UI
+#include "ui/DeveloperDiagnosticsView.h"
+#endif
+
 class FRAZILAudioProcessorEditor final : public juce::AudioProcessorEditor
 #if FRAZIL_ENABLE_DEVELOPER_UI
     ,
@@ -62,7 +66,7 @@ class FRAZILAudioProcessorEditor final : public juce::AudioProcessorEditor
     juce::Label hostParametersLabel_;
     juce::Label experimentLabel_;
     juce::Label workflowLabel_;
-    juce::Label diagnosticsLabel_;
+    frazil::ui::DeveloperDiagnosticsView diagnosticsView_;
     juce::Label workflowStatusLabel_;
     juce::Label workflowStateLabel_;
 

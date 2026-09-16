@@ -29,7 +29,7 @@ State:
 Host state <-> Plugin Host State Adapter -> app StateModel
 
 PluginEditor -> plugin parameter interface
-processBlock -> bounded DeveloperDiagnostics snapshot -> Developer editor (Debug/ASAN only)
+processBlock -> bounded DeveloperDiagnostics snapshot -> PluginEditor -> src/ui/DeveloperDiagnosticsView (Debug/ASAN only)
 PluginEditor -> effective developer state / Return Host -> developer-only comparison override -> ParameterSnapshot (Debug/ASAN only)
 ```
 
@@ -38,6 +38,11 @@ PluginEditor -> effective developer state / Return Host -> developer-only compar
 当前 `PluginProcessor` 暴露 JUCE lifecycle、`prepareToPlay`、`processBlock`、editor、state API 和 Debug/ASAN-only 的 diagnostics/developer comparison consumer API；APVTS 仍为 public member，是后续需要收窄审查的技术债。参数 layout 已迁移到 `src/plugin/ParameterLayout.*`，并由 M1 合同测试固定顺序和 ID。`HostStateAdapter` 将 APVTS state 转换为带 `schemaVersion=1` 的稳定 envelope，并把 restore 留在非音频线程；developer override 不参与该 envelope，state restore 会清除该临时 override。
 
 `ParameterLayout` 只参与 Plugin construction/setup 的稳定 Host 参数注册，不参与 per-block audio runtime chain；runtime 从 Host Parameter Atomics 建立 `ParameterSnapshot` 开始。
+
+The diagnostics presentation follow-up delegates runtime text and graphical aggregate Peak/RMS to
+editor-owned `src/ui/DeveloperDiagnosticsView` / `DeveloperLevelMeter` components. The Editor remains the
+10 Hz snapshot consumer; child components receive values only. This is an implementation candidate with
+human usability acceptance pending; Processor, transport, parameter/state and audio behavior are unchanged.
 
 ## Parameter / State Contract
 

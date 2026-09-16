@@ -58,7 +58,6 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
     configureLabel(hostParametersLabel_, "HOST PARAMETER PATH", true);
     configureLabel(experimentLabel_, "WATER EXPERIMENT CONTROLS", true);
     configureLabel(workflowLabel_, "TEMPORARY WORKFLOW", true);
-    configureLabel(diagnosticsLabel_, "RUNTIME DIAGNOSTICS", true);
     configureLabel(workflowStatusLabel_, "Ready. A/B slots are empty; actions are explicit.");
     configureLabel(workflowStateLabel_, "A: Empty  |  B: Empty  |  Current: Host  |  Processed");
     workflowStateLabel_.setJustificationType(juce::Justification::centredLeft);
@@ -68,7 +67,7 @@ FRAZILAudioProcessorEditor::FRAZILAudioProcessorEditor(FRAZILAudioProcessor& pro
     addAndMakeVisible(hostParametersLabel_);
     addAndMakeVisible(experimentLabel_);
     addAndMakeVisible(workflowLabel_);
-    addAndMakeVisible(diagnosticsLabel_);
+    addAndMakeVisible(diagnosticsView_);
     addAndMakeVisible(workflowStatusLabel_);
     addAndMakeVisible(workflowStateLabel_);
 
@@ -559,21 +558,13 @@ void FRAZILAudioProcessorEditor::setWorkflowStatus(const juce::String& text) {
 void FRAZILAudioProcessorEditor::timerCallback() {
     ensureHostParameterAttachmentMode();
     const auto diagnostics = processor_.getDeveloperDiagnosticsSnapshot();
-    const auto host = processor_.getDeveloperHostParameterSnapshot();
-    const auto routingIndex = static_cast<int>(std::lround(host.rawValues[static_cast<std::size_t>(
-        frazil::plugin::DeveloperHostParameter::routingMode)]));
+    const auto effective = processor_.getDeveloperHostParameterSnapshot();
+    const auto routingIndex =
+        static_cast<int>(std::lround(effective.rawValues[static_cast<std::size_t>(
+            frazil::plugin::DeveloperHostParameter::routingMode)]));
     const juce::StringArray routingNames{"Parallel", "Water -> Ice", "Ice -> Water"};
     const auto routing = routingNames[juce::jlimit(0, routingNames.size() - 1, routingIndex)];
-    diagnosticsLabel_.setText(
-        juce::String::formatted(
-            "RUNTIME  %.1f kHz  |  prepared max %d  |  latest %d  |  %d ch  |  route %s\n"
-            "Input  peak %.4f  RMS %.4f   |   Output  peak %.4f  RMS %.4f\n"
-            "Finite: %s  |  Host snapshot is represented by the controls above",
-            diagnostics.sampleRateHz / 1000.0f, diagnostics.preparedBlockSize,
-            diagnostics.latestBlockSize, diagnostics.channelCount, routing.toRawUTF8(),
-            diagnostics.inputPeak, diagnostics.inputRms, diagnostics.outputPeak,
-            diagnostics.outputRms, diagnostics.finite ? "yes" : "NO"),
-        juce::dontSendNotification);
+    diagnosticsView_.update(diagnostics, routing);
     updateWorkflowSummary();
 }
 
@@ -616,6 +607,10 @@ void FRAZILAudioProcessorEditor::resized() {
     routingModeBox_.setBounds(route.removeFromRight(180).reduced(2));
     routingModeBox_.setTextWhenNothingSelected("Routing Mode");
 
+    // Reserve readable diagnostics space without changing Water/workflow geometry.
+    constexpr int kDiagnosticsAreaHeight = 208;
+    diagnosticsView_.setBounds(
+        left.removeFromBottom(kDiagnosticsAreaHeight).withTrimmedTop(8).withTrimmedBottom(10));
     auto grid = left.reduced(0, 8);
     const auto cellWidth = grid.getWidth() / 3;
     const auto cellHeight = grid.getHeight() / 2;
@@ -643,7 +638,7 @@ void FRAZILAudioProcessorEditor::resized() {
     workflowLabel_.setBounds(right.removeFromTop(24));
     auto workflowState = right.removeFromTop(40);
     workflowStateLabel_.setBounds(workflowState.reduced(2));
-    auto workflow = right.removeFromTop(96);
+    auto workflow = right.removeFromTop(108);
     const auto buttonWidth = workflow.getWidth() / 4;
     const auto buttonHeight = workflow.getHeight() / 3;
     std::array<juce::Button*, 11> buttons{
@@ -659,8 +654,6 @@ void FRAZILAudioProcessorEditor::resized() {
                                                        buttonWidth, buttonHeight)
                                       .reduced(2));
     }
-
-    diagnosticsLabel_.setBounds(right.removeFromTop(108));
 }
 
 #else
