@@ -32,8 +32,13 @@ class FluidCandidate final {
     bool prepare(const ResearchConfig& research, const FluidConfig& config = {}) {
         ready_ = false;
         config_ = config;
-        if (!bubble_.prepare(research, config.bubble) ||
-            !droplet_.prepare(research, config.droplet) || !flow_.prepare(research, config.flow))
+        // Clear previously enabled state even when the next prepare disables that component.
+        reset();
+        if (!std::isfinite(research.sampleRateHz) || research.sampleRateHz < 44100.0 ||
+            research.sampleRateHz > 96000.0 ||
+            (config.bubbleEnabled && !bubble_.prepare(research, config.bubble)) ||
+            (config.dropletEnabled && !droplet_.prepare(research, config.droplet)) ||
+            (config.flowEnabled && !flow_.prepare(research, config.flow)))
             return false;
         ready_ = true;
         return true;

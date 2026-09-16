@@ -1,6 +1,11 @@
-# EXP-W-002 v0 engineering evidence
+# Historical v0 Water feasibility evidence (pre-remediation)
 
-Date: 2026-09-16. Scope: bounded algorithm research authorized by Engineering Lead; not accepted
+Historical snapshot only: applies to `f17cbf5`, before the prepare/capacity remediation and
+SPIKE-W-DSP-001 reclassification. Paths below show the current location for discoverability;
+the original executions used the former EXP-W-002 directory. Old tests/timings and governance
+review conclusions below are not current acceptance. See [REVALIDATION.md](REVALIDATION.md).
+
+Date: 2026-09-16. Scope: bounded objective algorithm research; not accepted
 Water sound design, production DSP, M2 Exit or formal EXP-W-002 closure.
 
 ## Source and environment
@@ -44,7 +49,7 @@ Hosted CI is configured to enable these experiments but **has not run for this b
 ## Diagnostic corpus
 
 ```powershell
-python experiments/water/EXP-W-002/analysis/render_corpus.py --renderer <release-renderer> --output build/water-corpus-v0
+python experiments/water/SPIKE-W-DSP-001/analysis/render_corpus.py --renderer <release-renderer> --output build/water-corpus-v0
 ```
 
 Ten existing TESTDATA-001 inputs x eight modes A/B/D/AB/AD/BD/ABD/C = **80 PASS**. Each used the
@@ -74,7 +79,7 @@ new output directory. No licensed musical/listening corpus or loudness matching 
 ## Preliminary Release callback timing
 
 ```powershell
-& 'build/windows-release/experiments/water/EXP-W-002/frazil_water_performance.exe'
+& 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_performance.exe'
 ```
 
 48 kHz, 128 samples, stereo; base seed 20260916; 2000 warmup / 20000 measured blocks per case.

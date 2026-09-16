@@ -101,6 +101,11 @@ trigger 时才执行完整 Documentation Synchronization Gate。必要更新与�
 
 ## 8. 例外与修改规则
 
+Optional `SPIKE-W-DSP-001` 可在 accepted EXP-W-001 前做有界客观工程可行性研究；
+仅限独立 experiment，不允许主观调音/选择、macro 决策、算法采纳或生产集成。
+其范围与交接由 [Perceptual Contract section 6](PERCEPTUAL_CONTRACT.md#6-optional-objective-feasibility-before-the-water-instance)
+及 [Issue #29](https://github.com/jjjphens-dot/FRAZIL/issues/29) 约束，不放宽正式 EXP-W-002 前提。
+
 Perceptual-definition work（例如 `EXP-W-001`）创建 project-specific contract instance，不要求预先存在同一
 instance。下游主观 DSP experiment/refinement（`EXP-W-002+`）必须遵守
 [`PERCEPTUAL_CONTRACT.md`](PERCEPTUAL_CONTRACT.md) 的 framework/rules，并读取适用且已验收的 contract

@@ -325,7 +325,7 @@ add_test(
 # Research targets are opt-in and never linked into the production plugin.
 option(FRAZIL_BUILD_WATER_EXPERIMENT "Build the standalone Water DSP research candidates" OFF)
 if(FRAZIL_BUILD_WATER_EXPERIMENT)
-    add_subdirectory(experiments/water/EXP-W-002)
+    add_subdirectory(experiments/water/SPIKE-W-DSP-001)
 endif()
 
 # MSVC ASAN uses a dynamic runtime DLL. Keep test execution independent from the

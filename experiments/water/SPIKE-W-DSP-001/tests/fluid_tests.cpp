@@ -31,6 +31,34 @@ int main() {
             reference.push_back(y);
         }
         check(energy > 0.0 && all.bubbleEvents() > 0 && all.dropletEvents() > 0);
+        // Semantic errors in disabled modules cannot affect the enabled component's stream.
+        FluidConfig onlyA;
+        onlyA.dropletEnabled = onlyA.flowEnabled = false;
+        onlyA.droplet.voices = 0;
+        onlyA.flow.depthSeconds = -1.0;
+        FluidCandidate isolated;
+        BubbleEnsemble bubble;
+        check(isolated.prepare(config, onlyA) && bubble.prepare(config));
+        for (auto x : input)
+            check(isolated.process(x) == bubble.process(x));
+        check(isolated.bubbleEvents() > 0 && isolated.dropletEvents() == 0);
+        FluidConfig onlyD;
+        onlyD.bubbleEnabled = onlyD.dropletEnabled = false;
+        onlyD.bubble.voices = std::numeric_limits<std::size_t>::max();
+        onlyD.droplet.decaySeconds = -1.0;
+        FlowModulator flow;
+        check(isolated.prepare(config, onlyD) && flow.prepare(config));
+        check(isolated.bubbleEvents() == 0 && isolated.dropletEvents() == 0);
+        for (auto x : input)
+            check(isolated.process(x) == flow.process(x));
+        onlyD.bubbleEnabled = true;
+        check(!isolated.prepare(config, onlyD));
+        isolated.reset();
+        check(isolated.process({1.0f, 0.0f}) == StereoFrame{});
+        check(isolated.prepare(config, onlyA));
+        bubble.reset();
+        for (auto x : input)
+            check(isolated.process(x) == bubble.process(x));
         for (std::size_t block : {1u, 7u, 32u, 64u, 128u, 256u, 512u, 1024u}) {
             all.reset();
             for (std::size_t start = 0; start < input.size(); start += block)
@@ -42,6 +70,7 @@ int main() {
             check(all.process(input[i]) == reference[i]);
         ablation.bubbleEnabled = ablation.flowEnabled = false;
         check(all.prepare(config, ablation));
+        check(all.bubbleEvents() == 0 && all.dropletEvents() == 0);
         for (auto x : input)
             check(all.process(x) == StereoFrame{});
         check(all.prepare(config));

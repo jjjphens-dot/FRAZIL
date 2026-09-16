@@ -1,24 +1,25 @@
-# Water DSP research — EXP-W-002 bounded spike
+# Water DSP objective feasibility — SPIKE-W-DSP-001
 
-Status: LOCAL-WDSP-00..06 implemented and engineering-validated locally in Debug/Release/ASAN; 80 diagnostic renders passed. **Research candidates only; no production WaterProcessor or sound acceptance.**
+Research-only A/B/D/C mechanisms; no production WaterProcessor or perceptual acceptance.
 
-## Scope, authorization and execution state
+## Scope and execution state
 
-The Engineering Lead requested the supplied [execution proposal](../EXP-W-002_DSP_IMPLEMENTATION_PLAN.md)
-and explicitly authorized algorithm research on 2026-09-16 before accepted EXP-W-001, deferring
-brief integration and listening to later work with Sound Lead. This session scope decision does
-not rewrite canonical contracts, accept the draft brief, close EXP-W-002 or approve production.
-Issue #17 remains the brief work item. Formal closure still needs the accepted brief and listening.
+The optional pre-EXP-W-002 work item is defined in [Coding Plan](../../../docs/CODING_PLAN.md),
+[Perceptual Contract section 6](../../../docs/PERCEPTUAL_CONTRACT.md#6-optional-objective-feasibility-before-the-water-instance)
+and [Issue #29](https://github.com/jjjphens-dot/FRAZIL/issues/29). The
+[implementation plan](../SPIKE-W-DSP-001_IMPLEMENTATION_PLAN.md) bounds objective numerical,
+realtime, lifecycle, isolation, render and performance work. Engineering Lead implements;
+Sound & Host Lead independently reviews scope/evidence.
 
-- Base: `origin/main` `3438593`; original unrelated worktree changes were preserved.
-- Review branch: `codex/exp-w-002-research`, created/published at the user's request.
-- Implementation owner: Engineering Lead/current agent. No delegated workers.
-- Current checkpoint: LOCAL-WDSP-00..06 engineering checkpoint complete; formal perceptual acceptance deferred.
-- Next action: independent review of the research branch, then joint brief/listening work before any justified refinement or production adoption.
-- LOCAL-WDSP-07: deferred; no listening finding yet justifies pitch drift, interpolation upgrades,
-  coupling compensation or additional synthesis complexity.
-- Human boundary: EXP-W-001 reconciliation, Water identity, tonal recognizability, artifact
-  acceptability and musical usefulness remain for Engineering + Sound Lead collaboration.
+Formal EXP-W-002 still requires accepted EXP-W-001 (#17). Subjective tuning/selection, Water
+identity acceptance, macro mapping and Fluid/Resonant quality rankings are forbidden before that
+brief. This spike does not close EXP-W-002, accept ADR-W-001 or authorize production integration.
+Future EXP-W-002 reuses/revises these results against the accepted brief without duplicating DSP.
+LOCAL-WDSP-00..06 are engineering checkpoints; LOCAL-WDSP-07 remains deferred. No listening
+finding justifies additional synthesis complexity in this remediation.
+
+Current remediation evidence is recorded in [REVALIDATION.md](REVALIDATION.md); the earlier
+[EVIDENCE.md](EVIDENCE.md) remains explicitly historical and applies only to its original source.
 
 ## Module map and output contract
 
@@ -55,8 +56,14 @@ independent lifecycle and ablation. No speculative shared production primitive i
 ## Engineering configs (not product macros)
 
 The checked-in [defaults](configs/defaults.json) reproduce the v0 candidate. Units are in field
-names. Omitted JSON fields retain C++ defaults; unknown fields, nonnumeric values, fractional
-voice counts and invalid ranges fail before rendering. `water.model/size/motion` are not accepted.
+names. Omitted JSON fields retain C++ defaults. Unknown fields, nonnumeric/nonfinite values and
+invalid voice-count representation (negative, fractional or outside size_t) fail globally, even
+in unused modules. Integer literals outside JUCE’s signed int64 parser representation are rejected
+before parsing to prevent wraparound; decimal/exponent values must still be finite and voice counts
+representable as size_t. Type-valid semantic errors (e.g. voices=0/17 or negative decay) fail only when
+that DSP is enabled. Only the selected baseline/C/Fluid subset prepares; disabled components are
+reset and never processed or advanced. Active DSP remains strict. `water.model/size/motion` are
+not accepted. Flags are fixed at prepare, not live bypass/transition controls.
 
 | Config | Default | Valid research range |
 |---|---|---|
@@ -87,16 +94,16 @@ ctest --preset windows-debug --output-on-failure
 
 Repeat serially with `windows-release` and `windows-asan`. The opt-in option defaults OFF. Existing
 safe presets build research through `frazil_smoke` dependencies; no research code is linked into
-FRAZIL. CTest includes baseline/features/modal/bubble/flow/droplet/fluid plus decoded renderer tests.
+FRAZIL. CTest includes baseline/features/modal/bubble/flow/droplet/fluid/event-pool plus decoded renderer tests.
 ASAN tests receive the compiler runtime path, and executables receive the runtime DLL. Hosted CI
 explicitly enables this option; no Hosted CI result is claimed from the local runs.
 
 ```powershell
-$renderer = 'build/windows-release/experiments/water/EXP-W-002/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe'
-& $renderer testdata/input/zero_state_response__impulse.wav build/water-c.wav c 128 42 experiments/water/EXP-W-002/configs/defaults.json 3
+$renderer = 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe'
+& $renderer testdata/input/zero_state_response__impulse.wav build/water-c.wav c 128 42 experiments/water/SPIKE-W-DSP-001/configs/defaults.json 3
 python tools/analyze_testdata.py build/water-c.wav --json-out build/water-c.analysis.json
-python experiments/water/EXP-W-002/analysis/render_corpus.py --renderer $renderer --output build/water-corpus
-& 'build/windows-release/experiments/water/EXP-W-002/frazil_water_performance.exe'
+python experiments/water/SPIKE-W-DSP-001/analysis/render_corpus.py --renderer $renderer --output build/water-corpus
+& 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_performance.exe'
 ```
 
 Renderer arguments: input WAV, **new** output WAV, mode, block (1..8192), uint32 seed, optional
@@ -118,22 +125,12 @@ Input copying is outside timing; the periodic gate exercises repeated Droplet on
 This is preliminary research timing, not process CPU percent, formal provenance/budget or a
 production AudioEngine integration claim. Production sources and baseline harness are unchanged.
 
-## Checkpoints and validation
+## Validation checkpoints
 
-- LOCAL-WDSP-00: zero residual, carrier ownership, seed plumbing and baseline renderer; full Debug 9/9 PASS.
-  First build was safely refused at 2.99 GiB available memory; after user memory recovery the unchanged wrapper passed.
-- LOCAL-WDSP-01: analytic attack/release, stereo-linked control, reset/reprepare, long-silence convergence; PASS.
-- LOCAL-WDSP-02: C impulse decay, finite extremes, no instantaneous carrier, deterministic lifecycle; PASS.
-  Initial impulse render finite; provisional Debug M1+C mean 37.373 us versus M1 9.807 us.
-- LOCAL-WDSP-03: A silence gating, source drive, capacity/stealing, repeatability, tail expiry; PASS; A gated-sine render generated.
-- LOCAL-WDSP-04: D delay bounds, isolation, reset, finite extreme inputs; PASS; sweep/HF renders generated.
-  Provisional Debug M1+D mean 24.725 us versus M1 9.216 us on the earlier steady workload.
-- LOCAL-WDSP-05: B transient-correlated timing, signed isolated excitation, independent stream, reset/tail; PASS.
-- LOCAL-WDSP-06: fixed-seed component ablation, zero-gain carrier, odd/empty callbacks, sample-rate/partition
-  and decoded float rendering; Debug/Release/ASAN each 15/15 PASS; 80 corpus renders and preliminary Release timings recorded.
-
-Engineering commands and results are recorded in [EVIDENCE.md](EVIDENCE.md). These checkpoints do not
-assert perceptual Water identity or source recognizability. LOCAL-WDSP-07 has not started.
+LOCAL-WDSP-00..06 cover baseline, features, C, A, D, B and Fluid integration respectively.
+Historical measurements are retained in [EVIDENCE.md](EVIDENCE.md). Current source, three-preset
+regression, isolation/capacity fixes, typical-signal smoke, 80 renders and preliminary timing are
+separately identified in [REVALIDATION.md](REVALIDATION.md). No checkpoint is sound acceptance.
 
 ## Code quality, documentation and limitations
 
@@ -150,21 +147,28 @@ refinements, macro mappings or production adoption. The modal normalization may 
 some material; objective stability is not a Water-identity judgment. No claim of correct tonal
 recognizability is made from the source-carrier arithmetic alone.
 
-Documentation synchronization covers this README/proposal, experiment index, module index, testing
-entry point, implementation guide, CI/Environment configuration and branch-local project status. Architecture, Parameters,
-Coding Plan, Perceptual Contract, Code Standards and ADR-0003/0005/0006 are reviewed without changing
-contracts. Same toolchain/JUCE/safety wrapper; no Host registry, schema, routing, latency reporting,
-random persistence, performance budget, Ice or production UI changes. No pluginval/DAW/listening
-validation is claimed for this standalone experiment.
+Documentation synchronization covers the controlled optional-spike scope, Agent/Code Standards
+cross-references, Coding Plan, Perceptual Contract, experiment plan/index/README, module/testing
+entry points, implementation guide, Environment paths and merge-stable project status. Architecture,
+Parameters and Accepted ADRs retain their production contracts; see the detailed documentation
+review in [REVALIDATION.md](REVALIDATION.md).
 
 ## Primary sources and inference boundaries
 
-- [Smith: pole radius and bandwidth](https://www.dsprelated.com/freebooks/filters/Relating_Pole_Radius_Bandwidth.html): exponential pole mapping informs decay stability; local normalization still requires tests.
-- [Smith: delay-line interpolation](https://www.dsprelated.com/freebooks/pasp/Delay_Line_Signal_Interpolation.html): linear interpolation is inexpensive but has frequency-dependent error; it does not guarantee a Flow percept.
+- [Smith: pole radius and bandwidth](https://ccrma.stanford.edu/~jos/filters/Relating_Pole_Radius_Bandwidth.html): exponential pole mapping informs decay stability; local normalization still requires tests.
+- [Smith: delay-line interpolation](https://ccrma.stanford.edu/~jos/pasp/Delay_Line_Signal_Interpolation.html): linear interpolation is inexpensive but has frequency-dependent error; it does not guarantee a Flow percept.
 - [Pumphrey et al., DTU, 1989](https://orbit.dtu.dk/en/publications/underwater-sound-produced-by-individual-drop-impacts-and-rainfall/): impact emission and entrained-bubble ringing motivate separate A/B mechanisms.
 - [van den Doel, UBC](https://www.cs.ubc.ca/labs/lci/lci-forum/03/vandendoel-040312.html): isolated bubble models and stochastic populations support the approximation strategy, not our exact event law.
 - [RSC: acoustic interaction between cubic bubbles](https://pubs.rsc.org/en/content/articlehtml/2020/sm/c9sm02423a): discusses the inverse-radius Minnaert reference and deviations through interaction.
 - [Xue et al., Stanford, 2023](https://graphics.stanford.edu/papers/coupledbubbles/): coupling affects low-frequency emissions; independent oscillators omit that behavior.
 
-Sources were checked on 2026-09-16. FRAZIL's residual composition, Fluid/Resonant names, gains,
+Smith primary references are Julius O. Smith III, *Introduction to Digital Filters with Audio
+Applications* (W3K Publishing, 2007), “Relating Pole Radius to Bandwidth,” and *Physical Audio Signal
+Processing* (W3K Publishing, 2010), “Delay-Line and Signal Interpolation,” hosted by Stanford CCRMA.
+The institutional pages restrict automated retrieval; book provenance was cross-checked against
+[Smith’s DAFx-09 keynote references 2–3](https://www.dafx.de/paper-archive/2009/tutorials/DAFx09-knp-jos.pdf) and the
+[Stanford 2010 book notice](https://cm-mail.stanford.edu/pipermail/planetccrma/2010-September/017292.html).
+Mirror hosting is not the primary authority. Citation correction changes no algorithm.
+
+References were reviewed on 2026-09-16. FRAZIL's residual composition, Fluid/Resonant names, gains,
 frequency families and scheduling are engineering hypotheses, not formulas endorsed by these papers.

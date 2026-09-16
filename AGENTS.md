@@ -169,6 +169,11 @@ tests -> 被测模块
 
 ## 6. 实验进入生产的门槛
 
+Optional `SPIKE-W-DSP-001` 可在 accepted EXP-W-001 前做有界客观工程可行性研究；
+仅限独立 experiment，不允许主观调音/选择、macro 决策、算法采纳或生产集成。
+其范围与交接由 [Perceptual Contract section 6](docs/PERCEPTUAL_CONTRACT.md#6-optional-objective-feasibility-before-the-water-instance)
+及 [Issue #29](https://github.com/jjjphens-dot/FRAZIL/issues/29) 约束，不放宽正式 EXP-W-002 前提。
+
 Perceptual-definition work（例如 `EXP-W-001`）负责从 Human Intent 创建 Perceptual Contract instance，不要求
 预先存在同一 instance。下游主观 DSP experiment/refinement（`EXP-W-002+`）不得把“自然”“柔和”“更流动”等
 形容词直接翻译成某个 DSP 参数或实现；必须同时遵守

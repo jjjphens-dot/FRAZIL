@@ -18,8 +18,14 @@ class EventVoicePool final {
     static constexpr std::size_t kCapacity = 16;
     static constexpr std::size_t kFamilies = 16;
 
-    void prepare(double rate, double minimumHz, double maximumHz, double decaySeconds,
+    // Callers validate acoustic ranges; the pool owns its storage-capacity invariant.
+    // Failure clears voices and leaves trigger/process safe and inactive until a valid prepare.
+    bool prepare(double rate, double minimumHz, double maximumHz, double decaySeconds,
                  std::size_t voices) noexcept {
+        capacity_ = 0;
+        reset();
+        if (voices == 0 || voices > kCapacity)
+            return false;
         capacity_ = voices;
         // Hard expiry at 24 time constants bounds tail and removes inaudible subnormal work.
         lifetime_ = static_cast<std::uint32_t>(std::ceil(24.0 * decaySeconds * rate));
@@ -29,7 +35,7 @@ class EventVoicePool final {
             coefficients_[i] = makeResonator(rate, frequency, decaySeconds);
             coefficients_[i].excitation = 1.0; // One bounded impulse, never continuous input.
         }
-        reset();
+        return true;
     }
 
     void reset() noexcept {
@@ -39,6 +45,8 @@ class EventVoicePool final {
     }
 
     void trigger(const StereoFrame& input, std::size_t family) noexcept {
+        if (capacity_ == 0)
+            return;
         std::size_t selected{};
         for (std::size_t i = 0; i < capacity_; ++i) {
             if (!voices_[i].active) {
@@ -60,6 +68,8 @@ class EventVoicePool final {
     }
 
     StereoFrame process(double residualGain) noexcept {
+        if (capacity_ == 0)
+            return {};
         std::array<double, 2> sum{};
         for (std::size_t i = 0; i < capacity_; ++i) {
             auto& voice = voices_[i];
@@ -96,7 +106,7 @@ class EventVoicePool final {
     };
     std::array<Voice, kCapacity> voices_{};
     std::array<ResonatorCoefficients, kFamilies> coefficients_{};
-    std::size_t capacity_{1};
+    std::size_t capacity_{}; // Zero means unprepared/failed; otherwise 1..kCapacity.
     std::uint32_t lifetime_{};
     std::uint64_t events_{}; // Diagnostic counters only; reset/reprepare starts at zero.
     std::uint64_t steals_{};

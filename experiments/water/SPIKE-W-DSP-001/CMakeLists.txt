@@ -7,7 +7,7 @@ target_compile_features(frazil_water_research PUBLIC cxx_std_20)
 
 set(water_test_targets)
 set(water_test_names)
-foreach(module IN ITEMS baseline features modal bubble flow droplet fluid)
+foreach(module IN ITEMS baseline features modal bubble flow droplet fluid event_pool)
     set(target "frazil_water_${module}_tests")
     if(module STREQUAL "baseline")
         set(target frazil_water_experiment_tests)

@@ -7,6 +7,7 @@
 
 ```text
 Human intent
+  +-> optional SPIKE-W-DSP-001 objective feasibility (no subjective refinement/adoption)
   -> perceptual-definition work (for Water: EXP-W-001)
   -> accepted project-specific Perceptual Contract instance
   -> downstream experiment (EXP-W-002+)
@@ -40,7 +41,8 @@ Contract prerequisite。Objective measurement 是 proxy，不是 perceptual trut
 ```text
 experiments/water/
   EXP-W-001_PERCEPTUAL_BRIEF.md
-  EXP-W-002/  candidates, configs, renders and analysis
+  SPIKE-W-DSP-001/  optional objective feasibility before the accepted brief
+  EXP-W-002/  downstream candidates after accepted brief; reuse/revise spike
   EXP-W-003/  review protocol, results and recommendation
 ```
 
@@ -50,11 +52,12 @@ experiments/water/
 production work 均 DEFERRED，只有在 M2 Exit 后通过 Explicit Joint Gate 确认 Water workflow 可复用于 Ice，
 才恢复 M3 planning/work。
 
-## Water research candidates
+## Water objective feasibility
 
-[EXP-W-002 bounded research spike](water/EXP-W-002/README.md) contains independently testable
-Bubble A, Droplet B, Flow D and Resonant C plus Fluid ablation, engineering configs and offline
-render/analysis entry points. This is experiment-only code, not production WaterProcessor.
-The Engineering Lead authorized algorithm research before accepted EXP-W-001, deferring brief
-integration and listening to collaboration with Sound Lead. Formal evidence closure/production
-adoption still require those steps; see the [proposal and scope note](water/EXP-W-002_DSP_IMPLEMENTATION_PLAN.md).
+[SPIKE-W-DSP-001](water/SPIKE-W-DSP-001/README.md) contains independently testable Bubble A,
+Droplet B, Flow D and Resonant C, Fluid ablation, engineering configs and offline analysis.
+The optional pre-EXP-W-002 scope is controlled by [Issue #29](https://github.com/jjjphens-dot/FRAZIL/issues/29),
+[Coding Plan](../docs/CODING_PLAN.md) and [Perceptual Contract section 6](../docs/PERCEPTUAL_CONTRACT.md#6-optional-objective-feasibility-before-the-water-instance).
+Objective feasibility does not authorize subjective refinement, macro decisions, Water acceptance,
+EXP-W-002 closure, ADR acceptance or production adoption. See the
+[bounded implementation plan](water/SPIKE-W-DSP-001_IMPLEMENTATION_PLAN.md).

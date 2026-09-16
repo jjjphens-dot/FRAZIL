@@ -6,41 +6,42 @@
 
 namespace frazil::water::research {
 
-struct DropletConfig final {
-    double minimumFrequencyHz{600.0};
-    double maximumFrequencyHz{4500.0};
-    double decaySeconds{0.012};
-    double transientThreshold{0.015};
-    double refractorySeconds{0.02};
-    double residualGain{0.15};
-    std::size_t voices{8};
+struct BubbleConfig final {
+    double minimumFrequencyHz{250.0};
+    double maximumFrequencyHz{2800.0};
+    double decaySeconds{0.07};
+    double maximumEventRateHz{120.0};
+    double excitationThreshold{0.0001};
+    double residualGain{0.2};
+    std::size_t voices{16};
 };
 
-// B: hysteretic transient threshold with refractory interval, not a free-running event clock.
-// The first candidate uses deterministic onset timing; its own PRNG chooses frequency family.
-class DropletImpactExciter final {
+// Input-excited stochastic bubble approximation, not autonomous Foley. Frequency bounds are
+// engineering controls; lower frequency represents larger bubble scale directionally only.
+class BubbleEnsemble final {
   public:
-    bool prepare(const ResearchConfig& research, const DropletConfig& config = {}) noexcept {
+    bool prepare(const ResearchConfig& research, const BubbleConfig& config = {}) noexcept {
         ready_ = false;
         config_ = config;
-        seed_ = research.seedFor(RandomDomain::droplet);
+        seed_ = research.seedFor(RandomDomain::bubble);
         reset();
         const double rate = research.sampleRateHz;
         if (!features_.prepare(rate) || !std::isfinite(config.minimumFrequencyHz) ||
             !std::isfinite(config.maximumFrequencyHz) || config.minimumFrequencyHz < 40.0 ||
             config.maximumFrequencyHz < config.minimumFrequencyHz ||
             config.maximumFrequencyHz > .45 * rate || !std::isfinite(config.decaySeconds) ||
-            config.decaySeconds < .002 || config.decaySeconds > .1 ||
-            !std::isfinite(config.transientThreshold) || config.transientThreshold < .0001 ||
-            config.transientThreshold > 1.0 || !std::isfinite(config.refractorySeconds) ||
-            config.refractorySeconds < .001 || config.refractorySeconds > 1.0 ||
+            config.decaySeconds < .002 || config.decaySeconds > .5 ||
+            !std::isfinite(config.maximumEventRateHz) || config.maximumEventRateHz < 0.0 ||
+            config.maximumEventRateHz > 2000.0 || !std::isfinite(config.excitationThreshold) ||
+            config.excitationThreshold < 0.0 || config.excitationThreshold > 1.0 ||
             !std::isfinite(config.residualGain) || config.residualGain < 0.0 ||
             config.residualGain > .3 || config.voices < 1 ||
             config.voices > detail::EventVoicePool::kCapacity)
             return false;
-        refractorySamples_ = static_cast<std::uint32_t>(std::ceil(config.refractorySeconds * rate));
-        pool_.prepare(rate, config.minimumFrequencyHz, config.maximumFrequencyHz,
-                      config.decaySeconds, config.voices);
+        if (!pool_.prepare(rate, config.minimumFrequencyHz, config.maximumFrequencyHz,
+                           config.decaySeconds, config.voices))
+            return false;
+        probability_ = -std::expm1(-config.maximumEventRateHz / rate);
         ready_ = true;
         return true;
     }
@@ -49,45 +50,39 @@ class DropletImpactExciter final {
         features_.reset();
         pool_.reset();
         random_.reseed(seed_);
-        remaining_ = 0;
-        armed_ = true;
     }
 
     StereoFrame process(const StereoFrame& input) noexcept {
         if (!ready_)
             return {};
         const auto feature = features_.process(input);
-        if (remaining_ > 0)
-            --remaining_;
-        if (feature.transient < config_.transientThreshold * .5)
-            armed_ = true;
         const double magnitude = std::max(std::abs(static_cast<double>(input[0])),
                                           std::abs(static_cast<double>(input[1])));
-        if (armed_ && remaining_ == 0 && feature.transient > config_.transientThreshold &&
-            magnitude > 0.0) {
+        // The current sample must drive excitation as well as the envelope. Silence cannot
+        // schedule new events from the detector's release state; existing voices may decay.
+        if (magnitude > config_.excitationThreshold &&
+            random_.nextUnipolar() < probability_ * feature.slow)
             pool_.trigger(input, random_.nextUInt() % detail::EventVoicePool::kFamilies);
-            remaining_ = refractorySamples_;
-            armed_ = false;
-        }
         return pool_.process(config_.residualGain);
     }
 
     std::uint64_t events() const noexcept {
         return pool_.events();
     }
+    std::uint64_t steals() const noexcept {
+        return pool_.steals();
+    }
     std::size_t activeVoices() const noexcept {
         return pool_.activeVoices();
     }
 
   private:
-    DropletConfig config_{};
+    BubbleConfig config_{};
     WaterExcitationFeatures features_;
     detail::EventVoicePool pool_;
     RandomSource random_;
     RandomSource::Seed seed_{RandomSource::kDefaultSeed};
-    std::uint32_t refractorySamples_{};
-    std::uint32_t remaining_{}; // Samples until another onset can trigger, cleared by reset.
-    bool armed_{true}; // Re-arm below half threshold, rather than retrigger on sustained activity.
+    double probability_{}; // Full-activity per-sample probability, computed at prepare.
     bool ready_{};
 };
 } // namespace frazil::water::research

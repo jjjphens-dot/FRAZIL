@@ -69,6 +69,11 @@ ASAN configure 会从 C++ 编译器位置发现 MSVC runtime directory；测试 
 
 本地 build 必须通过 tools/build_safe.py；默认使用 6 个 job，硬上限 8 个 job，并按可用物理内存执行 preflight。wrapper 将完整编译输出写入 ignored 的 build/safe-build 日志，避免终端被 include trace 淹没。 共享 configure preset 将 CMAKE_BUILD_PARALLEL_LEVEL 固定为 6，用于约束 JUCE configure 阶段的 nested build；本机重型 pipeline 必须串行执行。
 
+若本地中文 MSVC 的 `/showIncludes` 在 Ninja rules 中显示乱码，且 `ninja -t deps` 显示包含头文件的
+object 为零依赖，不得信任 header-only 修改后的增量结果。在同一 developer shell 执行 `chcp 65001`，
+再 `cmake --fresh --preset <preset>`（保留所需 configure options），通过安全 wrapper 重新构建并确认
+依赖列表实际包含修改的头文件；必要时使用新的本地 build tree。此为本机编码诊断，不修改共享并发限制。
+
 ## VS Code
 
 在仓库根目录打开 VS Code：
@@ -104,7 +109,7 @@ GitHub Actions 和其他已初始化 MSVC developer environment 的 Windows 机�
 
 Hosted CI explicitly enables the standalone Water research targets so their property and decoded-render
 tests run alongside the production regression suite. Local builds leave the option OFF unless explicitly
-requested; details are in [the research README](../experiments/water/EXP-W-002/README.md).
+requested; details are in [the research README](../experiments/water/SPIKE-W-DSP-001/README.md).
 
 ci-windows-debug 不引用个人盘符、用户名或工具安装目录。CI 在 configure 前运行 portability scan。
 

@@ -23,7 +23,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
-    config = ROOT / "experiments/water/EXP-W-002/configs/defaults.json"
+    config = ROOT / "experiments/water/SPIKE-W-DSP-001/configs/defaults.json"
     rows = []
     for source in sorted((ROOT / "testdata/input").glob("*.wav")):
         dry, rate = sf.read(source, always_2d=True)

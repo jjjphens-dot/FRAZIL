@@ -69,8 +69,10 @@ int render(int argc, char** argv) {
     ResearchBaseline baseline;
     FluidCandidate fluid;
     LiquidModalResonator modal;
-    if (!baseline.prepare(config) || !fluid.prepare(config, fluidConfig) ||
-        !modal.prepare(config.sampleRateHz, modalConfig))
+    const bool prepared = baselineMode  ? baseline.prepare(config)
+                          : mode == "c" ? modal.prepare(config.sampleRateHz, modalConfig)
+                                        : fluid.prepare(config, fluidConfig);
+    if (!prepared)
         return 2;
     const auto channels = static_cast<int>(reader->numChannels);
     const auto totalFrames =
@@ -90,6 +92,9 @@ int render(int argc, char** argv) {
     if (!writer)
         return 1;
     double peak{}, squareSum{}, dcSum{}, residualSquareSum{};
+    // Offline observations only: never placed inside the DSP or timed callback harness.
+    std::uint64_t bubbleSilentEvents{}, dropletSilentEvents{};
+    juce::int64 bubbleFirstFrame{-1}, dropletFirstFrame{-1};
     for (juce::int64 start = 0; start < totalFrames; start += blockSize) {
         const auto count = static_cast<int>(std::min<juce::int64>(blockSize, totalFrames - start));
         buffer.clear();
@@ -104,12 +109,24 @@ int render(int argc, char** argv) {
                 if (!std::isfinite(value) || std::abs(value) > 1.0f)
                     return 1;
             StereoFrame effect{};
+            const auto beforeBubble = fluid.bubbleEvents();
+            const auto beforeDroplet = fluid.dropletEvents();
             if (mode == "c")
                 effect = modal.process(frame);
             else if (!baselineMode)
                 effect = fluid.process(frame);
             else if (!baseline.processResidual(frame, effect))
                 return 1;
+            const auto newBubble = fluid.bubbleEvents() - beforeBubble;
+            const auto newDroplet = fluid.dropletEvents() - beforeDroplet;
+            if (frame == StereoFrame{}) {
+                bubbleSilentEvents += newBubble;
+                dropletSilentEvents += newDroplet;
+            }
+            if (newBubble && bubbleFirstFrame < 0)
+                bubbleFirstFrame = start + sample;
+            if (newDroplet && dropletFirstFrame < 0)
+                dropletFirstFrame = start + sample;
             for (int channel = 0; channel < channels; ++channel) {
                 const float value =
                     residualOnly ? effect[channel] : frame[channel] + effect[channel];
@@ -134,7 +151,11 @@ int render(int argc, char** argv) {
               << " rms=" << std::sqrt(squareSum / samples) << " dc=" << dcSum / samples
               << " residual_rms=" << std::sqrt(residualSquareSum / samples)
               << " bubble_events=" << fluid.bubbleEvents()
-              << " droplet_events=" << fluid.dropletEvents() << '\n';
+              << " droplet_events=" << fluid.dropletEvents()
+              << " bubble_silent_events=" << bubbleSilentEvents
+              << " droplet_silent_events=" << dropletSilentEvents
+              << " bubble_first_frame=" << bubbleFirstFrame
+              << " droplet_first_frame=" << dropletFirstFrame << '\n';
     return 0;
 }
 } // namespace
