@@ -1,6 +1,7 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
-Research-only A/B/D/C mechanisms; no production WaterProcessor or perceptual acceptance.
+Research-only A/B/D/C mechanisms; Debug/Release/ASAN 16/16 each, 138 smoke renders and 80 corpus renders PASS.
+No production WaterProcessor or perceptual acceptance. Source and limitations: [REVALIDATION.md](REVALIDATION.md).
 
 ## Scope and execution state
 
@@ -102,6 +103,7 @@ explicitly enables this option; no Hosted CI result is claimed from the local ru
 $renderer = 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe'
 & $renderer testdata/input/zero_state_response__impulse.wav build/water-c.wav c 128 42 experiments/water/SPIKE-W-DSP-001/configs/defaults.json 3
 python tools/analyze_testdata.py build/water-c.wav --json-out build/water-c.analysis.json
+python experiments/water/SPIKE-W-DSP-001/analysis/review_smoke.py --renderer $renderer --output build/water-review-smoke
 python experiments/water/SPIKE-W-DSP-001/analysis/render_corpus.py --renderer $renderer --output build/water-corpus
 & 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_performance.exe'
 ```
@@ -112,6 +114,8 @@ JSON path (or `-` for defaults), optional integer tail seconds (0..30). Modes: `
 is its zero residual. Sonic renders are float32 WAV, retaining peaks above 1 for analysis. Input
 must be finite mono/stereo within full scale. Existing outputs are refused; failed renders are
 not valid evidence and may leave a partial new file. Use a new ignored output directory each run.
+Offline diagnostics report A/B event counts, first event frames (-1 for none), and events on exactly
+zero source frames. They do not alter DSP state, output or the separate timed callback benchmark.
 
 The corpus script reuses all ten TESTDATA-001 fixtures and the existing analyzer: 80 processed
 renders, default-config tail checks, finite metrics and A/B/D ablation error checks. It does not
