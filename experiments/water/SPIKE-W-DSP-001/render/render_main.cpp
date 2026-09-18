@@ -74,7 +74,7 @@ int render(int argc, char** argv) {
     if (!protect.prepare(config.sampleRateHz, protectConfig.gain, protectConfig.depth))
         return 2;
     const bool prepared = baselineMode  ? baseline.prepare(config)
-                          : mode == "c" ? modal.prepare(config.sampleRateHz, modalConfig)
+                          : mode == "c" ? modal.prepare(config, modalConfig)
                                         : fluid.prepare(config, fluidConfig);
     if (!prepared)
         return 2;

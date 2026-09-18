@@ -90,7 +90,7 @@ Output meter 位于 monitor gain 后；Input meter 是 WAV 源，保持原有 ag
 
 ### 双视图与共享实验状态
 
-默认 Sound Lead 页显示 Model、Size、Motion、Decay；Engineering 页显示相同宏和 21 个工程控件。
+默认 Sound Lead 页显示 Model、Size、Motion、Decay；Engineering 页显示相同宏和 23 个工程控件。
 两页读取同一个会话模型。Fluid 对应 ABD，Resonant 对应 C；选择其他 ablation composition 时
 Model 显示 CUSTOM，可用 **Return Model to Mapped** 返回该模型的完整组合。
 新会话的 Size/Motion/Decay 使用 **RESEARCH MAPPING v0.1 / NOT PRODUCT FROZEN**。
@@ -130,6 +130,7 @@ Session 导入和 A/B 恢复按各自记录的源采样率验证；当前 WAV �
 | D / Flow | Residual gain | E = gain*(delayed input - input) 的比例 |
 | C / Modal | Root frequency (Hz) | 固定六模态频率族的根频率；root*4.17 <= .45*fs |
 | C / Modal | Decay (s)、Residual gain | 模态响应衰减时间常数和 residual 强度 |
+| C / Modal | Motion depth、Motion interval | 六个固定模态的激励权重随机平滑移动；不改频率/衰减/增益，depth=0 为历史行为 |
 
 这些值不是 Size/Motion/Decay 产品宏。调节后必须 Apply + Play，不能据此声称支持 live coefficient
 changes、production model transition、DAW automation 或 plugin state restore。

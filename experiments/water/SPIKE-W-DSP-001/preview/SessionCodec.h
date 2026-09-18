@@ -245,8 +245,8 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
     if (model != (mode == 1 ? 1 : 0) || mapping != (mode <= 1 ? 1 : 2))
         return "Session: Model/composition mapping is inconsistent.";
     const auto& targets = control["targets"];
-    if (!targets.isObject() ||
-        targets.getDynamicObject()->getProperties().size() != static_cast<int>(kControls.size()))
+    if (!targets.isObject() || targets.getDynamicObject()->getProperties().size() !=
+                                   (version == 1 ? 21 : static_cast<int>(kControls.size())))
         return "Session: incomplete target provenance.";
     const auto& config = root["configuration"];
     research::FluidConfig fluid;
@@ -292,6 +292,14 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
         return "Session: Protect config and retained state disagree.";
     for (std::size_t i = 0; i < kControls.size(); ++i) {
         const auto& spec = kControls[i];
+        if (version == 1 && i >= 21) {
+            // v1 predates Modal motion. Fill typed legacy defaults, never mapped defaults.
+            candidate.engineering.values[i] = spec.initial;
+            candidate.ownership[i] = {ChangeOrigin::sessionLoad, 0};
+            if (config[spec.module].hasProperty(spec.key))
+                return "Session: v1 cannot contain v2 Modal motion fields.";
+            continue;
+        }
         if (!readOwnership(targets[juce::Identifier(juce::String(spec.stableId()))],
                            candidate.ownership[i]) ||
             !config[spec.module].hasProperty(spec.key) ||

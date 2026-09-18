@@ -30,8 +30,8 @@ research formula, disclose the gap and do not claim perceptual-contract complian
 
 ## Status and sequence
 
-Running Phase E preparation. Phases A-D implementation and self-review are complete; next checkpoint:
-deterministic Resonant Motion. No blockers; publish after Phase J.
+Running Phase F preparation. Phases A-E implementation and self-review are complete; next checkpoint:
+independent listening calibration. No blockers; publish after Phase J.
 
 | Phase | Work | Status |
 |---|---|---|
@@ -39,7 +39,7 @@ deterministic Resonant Motion. No blockers; publish after Phase J.
 | B | 50-operation history, drag/debounce and stop-once boundary | Complete; three presets and self-review PASS |
 | C | DSP/session dirty, v2 and conservative v1 migration | Complete; self-review PASS |
 | D | Pure research macro mapper and per-macro ownership | Complete; three presets and self-review PASS |
-| E | Deterministic normalized Modal excitation movement | Pending |
+| E | Deterministic normalized Modal excitation movement | Complete; three presets and self-review PASS |
 | F | Independent listening calibration and CUSTOM state | Pending |
 | G | Monitor-only Focus/Reference/E trim | Pending |
 | H | Bounded component and pre/post Protect diagnostics | Pending |
@@ -147,3 +147,25 @@ Parameters, Accepted ADRs and production modules retain their existing contracts
 8. Resonant temporal targets are computed but connected in Phase E, per the supplied phase order.
    GUI layout/Auto Audition and source listening evidence remain scheduled for I/J.
 9. Final links, portability, clang-format and diff checks PASS. Self-review complete.
+
+## Phase E checkpoint
+
+1. Baseline: Phase D `4508f19`; add research-only normalized Modal excitation movement.
+2. Existing Modal implementation gains depth/interval fields, fixed six-weight state and RNG domain
+   4. Renderer and preview pass their ResearchConfig seed; parser accepts optional numeric fields.
+   Adapter/descriptors/session v2 cover both fields; v1 fills depth=0/interval=.7 without remapping.
+3. Zero depth preserves historical sample arithmetic exactly. Active Motion interpolates normalized
+   positive target vectors using smoothstep; poles, decay and gain remain fixed at prepare.
+4. Tests: independent historical recurrence, renderer omitted-vs-zero output equality, active seed
+   differentiation, repeat/reset/partition identity, positive normalized weights, finite extreme
+   input and channel isolation at 44.1/48/96 kHz. Debug 21/21 (32.12 s), Release 21/21 (16.89 s).
+   ASAN 21/21 (58.82 s).
+5. Same-run Release CPU observation (48k/stereo/128, warmup 2000, 20000 measured blocks): mean C
+   Motion depth 0/.175/.35 = 2.630/3.166/3.173 us; p99 = 3.5/3.5/5.5 us; observed maxima
+   89.6/224.6/213.1 us. Wall-time observations, not formal budgets or performance acceptance.
+6. Realtime/code quality review: fixed arrays/scalars and instance RNG only; no callback allocation,
+   I/O, locks, strings, trig or coefficient rebuild. Depth capped .35 yields the conservative finite
+   output bound .3*1.35/.65<1 for finite float input. Separate channel state prevents crossfeed.
+7. Documentation: guide, Module Index, Testing, research README/mapping describe fields, defaults,
+   ownership and limitations. Host/production contracts unchanged; no listening acceptance.
+8. Final staged links/portability/format/diff checks PASS. Self-review complete. Next: independent listening calibration.

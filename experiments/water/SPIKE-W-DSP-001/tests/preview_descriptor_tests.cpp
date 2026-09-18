@@ -17,7 +17,7 @@ int runDescriptorTests() {
     };
     const research::FluidConfig fluid;
     const research::ModalConfig modal;
-    const std::array<double, 21> typedDefaults{fluid.bubble.minimumFrequencyHz,
+    const std::array<double, 23> typedDefaults{fluid.bubble.minimumFrequencyHz,
                                                fluid.bubble.maximumFrequencyHz,
                                                fluid.bubble.decaySeconds,
                                                fluid.bubble.maximumEventRateHz,
@@ -37,18 +37,20 @@ int runDescriptorTests() {
                                                fluid.flow.residualGain,
                                                modal.rootFrequencyHz,
                                                modal.decaySeconds,
-                                               modal.residualGain};
+                                               modal.residualGain,
+                                               modal.motionDepth,
+                                               modal.motionIntervalSeconds};
     // Independent pre-refactor UI range/step contract; DSP may additionally impose coupled bounds.
-    const std::array<std::array<double, 3>, 21> ranges{
+    const std::array<std::array<double, 3>, 23> ranges{
         {{40, 19000, 1},    {40, 19000, 1},  {.002, .5, .001}, {0, 2000, 1},   {0, 1, .0001},
          {0, .3, .001},     {1, 16, 1},      {40, 19000, 1},   {40, 19000, 1}, {.002, .1, .001},
          {.0001, 1, .0001}, {.001, 1, .001}, {0, .3, .001},    {1, 16, 1},     {.0001, .02, .0001},
          {0, .01, .0001},   {.02, 10, .01},  {0, .15, .001},   {40, 4700, 1},  {.002, 1, .001},
-         {0, .3, .001}}};
+         {0, .3, .001},     {0, .35, .001},  {.02, 10, .01}}};
     const std::set<ControlId> timeIds{ControlId::bubbleDecay,       ControlId::dropletDecay,
                                       ControlId::dropletRefractory, ControlId::flowBaseDelay,
                                       ControlId::flowDepth,         ControlId::flowTargetInterval,
-                                      ControlId::modalDecay};
+                                      ControlId::modalDecay,        ControlId::modalMotionInterval};
     std::set<std::string> ids;
     std::array<int, 4> groups{};
     PreviewSettings settings;
@@ -56,7 +58,7 @@ int runDescriptorTests() {
     int fields{};
     for (const auto& property : root.getDynamicObject()->getProperties())
         fields += property.value.getDynamicObject()->getProperties().size();
-    check(fields == 34 && root.getDynamicObject()->getProperties().size() == 5,
+    check(fields == 36 && root.getDynamicObject()->getProperties().size() == 5,
           "all renderer fields covered without adding session metadata");
     for (std::size_t i = 0; i < kControls.size(); ++i) {
         const auto& spec = kControls[i];
@@ -85,7 +87,7 @@ int runDescriptorTests() {
               "lifecycle and provenance");
         ++groups[static_cast<std::size_t>(spec.group)];
     }
-    check(groups == std::array{7, 7, 4, 3}, "module groups preserved");
+    check(groups == std::array{7, 7, 4, 5}, "module groups preserved");
     research::FluidConfig decodedFluid;
     research::ModalConfig decodedModal;
     research::ProtectRenderConfig decodedProtect;

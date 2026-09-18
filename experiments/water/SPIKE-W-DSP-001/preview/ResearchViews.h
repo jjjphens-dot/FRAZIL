@@ -245,7 +245,7 @@ class EngineeringView final : public juce::Component {
     }
 
   private:
-    static constexpr std::array<std::size_t, 5> offsets_{0, 7, 14, 18, 21};
+    static constexpr std::array<std::size_t, 5> offsets_{0, 7, 14, 18, 23};
     static int rows(std::size_t group) noexcept {
         return static_cast<int>((offsets_[group + 1] - offsets_[group] + 1) / 2);
     }

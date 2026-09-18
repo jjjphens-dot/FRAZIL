@@ -53,10 +53,18 @@ int runSessionCodecTests() {
     for (const auto* field : {"mappingRevision", "perMacroMappingState",
                               "listeningCalibrationState", "auditionETrimDb"})
         legacyObject->removeProperty(field);
+    for (const auto* field : {"motionDepth", "motionIntervalSeconds"}) {
+        legacy["configuration"]["modal"].getDynamicObject()->removeProperty(field);
+        legacy["ownership"]["targets"].getDynamicObject()->removeProperty(
+            juce::Identifier(juce::String("modal.") + field));
+    }
+    auto legacyExpected = decoded.engineering;
+    legacyExpected.values[controlIndex(ControlId::modalMotionDepth)] = 0;
+    legacyExpected.values[controlIndex(ControlId::modalMotionInterval)] = .7;
     ResearchSessionState migrated;
     check(
         decodeSession(juce::JSON::toString(legacy, false, 17).toStdString(), migrated).isEmpty() &&
-            migrated.engineering.moduleJson() == decoded.engineering.moduleJson() &&
+            migrated.engineering.moduleJson() == legacyExpected.moduleJson() &&
             migrated.water == decoded.water && migrated.monitorGainDb == decoded.monitorGainDb &&
             migrated.mappingRevision == "legacy-unmapped" && migrated.auditionETrimDb == 0 &&
             migrated.macroMappings ==

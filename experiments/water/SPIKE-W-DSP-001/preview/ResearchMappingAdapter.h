@@ -19,6 +19,8 @@ constexpr std::optional<MacroId> macroOwner(ControlId id) noexcept {
     case ControlId::dropletRefractory:
     case ControlId::flowDepth:
     case ControlId::flowTargetInterval:
+    case ControlId::modalMotionDepth:
+    case ControlId::modalMotionInterval:
         return MacroId::motion;
     case ControlId::bubbleDecay:
     case ControlId::dropletDecay:
@@ -43,6 +45,10 @@ inline double mappedTarget(ControlId id, const ResearchWaterTargets& target) noe
         return f.dropletMaximumHz;
     case ControlId::modalRoot:
         return c.rootHz;
+    case ControlId::modalMotionDepth:
+        return c.motionDepth;
+    case ControlId::modalMotionInterval:
+        return c.motionIntervalSeconds;
     case ControlId::bubbleRate:
         return f.bubbleRateHz;
     case ControlId::dropletThreshold:

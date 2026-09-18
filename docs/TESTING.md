@@ -822,3 +822,7 @@ dirty tests distinguish live monitor changes and retained Protect state from pre
 Pure research mapper tests run without JUCE and cover dense monotonic sweeps, 0/.5/1 endpoints,
 finite guards and Flow clearance at 44.1/48/96 kHz. Session tests cover raw ownership, per-macro
 Return isolation, unowned gain/Protect preservation and explicit legacy adoption.
+
+Modal Motion validation includes exact zero-depth historical recurrence/renderer omission, active
+fixed-seed reset and partition identity, seed differentiation, positive normalized weights, finite
+float extrema and channel isolation at 44.1/48/96 kHz. Performance harness reports C Motion separately.

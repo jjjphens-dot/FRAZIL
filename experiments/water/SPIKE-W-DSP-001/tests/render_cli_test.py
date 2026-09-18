@@ -73,6 +73,26 @@ def main():
                     if reference is not None: assert actual == reference
                     reference = actual
                 renders[mode] = reference
+            # New Modal motion is optional. Explicit zero must decode exactly like legacy omission;
+            # active motion is fixed-seed and block-partition invariant, with isolated right channel.
+            moving_reference = None
+            for depth in (0, .35):
+                motion_config = root / "modal-motion.json"
+                motion_config.write_text(json.dumps({"modal": {"motionDepth": depth, "motionIntervalSeconds": .02}}))
+                for block in (7, 128, 1024):
+                    output = root / f"motion-{rate}-{depth}-{block}.wav"
+                    subprocess.run([str(renderer), str(source), str(output), "c-residual", str(block),
+                                    "42", str(motion_config), "2"], check=True, capture_output=True)
+                    actual = read_float(output)
+                    assert all(math.isfinite(v) for v in actual)
+                    assert all(v == 0 for v in actual[1::2])
+                    if depth == 0:
+                        assert actual == renders["c"]
+                    elif moving_reference is None:
+                        moving_reference = actual
+                        assert actual != renders["c"]
+                    else:
+                        assert actual == moving_reference
             for mode, parts in (("ab", "ab"), ("ad", "ad"), ("bd", "bd"), ("abd", "abd")):
                 assert all(abs(renders[mode][i] - sum(renders[part][i] for part in parts)) < 1e-7 for i in range(len(renders[mode])))
             assert any(abs(value) > 1e-8 for value in renders["a"])

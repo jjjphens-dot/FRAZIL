@@ -42,7 +42,7 @@ ms/s display and strict exact entry. They own no session or DSP state, use only 
 library, and are tested by `frazil_water_preview`; all research time widgets consume these helpers.
 See [staged execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
 `ControlDescriptor.h` supplies typed IDs, module groups, units/display policy, baseline provenance,
-range and lifecycle metadata for the existing 21 controls. `PreviewSettings` consumes the descriptors
+range and lifecycle metadata for the 23 research controls (21 original plus two Modal Motion fields). `PreviewSettings` consumes the descriptors
 without changing module JSON; DSP continues to use its existing typed config structs.
 `SessionCodec.h` owns the separate versioned research manifest including provisional Decay;
 `SessionJsonSyntax.h` bounds and validates its richer JSON syntax before schema decoding. Imports
@@ -100,3 +100,7 @@ See [reference usage](../experiments/water/REFERENCE_INDEX.md) and
 `ResearchWaterMacroMapper.h` owns plain, allocation-free research curves;
 `ResearchMappingAdapter.h` owns the engineering destination table used by session commands.
 Neither is a production mapper; see [mapping v0.1](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md).
+
+Research `LiquidModalResonator` additionally owns six normalized excitation weights and an instance
+RNG in seed domain 4. Fixed coefficients remain prepare-only; preview/renderer share the optional
+Motion fields with zero-depth legacy behavior. No production DSP dependency is introduced.

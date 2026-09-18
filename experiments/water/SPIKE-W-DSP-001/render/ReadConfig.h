@@ -252,9 +252,12 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
                                               {"residualGain", &c.residualGain}}))
                 return false;
         } else if (name == "modal") {
-            if (!readNumbers(property.value, {{"rootFrequencyHz", &modal.rootFrequencyHz},
-                                              {"decaySeconds", &modal.decaySeconds},
-                                              {"residualGain", &modal.residualGain}}))
+            if (!readNumbers(property.value,
+                             {{"rootFrequencyHz", &modal.rootFrequencyHz},
+                              {"decaySeconds", &modal.decaySeconds},
+                              {"motionDepth", &modal.motionDepth},
+                              {"motionIntervalSeconds", &modal.motionIntervalSeconds},
+                              {"residualGain", &modal.residualGain}}))
                 return false;
         } else if (name == "protect") {
             if (protect == nullptr)

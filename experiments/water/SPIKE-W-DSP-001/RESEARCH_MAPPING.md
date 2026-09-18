@@ -29,5 +29,6 @@ as known revision, typed values, source rate and retained Protect state. No hist
 Known limits: minimum Fluid Motion still permits a 30/s maximum Bubble rate, so this candidate
 does not establish HI-08 product-minimum compliance. Flow is delayed-minus-source and can sound
 like comb filtering/chorus/flanging. Mapping direction and audibility require Sound Lead review;
-objective monotonicity is not perceptual acceptance. Resonant temporal motion is the next bounded
-implementation phase; the pure target includes depth .35m and interval .7 * 2.8^(1-2m) s.
+objective monotonicity is not perceptual acceptance. Resonant temporal motion uses depth .35m and interval .7 * 2.8^(1-2m) s
+to redistribute excitation over six fixed modes. Both destinations belong to Motion; changing
+them manually marks Motion CUSTOM. Typed default depth=0 preserves legacy renderer behavior.

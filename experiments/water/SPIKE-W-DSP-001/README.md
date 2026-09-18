@@ -140,9 +140,9 @@ Protect depth retarget/OFF envelope is described above; it does not implement ge
 
 | Module | Responsibility | State/reset/tail |
 |---|---|---|
-| `WaterDspConfig.h` | Sample-rate/seed values; stable A/B/D seed domains | No Host/state registration |
+| `WaterDspConfig.h` | Sample-rate/seed values; stable A/B/D/C-motion seed domains | No Host/state registration |
 | `WaterExcitationFeatures.h` | Linked max(abs(L),abs(R)), fast/slow envelopes, positive difference | Reset zero; control magnitude capped at 1; source audio unchanged |
-| `LiquidModalResonator.h` | Independent Resonant C; six fixed complex-pole modes | Separate stereo quadratures; reset zero; exponential tail, floor 1e-25 |
+| `LiquidModalResonator.h` | Independent Resonant C; six fixed complex-pole modes; optional normalized excitation movement | Separate stereo quadratures; fixed seed/reset, exponential tail, floor 1e-25 |
 | `BubbleEnsemble.h` | A; input/envelope-gated stochastic events | Own PRNG and feature state; reset reseeds and clears pool |
 | `DropletImpactExciter.h` | B; transient threshold, hysteresis and refractory gate | Own PRNG chooses frequency family; no autonomous event timing |
 | `FlowModulator.h` | D; source-activity-scaled smooth random fractional delay | Prepare-only allocation; reset clears both channel buffers/index/trajectory; tail <=20 ms |
@@ -152,8 +152,9 @@ Protect depth retarget/OFF envelope is described above; it does not implement ge
 | `ResearchBaseline.h` | Zero-residual infrastructure control | No audio state or tail |
 
 Every sonic module returns **E**, not x+E. The renderer adds the source exactly once. Flow returns
-`gain*(xd-x)`. Modal weights sum to its residual gain, and its `(1-r)` excitation bounds the
-absolute impulse sum by that gain. Event voices receive bounded signed source impulses, not sample
+`gain*(xd-x)`. At zero Motion, Modal weights sum to its residual gain and `(1-r)` excitation
+bounds the absolute impulse sum by that gain. With Motion, positive excitation weights sum to six;
+the conservative time-varying output bound is residualGain * 1.35/.65 (<1 at maximum gain). Event voices receive bounded signed source impulses, not sample
 playback or added noise; total pool weighting bounds residual amplitude by the configured gain.
 There is no limiter, compressor, automatic makeup or hidden normalization after composition.
 Event gain normalization is an explicit design bound, not perceptual loudness matching.
@@ -325,7 +326,7 @@ only supports two numeric object levels; the bounded session syntax additionally
 booleans and nested provenance, rejects duplicate keys/full-input violations, and never runs in
 the callback. Import decodes a candidate, then validates existing DSP config before replacement.
 Source/build provenance and Protect state are included in the completed workflow; this research
-format has no public preset compatibility promise. Renderer module JSON remains unchanged.
+format has no public preset compatibility promise. Renderer module JSON retains old fields and adds optional Modal Motion fields in the follow-up.
 
 Phase 5 wires the existing `ResidualProtect` and `applyFluidProtect` into `PreviewEngine`, preserving
 exact Depth-zero baseline and generator progression. `PreviewController` transfers one lock-free
@@ -396,3 +397,22 @@ frequency families and scheduling are engineering hypotheses, not formulas endor
 The listening-ready follow-up exports research session v2 and accepts v1 without changing raw
 engineering values. Legacy macro states are CUSTOM / legacy-unmapped. Runtime operation history
 never enters either schema; see the debug guide for DSP/context dirty and checkpoint semantics.
+
+
+### Modal excitation movement follow-up
+
+Optional `modal.motionDepth` defaults to 0 (range 0..0.35), preserving exact historical sample
+arithmetic when omitted. `modal.motionIntervalSeconds` defaults to .7 s (range .02..10 s).
+The research macro maps depth=.35m and interval=.7*2.8^(1-2m). A/B/D and existing three Modal
+fields retain their defaults/ranges. These two new fields bring preview raw controls to 23.
+
+Six positive random targets are normalized to sum six, then interpolated with smoothstep between
+normalized endpoints. Only excitation distribution changes: poles, decay and output gain are
+fixed at prepare. Instance-owned RNG uses base seed/domain 4, including renderer CLI seed; reset
+replays it. Callback code uses fixed arrays/scalars, no allocation, locks, strings or coefficient
+regeneration. Zero input creates no new sound. Normalization is not a perceptual loudness guarantee.
+
+v1 sessions omit the new fields/provenance and receive typed depth=0/interval=.7 defaults;
+v2 requires both fields. New mapped sessions use the research targets. Tests compare zero Motion
+against independent historical recurrence and legacy renderer omission, and active Motion across
+seeds/reset/block partitions/rates/finite extrema/channel isolation. No perceptual acceptance.

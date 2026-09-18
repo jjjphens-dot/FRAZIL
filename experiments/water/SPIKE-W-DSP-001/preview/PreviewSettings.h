@@ -44,7 +44,9 @@ struct PreviewSettings final {
                   fluid.flow.residualGain,
                   modal.rootFrequencyHz,
                   modal.decaySeconds,
-                  modal.residualGain};
+                  modal.residualGain,
+                  modal.motionDepth,
+                  modal.motionIntervalSeconds};
         protect = protection;
     }
 

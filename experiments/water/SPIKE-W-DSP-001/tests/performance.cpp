@@ -110,6 +110,22 @@ int main() {
             },
             baseline);
     }
+    for (double depth : {0., .175, .35}) {
+        LiquidModalResonator moving;
+        if (!moving.prepare(kRate, {260, .12, .3, depth, .25}))
+            return 1;
+        const auto name = "C_motion_" + std::to_string(depth);
+        measure(
+            name.c_str(),
+            [&](auto& buffer) {
+                for (int i = 0; i < kBlock; ++i) {
+                    const auto y = moving.process({buffer.getSample(0, i), buffer.getSample(1, i)});
+                    for (int c = 0; c < 2; ++c)
+                        buffer.addSample(c, i, y[c]);
+                }
+            },
+            baseline);
+    }
     // PROTECT-EXP-001: same-run engine baselines, including detector/envelope cost at OFF.
     // No trace/file I/O in measure; existing gated workload, warmup and percentiles apply.
     for (bool resonant : {false, true}) {

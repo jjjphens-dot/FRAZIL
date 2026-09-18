@@ -35,6 +35,8 @@ enum class ControlId {
     modalRoot,
     modalDecay,
     modalGain,
+    modalMotionDepth,
+    modalMotionInterval,
     count
 };
 
@@ -130,6 +132,10 @@ inline constexpr std::array<ControlDescriptor, static_cast<std::size_t>(ControlI
          .12, InternalUnit::seconds},
         {ControlId::modalGain, ControlGroup::modal, "residualGain", "Residual gain", 0, .3, .001,
          .18, InternalUnit::linearGain},
+        {ControlId::modalMotionDepth, ControlGroup::modal, "motionDepth", "Excitation motion depth",
+         0, .35, .001, 0, InternalUnit::linearAmplitude},
+        {ControlId::modalMotionInterval, ControlGroup::modal, "motionIntervalSeconds",
+         "Motion interval (s)", .02, 10, .01, .7, InternalUnit::seconds},
     }};
 
 constexpr std::size_t controlIndex(ControlId id) noexcept {

@@ -34,7 +34,7 @@ class PreviewEngine final {
         research::ResearchConfig config;
         config.sampleRateHz = sampleRate;
         config.baseSeed = kSeed;
-        ready_ = baseline_ || (modalMode_ ? modal_.prepare(sampleRate, modalConfig)
+        ready_ = baseline_ || (modalMode_ ? modal_.prepare(config, modalConfig)
                                           : fluid_.prepare(config, fluidConfig));
         reset();
         return ready_;
