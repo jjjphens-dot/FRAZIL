@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ExactValueControl.h"
+#include "ResearchOperationHistory.h"
 #include "ResearchSessionModel.h"
 
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -18,30 +19,37 @@ inline void researchLabel(juce::Component& owner, juce::Label& label, const juce
 class WaterMacroView final : public juce::Component {
   public:
     WaterMacroView(ResearchSessionModel& session, ChangeOrigin origin,
-                   std::function<void()> beforeEdit)
-        : session_(session), origin_(origin), beforeEdit_(std::move(beforeEdit)) {
+                   ResearchOperations& operations)
+        : session_(session), origin_(origin), operations_(operations) {
         model_.addItem("Fluid", 1);
         model_.addItem("Resonant", 2);
         addAndMakeVisible(model_);
         model_.onChange = [this] {
-            beforeEdit_();
-            session_.setModel(
-                model_.getSelectedId() == 1 ? WaterModel::fluid : WaterModel::resonant, origin_);
+            const auto value =
+                model_.getSelectedId() == 1 ? WaterModel::fluid : WaterModel::resonant;
+            operations_.action("Model", origin_, true, true,
+                               [this, value] { session_.setModel(value, origin_); });
         };
         for (std::size_t i = 0; i < knobs_.size(); ++i) {
             auto& knob = knobs_[i];
-            knob.setRange(0, 1, .001);
+            knob.setRange(0, 1, 0);
+            knob.normalStep = .001;
             knob.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
             knob.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 22);
             knob.setDoubleClickReturnValue(true, .5);
             knob.setTooltip("Experiment baseline 0.5; UNMAPPED: does not change DSP targets.");
             knob.onValueChange = [this, i] {
-                beforeEdit_();
+                const auto value = knobs_[i].getValue();
+                operations_.edit(macroKey(i), origin_, true, true);
                 session_.setMacro(i == 0   ? MacroId::size
                                   : i == 1 ? MacroId::motion
                                            : MacroId::decay,
-                                  knobs_[i].getValue(), origin_);
+                                  value, origin_);
             };
+            knob.onMouseBegin = [this, i] {
+                operations_.edit(macroKey(i), origin_, true, true, true);
+            };
+            knob.onMouseEnd = [this] { operations_.finish(); };
             addAndMakeVisible(knob);
             researchLabel(*this, names_[i],
                           i == 0   ? "Size / UNMAPPED"
@@ -56,8 +64,8 @@ class WaterMacroView final : public juce::Component {
             "Experiment state only. No Size / Motion / Decay DSP mapping has been accepted.");
         addAndMakeVisible(returnMapped_);
         returnMapped_.onClick = [this] {
-            beforeEdit_();
-            session_.returnModelToMapped();
+            operations_.action("Return Model to Mapped", origin_, true, true,
+                               [this] { session_.returnModelToMapped(); });
         };
         refresh();
     }
@@ -89,11 +97,14 @@ class WaterMacroView final : public juce::Component {
     }
 
   private:
+    static const char* macroKey(std::size_t i) {
+        return i == 0 ? "Size" : i == 1 ? "Motion" : "Decay";
+    }
     ResearchSessionModel& session_; // Borrowed message-thread owner outlives the view.
     ChangeOrigin origin_;
-    std::function<void()> beforeEdit_;
+    ResearchOperations& operations_;
     juce::ComboBox model_;
-    std::array<juce::Slider, 3> knobs_;
+    std::array<ResearchSlider, 3> knobs_;
     std::array<juce::Label, 3> names_;
     juce::Label mapping_, notice_;
     juce::TextButton returnMapped_{"Return Model to Mapped"};
@@ -102,17 +113,19 @@ class WaterMacroView final : public juce::Component {
 class EngineeringView final : public juce::Component {
   public:
     std::function<void()> onLayoutChange;
-    EngineeringView(ResearchSessionModel& session, std::function<void()> beforeEdit)
-        : session_(session), beforeEdit_(std::move(beforeEdit)),
-          macros_(session, ChangeOrigin::engineeringUI, beforeEdit_) {
+    EngineeringView(ResearchSessionModel& session, ResearchOperations& operations)
+        : session_(session), operations_(operations),
+          macros_(session, ChangeOrigin::engineeringUI, operations) {
         addAndMakeVisible(macros_);
         for (std::size_t i = 0; i < kModes.size(); ++i)
             composition_.addItem(kModes[i], static_cast<int>(i) + 1);
         composition_.setTitle("Engineering composition");
         addAndMakeVisible(composition_);
         composition_.onChange = [this] {
-            beforeEdit_();
-            session_.setComposition(composition_.getSelectedId() - 1, ChangeOrigin::engineeringUI);
+            const auto value = composition_.getSelectedId() - 1;
+            operations_.action(
+                "Composition", ChangeOrigin::engineeringUI, true, false,
+                [this, value] { session_.setComposition(value, ChangeOrigin::engineeringUI); });
         };
         researchLabel(*this, provenance_,
                       "All raw controls APPLY | SPIKE-W-DSP-001 research baseline | inactive "
@@ -124,9 +137,14 @@ class EngineeringView final : public juce::Component {
                                    spec.displayPolicy == DisplayPolicy::adaptiveTime,
                                    spec.valueType == ControlValueType::integer, spec.step);
             controls_[i].onEdit = [this, i](double value) {
-                beforeEdit_();
+                operations_.edit(kControls[i].stableId(), ChangeOrigin::engineeringUI, true);
                 return session_.setEngineering(kControls[i].id, value, ChangeOrigin::engineeringUI);
             };
+            controls_[i].onGestureBegin = [this, i] {
+                operations_.edit(kControls[i].stableId(), ChangeOrigin::engineeringUI, true, false,
+                                 true);
+            };
+            controls_[i].onGestureEnd = [this] { operations_.finish(); };
             addAndMakeVisible(controls_[i]);
         }
         for (std::size_t i = 0; i < headings_.size(); ++i) {
@@ -212,7 +230,7 @@ class EngineeringView final : public juce::Component {
         return static_cast<int>((offsets_[group + 1] - offsets_[group] + 1) / 2);
     }
     ResearchSessionModel& session_;
-    std::function<void()> beforeEdit_;
+    ResearchOperations& operations_;
     WaterMacroView macros_;
     juce::ComboBox composition_;
     juce::Label provenance_;

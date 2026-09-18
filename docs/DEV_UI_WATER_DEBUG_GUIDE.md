@@ -155,6 +155,9 @@ OFF transition 回到精确 unity，generator、RNG 和 tail 仍继续推进。
 非法后缀、非有限值或超范围输入显示错误并保留旧值。Enter/失焦提交，Escape 恢复；
 双击 slider 恢复研究基线；普通拖动遵守 descriptor 步进，按住 Shift 后开始拖动可小于该步进；
 文本输入保留合法精确值，宽时间范围采用非线性拖动。
+研究操作以完成的手势计数：一次鼠标拖动一条，滚轮/键盘连续变化在静止 250 ms 后合并为一条，
+切换控件立即结束前一操作。最多保留最近 50 条，独立于 state revision，不写入 session/config。
+工程拖动开始时停止一次，随后仅更新草稿；Protect Depth 为 LIVE，中间值持续发送且不停止播放。
 整数 Voices 拒绝小数；精确输入不经过 slider step 截断。切换 A/B 或导入有效配置会刷新旧编辑文本。
 Engineering 的 A/B/D/C 卡片可折叠，标题显示 ACTIVE/INACTIVE；inactive 值仍可编辑并保留。
 切换 D0/D1 会恢复对应阈值，不会将 dB 数字当作 amplitude。切换到 C 会保留 Fluid topology，

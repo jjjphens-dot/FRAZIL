@@ -60,6 +60,12 @@ while `PreviewController` transports only the live Depth target through a lock-f
 message thread, with last-sample/peak values and explicit dropped-block accounting. It owns no
 algorithm state; UI formatting stays in `ProtectView` and no production target depends on it.
 
+`ResearchOperationHistory.h` owns a message-thread 50-entry runtime operation ring and a single
+pending transaction; `ResearchOperations` borrows the session and coordinates gesture/debounce
+boundaries through injected lifecycle callbacks. `ResearchSlider.h` exposes physical mouse
+boundaries independently of JUCE's wheel/key drag notifications. These are research diagnostics,
+not M5 undo/redo or Host history; neither is serialized or accessed by DSP.
+
 ## Proposed Protect research
 
 [DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) records the theory. The user-authorized

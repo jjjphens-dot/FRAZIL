@@ -2,6 +2,7 @@
 
 #include "ExactValueControl.h"
 #include "ProtectDiagnostics.h"
+#include "ResearchOperationHistory.h"
 #include "ResearchSessionModel.h"
 
 namespace frazil::water::preview {
@@ -10,10 +11,9 @@ namespace frazil::water::preview {
 class ProtectView final : public juce::Component {
   public:
     std::function<void()> onLayoutChange;
-    ProtectView(ResearchSessionModel& session, std::function<void()> beforePrepareEdit,
+    ProtectView(ResearchSessionModel& session, ResearchOperations& operations,
                 std::function<ChangeOrigin()> editOrigin)
-        : session_(session), beforePrepareEdit_(std::move(beforePrepareEdit)),
-          editOrigin_(std::move(editOrigin)) {
+        : session_(session), operations_(operations), editOrigin_(std::move(editOrigin)) {
         title_.setText("PROTECT / RESEARCH | residual only", juce::dontSendNotification);
         title_.setColour(juce::Label::textColourId, juce::Colour(0xff5ed0ba));
         addAndMakeVisible(title_);
@@ -25,26 +25,28 @@ class ProtectView final : public juce::Component {
         enabled_.setTooltip(
             "LIVE: OFF targets Depth 0; ON restores last nonzero Depth (initial convenience 0.5).");
         enabled_.onClick = [this] {
-            session_.setProtectEnabled(enabled_.getToggleState(), editOrigin_());
+            const auto value = enabled_.getToggleState();
+            operations_.action("Protect Enable", editOrigin_(), false, false,
+                               [this, value] { session_.setProtectEnabled(value, editOrigin_()); });
         };
         detector_.addItem("D0 / Difference", 1);
         detector_.addItem("D1 / Log Ratio", 2);
         detector_.setTooltip(
             "APPLY; neither candidate is a perceptual ranking. Each retains its own thresholds.");
         detector_.onChange = [this] {
-            beforePrepareEdit_();
-            session_.setDetector(detector_.getSelectedId() == 1 ? research::ProtectScore::difference
-                                                                : research::ProtectScore::logRatio,
-                                 editOrigin_());
+            const auto value = detector_.getSelectedId() == 1 ? research::ProtectScore::difference
+                                                              : research::ProtectScore::logRatio;
+            operations_.action("Protect Detector", editOrigin_(), true, false,
+                               [this, value] { session_.setDetector(value, editOrigin_()); });
         };
         topology_.addItem("Whole / F1", 1);
         topology_.addItem("Droplet Exempt / F2", 2);
         topology_.addItem("Droplet Half / F3", 3);
         topology_.onChange = [this] {
-            beforePrepareEdit_();
-            session_.setTopology(
-                static_cast<research::FluidProtectTopology>(topology_.getSelectedId()),
-                editOrigin_());
+            const auto value =
+                static_cast<research::FluidProtectTopology>(topology_.getSelectedId());
+            operations_.action("Protect Topology", editOrigin_(), true, false,
+                               [this, value] { session_.setTopology(value, editOrigin_()); });
         };
         advanced_.onClick = [this] {
             refresh();
@@ -54,10 +56,17 @@ class ProtectView final : public juce::Component {
         for (std::size_t i = 0; i < controls_.size(); ++i) {
             addAndMakeVisible(controls_[i]);
             controls_[i].onEdit = [this, i](double value) {
-                if (kProtectControls[i].lifecycle == ControlLifecycle::prepareRequired)
-                    beforePrepareEdit_();
+                operations_.edit(std::string("protect.") + kProtectControls[i].key, editOrigin_(),
+                                 kProtectControls[i].lifecycle ==
+                                     ControlLifecycle::prepareRequired);
                 return session_.setProtect(kProtectControls[i].id, value, editOrigin_());
             };
+            controls_[i].onGestureBegin = [this, i] {
+                operations_.edit(std::string("protect.") + kProtectControls[i].key, editOrigin_(),
+                                 kProtectControls[i].lifecycle == ControlLifecycle::prepareRequired,
+                                 false, true);
+            };
+            controls_[i].onGestureEnd = [this] { operations_.finish(); };
         }
         note_.setColour(juce::Label::textColourId, juce::Colour(0xffbed4dc));
         for (auto& label : readouts_) {
@@ -125,7 +134,7 @@ class ProtectView final : public juce::Component {
                 juce::String(spec.label) + suffix +
                     (spec.lifecycle == ControlLifecycle::live ? " / LIVE" : " / APPLY"),
                 spec.minimum, protectMaximum(spec, settings.gain.score), baseline,
-                spec.unit == ProtectUnit::seconds);
+                spec.unit == ProtectUnit::seconds, false, spec.step);
             controls_[i].setHelp(
                 juce::String("protect.") + spec.key +
                 " | PROTECT-EXP-001 research baseline | units retain existing DSP semantics");
@@ -171,7 +180,7 @@ class ProtectView final : public juce::Component {
 
   private:
     ResearchSessionModel& session_;
-    std::function<void()> beforePrepareEdit_;
+    ResearchOperations& operations_;
     std::function<ChangeOrigin()> editOrigin_;
     juce::Label title_, note_;
     std::array<juce::Label, 5> readouts_;

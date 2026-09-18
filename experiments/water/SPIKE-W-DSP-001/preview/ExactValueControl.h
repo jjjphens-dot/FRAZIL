@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ResearchSlider.h"
 #include "TimeValue.h"
 
 #include <functional>
@@ -12,6 +13,7 @@ namespace frazil::water::preview {
 class ExactValueControl final : public juce::Component {
   public:
     std::function<bool(double)> onEdit;
+    std::function<void()> onGestureBegin, onGestureEnd;
     ExactValueControl() {
         for (auto* child : std::array<juce::Component*, 4>{&label_, &slider_, &entry_, &error_})
             addAndMakeVisible(child);
@@ -21,6 +23,14 @@ class ExactValueControl final : public juce::Component {
         slider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
         slider_.setMouseDragSensitivity(350);
         slider_.setSliderSnapsToMousePosition(false);
+        slider_.onMouseBegin = [this] {
+            if (onGestureBegin)
+                onGestureBegin();
+        };
+        slider_.onMouseEnd = [this] {
+            if (onGestureEnd)
+                onGestureEnd();
+        };
         slider_.onValueChange = [this] {
             if (!syncing_)
                 submit(slider_.getValue());
@@ -96,45 +106,6 @@ class ExactValueControl final : public juce::Component {
     }
 
   private:
-    // Keep fine gestures in normalized slider space so skewed time ranges remain usable.
-    class FineSlider final : public juce::Slider {
-      public:
-        double normalStep{};
-        double snapValue(double value, DragMode) override {
-            // Snap user gestures only; text and model refresh retain exact legal values.
-            return normalStep > 0 && !fine_
-                       ? juce::jlimit(getMinimum(), getMaximum(),
-                                      getMinimum() +
-                                          std::round((value - getMinimum()) / normalStep) *
-                                              normalStep)
-                       : value;
-        }
-        void mouseDown(const juce::MouseEvent& event) override {
-            fine_ = event.mods.isShiftDown() && event.mods.isLeftButtonDown();
-            start_ = valueToProportionOfLength(getValue());
-            if (!fine_)
-                juce::Slider::mouseDown(event);
-            else
-                grabKeyboardFocus();
-        }
-        void mouseDrag(const juce::MouseEvent& event) override {
-            if (fine_)
-                setValue(proportionOfLengthToValue(juce::jlimit(
-                             0.0, 1.0, start_ + event.getDistanceFromDragStartX() / 3500.0)),
-                         juce::sendNotificationSync);
-            else
-                juce::Slider::mouseDrag(event);
-        }
-        void mouseUp(const juce::MouseEvent& event) override {
-            if (!fine_)
-                juce::Slider::mouseUp(event);
-            fine_ = false;
-        }
-
-      private:
-        double start_{};
-        bool fine_{};
-    };
     juce::String display(double value) const {
         if (time_)
             return juce::String(formatTimeValue(value).value_or("invalid"));
@@ -163,6 +134,8 @@ class ExactValueControl final : public juce::Component {
             return;
         }
         submit(candidate);
+        if (onGestureEnd)
+            onGestureEnd();
     }
     void submit(double candidate) {
         if (onEdit && !onEdit(candidate)) {
@@ -174,7 +147,7 @@ class ExactValueControl final : public juce::Component {
         refreshValue(candidate);
     }
     juce::Label label_, error_;
-    FineSlider slider_;
+    ResearchSlider slider_;
     juce::TextEditor entry_;
     double low_{}, high_{1}, value_{};
     bool time_{}, integer_{}, syncing_{}, textEdited_{};

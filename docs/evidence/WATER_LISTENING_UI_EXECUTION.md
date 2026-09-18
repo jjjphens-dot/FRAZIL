@@ -30,13 +30,13 @@ research formula, disclose the gap and do not claim perceptual-contract complian
 
 ## Status and sequence
 
-Running Phase B preparation. Phase A implementation and self-review are complete; next checkpoint:
-bounded operations and UI gesture/debounce integration. No blockers; publish after Phase J.
+Running Phase C preparation. Phases A and B implementation and self-review are complete; next checkpoint:
+v2 sessions and conservative migration. No blockers; publish after Phase J.
 
 | Phase | Work | Status |
 |---|---|---|
 | A | Reconcile latest branches and prior P1/P2 findings | Complete; three presets and self-review PASS |
-| B | 50-operation history, drag/debounce and stop-once boundary | Pending |
+| B | 50-operation history, drag/debounce and stop-once boundary | Complete; three presets and self-review PASS |
 | C | DSP/session dirty, v2 and conservative v1 migration | Pending |
 | D | Pure research macro mapper and per-macro ownership | Pending |
 | E | Deterministic normalized Modal excitation movement | Pending |
@@ -77,3 +77,28 @@ Parameters, Accepted ADRs and production modules retain their existing contracts
     silent range expansion, new allocation on callback or generated audio staged.
 11. Final review: links, staged-file portability, clang-format and diff checks PASS. All code changes
     are research-only; no production source diff against current main. Next: operation transactions.
+
+## Phase B checkpoint
+
+1. Baseline: Phase A `67524d1`.
+2. Scope: completed operation records, 50-entry ring, physical mouse boundaries, 250 ms wheel/key
+   debounce, explicit text completion, composite commands and prepare-stop ownership.
+3. New files: ResearchOperationHistory/ResearchSlider and operation tests. Existing views/panel/widget
+   route commands through one message-thread coordinator; CMake registers tests in the existing suite.
+4. Behavior: one mouse gesture stores before/after once; returning to starting values stores zero.
+   Switching controls flushes pending edits; elapsed-time checks also handle delayed UI timers.
+   Live Protect publishes every intermediate target without stop. Reset/import/recall are composite.
+   History and monotonic operation sequence remain independent of model revision and serialization.
+5. Tests: serial safe Debug/Release/ASAN pipeline, fake-clock operation tests plus existing widget,
+   state, codec, Protect and rendering suites. No production changes.
+6. Results: Debug 20/20 (29.09 s), Release 20/20 (16.77 s), ASAN 20/20 (59.12 s).
+7. Audio: callback and research DSP unchanged; no new listening claim.
+8. Realtime: history holds bounded state copies on message thread only; callback sees no history,
+   timer, formatting or allocation. Prepare stop is invoked once on opening a transaction.
+9. Documentation: guide, Module Index, Testing, research README and this record updated. Production
+   history/Host/state contracts reviewed unchanged; this is runtime debugging, not M5 undo/redo.
+10. Self-review: JUCE's drag notifications include wheel/key events, so ResearchSlider exposes actual
+    mouse boundaries instead. Control values are captured before flushing another operation, avoiding
+    refresh overwriting the user's new input. Explicit transport actions suppress future auto-audition
+    hooks while flushing, preventing duplicate restart. Phase I will wire/verify actual Auto Audition.
+11. Final checks: staged-file portability, links, formatting and diff checks PASS. Next: v2 session correctness and conservative migration.

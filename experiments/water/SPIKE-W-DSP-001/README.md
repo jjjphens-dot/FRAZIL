@@ -7,6 +7,11 @@ No production WaterProcessor or perceptual acceptance. Source and limitations: [
 Those counts describe the historical SPIKE revision. Current Protect follow-up results and limitations are
 separately recorded in [PROTECT-EXP-001](../../../docs/planning/WATER_PROTECT_EXECUTION.md).
 
+The [listening-UI follow-up](../../../docs/evidence/WATER_LISTENING_UI_EXECUTION.md) records the
+subsequent review fixes and research-tool changes. The preview now groups completed mouse gestures
+and debounced wheel/key edits into a 50-entry runtime operation history, separate from state revisions
+and excluded from every serialized format. Prepare-required drags stop once; live Protect remains live.
+
 ## Protect follow-up — PROTECT-EXP-001
 
 The user authorized sequential objective engineering waves/self-review and one final upload after Wave 1.

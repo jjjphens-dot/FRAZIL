@@ -811,3 +811,6 @@ The listening-UI follow-up adds regressions for retained Fluid topology/Enable-d
 explicit session/A/B sample-rate validation (a Flow clearance legal at 96k but invalid at 48k),
 normal descriptor-step gestures versus finer Shift movement and exact legal text. See
 [listening-UI execution](evidence/WATER_LISTENING_UI_EXECUTION.md) for staged results and scope.
+Operation tests use an injected monotonic clock: 100 callbacks within one drag, return-to-start,
+50 ms wheel bursts and 250 ms expiry (including delayed timer delivery), control switching,
+live Protect intermediate targets with no stop, composite import and 51-operation ring eviction.

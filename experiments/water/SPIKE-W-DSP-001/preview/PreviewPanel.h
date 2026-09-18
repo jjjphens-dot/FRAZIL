@@ -15,14 +15,12 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
   public:
     std::function<void()> onLayoutChange;
     explicit PreviewPanel(const juce::String& sourceArgument)
-        : sound_(session_, ChangeOrigin::soundLeadUI, [this] { controller_.stop(); }),
-          engineering_(session_, [this] { controller_.stop(); }),
-          protect_(
-              session_, [this] { controller_.stop(); },
-              [this] {
-                  return tabs_.getCurrentTabIndex() == 0 ? ChangeOrigin::soundLeadUI
-                                                         : ChangeOrigin::engineeringUI;
-              }) {
+        : operations_(session_), sound_(session_, ChangeOrigin::soundLeadUI, operations_),
+          engineering_(session_, operations_), protect_(session_, operations_, [this] {
+              return tabs_.getCurrentTabIndex() == 0 ? ChangeOrigin::soundLeadUI
+                                                     : ChangeOrigin::engineeringUI;
+          }) {
+        operations_.onPrepareBegin = [this] { controller_.stop(); };
         researchLabel(*this, title_, "FRAZIL / WATER RESEARCH PREVIEW");
         title_.setFont(juce::FontOptions(22));
         researchLabel(*this, note_,
@@ -56,37 +54,43 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         gain_.setTooltip("Monitor gain only; no auto makeup and no module-config field.");
         addAndMakeVisible(gain_);
         gain_.onValueChange = [this] {
-            session_.setMonitor(session_.draft().monitor, gain_.getValue());
+            const auto value = gain_.getValue();
+            operations_.edit("Monitor gain", ChangeOrigin::soundLeadUI, false);
+            session_.setMonitor(session_.draft().monitor, value);
         };
+        gain_.onMouseBegin = [this] {
+            operations_.edit("Monitor gain", ChangeOrigin::soundLeadUI, false, false, true);
+        };
+        gain_.onMouseEnd = [this] { operations_.finish(); };
         load_.onClick = [this] { chooseSource(); };
         play_.onClick = [this] {
+            operations_.finish(false);
             const auto error = controller_.play(session_.applied().engineering);
             setStatus(error.isEmpty() ? "Playing from start; fixed seed 42; source + 30 s tail."
                                       : error);
         };
         stop_.onClick = [this] {
+            operations_.finish(false);
             controller_.stop();
             setStatus("Stopped. Play restarts source and seed.");
         };
-        apply_.onClick = [this] { applyDraft(); };
-        dry_.onClick = [this] {
-            session_.setMonitor(MonitorMode::dry, session_.draft().monitorGainDb);
+        apply_.onClick = [this] {
+            operations_.finish(false);
+            applyDraft();
         };
-        processed_.onClick = [this] {
-            session_.setMonitor(MonitorMode::processed, session_.draft().monitorGainDb);
-        };
-        residual_.onClick = [this] {
-            session_.setMonitor(MonitorMode::residual, session_.draft().monitorGainDb);
-        };
+        dry_.onClick = [this] { setMonitorMode(MonitorMode::dry); };
+        processed_.onClick = [this] { setMonitorMode(MonitorMode::processed); };
+        residual_.onClick = [this] { setMonitorMode(MonitorMode::residual); };
         captureA_.onClick = [this] { capture(0); };
         captureB_.onClick = [this] { capture(1); };
         applyA_.onClick = [this] { recall(0); };
         applyB_.onClick = [this] { recall(1); };
         reset_.onClick = [this] {
-            controller_.stop();
-            session_.reset();
-            discardPendingText();
-            applyDraft();
+            operations_.action("Reset Baseline", ChangeOrigin::reset, false, false, [this] {
+                session_.reset();
+                discardPendingText();
+                applyDraft();
+            });
         };
         copy_.onClick = [this] {
             juce::SystemClipboard::copyTextToClipboard(session_.applied().engineering.moduleJson());
@@ -160,6 +164,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     }
 
   private:
+    void setMonitorMode(MonitorMode mode) {
+        operations_.action("Monitor mode", ChangeOrigin::soundLeadUI, false, false, [this, mode] {
+            session_.setMonitor(mode, session_.draft().monitorGainDb);
+        });
+    }
     class ViewTabs final : public juce::TabbedComponent {
       public:
         ViewTabs() : juce::TabbedComponent(juce::TabbedButtonBar::TabsAtTop) {}
@@ -204,6 +213,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         protect_.discardPendingText();
     }
     void capture(std::size_t slot) {
+        operations_.finish();
         session_.capture(slot);
         refresh();
         setStatus(juce::String("Captured ") + (slot == 0 ? "A" : "B") +
@@ -212,7 +222,6 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     void recall(std::size_t slot) {
         if (!session_.slot(slot))
             return;
-        controller_.stop();
         const auto& candidate = *session_.slot(slot);
         const auto error = controller_.validate(
             candidate.engineering,
@@ -221,8 +230,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             setStatus(error);
             return;
         }
-        session_.restoreValidated(candidate);
-        discardPendingText();
+        operations_.action(slot == 0 ? "Apply A" : "Apply B", ChangeOrigin::sessionLoad, true,
+                           false, [this, &candidate] {
+                               session_.restoreValidated(candidate);
+                               discardPendingText();
+                           });
         setStatus("Recalled snapshot. Play restarts; source position is not restored.");
     }
     void refresh() {
@@ -268,14 +280,17 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         status_.setText(text, juce::dontSendNotification);
     }
     void loadSource(const juce::File& file) {
+        operations_.finish(false);
         const auto error = controller_.load(file);
         if (error.isEmpty())
-            session_.setSource(controller_.sourceMetadata());
+            operations_.action("Load Source", ChangeOrigin::soundLeadUI, false, false,
+                               [this] { session_.setSource(controller_.sourceMetadata()); });
         source_.setText(controller_.sourceDescription(), juce::dontSendNotification);
         setStatus(error.isEmpty() ? "Source loaded; no resampling. Play uses APPLIED config."
                                   : error);
     }
     void chooseSource() {
+        operations_.finish(false);
         controller_.stop();
         chooser_ = std::make_unique<juce::FileChooser>("Load finite mono/stereo WAV", juce::File{},
                                                        "*.wav");
@@ -318,9 +333,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                     safe->setStatus(error);
                     return;
                 }
-                safe->controller_.stop();
-                safe->session_.restoreValidated(candidate);
-                safe->discardPendingText();
+                safe->operations_.action(session ? "Import Session" : "Import Module",
+                                         ChangeOrigin::sessionLoad, true, false, [&] {
+                                             safe->session_.restoreValidated(candidate);
+                                             safe->discardPendingText();
+                                         });
                 safe->setStatus(session
                                     ? "Imported session. If source metadata differs, load the "
                                       "matching WAV before Play; audio is not embedded."
@@ -352,6 +369,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             });
     }
     void timerCallback() override {
+        operations_.tick(ResearchOperations::clockNow());
         protect_.updateDiagnostics(controller_.protectDiagnostics());
         diagnostics_.update(controller_.diagnostics(),
                             kModes[static_cast<std::size_t>(session_.applied().engineering.mode)]);
@@ -364,6 +382,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         }
     }
     ResearchSessionModel session_;
+    ResearchOperations operations_;
     PreviewController controller_;
     WaterMacroView sound_;
     EngineeringView engineering_;
@@ -373,7 +392,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     juce::TextEditor draftDetails_;
     juce::TooltipWindow tooltips_{this, 500};
     juce::Label title_, note_, source_, status_, appliedLabel_, gainLabel_;
-    juce::Slider gain_;
+    ResearchSlider gain_;
     juce::TextButton load_{"Load WAV"}, play_{"Play / Restart"}, stop_{"Stop"},
         apply_{"Apply config"};
     juce::TextButton dry_{"Source / x"}, processed_{"Full / x+E"}, residual_{"Water only / E"};
