@@ -46,13 +46,13 @@ Release、ASAN 可使用对应 preset 串行构建这个独立工具；FRAZIL Re
    可用 `testdata/input/zero_state_response__impulse.wav` 做连线检查。
 2. 使用系统默认立体声输出设备。设备必须支持 WAV 的采样率；工具不重采样、不打开麦克风。
    不匹配时明确拒绝播放，选择合适采样率的 WAV 或系统输出设备后重试。
-3. 保持 monitor gain 初始 **-12 dB**。选择 `Resonant / C`，点击 **Apply config**，再 **Play / Restart**。
-4. 观察 INPUT / OUTPUT meter 和 FINITE 状态；在 **Dry / x**、**Processed / x+E**、**Residual / E** 间切换。
+3. 保持 monitor gain 初始 **-12 dB**。在 Sound Lead 页选择 `Resonant`（对应 Engineering 页的 `c`），点击 **Apply config**，再 **Play / Restart**。
+4. 观察 INPUT / OUTPUT meter 和 FINITE 状态；在 **Source / x**、**Full / x+E**、**Water only / E** 间切换。
    Residual 用于单独定位响应。默认 C 的 E 可能很轻，不能把“很轻”误判成未连接。
 5. 点击 **Capture A**；改变 C 的 `Root frequency (Hz)` 或 `Decay (s)`。
    改工程参数会停止播放；点击 **Apply config**，再 Play，然后 Capture B。
    用 Apply A / Apply B + Play 从同一源起点、同一 seed 比较。
-6. 切换 `Fluid / A+B+D`，逐项比较 A、B、D 及 AB、AD、BD。
+6. 在 Sound Lead 页切换 `Fluid`，在 Engineering 页选择 composition，逐项比较 A、B、D 及 AB、AD、BD。
    不参与当前组合的模块值保留；修改它们不会改变当前组合输出。
 7. 导出已应用 module config，配合当前 composition、seed 42 和原 WAV 做离线复现。
 
@@ -68,19 +68,29 @@ WAV 播完后输入自动为零，再处理 **30 秒 tail** 后停止；没有�
 | Stop | 等待当前 callback 退出并停止处理 | 下一次 Play 从头开始，不是暂停 |
 | Composition 下拉框 | ABD、C、A、B、D、AB、AD、BD、baseline | 改动是草稿；不是 Host Routing Mode |
 | Apply config | 停止并校验草稿，将其设为已应用配置 | 不自动播放；准备工作不在音频 callback 内执行 |
-| Dry / x | 监听源 | DSP 仍继续推进；不重置 RNG/tail |
-| Processed / x+E | 监听源加 residual，源仅添加一次 | 无隐藏 limiter、normalization 或 makeup |
-| Residual / E | 只听实验 residual | 这是工程诊断，不是产品 Wet 宏 |
+| Source / x | 监听源 | DSP 仍继续推进；不重置 RNG/tail |
+| Full / x+E | 监听源加 residual，源仅添加一次 | 无隐藏 limiter、normalization 或 makeup |
+| Water only / E | 只听实验 residual | 这是工程诊断，不是产品 Wet 宏 |
 | Monitor output (dB) | -60..0 dB，默认 -12 dB | 三种监听路径共用；10 ms 平滑；不写入导出的 DSP config |
-| Capture A / B | 记录**已应用**工程配置、composition、监听模式和 monitor gain | 不记录未应用草稿、WAV、游标或 DSP 状态；内存临时槽 |
+| Capture A / B | 记录**已应用**宏实验值、工程配置、composition、监听模式和 monitor gain | 不记录未应用草稿、WAV、游标或 DSP 状态；内存临时槽 |
 | Apply A / B | 停止播放，恢复对应配置与监听状态 | 空槽禁用；点击 Play 才开始新一次处理 |
-| Reset config | 恢复研究默认值、ABD、Processed、-12 dB | 停止播放；保留 WAV 与已捕获 A/B 槽；不是 Host reset |
+| Reset baseline | 恢复研究默认值、ABD、Processed、-12 dB | 停止播放；保留 WAV 与已捕获 A/B 槽；不是 Host reset |
 | Copy config | 复制**已应用** module JSON | 不是插件 state/preset；不包含 WAV、composition、seed、monitor gain |
 | Export config | 保存同一 module JSON | 可直接交给现有 Water renderer；composition/seed 另行提供 |
 
-界面始终显示 Applied composition、seed、监听模式、播放时间和 `DRAFT NOT APPLIED` 状态。
+界面显示 Applied composition、未应用变更数、revision、最后修改来源及播放时间；监听按钮显示当前模式。
 Dry/Processed/Residual 切换采用 monitor-only 10 ms 线性交叉变化；算法参数没有实时自动化能力。
 Output meter 位于 monitor gain 后；Input meter 是 WAV 源，保持原有 aggregate、10 Hz、无 peak hold 语义。
+
+### 双视图与共享实验状态
+
+默认 Sound Lead 页显示 Model、Size、Motion；Engineering 页显示相同宏和 21 个工程控件。
+两页读取同一个会话模型。Fluid 对应 ABD，Resonant 对应 C；选择其他 ablation composition 时
+Model 显示 CUSTOM，可用 **Return Model to Mapped** 返回该模型的完整组合。
+Size/Motion 显示 **UNMAPPED**：目前只保留实验值，不改变频率、事件率或延迟。
+工程参数手动修改不会反向改写宏值；inactive 控件变暗但保留值，生效前须启用对应 composition。
+编辑形成 Draft 并停止播放；Apply 校验后方可 Play。Decay、Protect 和完整 session 文件工作流
+在后续阶段接入；本阶段的双视图实测状态见 [执行记录](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md)。
 
 ## 5. 工程参数对应的 DSP 作用
 

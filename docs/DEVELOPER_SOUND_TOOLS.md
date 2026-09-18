@@ -124,6 +124,13 @@ fixed-seed restart and renderer-compatible module JSON export. Source loading/co
 runs with the callback detached; algorithm values are prepare-time only. Monitoring gain and
 source/residual crossfade use 10 ms smoothing; no production automation/model transition is claimed.
 
+Sound Lead and Engineering views now share a message-thread `ResearchSessionModel`; Model maps only
+Fluid/ABD and Resonant/C, while Size/Motion remain explicitly UNMAPPED experiment values. Engineering
+edits retain inactive values, record origin/revision and require Apply. A/B captures complete applied
+experiment/engineering/monitor values. No reverse mapping is inferred from manual engineering edits.
+The [control-bridge record](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md) identifies staged validation;
+GUI usability, Decay and Protect integration have separate later checkpoints.
+
 The original Debug UI still stores Water Model/Size/Motion locally without DSP mapping; its wet
 path remains M1 pass-through. The standalone preview uses engineering quantities, not inferred
 Size/Motion/Decay product mappings. Accepted EXP-W-001, subjective EXP-W-002 and production adoption

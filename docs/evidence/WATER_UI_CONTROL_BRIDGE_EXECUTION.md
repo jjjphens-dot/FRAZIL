@@ -9,7 +9,7 @@ algorithm redesign, inferred macro curves or perceptual acceptance.
 
 ## Status
 
-Running, Phase 3 preparation. The user explicitly requested autonomous progression through
+Running, Phase 4 preparation. The user explicitly requested autonomous progression through
 all phases after each self-review, then a single GitHub publication of the completed work. Separate
 local commits/checkpoints remain required; Phases 2–8 are next. Owner: Engineering implementation;
 Sound Lead retains human workflow/perceptual acceptance. No delegated workers.
@@ -61,7 +61,7 @@ Protect work, not newly authored algorithms.
 | 0 | Baseline, contracts, integration, documentation inventory | Implemented; self-review and Debug pass |
 | 1 | Isolated strict time formatter/parser and tests | Implemented; self-review and three presets pass |
 | 2 | Typed descriptors for existing controls | Implemented; self-review and Debug pass |
-| 3 | Shared ResearchSessionModel and dual views | Pending |
+| 3 | Shared ResearchSessionModel and dual views | Implemented; self-review, final Debug and docs pass |
 | 4 | Experiment-only Decay state/workflow | Pending |
 | 5 | Existing Protect DSP integration and calibration memory | Pending |
 | 6 | Bounded Protect numerical diagnostics | Pending |
@@ -159,3 +159,32 @@ independent approval and main merge are not part of this local checkpoint.
 11. Self-review: compile-time ID ordering, runtime unique field/ID coverage, typed defaults, preserved
     ranges, unit/group/lifecycle checks. No generic reflection framework or changed DSP authority.
 12. Next: shared ResearchSessionModel and two views; no guessed macro mappings.
+
+## Phase 3 implementation and review
+
+1. Baseline: Phase 2 `033cf73`, same integration branch.
+2. Scope: shared state/commands, two macro representations, engineering view, inactive controls,
+   draft/applied, origin/revision and Model-only mapping infrastructure.
+3. Files: new `preview/ResearchSessionModel.h`, `preview/ResearchViews.h`, `preview/PreviewPanel.h`,
+   `tests/preview_session_tests.cpp`; `PreviewMain.cpp` now only owns application/window setup;
+   CMake/test entry and directly affected docs updated.
+4. Behavior: Sound Lead and Engineering read one model; original flat UI is replaced by two tabs.
+   Source/Full/Water-only monitoring keeps existing audio semantics. Engineering edits stop playback;
+   inactive values remain editable/retained. A/B now includes applied macro state as well.
+5. Contracts: Model maps only Fluid/ABD and Resonant/C; ablations mark custom composition. The mapper
+   reports Size/Motion UNMAPPED. No arbitrary curve or reverse mapping, no Host/production DSP change.
+6. Tests: existing Debug configure/safe build/CTest including new session regressions.
+7. Results: functional and final post-review Debug 20/20 PASS; markdown links, portability and diff
+   checks PASS. Later integrated validation repeats Release/ASAN.
+8. Human/UI: no new GUI or listening acceptance yet; actual Windows interaction is Phase 8.
+9. Realtime: model/views/commands stay on message thread, validation/preparation uses the existing
+   detached-callback controller; audio processing is unchanged.
+10. Documentation: Developer Sound Tools, Debug Guide, Module Index, Project Status, Testing, research
+    README and execution record updated. Architecture/Proposed ADR-0006 reviewed: this isolated
+    research application ownership introduces no production mapping or dependency decision, so no
+    ADR change required. Parameters, Coding Plan, Code Standards and production UI README remain valid.
+11. Self-review: no widget-to-widget propagation; refresh uses notification-free assignments. A/B
+    restore publishes once, equal-value edits do not increment revisions, invalid commands preserve
+    state. Per-target edit provenance, retained inactive values and macro non-mutation are tested.
+    The coordinator owns command lifecycle, the session owns values, views own presentation.
+12. Next: add provisional Decay experiment value with complete state/workflow coverage; then Protect.

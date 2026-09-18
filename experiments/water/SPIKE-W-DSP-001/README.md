@@ -296,6 +296,15 @@ groups, internal units, display policy, research baseline provenance and prepare
 The original values, UI ranges/steps, labels and four-module export schema are retained. Descriptor
 tests check complete unique IDs, typed DSP defaults, pre-refactor ranges and serialization coverage.
 
+Phase 3 adds a single message-thread `ResearchSessionModel` with command-based edits, provenance and
+draft/applied/A/B values. `ResearchViews.h` supplies Sound Lead/Engineering representations; the
+`PreviewPanel` coordinator stops playback for draft edits and validates through `PreviewController`.
+Model/composition mapping is limited to Fluid/ABD and Resonant/C. Size/Motion remain UNMAPPED; manual
+raw edits do not reverse-map them. Inactive controls retain values and show their inactive status.
+No view owns duplicate parameter state or holds DSP objects. Session tests verify both-view observation,
+one notification per change, no-op feedback suppression, composition/active-module truth tables,
+provenance, invalid commands, applied isolation and complete temporary A/B restore.
+
 LOCAL-WDSP-00..06 cover baseline, features, C, A, D, B and Fluid integration respectively.
 Historical measurements are retained in [EVIDENCE.md](EVIDENCE.md). Current source, three-preset
 regression, isolation/capacity fixes, typical-signal smoke, 80 renders and preliminary timing are

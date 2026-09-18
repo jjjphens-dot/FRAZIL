@@ -31,7 +31,9 @@ ProcessSpec 当前实际位于 `src/app/ProcessSpec.h`，由 M1 AudioEngine 消�
 The standalone Water engineering preview lives in
 `experiments/water/SPIKE-W-DSP-001/preview/`: `PreviewSettings` owns application values/export,
 `PreviewEngine` owns existing research DSP selection/lifecycle, `PreviewController` owns source/device
-and audio callback state, and `PreviewMain` owns UI commands only. It reuses the value-only diagnostic
+and audio callback state. `ResearchSessionModel` owns draft/applied experiment, engineering, provenance
+and A/B values; `PreviewPanel` coordinates commands and validation, `ResearchViews` renders two views,
+and `PreviewMain` owns application/window setup. It reuses the value-only diagnostic
 view/meter. Dependencies point from research application to existing DSP/UI primitives; FRAZIL targets
 do not depend on the preview. Tests and limitations: [validation](evidence/WATER_PREVIEW_VALIDATION.md).
 
