@@ -70,6 +70,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
                         source.getSample(channel, static_cast<int>(frame));
             // DSP always advances during Dry monitoring. Replaying, not toggling Dry, resets seed.
             const auto residual = engine.residual(input);
+            protectBlock.water.include(engine.waterReadout(), channels);
             protectBlock.latest = engine.protectReadout();
             protectBlock.peak.includePeak(protectBlock.latest);
             const auto output = audition.process(input, residual);
@@ -87,6 +88,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
             ++frame;
         }
         position.store(frame);
+        protectBlock.water.latest = engine.waterActivity();
         protectMetrics.publish(protectBlock);
         const auto denominator = static_cast<double>(std::max(1, channels * count));
         metrics.publish(count, channels, inputPeak, outputPeak,

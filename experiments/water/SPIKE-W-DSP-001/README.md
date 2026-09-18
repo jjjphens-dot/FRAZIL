@@ -425,3 +425,9 @@ seeds/reset/block partitions/rates/finite extrema/channel isolation. No perceptu
 0..36 dB (new-session +18) multiplies only E; Reference=0, Focus=18; final monitor defaults -18 dB.
 This gain never feeds a detector/generator and is excluded from module JSON. It is session/A-B
 state, with v1 importing 0 dB. Tests exercise all equations/rates and live ramp/context isolation.
+
+`WaterDiagnostics.h` contains fixed numeric per-frame/block readouts for total/pre-Protect E,
+A/B/D/C and post-Protect E, plus cumulative events/steals and latest voices/delay/Modal targets.
+`PreviewEngine` exposes audio-owner values; controller accumulates energy/counts before audition
+and publishes in the existing Protect 256-entry SPSC queue. No second queue or callback strings.
+UI-only `WaterDiagnosticsText` formats sample-weighted RMS/peaks/activity; overflow is visible.

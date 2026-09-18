@@ -30,8 +30,8 @@ research formula, disclose the gap and do not claim perceptual-contract complian
 
 ## Status and sequence
 
-Running Phase H preparation. Phases A-G implementation and self-review are complete; next checkpoint:
-bounded Water component diagnostics. No blockers; publish after Phase J.
+Running Phase I preparation. Phases A-H implementation and self-review are complete; next checkpoint:
+Sound Lead workflow and native Windows validation. No blockers; publish after Phase J.
 
 | Phase | Work | Status |
 |---|---|---|
@@ -42,7 +42,7 @@ bounded Water component diagnostics. No blockers; publish after Phase J.
 | E | Deterministic normalized Modal excitation movement | Complete; three presets and self-review PASS |
 | F | Independent listening calibration and CUSTOM state | Complete; Debug and self-review PASS |
 | G | Monitor-only Focus/Reference/E trim | Complete; three presets and self-review PASS |
-| H | Bounded component and pre/post Protect diagnostics | Pending |
+| H | Bounded component and pre/post Protect diagnostics | Complete; three presets and self-review PASS |
 | I | Auto Audition, target/history views and native Windows tests | Pending |
 | J | Supplied-input renders, measurements and listening handoff | Pending |
 
@@ -203,3 +203,23 @@ Parameters, Accepted ADRs and production modules retain their existing contracts
    state unchanged; no listening acceptance. Next: bounded Water component diagnostics.
 
 7. Final staged links/portability/format/diff checks PASS. Self-review complete.
+
+## Phase H checkpoint
+
+1. Baseline: Phase G `ee3c2df`; bounded Water component diagnostics.
+2. Added fixed numeric WaterFrameReadout/WaterDiagnostics and UI-only formatter. Existing Protect
+   SPSC block queue carries the Water payload; no parallel transport or shared UI access to DSP.
+   Fluid exposes existing event/voice/steal/delay state through narrow audio-owner scalar getters.
+3. Six level families: total E/pre-Protect, A/B/D/C and post-Protect. Energy/sample counts are
+   accumulated before audition boost/output gain. Events/steals are cumulative since restart;
+   active voices, delay, Modal targets and GR are latest. Dropped block counts remain explicit.
+4. Debug 21/21 (32.03 s), Release 21/21 (16.39 s); ASAN 21/21 (58.68 s). Tests cover actual concurrent
+   producer/consumer coherence, overflow, unequal-block weighted RMS, exact OFF pre/post identity,
+   active/inactive module counters, baseline/reset and failed-prepare readout clearing.
+5. Self-review corrected stale readout on failed prepare. Each generator still advances exactly once
+   per sample; metrics use fixed arrays/scalars and one bounded publication per callback. No audio
+   formatting/I/O/allocation/locks; UI drains at most 256 blocks. Queue ownership protocol unchanged.
+6. Guide, research README, Module Index and Testing updated; no production API/algorithm changes.
+   These measurements do not establish perceptual quality. Next: full Sound Lead workflow/native GUI.
+
+7. Final links/portability/format/diff checks PASS. Self-review complete.

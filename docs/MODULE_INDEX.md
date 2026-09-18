@@ -110,3 +110,7 @@ mapping and typed renderer defaults. Session commands/codec track MAPPED/CUSTOM 
 
 `AuditionMonitor.h` owns preview-only 10 ms carrier/E/output ramps after Protect. Controller
 transfers validated linear trim atomically; model/session own dB context, excluded from DSP JSON.
+
+`WaterDiagnostics.h` owns fixed numeric Water readouts/energy accumulation in the research preview.
+Existing Protect block transport carries both readouts with one bounded producer/consumer; the UI
+formats them in `WaterDiagnosticsText.h`. DSP only exposes scalar activity getters, with no UI dependency.

@@ -252,3 +252,14 @@ Engineering 页 **Restore Listening Calibration** 一次恢复四个增益，不
 NOT WATER AMOUNT**，不会影响源检测、事件触发、Protect GR 或 renderer module JSON。
 它随 v2 会话和 A/B 保存；旧 v1 导入为 0 dB。输出无隐式 limiter，超过满幅由输出诊断显示。
 初次听测先用 Water Only/Focus 辨认层，再切 Reference/Full 评价源辨识、节奏及遮蔽。
+
+### Water 分量诊断
+
+展开 **Audio diagnostics** 可见 Water 分量与源/最终输出诊断。Water 区域的 peak/RMS 均在
+Audition Boost 和 Monitor Output 之前；包括 total E/pre-Protect、A/B/D/C、post-Protect E。
+显示下限 -160 dBFS。RMS 对本次消费的 block 按样本数合并，不平均 block RMS。
+
+A/B events 与 A steals 从 Play/Restart 起累计；active voices、D delay、C root/decay/motion 和
+Protect GR 是最近数值。C 模式下不显示过期 Fluid 活动。无新样本明确显示 no new samples。
+全部数字与 Protect 共用 256 项固定 SPSC 队列，满队列丢弃新 block 并显示 dropped 计数。
+这些是工程观察，不能直接证明 Water 身份、自然度或感知质量。

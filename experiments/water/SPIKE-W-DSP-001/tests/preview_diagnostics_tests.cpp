@@ -1,3 +1,4 @@
+#include "preview/PreviewEngine.h"
 #include "preview/ProtectDiagnostics.h"
 
 #include <atomic>
@@ -16,7 +17,13 @@ int runProtectDiagnosticsTests() {
     };
     const auto block = [](double value) {
         const ProtectReadout data{value, value * 2, value * 3, value * 4, value * 5};
-        return ProtectBlockReadout{data, data};
+        ProtectBlockReadout result{data, data};
+        result.water.latest.bubbleEvents = static_cast<std::uint64_t>(value);
+        result.water.latest.dropletEvents = static_cast<std::uint64_t>(value * 2);
+        WaterFrameReadout frame;
+        frame.at(WaterSignal::bubble) = {static_cast<float>(value), 0};
+        result.water.include(frame, 2);
+        return result;
     };
     ProtectDiagnostics queue;
     check(queue.snapshot().blocks == 0, "empty initial snapshot");
@@ -59,6 +66,11 @@ int runProtectDiagnosticsTests() {
             check(snapshot.peak.slow == snapshot.peak.fast * 2 &&
                       snapshot.peak.reductionDb == snapshot.peak.fast * 5,
                   "aggregate peaks remain coherent");
+            check(snapshot.water.latest.bubbleEvents == static_cast<std::uint64_t>(value.fast) &&
+                      snapshot.water.latest.dropletEvents ==
+                          static_cast<std::uint64_t>(value.fast * 2) &&
+                      snapshot.water.levels[1].samples == snapshot.blocks * 2,
+                  "Water payload shares coherent bounded transport");
             previous = value.fast;
         }
         if (done && snapshot.blocks == 0)
@@ -67,6 +79,55 @@ int runProtectDiagnosticsTests() {
     }
     producer.join();
     check(consumed + dropped == total, "every attempted summary is consumed or explicitly dropped");
+    WaterDiagnostics first, second;
+    WaterFrameReadout frame;
+    frame.at(WaterSignal::totalPreProtect) = {1, 0};
+    first.include(frame, 1);
+    frame.at(WaterSignal::totalPreProtect) = {0, 0};
+    for (int i = 0; i < 3; ++i)
+        second.include(frame, 1);
+    first.merge(second);
+    check(first.levels[0].peak == 1 && first.levels[0].rms() == .5 && first.levels[0].samples == 4,
+          "RMS sums energy and sample counts, never averages block RMS");
+    for (int mode : {0, 1, 4, 8}) {
+        PreviewSettings settings;
+        settings.mode = mode;
+        PreviewEngine engine;
+        check(engine.prepare(48000, settings), "diagnostics engine prepare");
+        WaterDiagnostics measured;
+        for (int i = 0; i < 12003; ++i) {
+            const float x = i % 1000 < 500 ? .7f : 0.f;
+            const auto e = engine.residual({x, 0});
+            const auto& current = engine.waterReadout();
+            check(current.signals[5] == e && current.signals[0] == e,
+                  "OFF total/pre/post Protect share exact residual");
+            measured.include(current, 1);
+        }
+        measured.latest = engine.waterActivity();
+        if (mode == 0)
+            check(measured.latest.bubbleEvents > 0 && measured.latest.dropletEvents > 0 &&
+                      measured.latest.bubbleActive <= 16 && measured.latest.dropletActive <= 8 &&
+                      measured.levels[1].rms() > 0 && measured.levels[2].rms() > 0,
+                  "active Fluid events/voices/component levels available");
+        if (mode == 1)
+            check(measured.latest.modalRootHz == 260 && measured.latest.modalDecaySeconds == .12 &&
+                      measured.levels[4].rms() > 0 && measured.latest.bubbleEvents == 0,
+                  "Modal diagnostics are explicit and inactive Fluid counters zero");
+        if (mode == 4)
+            check(measured.latest.bubbleEvents == 0 && measured.latest.flowDelayMs > 0,
+                  "ablation exposes delay without fabricated events");
+        if (mode == 8)
+            check(measured.levels[0].peak == 0 && measured.latest.flowDelayMs == 0,
+                  "baseline has zero Water diagnostics");
+        engine.reset();
+        check(engine.waterReadout().signals[0] == frazil::water::research::StereoFrame{} &&
+                  engine.waterActivity().bubbleEvents == 0,
+              "reset clears diagnostics");
+        engine.residual({1, 0});
+        check(!engine.prepare(0, settings) &&
+                  engine.waterReadout().signals[0] == frazil::water::research::StereoFrame{},
+              "failed prepare cannot retain old diagnostic frames");
+    }
     std::cout << "Protect diagnostics failures=" << failures << '\n';
     return failures;
 }

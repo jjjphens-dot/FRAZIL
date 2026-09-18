@@ -5,6 +5,7 @@
 #include "ProtectView.h"
 #include "ResearchViews.h"
 #include "SessionCodec.h"
+#include "WaterDiagnosticsText.h"
 #include "ui/DeveloperDiagnosticsView.h"
 
 namespace frazil::water::preview {
@@ -124,6 +125,10 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         };
         session_.onChange = [this] { refresh(); };
         addAndMakeVisible(diagnostics_);
+        waterDiagnostics_.setMultiLine(true);
+        waterDiagnostics_.setReadOnly(true);
+        waterDiagnostics_.setTitle("Water component diagnostics");
+        addChildComponent(waterDiagnostics_);
         refresh();
         source_.setText(controller_.sourceDescription(), juce::dontSendNotification);
         setStatus("Load WAV -> edit -> Apply config -> Play. Size/Motion/Decay use research "
@@ -146,7 +151,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     int preferredHeight() const noexcept {
         return 518 + tabHeight() + protect_.preferredHeight() +
                (showDraft_.getToggleState() ? 110 : 0) +
-               (showDiagnostics_.getToggleState() ? 230 : 0);
+               (showDiagnostics_.getToggleState() ? 445 : 0);
     }
     void resized() override {
         auto area = getLocalBounds().reduced(20);
@@ -183,8 +188,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         for (auto* button : {&importModule_, &importSession_, &exportSession_, &copySession_})
             button->setBounds(sessions.removeFromLeft(170).reduced(3));
         diagnostics_.setVisible(showDiagnostics_.getToggleState());
-        if (showDiagnostics_.getToggleState())
+        waterDiagnostics_.setVisible(showDiagnostics_.getToggleState());
+        if (showDiagnostics_.getToggleState()) {
+            waterDiagnostics_.setBounds(area.removeFromTop(215).reduced(4));
             diagnostics_.setBounds(area.removeFromTop(230).reduced(4));
+        }
     }
 
   private:
@@ -407,7 +415,9 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     }
     void timerCallback() override {
         operations_.tick(ResearchOperations::clockNow());
-        protect_.updateDiagnostics(controller_.protectDiagnostics());
+        const auto summary = controller_.protectDiagnostics();
+        protect_.updateDiagnostics(summary);
+        waterDiagnostics_.setText(waterDiagnosticsText(summary), false);
         diagnostics_.update(controller_.diagnostics(),
                             kModes[static_cast<std::size_t>(session_.applied().engineering.mode)]);
         refreshApplied();
@@ -426,7 +436,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     ProtectView protect_;
     ViewTabs tabs_;
     juce::ToggleButton showDraft_{"Draft details"}, showDiagnostics_{"Audio diagnostics"};
-    juce::TextEditor draftDetails_;
+    juce::TextEditor draftDetails_, waterDiagnostics_;
     juce::TooltipWindow tooltips_{this, 500};
     juce::Label title_, note_, source_, status_, appliedLabel_, gainLabel_;
     ResearchSlider gain_;

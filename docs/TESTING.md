@@ -832,3 +832,7 @@ and Return All, and isolated restoration of the four calibration gains.
 
 Preview audition tests check Source/Full/Water Only at 0/18/36 dB E trim across 44.1/48/96 kHz,
 10 ms monotonic ramp, channel isolation, session-only dirty, A/B retention and unchanged DSP JSON.
+
+Extended diagnostic queue tests run a real concurrent producer/consumer and verify coherent Water
+payloads and explicit overflow. Integration covers pre/post Protect OFF identity, activity/voice
+counts, ablation/inactive zeros, reset, and sample-weighted (unequal block size) RMS aggregation.

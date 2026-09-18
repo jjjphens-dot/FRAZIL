@@ -12,6 +12,7 @@ class PreviewEngine final {
   public:
     bool prepare(double sampleRate, const PreviewSettings& settings) {
         ready_ = false;
+        readout_ = {};
         if (settings.mode < 0 || settings.mode >= static_cast<int>(kModes.size()) ||
             !std::isfinite(sampleRate) || sampleRate < 44100 || sampleRate > 96000)
             return false;
@@ -28,6 +29,8 @@ class PreviewEngine final {
             !protect_.prepare(sampleRate, protectConfig.gain, protectConfig.depth))
             return false;
         topology_ = protectConfig.topology;
+        sampleRate_ = sampleRate;
+        modalConfig_ = modalConfig;
         fluidConfig.bubbleEnabled = !baseline_ && mode.find('a') != std::string_view::npos;
         fluidConfig.dropletEnabled = !baseline_ && mode.find('b') != std::string_view::npos;
         fluidConfig.flowEnabled = !baseline_ && mode.find('d') != std::string_view::npos;
@@ -44,6 +47,7 @@ class PreviewEngine final {
         fluid_.reset();
         modal_.reset();
         protect_.reset();
+        readout_ = {};
     }
 
     research::StereoFrame residual(const research::StereoFrame& input) noexcept {
@@ -53,9 +57,44 @@ class PreviewEngine final {
         if (baseline_)
             return {};
         // Always advance every enabled generator once, even at full attenuation or during OFF.
-        return modalMode_
-                   ? research::ResidualProtect::apply(modal_.process(input), gain)
-                   : research::applyFluidProtect(fluid_.processComponents(input), gain, topology_);
+        auto& frames = readout_;
+        if (modalMode_) {
+            frames.at(WaterSignal::modal) = modal_.process(input);
+            frames.at(WaterSignal::totalPreProtect) = frames.at(WaterSignal::modal);
+            frames.at(WaterSignal::postProtect) =
+                research::ResidualProtect::apply(frames.at(WaterSignal::modal), gain);
+        } else {
+            const auto parts = fluid_.processComponents(input);
+            frames.at(WaterSignal::bubble) = parts.bubble;
+            frames.at(WaterSignal::droplet) = parts.droplet;
+            frames.at(WaterSignal::flow) = parts.flow;
+            frames.at(WaterSignal::totalPreProtect) = parts.sum();
+            frames.at(WaterSignal::postProtect) =
+                research::applyFluidProtect(parts, gain, topology_);
+        }
+        return frames.at(WaterSignal::postProtect);
+    }
+    const WaterFrameReadout& waterReadout() const noexcept {
+        return readout_;
+    }
+    WaterActivity waterActivity() const noexcept {
+        if (!ready_ || baseline_)
+            return {};
+        WaterActivity activity;
+        if (modalMode_) {
+            activity.modalRootHz = modalConfig_.rootFrequencyHz;
+            activity.modalDecaySeconds = modalConfig_.decaySeconds;
+            activity.modalMotionDepth = modalConfig_.motionDepth;
+            activity.modalMotionIntervalSeconds = modalConfig_.motionIntervalSeconds;
+        } else {
+            activity.bubbleEvents = fluid_.bubbleEvents();
+            activity.dropletEvents = fluid_.dropletEvents();
+            activity.bubbleSteals = fluid_.bubbleSteals();
+            activity.bubbleActive = fluid_.bubbleActive();
+            activity.dropletActive = fluid_.dropletActive();
+            activity.flowDelayMs = 1000 * fluid_.flowDelaySamples() / sampleRate_;
+        }
+        return activity;
     }
 
     // Audio-owner command, called only at callback/sample boundaries by PreviewController.
@@ -77,5 +116,8 @@ class PreviewEngine final {
     research::ResidualProtect protect_;
     research::FluidProtectTopology topology_{research::FluidProtectTopology::whole};
     bool ready_{}, baseline_{}, modalMode_{};
+    WaterFrameReadout readout_;
+    research::ModalConfig modalConfig_;
+    double sampleRate_{48000};
 };
 } // namespace frazil::water::preview

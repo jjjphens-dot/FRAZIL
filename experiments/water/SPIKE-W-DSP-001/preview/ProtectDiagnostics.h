@@ -1,5 +1,7 @@
 #pragma once
 
+#include "WaterDiagnostics.h"
+
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -20,11 +22,13 @@ struct ProtectReadout final {
 };
 struct ProtectBlockReadout final {
     ProtectReadout latest, peak;
+    WaterDiagnostics water;
 };
 struct ProtectDiagnosticsSnapshot final {
     ProtectReadout latest, peak;
     std::size_t blocks{};
     std::uint64_t droppedBlocks{};
+    WaterDiagnostics water;
 };
 
 // Fixed SPSC block-summary queue. Audio publishes one value per callback; UI drains at most 256
@@ -48,17 +52,20 @@ class ProtectDiagnostics final {
     ProtectDiagnosticsSnapshot snapshot() noexcept {
         ProtectDiagnosticsSnapshot result;
         result.latest = last_;
+        result.water.latest = lastWater_;
         auto tail = tail_.load(std::memory_order_relaxed);
         const auto end = head_.load(std::memory_order_acquire);
         while (tail != end && result.blocks < kCapacity) {
             const auto& slot = slots_[tail % kCapacity];
             result.latest = slot.latest;
             result.peak.includePeak(slot.peak);
+            result.water.merge(slot.water);
             ++tail;
             ++result.blocks;
         }
         tail_.store(tail, std::memory_order_release);
         last_ = result.latest;
+        lastWater_ = result.water.latest;
         result.droppedBlocks = dropped_.load(std::memory_order_relaxed);
         return result;
     }
@@ -68,6 +75,7 @@ class ProtectDiagnostics final {
         tail_.store(0, std::memory_order_relaxed);
         dropped_.store(0, std::memory_order_relaxed);
         last_ = {};
+        lastWater_ = {};
     }
 
   private:
@@ -75,5 +83,6 @@ class ProtectDiagnostics final {
     std::array<ProtectBlockReadout, kCapacity> slots_{}; // Constructed off the audio thread.
     std::atomic<std::uint64_t> head_{}, tail_{}, dropped_{};
     ProtectReadout last_; // Reader-local last observation, cleared only while producer detached.
+    WaterActivity lastWater_;
 };
 } // namespace frazil::water::preview
