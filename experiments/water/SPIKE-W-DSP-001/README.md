@@ -315,6 +315,18 @@ the callback. Import decodes a candidate, then validates existing DSP config bef
 Source/build provenance and Protect state are added in later phases; the format is a research
 work-in-progress, not a public preset compatibility promise. Renderer module JSON remains unchanged.
 
+Phase 5 wires the existing `ResidualProtect` and `applyFluidProtect` into `PreviewEngine`, preserving
+exact Depth-zero baseline and generator progression. `PreviewController` transfers one lock-free
+double Depth target at callback boundaries; all other Protect config still requires stopped Apply.
+Source is added once by monitoring after residual processing. D0/D1 threshold memories, last nonzero
+Depth and Fluid topology belong to UI session state, not DSP/renderer config. Initial enable recall
+is a documented convenience `0.5`; the actual research baseline remains OFF/Depth zero. C uses only
+Whole and restores the remembered Fluid topology when returning. Session/renderer exports include
+existing Protect module fields; no schema key was added to the renderer. The shared exact-entry
+widget validates before slider snapping/clamping, supports adaptive ms/s and flags invalid text.
+Protect DSP sources remain identical to their source branch; samplewise integration tests compare
+both detector domains/topologies and exact OFF recovery at all three supported validation rates.
+
 LOCAL-WDSP-00..06 cover baseline, features, C, A, D, B and Fluid integration respectively.
 Historical measurements are retained in [EVIDENCE.md](EVIDENCE.md). Current source, three-preset
 regression, isolation/capacity fixes, typical-signal smoke, 80 renders and preliminary timing are

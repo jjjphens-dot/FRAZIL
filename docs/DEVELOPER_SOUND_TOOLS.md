@@ -133,7 +133,11 @@ the standalone preview also carries provisional Decay `0.5`, explicitly UNMAPPED
 A/B/reset and the separate `frazil.water-research-session` version 1 manifest. Copy/Export Session
 uses applied values; Import Session validates syntax/schema/config before replacing state. The
 original `DeveloperWaterExperimentSnapshot` and `frazil.dev-experiment` export are unchanged.
-GUI usability and Protect integration have separate later checkpoints.
+Protect research controls now reuse the existing residual-only processor. Depth/Enable publish one
+lock-free target consumed at a callback boundary; detector/topology/timing changes require Apply.
+D0/D1 calibration memory and Fluid topology are retained separately, with C restricted to Whole.
+Protect time fields use strict ms/s exact entry. Numerical diagnostics and GUI usability have later
+checkpoints; the original 21 engineering controls await the shared exact-entry widget migration.
 
 The original Debug UI still stores Water Model/Size/Motion locally without DSP mapping; its wet
 path remains M1 pass-through. The standalone preview uses engineering quantities, not inferred
@@ -144,8 +148,10 @@ gates are unchanged. See the [button and debugging guide](DEV_UI_WATER_DEBUG_GUI
 ### Proposed Protect research control
 
 [DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) is the historical Wave 1 proposal. The
-user-authorized [PROTECT-EXP-001](planning/WATER_PROTECT_EXECUTION.md) adds offline research only. Protect has
-no Developer snapshot/editor/export implementation and does not extend DEV-UI-001 acceptance. Current Water
+user-authorized [PROTECT-EXP-001](planning/WATER_PROTECT_EXECUTION.md) established offline research. The
+separate Water control-bridge scope now connects it to the standalone research preview and its own
+session/module exports; the plugin Developer snapshot/editor is unchanged and DEV-UI-001 acceptance
+is not extended. Current Water
 plugin experiment controls remain Model/Size/Motion; the plugin Decay follow-up above remains planned. A future Protect
 experiment-control change needs its own accepted scope/readiness, bounded state handoff and config tests;
 it cannot register an APVTS/Host parameter or alter the production schema for convenience.

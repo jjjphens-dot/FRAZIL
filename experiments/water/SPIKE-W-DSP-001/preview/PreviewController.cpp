@@ -55,6 +55,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
             return;
         const auto mode = monitor.load();
         carrier.setTarget(mode == MonitorMode::residual ? 0.0f : 1.0f);
+        engine.setProtectDepth(protectDepth.load(std::memory_order_relaxed));
         effect.setTarget(mode == MonitorMode::dry ? 0.0f : 1.0f);
         gain.setTarget(outputGain.load());
         const int channels = source.getNumChannels();
@@ -114,6 +115,9 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
     std::atomic<bool> isPlaying{}, ended{}, mismatch{};
     std::atomic<MonitorMode> monitor{MonitorMode::processed};
     std::atomic<float> outputGain{0.25118864f};
+    // Sole UI->audio Protect transport: validated normalized target, sampled at block boundary.
+    std::atomic<double> protectDepth{};
+    static_assert(std::atomic<double>::is_always_lock_free);
     static_assert(std::atomic<MonitorMode>::is_always_lock_free);
     static_assert(std::atomic<std::uint64_t>::is_always_lock_free);
     static_assert(std::atomic<float>::is_always_lock_free);
@@ -164,6 +168,7 @@ juce::String PreviewController::play(const PreviewSettings& settings) {
         return "Load a WAV first.";
     if (!impl_->engine.prepare(impl_->sourceRate, settings))
         return validate(settings);
+    impl_->protectDepth.store(settings.protect.depth, std::memory_order_relaxed);
     if (impl_->device.getCurrentAudioDevice() == nullptr) {
         const auto error = impl_->device.initialiseWithDefaultDevices(0, 2);
         if (error.isNotEmpty())
@@ -186,6 +191,10 @@ juce::String PreviewController::play(const PreviewSettings& settings) {
 
 void PreviewController::stop() {
     impl_->stop();
+}
+void PreviewController::setProtectDepth(double depth) noexcept {
+    if (std::isfinite(depth) && depth >= 0 && depth <= 1)
+        impl_->protectDepth.store(depth, std::memory_order_relaxed);
 }
 void PreviewController::setMonitor(MonitorMode mode, float outputGainDb) noexcept {
     if (mode != MonitorMode::dry && mode != MonitorMode::processed && mode != MonitorMode::residual)

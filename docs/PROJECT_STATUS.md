@@ -407,5 +407,7 @@ Preview and Protect on a separate integration branch and added isolated time-val
 Shared session state and Sound Lead/Engineering views are implemented with Model/composition sync,
 unmapped Size/Motion/Decay, edit provenance, retained inactive controls and applied A/B state. Decay
 uses provisional `0.5` and participates in reset and separate session copy/export/import. Widget unit
-conversion, Protect UI wiring, complete source provenance and GUI usability validation remain pending;
+conversion for the original 21 controls, complete source provenance and GUI usability validation remain pending.
+Protect is connected only in the research preview: Depth/Enable are live, configuration edits require
+Apply, D0/D1 retain separate calibration, and C permits only Whole. Existing Protect DSP is reused;
 no new production or human acceptance is claimed.

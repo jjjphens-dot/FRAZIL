@@ -19,6 +19,7 @@ class PreviewController final {
     void stop();
     juce::String validate(const PreviewSettings&) const;
     void setMonitor(MonitorMode, float outputGainDb) noexcept;
+    void setProtectDepth(double depth) noexcept;
     plugin::DeveloperDiagnosticsSnapshot diagnostics() const noexcept;
     juce::String sourceDescription() const;
     double positionSeconds() const noexcept;

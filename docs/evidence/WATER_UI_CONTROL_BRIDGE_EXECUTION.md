@@ -9,7 +9,7 @@ algorithm redesign, inferred macro curves or perceptual acceptance.
 
 ## Status
 
-Running, Phase 5 baseline refresh. The user explicitly requested autonomous progression through
+Running, Phase 6 preparation. The user explicitly requested autonomous progression through
 all phases after each self-review, then a single GitHub publication of the completed work. Separate
 local commits/checkpoints remain required; Phases 2–8 are next. Owner: Engineering implementation;
 Sound Lead retains human workflow/perceptual acceptance. No delegated workers.
@@ -63,7 +63,7 @@ Protect work, not newly authored algorithms.
 | 2 | Typed descriptors for existing controls | Implemented; self-review and Debug pass |
 | 3 | Shared ResearchSessionModel and dual views | Implemented; self-review, final Debug and docs pass |
 | 4 | Experiment-only Decay state/workflow | Implemented; self-review, Debug and docs pass |
-| 5 | Existing Protect DSP integration and calibration memory | Pending |
+| 5 | Existing Protect DSP integration and calibration memory | Implemented; self-review, three presets and docs pass |
 | 6 | Bounded Protect numerical diagnostics | Pending |
 | 7 | Module/session imports, exports, A/B and reset | Pending |
 | 8 | GUI usability and human handoff | Pending |
@@ -218,3 +218,40 @@ independent approval and main merge are not part of this local checkpoint.
     enum/range checks and candidate-only assignment precede controller validation. No generic preset
     framework, ownership duplication, reverse mapping or production default claim was introduced.
 12. Next: consume the latest Protect source, add residual-only controls and D0/D1 calibration memory.
+
+## Phase 5 implementation and review
+
+1. Baseline: Phase 4 `fbdd139`; a fresh fetch confirmed main `fc20370` and Protect `a883097` unchanged.
+   PR #37 remains open without formal review decision; no source-branch/main merge was performed.
+2. Scope: existing Protect processor integration, main/advanced controls, live Depth/Enable,
+   per-detector calibration and retained Fluid topology. No detector/envelope algorithm rewrite.
+3. Files: `ProtectControls.h`, `ProtectView.h`, `ExactValueControl.h`, `preview_protect_tests.cpp` added;
+   settings/session/codec/controller/engine/panel/window/CMake/test entry updated, plus related docs.
+4. Behavior: only residual is attenuated. Depth target is live; other fields stop playback and require
+   Apply. C rejects F2/F3; Fluid remembers topology. D0/D1 restore their own threshold domain. Initial
+   enable recall is convenience `0.5`, while the actual baseline remains Depth zero. Session/A/B now
+   retain full Protect settings and calibration; renderer exports use its existing Protect schema.
+5. Contracts: all Protect DSP sources are byte-for-byte unchanged by Git diff against `a883097` (no
+   content hashes computed). Nine Host parameters, schema 1, source path and generator/RNG progression
+   are unchanged. Size/Motion/Decay remain UNMAPPED. F2/F3 contraction is not claimed.
+6. Tests: serial Debug/Release safe builds + CTest; added exact-reference integration comparisons at
+   44.1/48/96 kHz for both detectors, three Fluid topologies and C/Whole. Tests cover OFF recovery,
+   reset, finite/stereo behavior, live state, enable recall, retained calibration/topology and A/B/session.
+7. Results: Debug/Release/ASAN each 20/20 PASS. Existing Protect/listening tests remain. The portability
+   scan initially mistook escaped JSON negative fixtures for UNC paths after those files became
+   tracked; equivalent raw-string fixtures fixed the false positive without relaxing the scanner.
+   Staged new files are now included in the final portability/link/diff checks, all PASS; a Debug
+   rerun verifies the equivalent fixtures. Earlier Phase 4 scans covered tracked files at that time.
+8. Human/UI: no new physical-output or human listening result; Phase 8 remains the GUI evidence gate.
+9. Realtime review: the new callback work is existing prepared Protect processing plus one atomic
+   double load per callback and sample-boundary retarget. Lock-free static assertion, no new callback
+   allocation/string/JSON/I/O/lock. Processing consumes typed config; preparation stays detached.
+10. Documentation: guide, Developer Sound Tools, Module Index, Project Status, Testing and research
+    README updated. Architecture/Parameters/ADRs/production UI README/Coding Plan reviewed: isolated
+    research integration changes no production contract or adoption decision.
+11. Self-review: strict exact-entry widget validates before slider clamping; session imports check both
+    calibration domains and config/memory consistency. Apply rejects invalid retained calibration.
+    Source DSP validation stays authoritative. Module JSON uses 17 decimal places to keep session
+    calibration/config roundtrips consistent. Current large layout and original 21-control input
+    migration remain Phase 8; module-specific Apply feedback and full provenance remain Phase 7.
+12. Next: bounded numerical Fast/Slow/D0/D1/GR diagnostics; optional trace only if realtime-safe.

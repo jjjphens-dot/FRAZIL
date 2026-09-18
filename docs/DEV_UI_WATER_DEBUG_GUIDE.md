@@ -9,7 +9,7 @@ Implementation DRI 为 Engineering Lead；Sound & Host Lead 评审操作和观�
 | 入口 | 实际音频路径 | 用途 |
 |---|---|---|
 | FRAZIL Debug/ASAN 插件、Standalone | input gain -> M1 直通 wet path -> global mix -> output gain | Host 参数、临时 override、UI 与状态边界调试 |
-| **FRAZIL Water Research Preview** | WAV -> 已选 A/B/D/C residual E -> x、x+E 或 E -> monitor gain -> 系统默认输出 | Water 工程参数与真实音频联调 |
+| **FRAZIL Water Research Preview** | WAV -> 已选 A/B/D/C residual E -> Protect -> x、x+E 或 E -> monitor gain -> 系统默认输出 | Water 工程参数与真实音频联调 |
 | Water offline renderer | 固定 WAV/config/seed -> 确定性离线文件 | 可重复 render 与分析 |
 
 原插件的 Water Model / Size / Motion 是 UI 临时值，**尚未影响 Water DSP**。
@@ -81,7 +81,7 @@ WAV 播完后输入自动为零，再处理 **30 秒 tail** 后停止；没有�
 | Import Session | 严格解析并校验，再停止播放并恢复会话值 | 无效文件不替换当前状态；保留当前 WAV，需手动匹配源素材 |
 
 界面显示 Applied composition、未应用变更数、revision、最后修改来源及播放时间；监听按钮显示当前模式。
-Dry/Processed/Residual 切换采用 monitor-only 10 ms 线性交叉变化；算法参数没有实时自动化能力。
+Dry/Processed/Residual 切换采用 monitor-only 10 ms 线性交叉变化；除 Protect Depth/Enable 外，算法配置仍须停止后 Apply；这不是 Host automation。
 Output meter 位于 monitor gain 后；Input meter 是 WAV 源，保持原有 aggregate、10 Hz、无 peak hold 语义。
 
 ### 双视图与共享实验状态
@@ -92,7 +92,7 @@ Model 显示 CUSTOM，可用 **Return Model to Mapped** 返回该模型的完整
 Size/Motion/Decay 显示 **UNMAPPED**：目前只保留实验值，不改变频率、事件率或延迟。
 工程参数手动修改不会反向改写宏值；inactive 控件变暗但保留值，生效前须启用对应 composition。
 编辑形成 Draft 并停止播放；Apply 校验后方可 Play。Decay 初值 0.5 是 provisional experiment baseline，
-参与 A/B、reset 和 session 保存，不是产品默认值。Protect、source/build provenance 后续接入；实测状态见 [执行记录](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md)。
+参与 A/B、reset 和 session 保存，不是产品默认值。Protect 已接入，source/build provenance 后续补齐；实测状态见 [执行记录](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md)。
 
 ## 5. 工程参数对应的 DSP 作用
 
@@ -117,6 +117,31 @@ Size/Motion/Decay 显示 **UNMAPPED**：目前只保留实验值，不改变频�
 
 这些值不是 Size/Motion/Decay 产品宏。调节后必须 Apply + Play，不能据此声称支持 live coefficient
 changes、production model transition、DAW automation 或 plugin state restore。
+
+### Protect research 控制
+
+Protect 只作用于 Water residual，源信号不会被它压缩。Depth=0 是 OFF 基线；关闭时按有限
+OFF transition 回到精确 unity，generator、RNG 和 tail 仍继续推进。
+
+| 控件 | 作用与生命周期 |
+|---|---|
+| Enable | LIVE；OFF 将 Depth 设为 0，ON 恢复上次非零 Depth；没有历史时使用 UI convenience 0.5 |
+| Depth | LIVE；0..1 调整 residual attenuation 的深度，独立于其他 Draft 字段 |
+| Detector | APPLY；D0 Difference / D1 Log Ratio 是中性研究候选，不是质量等级 |
+| Topology | APPLY；Fluid 提供 Whole/F1、Droplet Exempt/F2、Droplet Half/F3；Resonant C 只可 Whole |
+| Cap | APPLY；最大 residual attenuation，单位 dB，研究基线 9 dB |
+| Attack / Release | APPLY；gain envelope 时间，研究基线 1 ms / 80 ms，不是 Water Decay |
+| Advanced | 展开 Floor、Epsilon、Threshold Low/High、Depth/Score exponent 和 OFF transition |
+| Floor / Epsilon | APPLY；detector 安静信号门槛与数值正则项，Epsilon 必须 >0 且 <=Floor |
+| Threshold Low / High | APPLY；D0 为 linear amplitude，初始 .010/.120；D1 为 dB ratio，初始 1/9；各自保留 calibration |
+| Depth / Score exponent | APPLY；研究 attenuation curve 的指数，不是已接受的产品宏映射 |
+| OFF transition | APPLY；回到精确 unity 的有限时间，研究基线 10 ms，与 Release 独立 |
+
+Protect 时间输入支持 `70`、`70ms`、`0.07s`；无单位按 ms 解释。非法后缀、非有限值或超范围
+输入会显示错误并保留旧值。当前原有 21 个 Water 工程控件尚待同一精确输入控件迁移。
+切换 D0/D1 会恢复对应阈值，不会将 dB 数字当作 amplitude。切换到 C 会保留 Fluid topology，
+当前只使用 Whole；回到 Fluid 后恢复此前选择。F2/F3 可能改变分量相消，所以 GR 不等于输出
+电平下降；当前默认值只是 research baseline，不构成自然度、听感排名或产品推荐。
 
 ## 6. 原 FRAZIL Debug UI 的 11 个 workflow 按钮
 

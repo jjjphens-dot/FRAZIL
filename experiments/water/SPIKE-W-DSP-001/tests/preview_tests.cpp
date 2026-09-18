@@ -11,11 +11,12 @@ int runTimeValueTests();
 int runDescriptorTests();
 int runSessionTests();
 int runSessionCodecTests();
+int runPreviewProtectTests();
 
 int main() {
     juce::ScopedJuceInitialiser_GUI gui;
-    int failures =
-        runTimeValueTests() + runDescriptorTests() + runSessionTests() + runSessionCodecTests();
+    int failures = runTimeValueTests() + runDescriptorTests() + runSessionTests() +
+                   runSessionCodecTests() + runPreviewProtectTests();
     const auto check = [&](bool result, const char* name) {
         if (!result) {
             std::cerr << "FAIL " << name << '\n';
@@ -28,7 +29,9 @@ int main() {
     check(file.replaceWithText(settings.moduleJson()), "export module JSON");
     research::FluidConfig fluidConfig;
     research::ModalConfig modalConfig;
-    check(research::readConfig(file, fluidConfig, modalConfig), "renderer consumes preview export");
+    research::ProtectRenderConfig protectConfig;
+    check(research::readConfig(file, fluidConfig, modalConfig, protectConfig),
+          "renderer consumes preview export");
     check(fluidConfig.bubble.maximumEventRateHz == 120 && fluidConfig.droplet.voices == 8 &&
               fluidConfig.flow.depthSeconds == .001 && modalConfig.rootFrequencyHz == 260,
           "units and defaults round trip");
@@ -36,7 +39,6 @@ int main() {
     // Integration boundary: importing Protect must never silently discard its settings.
     constexpr std::string_view protectJson =
         R"({"protect":{"depth":0.6,"detector":0,"topology":2,"thresholdHigh":0.12}})";
-    research::ProtectRenderConfig protectConfig;
     check(research::readConfigText(protectJson, fluidConfig, modalConfig, &protectConfig) &&
               protectConfig.depth == .6 &&
               protectConfig.gain.score == research::ProtectScore::difference &&

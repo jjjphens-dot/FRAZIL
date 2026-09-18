@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PreviewController.h"
+#include "ProtectView.h"
 #include "ResearchViews.h"
 #include "SessionCodec.h"
 #include "ui/DeveloperDiagnosticsView.h"
@@ -13,7 +14,8 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
   public:
     explicit PreviewPanel(const juce::String& sourceArgument)
         : sound_(session_, ChangeOrigin::soundLeadUI, [this] { controller_.stop(); }),
-          engineering_(session_, [this] { controller_.stop(); }) {
+          engineering_(session_, [this] { controller_.stop(); }),
+          protect_(session_, [this] { controller_.stop(); }) {
         researchLabel(*this, title_, "FRAZIL / WATER RESEARCH PREVIEW");
         title_.setFont(juce::FontOptions(22));
         researchLabel(*this, note_,
@@ -24,6 +26,8 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         tabs_.addTab("Sound Lead", juce::Colour(0xff182b36), &sound_, false);
         tabs_.addTab("Engineering", juce::Colour(0xff182b36), &engineering_, false);
         addAndMakeVisible(tabs_);
+        addAndMakeVisible(protect_);
+        protect_.onLayoutChange = [this] { resized(); };
         for (auto* button : buttons()) {
             addAndMakeVisible(*button);
             button->setColour(juce::TextButton::buttonColourId, juce::Colour(0xff304d5a));
@@ -87,7 +91,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         if (sourceArgument.isNotEmpty())
             loadSource(
                 juce::File::getCurrentWorkingDirectory().getChildFile(sourceArgument.unquoted()));
-        setSize(1180, 1140);
+        setSize(1180, 1495);
         startTimerHz(10);
     }
     ~PreviewPanel() override {
@@ -108,6 +112,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             button->setBounds(transport.removeFromLeft(140).reduced(3));
         appliedLabel_.setBounds(area.removeFromTop(30));
         tabs_.setBounds(area.removeFromTop(645));
+        protect_.setBounds(area.removeFromTop(protect_.preferredHeight()));
         auto monitor = area.removeFromTop(38);
         for (auto* button : {&dry_, &processed_, &residual_})
             button->setBounds(monitor.removeFromLeft(145).reduced(3));
@@ -132,6 +137,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     }
     void applyDraft() {
         controller_.stop();
+        if (!validProtectMemory(session_.draft().protectMemory)) {
+            setStatus(
+                "Protect: retained D0/D1 calibrations require Low < High in their own units.");
+            return;
+        }
         const auto error = controller_.validate(session_.draft().engineering);
         if (error.isNotEmpty()) {
             setStatus(error);
@@ -163,9 +173,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     void refresh() {
         sound_.refresh();
         engineering_.refresh();
+        protect_.refresh();
         const auto& state = session_.draft();
         gain_.setValue(state.monitorGainDb, juce::dontSendNotification);
         controller_.setMonitor(state.monitor, static_cast<float>(state.monitorGainDb));
+        controller_.setProtectDepth(session_.applied().engineering.protect.depth);
         dry_.setToggleState(state.monitor == MonitorMode::dry, juce::dontSendNotification);
         processed_.setToggleState(state.monitor == MonitorMode::processed,
                                   juce::dontSendNotification);
@@ -276,6 +288,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     PreviewController controller_;
     WaterMacroView sound_;
     EngineeringView engineering_;
+    ProtectView protect_;
     juce::TabbedComponent tabs_{juce::TabbedButtonBar::TabsAtTop};
     juce::Label title_, note_, source_, status_, appliedLabel_, gainLabel_;
     juce::Slider gain_;

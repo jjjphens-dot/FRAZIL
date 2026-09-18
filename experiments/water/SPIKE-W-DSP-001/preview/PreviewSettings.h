@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ControlDescriptor.h"
+#include "ProtectControls.h"
 
 #include <array>
 #include <juce_core/juce_core.h>
@@ -13,6 +14,7 @@ inline constexpr std::array<const char*, 9> kModes{"abd", "c",  "a",  "b",      
 struct PreviewSettings final {
     std::array<double, kControls.size()> values{};
     int mode{}; // Index into kModes; independent of Host routing or Water product model IDs.
+    ProtectSettings protect;
 
     PreviewSettings() {
         for (std::size_t i = 0; i < values.size(); ++i)
@@ -28,7 +30,14 @@ struct PreviewSettings final {
                 root.getDynamicObject()->setProperty(spec.module, new juce::DynamicObject());
             root[spec.module].getDynamicObject()->setProperty(spec.key, values[i]);
         }
-        return juce::JSON::toString(root, false);
+        juce::var protection(new juce::DynamicObject());
+        for (const auto& spec : kProtectControls)
+            protection.getDynamicObject()->setProperty(spec.key, protectValue(protect, spec.id));
+        protection.getDynamicObject()->setProperty("detector",
+                                                   static_cast<int>(protect.gain.score));
+        protection.getDynamicObject()->setProperty("topology", static_cast<int>(protect.topology));
+        root.getDynamicObject()->setProperty("protect", protection);
+        return juce::JSON::toString(root, false, 17);
     }
 };
 

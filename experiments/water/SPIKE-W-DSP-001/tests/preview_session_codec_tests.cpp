@@ -62,12 +62,12 @@ int runSessionCodecTests() {
     }
     for (const std::string invalid :
          {"{\"a\":1e999}", "{\"a\":9223372036854775808}", "{\"a\":[1]}", "{\"a\":null}",
-          "{\"a\":\"\\q\"}", "{\"a\":-01}", "{\"a\":1.}", "{\"a\":1e+}"}) {
+          R"({"a":"\q"})", "{\"a\":-01}", "{\"a\":1.}", "{\"a\":1e+}"}) {
         SessionJsonSyntax syntax(invalid);
         check(!syntax.valid(), "strict session grammar");
     }
     const auto escapedDuplicate =
-        text.replace("\"decay\": 0.75", "\"decay\": 0.75, \"d\\u0065cay\": 0.5");
+        text.replace("\"decay\": 0.75", R"("decay": 0.75, "d\u0065cay": 0.5)");
     check(decodeSession(escapedDuplicate.toStdString(), decoded).isNotEmpty(),
           "decoded-equivalent duplicate keys rejected");
     const auto unknown = text.replace("\"decay\": 0.75", "\"decay\": 0.75, \"unknown\": 0.5");

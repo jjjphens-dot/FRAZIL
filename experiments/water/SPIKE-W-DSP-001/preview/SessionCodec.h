@@ -88,6 +88,14 @@ inline juce::String encodeSession(const ResearchSessionState& state) {
             juce::Identifier(juce::String(kControls[i].stableId())), ownership(state.ownership[i]));
     put(control, "targets", targets);
     put(root, "ownership", control);
+    auto memory = object();
+    put(memory, "d0Low", state.protectMemory.difference.low);
+    put(memory, "d0High", state.protectMemory.difference.high);
+    put(memory, "d1Low", state.protectMemory.logRatio.low);
+    put(memory, "d1High", state.protectMemory.logRatio.high);
+    put(memory, "lastNonzeroDepth", state.protectMemory.lastNonzeroDepth);
+    put(memory, "fluidTopology", static_cast<int>(state.protectMemory.fluidTopology));
+    put(root, "protectMemory", memory);
     return juce::JSON::toString(root, false, 17);
 }
 
@@ -107,7 +115,7 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
         return "Session: duplicate or invalid fields.";
     int version{}, seed{};
     if (!fields(root, {"format", "version", "water", "configuration", "composition", "seed",
-                       "monitor", "ownership"}) ||
+                       "monitor", "ownership", "protectMemory"}) ||
         !root["format"].isString() ||
         root["format"].toString() != "frazil.water-research-session" ||
         !integer(root["version"], 1, 1, version) || !integer(root["seed"], 42, 42, seed))
@@ -146,8 +154,45 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
     const auto& config = root["configuration"];
     research::FluidConfig fluid;
     research::ModalConfig modal;
-    if (!research::readConfigText(juce::JSON::toString(config).toStdString(), fluid, modal))
+    if (!research::readConfigText(juce::JSON::toString(config, false, 17).toStdString(), fluid,
+                                  modal, &candidate.engineering.protect))
         return "Session: invalid module config.";
+    const auto& protect = config["protect"];
+    if (!protect.isObject() || protect.getDynamicObject()->getProperties().size() != 13 ||
+        !protect.hasProperty("detector") || !protect.hasProperty("topology"))
+        return "Session: incomplete Protect config.";
+    for (const auto& spec : kProtectControls) {
+        double value{};
+        if (!protect.hasProperty(spec.key) ||
+            !number(protect[spec.key], spec.minimum,
+                    protectMaximum(spec, candidate.engineering.protect.gain.score), value))
+            return "Session: invalid Protect field " + juce::String(spec.key);
+    }
+    const auto& memory = root["protectMemory"];
+    auto& restored = candidate.protectMemory;
+    int topology{};
+    if (!fields(memory,
+                {"d0Low", "d0High", "d1Low", "d1High", "lastNonzeroDepth", "fluidTopology"}) ||
+        !number(memory["d0Low"], 0, 1, restored.difference.low) ||
+        !number(memory["d0High"], 0, 1, restored.difference.high) ||
+        !number(memory["d1Low"], 0, 100, restored.logRatio.low) ||
+        !number(memory["d1High"], 0, 100, restored.logRatio.high) ||
+        !number(memory["lastNonzeroDepth"], std::numeric_limits<double>::denorm_min(), 1,
+                restored.lastNonzeroDepth) ||
+        !integer(memory["fluidTopology"], 1, 3, topology) ||
+        restored.difference.low >= restored.difference.high ||
+        restored.logRatio.low >= restored.logRatio.high)
+        return "Session: invalid Protect calibration memory.";
+    restored.fluidTopology = static_cast<research::FluidProtectTopology>(topology);
+    const auto& active =
+        candidate.engineering.protect.gain.score == research::ProtectScore::difference
+            ? restored.difference
+            : restored.logRatio;
+    const auto& settings = candidate.engineering.protect;
+    if (settings.gain.thresholdLow != active.low || settings.gain.thresholdHigh != active.high ||
+        (mode == 1 ? settings.topology != research::FluidProtectTopology::whole
+                   : settings.topology != restored.fluidTopology))
+        return "Session: Protect config and retained state disagree.";
     for (std::size_t i = 0; i < kControls.size(); ++i) {
         const auto& spec = kControls[i];
         if (!readOwnership(targets[juce::Identifier(juce::String(spec.stableId()))],

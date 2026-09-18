@@ -40,6 +40,7 @@ struct WaterMacroMapper final {
 
 struct ResearchSessionState final {
     PreviewSettings engineering;
+    ProtectMemory protectMemory;
     WaterExperimentState water;
     MonitorMode monitor{MonitorMode::processed};
     double monitorGainDb{-12.0};
@@ -104,6 +105,21 @@ class ResearchSessionModel final {
         count += draft_.water.size != applied_.water.size;
         count += draft_.water.motion != applied_.water.motion;
         count += draft_.water.decay != applied_.water.decay;
+        for (const auto& spec : kProtectControls)
+            count += protectValue(draft_.engineering.protect, spec.id) !=
+                     protectValue(applied_.engineering.protect, spec.id);
+        count += draft_.engineering.protect.gain.score != applied_.engineering.protect.gain.score;
+        count += draft_.engineering.protect.topology != applied_.engineering.protect.topology;
+        const auto& draftInactive =
+            draft_.engineering.protect.gain.score == research::ProtectScore::difference
+                ? draft_.protectMemory.logRatio
+                : draft_.protectMemory.difference;
+        const auto& appliedInactive =
+            draft_.engineering.protect.gain.score == research::ProtectScore::difference
+                ? applied_.protectMemory.logRatio
+                : applied_.protectMemory.difference;
+        count += draftInactive.low != appliedInactive.low;
+        count += draftInactive.high != appliedInactive.high;
         return count;
     }
     bool dirty() const noexcept {
@@ -144,6 +160,12 @@ class ResearchSessionModel final {
             return false;
         if (draft_.engineering.mode == mode)
             return true;
+        if (mode == 1) {
+            draft_.protectMemory.fluidTopology = draft_.engineering.protect.topology;
+            draft_.engineering.protect.topology = research::FluidProtectTopology::whole;
+        } else if (draft_.engineering.mode == 1) {
+            draft_.engineering.protect.topology = draft_.protectMemory.fluidTopology;
+        }
         draft_.engineering.mode = mode;
         draft_.water.model = mode == 1 ? WaterModel::resonant : WaterModel::fluid;
         draft_.modelMapping = mode <= 1 ? MappingStatus::mapped : MappingStatus::custom;
@@ -157,6 +179,60 @@ class ResearchSessionModel final {
     }
     void returnModelToMapped() {
         setModel(draft_.water.model, ChangeOrigin::mapper);
+    }
+
+    bool setProtect(ProtectId id, double value, ChangeOrigin origin) {
+        if (static_cast<std::size_t>(id) >= kProtectControls.size())
+            return false;
+        if (protectValue(draft_.engineering.protect, id) == value)
+            return true;
+        if (!setProtectValue(draft_.engineering.protect, id, value))
+            return false;
+        if (id == ProtectId::depth) {
+            applied_.engineering.protect.depth =
+                value; // LIVE independently of other draft changes.
+            if (value > 0)
+                draft_.protectMemory.lastNonzeroDepth = applied_.protectMemory.lastNonzeroDepth =
+                    value;
+        } else if (id == ProtectId::low || id == ProtectId::high) {
+            auto& calibration =
+                draft_.engineering.protect.gain.score == research::ProtectScore::difference
+                    ? draft_.protectMemory.difference
+                    : draft_.protectMemory.logRatio;
+            calibration = {draft_.engineering.protect.gain.thresholdLow,
+                           draft_.engineering.protect.gain.thresholdHigh};
+        }
+        changed(origin);
+        return true;
+    }
+    void setProtectEnabled(bool enabled, ChangeOrigin origin) {
+        setProtect(ProtectId::depth, enabled ? draft_.protectMemory.lastNonzeroDepth : 0.0, origin);
+    }
+    void setDetector(research::ProtectScore score, ChangeOrigin origin) {
+        if ((score != research::ProtectScore::difference &&
+             score != research::ProtectScore::logRatio) ||
+            score == draft_.engineering.protect.gain.score)
+            return;
+        draft_.engineering.protect.gain.score = score;
+        const auto& calibration = score == research::ProtectScore::difference
+                                      ? draft_.protectMemory.difference
+                                      : draft_.protectMemory.logRatio;
+        draft_.engineering.protect.gain.thresholdLow = calibration.low;
+        draft_.engineering.protect.gain.thresholdHigh = calibration.high;
+        changed(origin);
+    }
+    bool setTopology(research::FluidProtectTopology topology, ChangeOrigin origin) {
+        if ((topology != research::FluidProtectTopology::whole &&
+             topology != research::FluidProtectTopology::dropletExempt &&
+             topology != research::FluidProtectTopology::dropletHalf) ||
+            (draft_.engineering.mode == 1 && topology != research::FluidProtectTopology::whole))
+            return false;
+        if (topology == draft_.engineering.protect.topology)
+            return true;
+        draft_.engineering.protect.topology = topology;
+        draft_.protectMemory.fluidTopology = topology;
+        changed(origin);
+        return true;
     }
 
     void setMonitor(MonitorMode mode, double gainDb) {

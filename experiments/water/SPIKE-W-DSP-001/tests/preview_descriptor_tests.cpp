@@ -56,7 +56,7 @@ int runDescriptorTests() {
     int fields{};
     for (const auto& property : root.getDynamicObject()->getProperties())
         fields += property.value.getDynamicObject()->getProperties().size();
-    check(fields == 21 && root.getDynamicObject()->getProperties().size() == 4,
+    check(fields == 34 && root.getDynamicObject()->getProperties().size() == 5,
           "all renderer fields covered without adding session metadata");
     for (std::size_t i = 0; i < kControls.size(); ++i) {
         const auto& spec = kControls[i];
@@ -88,7 +88,9 @@ int runDescriptorTests() {
     check(groups == std::array{7, 7, 4, 3}, "module groups preserved");
     research::FluidConfig decodedFluid;
     research::ModalConfig decodedModal;
-    check(research::readConfigText(settings.moduleJson().toStdString(), decodedFluid, decodedModal),
+    research::ProtectRenderConfig decodedProtect;
+    check(research::readConfigText(settings.moduleJson().toStdString(), decodedFluid, decodedModal,
+                                   &decodedProtect),
           "renderer consumes descriptor-based defaults");
     std::cout << "descriptor tests failures=" << failures << '\n';
     return failures;
