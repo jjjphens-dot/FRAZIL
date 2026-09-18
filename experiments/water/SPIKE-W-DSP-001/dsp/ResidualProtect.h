@@ -119,11 +119,27 @@ class ResidualProtect final {
     }
 
   private:
+    // All members have one processing owner. reset() clears history, retaining prepared settings.
+    // Validated curve/timing settings; replaced by prepare(), retained on reset.
     ProtectConfig config_;
+    // Independent source follower; reset clears its envelopes, not generator state.
     ProtectDetector detector_;
+    // Latest amplitude/D1-dB observation for offline inspection; reset zeroes it.
     ProtectDetection detection_;
-    double depth_{}, attack_{}, release_{}, gainDb_{}, offStartDb_{};
-    std::size_t offSamples_{1}, remaining_{};
+    // Unitless [0,1] target; prepare/setDepth update it, reset retains it.
+    double depth_{};
+    // Dimensionless one-pole memory coefficients [0,1]; cached by prepare from seconds/rate.
+    // reset retains both so the next source sample uses the same attack/release timing.
+    double attack_{}, release_{};
+    // Smoothed attenuation [-capDb,0] dB; reset restores exact unity (0 dB).
+    double gainDb_{};
+    // Latched dB attenuation for a finite OFF ramp; reset clears to 0 dB.
+    double offStartDb_{};
+    // OFF duration in samples, >=1; prepare computes ceil(rate*time), reset retains.
+    std::size_t offSamples_{1};
+    // OFF samples left [0,offSamples_]; reset/positive retarget cancel the countdown.
+    std::size_t remaining_{};
+    // Only successful prepare enables processing; reset preserves readiness for reuse.
     bool ready_{};
 };
 } // namespace frazil::water::research

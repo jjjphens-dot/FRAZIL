@@ -45,8 +45,12 @@ class ProtectDetector final {
     }
 
   private:
-    WaterExcitationFeatures features_;
+    // One processing owner; this follower's history is independent of generator excitation.
+    WaterExcitationFeatures features_; // Linked amplitude envelopes; reset clears follower history.
+    // Linear-amplitude floor suppresses unstable quiet ratios; epsilon regularizes the division.
+    // prepare validates/caches both; reset retains them while clearing only follower history.
     double floor_{}, epsilon_{};
-    bool ready_{};
+    bool ready_{}; // Successful prepare enables processing; reset retains the prepared
+                   // configuration.
 };
 } // namespace frazil::water::research

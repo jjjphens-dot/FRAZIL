@@ -9,6 +9,9 @@
 - Ninja；可以使用系统 PATH 中的 Ninja，也可以把本地副本放在 repository-local 的 tools/bin。
 - MSVC v143 和 Windows SDK，且 MSVC developer environment 已初始化，使 cl、rc 和 mt 可以被工具发现。
 - Python 用于 DSP 实验和跨平台工具；Python 依赖见 requirements-dsp.txt。
+- 启用 `FRAZIL_BUILD_WATER_EXPERIMENT=ON` 时，先运行 `python -m pip install -r requirements-dsp.txt`；
+  Protect listening-pack CTest 使用其中的 NumPy/SoundFile 并调用真实 research renderer。Hosted CI 同样安装
+  该依赖文件；未启用 research 的 production build 不新增 Python 包依赖。
 - JUCE 9.0.1 由 tools/bootstrap_dependencies.ps1 获取和校验；external/JUCE 是生成的本地依赖目录，不提交到 FRAZIL 主仓库。
 - pluginval 仅在执行 VST3 验证时需要；工具版本和下载来源由验证记录维护。
 

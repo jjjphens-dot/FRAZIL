@@ -29,7 +29,8 @@ ASAN pipelines using build_safe. Upload once after final review of the combined 
 
 ## Status
 
-complete — available engineering work and self-review; human listening/product adoption remain deferred.
+PR #37 engineering remediation and self-review complete. Historical runs below remain source-specific evidence;
+Wave 6 human listening is NOT RUN and Wave 7 product decision is BLOCKED pending detector selection and listening.
 
 ## Completed
 
@@ -47,8 +48,8 @@ continue. No independent approval will be claimed from self-review.
 
 ## Next action / checkpoint
 
-Submit the combined engineering change once. Resume musical listening/product decision when the user supplies
-material and judgments; resolve subsequent review findings without widening production scope.
+Upload the reviewed remediation to the existing PR #37 branch. Resume musical listening and explicit detector
+selection when the user supplies material and judgments; independent PR approval/merge remain unclaimed.
 
 ## Wave 2 review notes
 
@@ -128,7 +129,11 @@ duty also includes the appended 3 s silence and is separately labelled. In the s
 changing decay preserves A/B event counts (low activity 23/1, high 62/1) while tail energy changes; this is
 not proof of perceptual macro separability or live-decay behavior.
 
-## Wave 6 preparation / Wave 7 engineering disposition
+## Historical Wave 6 preparation / Wave 7 engineering disposition (`8eb0061`)
+
+**Superseded listening design:** the 12/8-trial RMS-only preparation below cannot establish attack/source
+preservation. Its initial tooling self-review did not catch that confound or the implicit D1 default. The
+remediation section below replaces this handoff; old generated files are not relabeled as new evidence.
 
 The existing renderer now feeds `prepare_protect_listening.py`: dry/OFF/mild/medium/strong, surviving Fluid
 placements and a fixed lower-residual control, hidden repeated OFF/medium trials, randomized order, raw
@@ -143,7 +148,7 @@ tests, but useful variable depth, preserved Droplet/Water identity, pumping tole
 simply reducing material remain unproven. Reject / Internal safeguard / User macro remains PENDING human
 evidence; no fifth Host macro, production DSP, ADR acceptance or schema change is authorized by self-review.
 
-## Final combined validation and documentation review
+## Historical combined validation and documentation review (`8eb0061`)
 
 Final serial runs, MSVC 19.43 / Windows 11 10.0.22631, default 6-job safe wrapper:
 
@@ -201,7 +206,7 @@ Comment & Documentation Pass and full synchronization review:
   automation, runtime allocation instrumentation, independent product acceptance or merge. Existing Host/
   latency CTest regression does not prove Protect has been integrated into a Host.
 
-## Fourteen-field completion index
+## Historical fourteen-field completion index (`8eb0061`)
 
 | Required field | Evidence / disposition |
 |---|---|
@@ -219,3 +224,88 @@ Comment & Documentation Pass and full synchronization review:
 | 12. Decision | Engineering infrastructure ACCEPT for review; product hypothesis REVISE/HOLD, no independent approval or listening acceptance. |
 | 13. Next step | Combined GitHub submission; human audio/conclusions and scoped detector follow-up before selection/adoption. |
 | 14. Non-goals | Production DSP/Host/schema/UI/Routing/Ice, macro freeze, unlicensed material, independent approval or merge. |
+
+## PR #37 remediation (2026-09-18)
+
+The user's six review findings reopen Wave 6 tooling review. Their subsequent explicit instruction removes
+SHA-256 from findings 3/6(c): use source names/descriptions and audio metadata, with no full or shortened hash.
+No source/artifact hashes were computed in this remediation. Existing Git commit IDs remain code references.
+
+Contract Review -> Implementation -> Functional Validation -> Code Quality Review -> Comment & Documentation
+Pass -> Final Validation are tracked separately here. Scope is listening preparation, persistent-state comments,
+regression/CTest/CI integration and affected documentation; no research DSP behavior or production code change.
+
+| Finding | Remediation / evidence |
+|---|---|
+| Fixed-source primary listening | One common gain across dry, OFF, both detectors, topology/depth and lower-residual controls; decoded-audio regression recovers the same source coefficient after removing each scaled residual. |
+| RMS evidence confound | Separate `fixed_source` and `rms_matched` directories, manifests, scorecards and review conclusions. RMS evidence is preference-supporting only; no shared/pooled conclusion or attack-preservation claim. Historical 12/8-trial packs are superseded. |
+| Unresolved detector | Explicit D0/D1 blinded pairs, including all depth/topology conditions; D0 .01/.12 amplitude and D1 1/9 dB thresholds, all Protect fields pinned. These are bounded settings, not equally tuned families. Independent re-renders test actual selection, not only labels. |
+| Selection gate | `DETECTOR_SELECTION.md` requests fixed-source trial/config evidence, reviewer, repeat consistency, quiet-after-loud/recovery/identity tradeoffs and rationale, including neither/revise. D1 is not selected by default. Wave 7 product decision is BLOCKED pending detector selection and human listening. |
+| Provenance / frame semantics | Required source/author/license/permission/storage-policy JSON; original source name, frames/duration, channels, subtype/bit-depth, source snapshot, code revision/dirty state, independent DSP/randomization seeds, comparison frames/duration and separately declared appended tail. No ambiguous `frames`/`seed` fields or hash claims. |
+| Persistent state | Detector/follower, latest detection, prepared depth/settings, attack/release coefficients, gainDb/offStartDb, OFF duration/countdown and readiness now explain purpose, units and reset/prepare behavior; DSP expressions unchanged. |
+| Automated regressions | New real-renderer `protect_listening_test.py`: seven tests covering common carrier gain, D0/D1 configs/behavior, metadata/tail lengths, exact repeat config/gain/audio, deterministic order/audio and independent seeds, distinct evidence/blank scores, missing-rights rejection. CTest and hosted CI run it; CI installs existing `requirements-dsp.txt`. |
+
+Each new pack has 21 Fluid / 13 Resonant trials, including hidden repeats of D0-OFF, D0-medium and D1-medium.
+DSP seed is separate from randomization; the RMS pack uses randomization seed + 1 and records that actual value.
+The original source bytes are copied locally once, and every renderer call uses the copy; storage permission
+must cover the copy and derived audio. Names/metadata are identifying descriptions, not cryptographic identity.
+Human-provided permission remains a claim to be reviewed by the material owner, not automatic authorization.
+
+### Remediation validation and review
+
+Contract Review and Implementation complete against the task-specific findings, Code Standards, testing and
+build/CI contracts. Functional Validation used the real renderer; no mocked DSP or invented listening scores.
+
+| Preset | Configure / safe build | CTest | Duration |
+|---|---|---|---|
+| windows-debug | PASS (6 jobs) | 19/19 PASS | 31.30 s |
+| windows-release initial | PASS (6 jobs) | 18/19; existing renderer CLI Python process crashed | 14.46 s |
+| windows-release focused rerun | Existing successful build | renderer CLI 1/1 PASS | 8.02 s |
+| windows-release full rerun | Existing successful build | 19/19 PASS | 13.91 s |
+| windows-asan | PASS (6 jobs) | 19/19 PASS | 53.14 s |
+
+The new listening test passed in every preset, including the failed initial Release suite. Windows Application
+Error identified `python.exe` / `python312.dll` 3.12.4 access violation `0xc0000005` at offset `0x12fd30` in the
+initial existing renderer CLI test (2026-09-18 13:23 local time). This is not a sanitizer report against DSP.
+The unchanged focused/full reruns used `PYTHONFAULTHANDLER=1` and passed; no root cause or fix is claimed.
+The earlier historical Python failure above remains a separate event. Do not summarize the initial run as PASS.
+
+Commands: the same configure/build_safe/CTest sequence shown in the historical section, with the added
+`python -m pip install -r requirements-dsp.txt` prerequisite. The local environment already had these packages.
+Also ran the seven-test script directly against Release (7/7), Python compilation, C++ clang-format check,
+Markdown links, portability and Git diff whitespace checks. New CTest executes all seven assertions groups;
+production/unit/Host/state/latency regressions remain in the 19-test suite.
+
+Retained diagnostic packs: `build/protect-listening-v2-fluid` and `build/protect-listening-v2-c`, using
+`testdata/input/envelope_response__gated_sine.wav`, source metadata in ignored
+`build/protect-listening-source-v2.json`, DSP seed 42, randomization seeds 42/43 and 3 s appended tail.
+Both packs passed readback: 21+21 Fluid and 13+13 C trials. Source is 96000 frames / 2 s / 48 kHz / stereo /
+PCM24; comparison is 240000 frames / 5 s. Both fixed-source packs use carrier gain 1.0 for every condition.
+These runs record `8eb0061` plus dirty remediation working state, not clean-commit measurement provenance.
+Only blank scorecards were produced; human listening is NOT RUN. All audio/metadata/keys/logs remain ignored.
+
+**Separate Code Quality Review:** no blocking finding in the bounded remediation. Reviewed common-gain
+algebra, explicit detector thresholds/config forwarding, source snapshot consistency, manifest lengths/units,
+randomization independence, hidden-repeat equality, input validation/no overwrite, dependency scope and missing
+metadata rejection. Python preparation remains offline; C++ processing expressions and generator/state/RNG
+behavior are unchanged. Comments distinguish history cleared by reset from cached configuration retained.
+No new production abstraction, macro, global DSP state or runtime operation was introduced.
+
+**Comment & Documentation Pass / Full Gate (testing and CI contract):**
+
+- Changed: research README, TESTING, ENVIRONMENT, Coding Plan, Project Status, Module Index and this execution
+  record. The README documents the new required metadata JSON and supersedes `--source-note`; there is no
+  silent compatibility fallback to incomplete provenance or default D1 listening conditions.
+- Reviewed unchanged: PARAMETERS (nine Host IDs/schema 1 and Protect proposal only), CODE_STANDARDS (comments
+  now comply), DOCUMENT_GOVERNANCE (actual affected Full Gate rows), GITHUB_WORKFLOW and root README (portable
+  build/review policy and production defaults unchanged), DEVELOPER_SOUND_TOOLS (offline-only boundary).
+  Architecture/Accepted ADR impact is N/A: no production algorithm/interface/routing/latency/state change.
+- Cross-document consistency: source versus padded frames, evidence separation, D0/D1 unresolved selection,
+  Wave 7 BLOCKED, no production/Host control and opt-in research dependency are consistent. Historical
+  measurements are preserved with historical labels. Documentation Review: PASS.
+
+**Final Validation:** local checks above PASS, with the initial Release exception retained. Hosted CI must be
+read on the uploaded exact PR head; local runs do not establish hosted success. Self-review is engineering
+remediation only, not formal independent approval. Not run: musical listening, human detector selection,
+pluginval/DAW acceptance, new CPU measurement or Waves 2–5 diagnostic sweeps (processing behavior unchanged),
+runtime allocation instrumentation, product adoption or merge. Wave 7 remains BLOCKED.

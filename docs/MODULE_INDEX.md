@@ -34,7 +34,9 @@ ProcessSpec 当前实际位于 `src/app/ProcessSpec.h`，由 M1 AudioEngine 消�
 [PROTECT-EXP-001](planning/WATER_PROTECT_EXECUTION.md) adds `ProtectDetector`, `ResidualProtect` and pure
 `applyFluidProtect` in the existing opt-in research tree. They own linked detection/gain state and residual
 composition, with prepare/reset/sample processing and research unit/CLI tests; no production target depends
-on them. See the [research README](../experiments/water/SPIKE-W-DSP-001/README.md#protect-follow-up--protect-exp-001).
+on them. Offline listening preparation separates fixed-source primary and RMS-matched preference evidence,
+with explicit D0/D1 conditions and a real-renderer CTest regression. See the
+[research README](../experiments/water/SPIKE-W-DSP-001/README.md#protect-follow-up--protect-exp-001).
 Production Water-domain ownership/adoption gates remain; no fifth accepted macro or production module is created.
 
 ## Registration and update rules

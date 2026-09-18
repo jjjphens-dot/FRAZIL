@@ -69,6 +69,9 @@ jobs:
         shell: pwsh
         run: ./tools/bootstrap_dependencies.ps1
 
+      - name: Install DSP experiment analysis dependencies
+        run: python -m pip install -r requirements-dsp.txt
+
       - name: Configure
         run: cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON
 

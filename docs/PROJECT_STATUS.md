@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-17（仅核实 Decay baseline merge 并追加 Protect proposal；其余 evidence 保留原适用范围）<br>
+> 快照日期：2026-09-18（仅追加 Protect review remediation；Decay baseline 与其余 evidence 保留原适用范围）<br>
 > 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -37,7 +37,9 @@ production scope。
 独立 experiment 中的 detector、residual gain、Fluid placement、renderer 与数值验证，及每项实际结果。
 没有 production Water/Developer/Host Protect control 或第五个已接受 macro。Issue #17 的 owner brief/
 Decay Revision B、精确版本 re-review 和 whole-contract acceptance 仍待完成。该 objective follow-up 不等于
-formal EXP-W-002 或 product adoption；用户将后续提供音频/结论，人类听测和产品决定明确待验收。
+formal EXP-W-002 或 product adoption；用户将后续提供音频/结论，人类听测尚未执行。PR #37 remediation
+将 fixed-source-gain 主听测与 RMS-matched preference evidence 分开，加入显式 D0/D1 盲测条件；
+detector selection 仍未完成，Wave 7 产品决定在 selection 和人类听测完成前保持 BLOCKED。
 
 当前阻塞性差距：
 

@@ -538,6 +538,9 @@ review/merge wait for this objective follow-up, not the accepted-instance prereq
 or subjective tuning/selection. No EXP-W-001/Decay Revision B or Developer readiness acceptance is inferred.
 The closed SPIKE-W-DSP-001 scope is not retrospectively expanded. Human listening is deferred until the user
 supplies audio/conclusions; self-review is not formal independent GitHub approval or product acceptance.
+Protect's Wave 7 product decision remains BLOCKED until explicit detector selection and human listening
+evidence exist. Fixed-source attack/source-preservation judgments and RMS-matched preference judgments are
+independent evidence; the latter cannot substitute for the former. D1's renderer default is not a selection.
 
 Proposed sequence: detector comparison -> whole-residual gain -> Fluid topology comparison -> Motion/Decay
 interaction -> human listening -> Reject / Internal safeguard / User macro decision. Each is separately

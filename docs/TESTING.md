@@ -538,9 +538,28 @@ separate listening preparation record. No makeup gain or limiter is added to run
 
 Use licensed bass, drums/percussion, pad, piano/guitar and appropriate vocal passages under LISTENING-001.
 Engineering impulse/noise evidence cannot replace these. Provide dry/OFF/mild/medium/strong references and
-surviving topology comparisons with loudness-aware preparation, randomized/blinded labels where practicable,
-repeated conditions and recorded monitoring level/environment. Compare with a lower-Amount control to test
-whether Protect provides more than general material reduction.
+surviving topology comparisons in two separate randomized/blinded packs, with repeated conditions and recorded
+monitoring level/environment. The **fixed-source-gain pack is primary for attack/source preservation**: one
+common playback gain across dry/OFF/candidates/controls, never per-condition normalization. The separate
+**RMS/loudness-matched pack supports preference only** and cannot establish attack/source preservation;
+its scores and conclusions must not be copied or pooled with the primary pack. Record gains and matching
+windows explicitly. Compare with a lower-Amount control to test whether Protect provides more than general
+material reduction (the current harness uses an offline lower-residual control, not production Amount mapping).
+
+The current harness includes explicit D0/D1 blinded pairs (thresholds .01/.12 amplitude versus 1/9 dB), including
+matching depth/topology/seed conditions and identical hidden repeats. These are bounded settings, not equally
+tuned detector families. D1 is not a final detector by default. Record selection evidence from the primary pack:
+reviewer, source/config/trial references, repeat consistency, attack/identity, quiet-after-loud response, recovery
+tradeoffs, alternatives and uncertainty. **Wave 7 product decision stays BLOCKED until detector selection and
+human listening evidence exist**; neither/revise keeps the block and requires bounded follow-up.
+
+Listening provenance uses original source name/description and a local source snapshot, original
+`source_frames`/duration, channels, subtype/bit-depth, source/author/license/permission, storage policy, independent
+`dsp_seed` and `randomization_seed`, and `comparison_frames`/duration with separate `appended_tail_seconds`.
+No hash is required/computed for this handoff under the user's superseding instruction; names/metadata do not
+claim cryptographic identity. Pack scores/reviews are separate and remain blank until human listening.
+CTest `frazil_water_protect_listening` verifies decoded common carrier gain, explicit D0/D1 renders, complete
+metadata, original versus padded frames, identical repeats and deterministic randomization/audio.
 
 Record separate judgments for attack clarity, source recognizability, Water identity, continuity, Droplet
 identity, tail preservation, pumping, post-attack holes, stereo stability, usefulness of variable depth and

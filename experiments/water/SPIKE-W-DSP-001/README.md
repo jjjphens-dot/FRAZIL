@@ -62,14 +62,50 @@ Motion is N/A because the existing resonator has no such destination. No accepte
 Listening handoff (user supplies audio/permission later):
 
 ```powershell
-python experiments/water/SPIKE-W-DSP-001/analysis/prepare_protect_listening.py --renderer $renderer --source <authorized-input.wav> --source-note "author/source/local-use permission" --mode abd --output build/protect-listening-fluid
+python -m pip install -r requirements-dsp.txt
+python experiments/water/SPIKE-W-DSP-001/analysis/prepare_protect_listening.py --renderer $renderer --source <authorized-input.wav> --source-metadata <local-metadata.json> --mode abd --dsp-seed 42 --randomization-seed 42 --appended-tail-seconds 3 --output build/protect-listening-fluid-v2
 ```
 
-Use `--mode c` for Resonant; add `--diagnostic` for engineering fixtures. This prepares 12 Fluid or 8 C
-randomized trials including repeats, raw counterparts, a lower-residual control, normalization keys and blank
-scorecards. All use fixed common-window RMS matching (not LUFS or proven perceptual matching), with a common
-target reduced if needed to retain .9 peak headroom. Readback checks matching and peak bounds. Human anchors,
-monitoring context and independent judgments remain required; no automatic quality score/product winner.
+Use `--mode c` for Resonant; add `--diagnostic` for engineering fixtures. The metadata JSON requires nonempty
+`source`, `author`, `license`, `permission` and `storage_policy` strings. Describe the actual source/version and
+permission for local copies/derived renders; a filled field does not itself establish permission. Sources must
+be PCM/float WAV at 44.1/48/96 kHz, mono/stereo. Keep metadata, source copies and packs in ignored local storage.
+For example, a self-created fixture's metadata can identify its generator/version, author, applicable license,
+local-test permission and temporary retention policy. Do not copy those claims onto third-party music.
+
+Each run creates two independent randomized packs, each containing **21 Fluid or 13 C trials**:
+
+- `fixed_source/`: primary attack/source-preservation evidence. Every condition uses one common gain
+  `min(1, .9 / maximum_raw_peak)`, including dry/OFF and lower-residual controls. There is no per-condition
+  normalization, so the carrier coefficient is identical. The common gain and every playback gain are recorded.
+- `rms_matched/`: **preference-supporting evidence only**. Full comparison-window RMS (including the appended
+  tail) is matched with condition-specific gains and .9 peak headroom. This is neither LUFS nor proven equal
+  perceived loudness, and cannot establish attack/source preservation. It has separate scores and conclusions;
+  never copy/pool conclusions between the two packs.
+
+Both include explicit D0/D1 OFF/mild/medium/strong pairs and surviving Fluid topology pairs. D0 uses .01/.12
+amplitude thresholds; D1 uses 1/9 dB. All Protect fields are written explicitly to renderer configs. These are
+bounded configurations, not equally tuned detector families. OFF, D0-medium and D1-medium have hidden repeats
+with identical config/seed/gain/audio. Fixed-source randomization uses the supplied seed; RMS uses seed + 1.
+DSP seed is independent. Trial WAVs alone are the blind handoff; the coordinator retains keys and `reviewer/`
+raw/config/source files until scoring ends. Both scorecards start blank.
+
+Manifest schema 2 records source name/description, original `source_frames`/`source_duration_seconds`, channels,
+subtype/bit-depth, source/author/license/permission/storage policy, `dsp_seed`, actual `randomization_seed`,
+`comparison_frames`/duration and separate `appended_tail_seconds`. The original byte snapshot is retained as
+`reviewer/source.wav` relative to the run root; renderers use that snapshot. No source/artifact hashes are
+computed, per the user's superseding instruction. Names/metadata/copies distinguish sources, without a
+cryptographic identity claim. `code_commit`/`code_dirty` identify repository code, not source audio.
+
+`DETECTOR_SELECTION.md` requires independent fixed-source observations, repeat consistency, attack/identity,
+quiet-after-loud response and recovery tradeoffs, exact condition references, reviewer and rationale (including
+neither/revise). **D1 is not selected by default; Wave 7 remains BLOCKED until detector selection and human
+listening evidence exist.** Product adoption still needs Joint Gate/ADR. Historical 12/8 RMS-only packs are
+superseded preparation artifacts and cannot support attack/source-preservation conclusions.
+
+CTest `frazil_water_protect_listening` invokes the real renderer and pack CLI, checks decoded carrier gains,
+explicit detector behavior/configs, source metadata/tail separation, hidden repeats, deterministic order/audio,
+independent evidence labels/blank scores and missing-rights rejection. Hosted CI installs `requirements-dsp.txt`.
 
 ## Scope and execution state
 
