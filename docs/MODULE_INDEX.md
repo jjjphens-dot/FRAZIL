@@ -35,6 +35,11 @@ and audio callback state, and `PreviewMain` owns UI commands only. It reuses the
 view/meter. Dependencies point from research application to existing DSP/UI primitives; FRAZIL targets
 do not depend on the preview. Tests and limitations: [validation](evidence/WATER_PREVIEW_VALIDATION.md).
 
+The control-bridge integration adds isolated `preview/TimeValue.h` UI/tooling helpers for adaptive
+ms/s display and strict exact entry. They own no session or DSP state, use only the C++ standard
+library, and are tested by `frazil_water_preview`; widget integration remains pending.
+See [staged execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
+
 ## Proposed Protect research
 
 [DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) records the theory. The user-authorized

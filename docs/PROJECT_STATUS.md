@@ -401,3 +401,8 @@ Production Water integration, Size/Motion/Decay macro mappings and final workflo
 remain pending. Actual validation and limits are recorded in
 [WATER_PREVIEW_VALIDATION](evidence/WATER_PREVIEW_VALIDATION.md); usage in the
 [debugging guide](DEV_UI_WATER_DEBUG_GUIDE.md).
+
+The staged [Water UI control bridge](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md) has reconciled
+Preview and Protect on a separate integration branch and added isolated time-value tooling tests.
+Shared session state, dual views, widget unit conversion, Decay workflow and Protect UI wiring
+remain pending; no new production or human acceptance is claimed.

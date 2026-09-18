@@ -281,6 +281,16 @@ production AudioEngine integration claim. Production sources and baseline harnes
 
 ## Validation checkpoints
 
+The [control-bridge execution record](../../../docs/evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md)
+tracks staged Preview/Protect integration. Phase 1 adds isolated UI-thread `formatTimeValue` and
+`parseTimeValue` helpers in `preview/TimeValue.h`, covered by the existing Preview test executable.
+Seconds remain the internal/config unit. Display uses ms through exactly one second, then s;
+the locale-independent formatter preserves fractional values. Exact entry accepts decimal or
+scientific numbers, ASCII whitespace and case-insensitive ms/s only, defaulting to ms. Bounds are
+inclusive in seconds; invalid input returns an error without overwriting the prior value or clamping.
+The formatter rejects negative/nonfinite values. Neither helper is called from the audio path or
+connected to current widgets yet; current GUI instructions remain unchanged.
+
 LOCAL-WDSP-00..06 cover baseline, features, C, A, D, B and Fluid integration respectively.
 Historical measurements are retained in [EVIDENCE.md](EVIDENCE.md). Current source, three-preset
 regression, isolation/capacity fixes, typical-signal smoke, 80 renders and preliminary timing are

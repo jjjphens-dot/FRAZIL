@@ -46,7 +46,7 @@ if(FRAZIL_BUILD_WATER_PREVIEW)
     target_link_libraries(frazil_water_preview PRIVATE frazil_water_research juce::juce_audio_utils)
 
     juce_add_console_app(frazil_water_preview_tests PRODUCT_NAME "FRAZIL Water Preview Tests")
-    target_sources(frazil_water_preview_tests PRIVATE tests/preview_tests.cpp preview/PreviewController.cpp
+    target_sources(frazil_water_preview_tests PRIVATE tests/preview_tests.cpp tests/preview_time_tests.cpp preview/PreviewController.cpp
         ../../../src/dsp/primitives/LinearSmoother.cpp)
     target_compile_definitions(frazil_water_preview_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
         FRAZIL_ENABLE_DEVELOPER_UI=1)

@@ -7,9 +7,11 @@
 
 using namespace frazil::water;
 
+int runTimeValueTests();
+
 int main() {
     juce::ScopedJuceInitialiser_GUI gui;
-    int failures{};
+    int failures = runTimeValueTests();
     const auto check = [&](bool result, const char* name) {
         if (!result) {
             std::cerr << "FAIL " << name << '\n';

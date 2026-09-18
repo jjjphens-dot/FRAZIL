@@ -9,8 +9,9 @@ algorithm redesign, inferred macro curves or perceptual acceptance.
 
 ## Status
 
-Running, Phase 1 preparation. Current delivery slice: Phase 0 and isolated Phase 1, with separate
-self-review checkpoints; Phases 2–8 remain pending. Owner: Engineering implementation;
+Running, Phase 2 preparation. The user explicitly requested autonomous progression through
+all phases after each self-review, then a single GitHub publication of the completed work. Separate
+local commits/checkpoints remain required; Phases 2–8 are next. Owner: Engineering implementation;
 Sound Lead retains human workflow/perceptual acceptance. No delegated workers.
 
 ## Live baseline
@@ -47,15 +48,18 @@ ASAN support retain both suites. No new macro mapping or audio behavior is intro
 
 Combined baseline: Windows Debug safe build and 20/20 CTests passed. Markdown links, portability
 and staged/unstaged whitespace checks passed. The added parser regressions also passed in the
-20/20 Debug rerun. Phase 0 is ready for its local integration checkpoint; independent review and
-human acceptance remain pending.
+20/20 Debug rerun. Phase 0 is committed as `b173418`; independent review and human acceptance remain
+pending. Exact integrated file inventory relative to Preview can be reproduced with
+`git diff --name-only 234056e b173418`. The four conflict-resolution paths above, the Preview parser
+regressions and this execution record are the integration-specific edits; other changes are retained
+Protect work, not newly authored algorithms.
 
 ## Phase tracking
 
 | Phase | Scope | Status |
 |---|---|---|
 | 0 | Baseline, contracts, integration, documentation inventory | Implemented; self-review and Debug pass |
-| 1 | Isolated strict time formatter/parser and tests | Pending |
+| 1 | Isolated strict time formatter/parser and tests | Implemented; self-review and three presets pass |
 | 2 | Typed descriptors for existing controls | Pending |
 | 3 | Shared ResearchSessionModel and dual views | Pending |
 | 4 | Experiment-only Decay state/workflow | Pending |
@@ -73,3 +77,65 @@ destination. Protect is residual-only research, depth zero is OFF, D0/D1 calibra
 and F2/F3 do not promise summed-energy contraction. Nine Host parameters and state schema stay intact.
 
 No human/UI acceptance has been performed for this integration.
+
+## Phase 1 implementation and review
+
+- Baseline: Phase 0 integration commit `b173418`; source refs above are retained as ancestors.
+- New `preview/TimeValue.h`: narrow stateless C++ tooling functions; no framework or dependency.
+  Formatting selects units using the unrounded seconds value. Parsing consumes the entire input,
+  validates finite values and inclusive seconds bounds, then commits only a successful value.
+- New `tests/preview_time_tests.cpp`: runs in the existing Preview executable; CMake and its main
+  add that test entry. Valid/invalid examples, boundary conversion, suffixes, whitespace,
+  scientific notation, repeated signs, overflow/underflow and failure atomicity are covered.
+- Behavior: isolated helpers only; no widgets, draft/apply, serialization or DSP behavior changes.
+- Code Quality Review: explicit seconds units, no mutable global state, no hidden ownership,
+  locale-independent standard conversions, no exception-driven parsing or silent clamping.
+  Formatting allocates a string and is explicitly UI/tooling-only; the audio call graph is unchanged.
+- Comment & Documentation Pass: public helper semantics and error contract documented; Module
+  Index, Testing, Project Status and research README synchronized with this checkpoint.
+- Reviewed, no update required: Architecture, Parameters, Perceptual Contract, ADRs 0002/0003/0006,
+  Coding Plan, Developer Sound Tools, Preview guide, `src/ui/README.md`, Code Standards and
+  Document Governance. This slice introduces no Host/state, production ownership, perceptual
+  mapping, public GUI behavior, realtime, latency, random or formal performance contract change.
+- Phase 0 preserved historical validation records; this record identifies new combined evidence
+  without replacing earlier failures or treating PR #37 CI as validation of this branch.
+- Human/UI evidence: not performed for this slice; no interactive behavior was changed.
+  Pluginval/DAW, audio-device audition and subjective listening were not run. Three-preset
+  automated integration checks are recorded below when complete.
+- Next phase: typed descriptors for the existing 21 controls, preserving applied DSP config.
+  Protect/Decay/session/UI work remains explicitly pending and needs its own later checkpoints.
+
+## Commands and final validation
+
+Run from the integration repository root in the discovered MSVC developer environment. The ignored
+local command wrapper only sequences the existing tools and redirects full logs beneath
+`build/control-bridge/`; build safety remains enforced by `tools/build_safe.py` at six jobs.
+Each preset is fully finished before the next starts. For each of `windows-debug`,
+`windows-release` and `windows-asan`:
+
+```powershell
+$bridgePython = python -c "import sys; print(sys.executable)"
+cmake --preset <preset> -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=ON "-DPython3_EXECUTABLE:FILEPATH=$bridgePython"
+python tools/build_safe.py --preset <preset>
+ctest --preset <preset> --output-on-failure
+```
+
+`<preset>` is a documentation placeholder, not a literal shell argument. Python dependency imports
+(`numpy`, `scipy`, `matplotlib`) passed. Debug CMakeCache and CTest JSON commands were checked against
+the discovered interpreter after normalizing path separators; interpreter identity passed.
+
+| Check | Result |
+|---|---|
+| Windows Debug configure / safe build / CTest | PASS; 20/20 |
+| Windows Release configure / safe build / CTest | PASS; 20/20 |
+| Windows ASAN configure / safe build / CTest | PASS; 20/20 |
+| `python tools/check_markdown_links.py` | PASS |
+| `python tools/check_portability.py` | PASS |
+| `git diff --check` | PASS |
+| Protect DSP diff against source Protect ref | Empty |
+| Production source code diff against main | Empty; inherited `src/ui/README.md` docs only |
+
+The six development stages are recorded separately: Contract Review (Phase 0), Implementation
+(parser compatibility and isolated time tooling), Functional Validation (Debug), Code Quality Review
+(above), Comment & Documentation Pass (above), and Final Validation (this table). New Hosted CI,
+independent approval and main merge are not part of this local checkpoint.

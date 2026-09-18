@@ -779,3 +779,9 @@ It requires no audio device. GUI/physical-output operations are separately obser
 [WATER_PREVIEW_VALIDATION](evidence/WATER_PREVIEW_VALIDATION.md) and the
 [Sound Lead guide](DEV_UI_WATER_DEBUG_GUIDE.md). No product macro mapping, real DAW acceptance or
 subjective Water quality is inferred from this test.
+
+The control-bridge integration additionally tests Protect config parser compatibility and isolated
+time-value helpers in the same CTest. Time coverage includes the 1000 ms boundary, fractional ms,
+unitless-ms input, supported/unsupported suffixes, full consumption, finite/range checks and
+preserving the previous value on failure. This is not GUI exact-entry evidence; integration and
+human usability remain pending. Results: [control-bridge execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
