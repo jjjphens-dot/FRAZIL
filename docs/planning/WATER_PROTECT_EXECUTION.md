@@ -29,7 +29,8 @@ ASAN pipelines using build_safe. Upload once after final review of the combined 
 
 ## Status
 
-PR #37 engineering remediation and self-review complete. Historical runs below remain source-specific evidence;
+PR #37 listening and CI-interpreter remediation complete for the recorded implementation head; see the latest
+Hosted CI section. Historical runs below remain source-specific evidence;
 Wave 6 human listening is NOT RUN and Wave 7 product decision is BLOCKED pending detector selection and listening.
 
 ## Completed
@@ -48,8 +49,8 @@ continue. No independent approval will be claimed from self-review.
 
 ## Next action / checkpoint
 
-Upload the reviewed remediation to the existing PR #37 branch. Resume musical listening and explicit detector
-selection when the user supplies material and judgments; independent PR approval/merge remain unclaimed.
+Request independent final review after the latest PR head passes Hosted CI. Resume musical listening and explicit
+detector selection when the user supplies material and judgments; no merge or product acceptance is claimed.
 
 ## Wave 2 review notes
 
@@ -309,3 +310,69 @@ read on the uploaded exact PR head; local runs do not establish hosted success. 
 remediation only, not formal independent approval. Not run: musical listening, human detector selection,
 pluginval/DAW acceptance, new CPU measurement or Waves 2–5 diagnostic sweeps (processing behavior unchanged),
 runtime allocation instrumentation, product adoption or merge. Wave 7 remains BLOCKED.
+
+## Hosted CI interpreter remediation (2026-09-18)
+
+Reviewed PR head: `90b7f2ce8c3256152334f26a906db36a9ddcd2c3`; base:
+`fc20370ddcf7cce97b950522b9aeaf9d605e945d`. Live fetch confirmed no base movement or conflicting new commit.
+The user's supplied review is REQUEST CHANGES / DO NOT MERGE; the earlier listening/DSP remediation is accepted
+within that review, with interpreter mismatch the remaining explicit blocker. No formal GitHub APPROVE is inferred.
+
+**Confirmed historical failure:** [run 35310887776](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35310887776)
+at `90b7f2c` installed DSP dependencies into Python 3.12.10's hosted toolcache environment (cp312 wheels and
+site-packages in the install log), while CMake found Python 3.14.7 `python3.exe`. Build passed; CTest was 18/19,
+with `frazil_water_protect_listening` failing at import with `ModuleNotFoundError: No module named 'numpy'`.
+This is dependency-install/CMake interpreter divergence, not a DSP assertion failure. It is separate from the
+local `python312.dll` `0xc0000005` and older `0xc0000409` events; neither crash is diagnosed or fixed here.
+
+**Implementation:** `82f6960048fb8108a5d7bd5ee9c4986c09f12186` changes only `.github/workflows/ci.yml` and
+`docs/ENVIRONMENT.md`. CI resolves `sys.executable` once, uses it for `-m pip`, passes the captured path to
+`Python3_EXECUTABLE:FILEPATH`, and compares both the CMake cache and generated CTest listening command with it.
+The check fails on a mismatch or absent listening test; it does not skip, remove or weaken the regression.
+No fixed interpreter version/machine path, extra Python installation, CMake target change or test change.
+
+**Local functional validation:** resolved Python 3.12.4, with the same executable in pip, CMake and CTest
+(normalized separators; actual installation path contains spaces). Raw local paths stay in ignored build/logs.
+`-m pip install -r requirements-dsp.txt` passed with requirements already installed. Executed:
+
+```powershell
+$frazilPython = python -c "import sys; print(sys.executable)"
+& $frazilPython -m pip install -r requirements-dsp.txt
+cmake --preset windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON "-DPython3_EXECUTABLE:FILEPATH=$frazilPython"
+& $frazilPython tools/build_safe.py --preset windows-debug
+ctest --preset windows-debug --output-on-failure
+```
+
+Configure / safe build (6 jobs) PASS; Debug CTest **19/19 PASS, 30.89 s**; listening regression **PASS, 8.59 s**.
+The exact workflow identity-check body was executed locally with the local preset name and passed; supplying
+an intentionally different expected executable was rejected. No CMake cache or registered tests were altered
+for the negative check. Markdown links, portability and staged diff checks passed.
+
+**Separate Code Quality Review:** checked single interpreter ownership across steps, quoted paths containing
+spaces, native command exit propagation, case/slash-normalized comparison, CTest registration/command checks,
+portable path discovery and unchanged safe-build concurrency. No blocking implementation finding.
+
+**Comment & Documentation Pass / Full Gate:** ENVIRONMENT documents the same-interpreter invariant and local/
+CI commands. This record preserves the failed run and new evidence; PROJECT_STATUS will reference the bounded
+CI outcome. Reviewed unchanged: AGENTS, Code Standards, Documentation Governance, Collaboration Roles, Coding
+Plan, TESTING, research README, root/research CMake and listening scripts/tests. They still describe the same
+research-only targets, regression behavior and ownership; no source/parameter/DSP contract changed. Existing
+research README's dependency command remains valid for its directly invoked Python CLI; the CMake binding
+instructions are centralized in ENVIRONMENT. Cross-document consistency: PASS for this CI/environment scope.
+
+**Hosted validation:** [run 35313675800](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35313675800)
+for implementation head `82f6960048fb8108a5d7bd5ee9c4986c09f12186` completed **SUCCESS**. All portability,
+Markdown, testdata, dependency-install, configure, safe-build and test steps passed. CTest: **19/19 PASS,
+52.35 s**; `frazil_water_protect_listening`: **PASS, 14.91 s**. The log records dependency interpreter Python
+3.12.10 `python.exe`, CMake finding the same executable, and `Python identity PASS` showing pip/CMake/CTest paths
+are identical apart from Windows slash spelling. The hosted path is represented portably here as
+`<hosted-toolcache>/windows/Python/3.12.10/x64/python.exe`; the linked log retains exact runner paths.
+
+This evidence applies to the implementation head above, not automatically to a later documentation commit.
+The documentation-only evidence follow-up must also pass its own exact-head Hosted CI before final review;
+that latest result is reported on PR #37. The earlier failed run is preserved above. CI mismatch remediation
+is verified; the independent final review/merge gate remains separate from Protect's product adoption gate.
+
+Release/ASAN were NOT RERUN for this CI-only change; earlier results retain their earlier scope. No new human
+listening, detector selection, DSP sweeps, pluginval/DAW, performance measurement, product adoption or merge.
+D0/D1 remain UNRESOLVED, Wave 7 stays BLOCKED, and no source/artifact/full/shortened hashes are calculated.

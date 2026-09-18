@@ -41,6 +41,14 @@ formal EXP-W-002 或 product adoption；用户将后续提供音频/结论，人
 将 fixed-source-gain 主听测与 RMS-matched preference evidence 分开，加入显式 D0/D1 盲测条件；
 detector selection 仍未完成，Wave 7 产品决定在 selection 和人类听测完成前保持 BLOCKED。
 
+PR #37 CI interpreter remediation：历史 head `90b7f2c` 的
+[run 35310887776](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35310887776) 为 FAIL（18/19；pip 使用
+Python 3.12.10，CMake/CTest 使用 3.14.7，听测测试缺 NumPy）。修复 head `82f6960` 的
+[run 35313675800](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35313675800) 已 SUCCESS，19/19 PASS，
+`frazil_water_protect_listening` PASS；日志核实 pip/CMake/CTest 同为 Python 3.12.10 的同一个 executable。
+此结果只适用于该 implementation head，后续文档提交仍需自己的 exact-head CI 和最终独立 review。
+本次不诊断或宣称修复此前本地 `python312.dll` 崩溃，也不形成 Hosted Release/ASAN、听测或产品采纳证据。
+
 当前阻塞性差距：
 
 1. PR #5 squash merge commit 为 `12d36a40d03944f9c69cd273d1cc3dca3e0b6ee7`；STATE-001 = MERGED / validated；`feat/m1-parameter-engine-contract` 与 `feat/m1-state-contract` 保留为历史 feature 分支。本文件记录 verified merge/evidence snapshots；current `main` HEAD should be read from GitHub，不把本文件中的 snapshot 当作永久 current HEAD；
