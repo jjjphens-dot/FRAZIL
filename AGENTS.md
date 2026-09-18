@@ -16,6 +16,16 @@
 - Hosted CI 也使用同一受控 wrapper；构建失败时只回显有限日志尾部，避免把海量 compiler include 输出灌入终端。
 - 共享的 portable-windows-base configure preset 注入 CMAKE_BUILD_PARALLEL_LEVEL=6，用于约束 configure 阶段的 JUCE nested build；不得通过修改环境变量绕过安全检查。
 - Agent 不得在本机并发运行多个 configure/build/test pipeline；Debug、Release、ASAN 和其他重型 preset 必须串行执行。
+
+## 0.2 本地工作区位置
+
+- 本地项目文件只允许创建在用户指定的工作区父目录 `<workspace-root>` 内。优先按上级 `AGENTS.md` 所在位置或用户明确指定解析；未指定时使用主工作树的父目录，不根据临时 checkout 任意改变边界。不同工作机分别解析自己的工作区绝对路径，不共享固定盘符。
+- 创建新分支不要求创建新目录；需要隔离时，将 worktree、临时 clone、review checkout 放在 `<workspace-root>` 内。项目生成的 build、render、日志和验证文件也留在该边界内，优先使用各工作树的 ignored `build/`。
+- 创建、复制或移动前检查目标绝对路径及 junction/symlink 的实际指向，确保没有通过链接将新项目内容写出边界；保留已有工作树和无关改动。
+- 只有目录内方案确实不可行的工具硬限制或复现要求才允许例外。先说明必要性、目录内替代方案为何失败、外部位置和收尾方式，再按已有授权执行；路径更短、习惯或方便不构成必要性。
+- 不自动迁移或删除历史外部副本，不移动系统工具、用户附件或平台管理的缓存。此规则约束本地项目文件位置，不改变托管 CI 工作区。
+- tracked 文档使用相对路径或 `<workspace-root>` / `<repo-root>`，不提交个人绝对路径；上级目录说明优先以自身位置为锚点。确需机器专属绝对路径时，仅使用 ignored 配置或本机环境变量。详细规则见 [ENVIRONMENT](docs/ENVIRONMENT.md#local-workspace-boundary)。
+
 ## 1. 当前基线
 
 - 当前阶段：M1 Exit 已批准并完成状态收口；下一阶段为 Water pre-M2 preparation + Developer Sound/Debug Tooling acceptance follow-up。
@@ -205,7 +215,7 @@ Developer/Experiment control 不等于 production Host parameter。`water.model`
 ## 7. 构建与验证
 
 构建产物必须保存在 repository-local 或 developer-configured build directory 中，并且不得提交到 Git。
-例如 <repo-root>/build/，或由 CMakeUserPresets.json 指定的本地构建目录。
+例如 <repo-root>/build/，或由 CMakeUserPresets.json 指定且符合第 0.2 节工作区边界的本地构建目录。
 
 ```powershell
 cmake --preset windows-debug

@@ -25,7 +25,30 @@ Visual Studio IDE 不是项目必需品。VS Code、Developer PowerShell for Vis
     <repo-root>/tools/downloads
     <repo-root>/testdata/rendered
 
-build、.venv、external/JUCE、tools/bin、tools/downloads 和 testdata/rendered 均为本地或生成内容，不提交到 Git。构建目录也可以由被忽略的 CMakeUserPresets.json 指定到开发者自己的位置。
+build、.venv、external/JUCE、tools/bin、tools/downloads 和 testdata/rendered 均为本地或生成内容，不提交到 Git。构建目录也可以由被忽略的 CMakeUserPresets.json 指定到下述工作区边界内的本地位置。
+
+## Local Workspace Boundary
+
+`<workspace-root>` 是用户指定的本地工作区父目录，`<repo-root>` 是其中一个 FRAZIL 工作树。
+具体路径按用户指示或工作区上级 `AGENTS.md` 所在位置在本机解析；未指定时使用主工作树的父目录。
+不同工作机使用各自实际的工作区绝对路径，不能把某台机器的盘符或用户名固化为共享规则。
+linked worktree 应通过 `git worktree list` 和 `git rev-parse --path-format=absolute --git-common-dir`
+确认主仓库归属，不将临时 checkout 的位置当作新的工作区边界。
+
+- 新分支可以留在已有工作树中；需要隔离时，只在 `<workspace-root>` 内创建 worktree、review checkout
+  或临时 clone，例如 `<workspace-root>/FRAZIL-<task>`。
+- build、render、日志和其他项目验证输出也必须在该边界内；优先使用 `<repo-root>/build/`，本地 preset
+  不能被用来绕过目录限制。创建、复制和移动前检查绝对目标路径及 junction/symlink 的实际指向。
+- 只有工具硬限制或复现要求使目录内方案确实不可行时才允许例外；执行前说明必要性、已排除的目录内
+  替代方案、外部位置和收尾方式。已有用户授权有效，不因例外本身机械要求再次确认。仅为缩短路径或
+  操作方便，不得另选磁盘根目录、用户目录或临时目录。
+- 已有外部副本不自动移动或删除；系统工具、用户提供的附件和平台管理的缓存不因本规则而迁移。
+  托管 CI 继续使用 runner 提供的工作区，不依赖本机路径。
+
+上级目录说明优先以自身位置为锚点，仓库内路径使用相对路径或上述占位符。执行时用 `Resolve-Path`、
+`Join-Path` 等解析并检查目标绝对路径；确需机器专属绝对路径时，仅使用 ignored 配置或本机环境变量。
+这不放宽现有禁止在 tracked source/config/script/canonical documentation 中提交个人绝对路径的规则。
+工作树迁移应保留源码及本地证据，修复 Git worktree 登记，并重新生成引用旧位置的 CMake 配置后验证。
 
 ## Shared Configuration and Local Configuration
 
@@ -36,7 +59,7 @@ tracked 的 CMakePresets.json、.vscode/tasks.json 和 CI workflow 不包含开�
 - 构建目录使用 <repo-root>/build/<preset-name>；
 - windows-debug、windows-release、windows-asan 和 ci-windows-debug 共用该基础配置。
 
-如果某台机器需要特殊的 compiler、SDK、Ninja 或 build directory，应使用已忽略的 CMakeUserPresets.json 或开发者自己的环境变量。不要修改 tracked preset 来提交个人安装位置。
+如果某台机器需要特殊的 compiler、SDK、Ninja 或 build directory，应使用已忽略的 CMakeUserPresets.json 或开发者自己的环境变量。build directory 仍受 Local Workspace Boundary 约束。不要修改 tracked preset 来提交个人安装位置。
 
 ## Standard Local Workflow
 
