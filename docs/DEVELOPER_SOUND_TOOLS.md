@@ -37,9 +37,11 @@ experimentation. It is not an M1 architecture-correctness exit gate, and `HOST-0
   not received workflow usability acceptance.
 - **PLANNED**: final `DEV-UI-001` acceptance, richer Offline Sound Lab review packs, reproducible debug bundles,
   automated review-pack generation, LUFS/true peak, spectral flux, onset, pitch/harmonic-retention and extended
-  tail analysis. The `EXP-W-001` Water Perceptual Contract acceptance remains PLANNED; this branch contains a
-  [CANDIDATE brief](../experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md) and bounded local reference intake,
-  not an accepted instance, automated listening pack or completed listening evidence.
+  tail analysis.
+- **ACCEPTED perceptual definition**: [EXP-W-001 Revision B](../experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md),
+  with Human ACCEPT, recorded engineering preliminary PASS and user-reported Engineering Lead oral acceptance.
+  This does not accept Developer workflow usability, runtime Decay support or candidate listening results.
+  Bounded local reference intake reuses the analyzer; it is not an automated listening pack.
 - **CANDIDATE / PLANNED**: Sound & Host Lead workflow usability and UI layout acceptance, richer diagnostic/debug
   bundle evidence, and Water experimental-control mapping. The current bounded A/B storage is temporary editor
   state and is not a persistent preset or plugin state.

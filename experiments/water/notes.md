@@ -2,6 +2,7 @@
 
 > Sections through the original validation record describe the first intake batch.
 > The latest-plan continuation at the end supersedes its proposed two-person/anonymous calibration workflow.
+> Current acceptance and remaining evidence disposition are in brief sections 11–12; current execution state is in task_plan.md. Earlier pending/review statements below are historical.
 
 ## Actual baseline and scope
 

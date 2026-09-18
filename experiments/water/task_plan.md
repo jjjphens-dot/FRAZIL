@@ -6,17 +6,21 @@
 
 ## Current priority — Decay Revision B
 
-Status: awaiting engineering review; Revision B synchronization, independent agent document review and user Human ACCEPT complete.
+Status: running — definition acceptance recorded; repository/PR closure in progress.
 Goal: synchronize Issue #17 and the existing canonical brief to approved Model/Size/Motion/Decay
 baseline, then record engineering re-review and independent acceptance without inventing listening evidence.
 Success: text/issue agree, all six Revision B gates have attributable evidence before EXP-W-001 closure.
 Completed: main fc20370 merged into the existing brief branch; historical HI inputs retained; section 5
 contains four-macro perceptual/UX clauses and Motion x Decay review tasks. No new production path.
 Owners: Sound & Host Lead implementation; Engineering Lead feasibility/Acceptance DRI.
-Next checkpoint: real Engineering Lead feasibility review and independent Acceptance DRI decision on this revised brief.
-Remaining gate: real Engineering Lead/Acceptance DRI evidence. Four-reference user feedback and Human ACCEPT for b616533 are recorded on 2026-09-17; broader listening coverage is not inferred. The user offered to perform engineering review; no engineering decision has yet been supplied.
+Next checkpoint: final validation, push/create PR, inspect checks and merge eligibility, then close Issue #17.
+Acceptance evidence: Human ACCEPT for b616533; Aspartameqwq-side preliminary engineering PASS for a5a0d99;
+2026-09-18 user explicitly reports Engineering Lead oral acceptance and directs completion without further confirmation.
+The oral report is manual evidence, not formal GitHub APPROVE or an invented exact-head review.
+Remaining listening coverage is assigned in brief section 12; no unperformed hearing is marked passed.
 Q16/Q17 remain optional follow-ups, not a renewed interview prerequisite.
-Historical sections below describe earlier rounds; current Decay interpretation is section 5 of the brief.
+Historical sections below describe earlier rounds and their then-current pending states; current Decay interpretation
+is section 5 of the brief, acceptance/coverage disposition is sections 11–12, and current execution state is above.
 
 ## Mission / scope
 
@@ -176,3 +180,47 @@ Proposed ADR-0006, COLLABORATION_ROLES and DOCUMENT_GOVERNANCE; existing scope a
 Runtime/build/DAW/CPU/automated audio validation NOT RUN (documentation/evidence recording only).
 Next action: review the pushed recording revision, supply actual Engineering feasibility findings/decision,
 and satisfy independent acceptance before Issue #17 closure or formal EXP-W-002. No merge/closure authorized here.
+
+## Closeout execution — 2026-09-18
+
+This entry supersedes the historical pending states above. User reports Engineering Lead oral acceptance
+and explicitly directs completion without another confirmation. See brief sections 11–12 for the exact
+attribution, reviewed-revision limits and remaining-evidence disposition. No formal GitHub APPROVE is claimed.
+Existing engineering preliminary PASS: a5a0d99, Issue #17 comment 5701188940; Human ACCEPT: b616533.
+
+- Contract Review: Coding Plan Revision B gate, Parameters, Perceptual Contract, Testing,
+  collaboration/governance/workflow, Proposed ADR-0006 and applicable architecture/implementation boundaries.
+  No new product semantics, algorithm choice or Joint Gate trigger; existing macro controls remain candidates.
+- Implementation: record supplied acceptance, backfill existing engineering review, resolve checklist ownership,
+  synchronize status/entry points and index the existing offline intake helper. No production or helper code change.
+- Functional Validation: Markdown links, portability and both scanner regression suites PASS. Existing helper
+  additionally passes 9 synthetic CLI cases: metadata; analysis/plots; duplicate, unknown and >6 IDs;
+  unassigned-reference analysis; plots without analysis; outside output; non-JSON output. Synthetic files are
+  local ignored artifacts, not references or listening evidence. Default Python lacked soundfile; the existing
+  developer DSP virtual environment supplied requirements-dsp.txt dependencies without a repository change.
+- Code Quality Review: a separate post-validation read of the complete branch's 96-line helper checked path
+  containment, explicit batch/development guards, analyzer reuse, scoped plotting configuration and no runtime
+  dependency on production targets. No blocking finding; original reference audio and previous measurements
+  were not reproduced. This is agent self-review, distinct from the earlier engineering-side review.
+- Comment & Documentation Pass: preserve historical Human Intent and analysis; make current versus historical
+  status explicit; separate accepted intent, user-reported oral evidence, formal review and unperformed listening.
+- Final Validation: links/portability/scanner tests and diff checks PASS; product sections 3–5 unchanged versus
+  a5a0d99. Repository/PR completion and actual CI results are recorded on Issue #17 and its closing PR.
+
+Actual commands: `python tools/check_markdown_links.py`, `python tools/check_portability.py`,
+`python tools/test_check_markdown_links.py`, `python tools/test_check_portability.py`, `git diff --check`;
+developer DSP Python ran ignored `build/exp-w-001-closeout/smoke_intake.py` (9/9 PASS).
+
+Documentation Review — changed for closeout: brief, LISTENING_LOG, REFERENCE_INDEX.md, task_plan, notes,
+experiments README, PERCEPTUAL_CONTRACT status, DEVELOPER_SOUND_TOOLS status, PROJECT_STATUS and MODULE_INDEX.
+Reviewed without updates: CODING_PLAN/PARAMETERS/TESTING/Proposed ADR-0006 (gates and candidate contracts unchanged),
+Architecture/CORE_IMPLEMENTATION_GUIDE/src DSP and UI READMEs (no production/module behavior change),
+AGENTS/CODE_STANDARDS/DOCUMENT_GOVERNANCE/GITHUB_WORKFLOW/COLLABORATION_ROLES (no governance/ownership change;
+AGENTS' conditional planned-until-accepted rule remains valid). Reference CSV and ROUND_01 preserve historical evidence.
+Consistency: PASS — accepted definition versus pending DSP/tool readiness; evidence sources and limitations;
+Issue/brief Revision B scope; module index/helper dependency; no Host/state/routing/realtime/latency/random,
+performance-budget or release impact (N/A). No new abstraction or framework introduced.
+
+NOT RUN locally: C++ Debug/Release/ASAN, CTest, DSP/property/render/performance, pluginval/DAW,
+new human or agent listening, license verification, Developer workflow usability or runtime Decay validation.
+Hosted CI is handled as repository PR validation; it cannot upgrade these perceptual/runtime claims.

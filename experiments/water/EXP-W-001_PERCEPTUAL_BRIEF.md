@@ -1,9 +1,9 @@
-# EXP-W-001 — Water Identity v0.2 — Decay Revision B 感知合同草案
+# EXP-W-001 — Water Identity v0.2 — Decay Revision B 感知合同
 
-> Version: **v0.2 — DECAY REVISION B / ENGINEERING REVIEW DRAFT**。Status: **CANDIDATE / NOT ACCEPTED**。
-> 六段 Human Intent 已整理；2026-09-17 已记录四参考人工听评及本稿 b616533 的 Human ACCEPT；独立工程签核仍待完成。
+> Version: **v0.2 — DECAY REVISION B**。Status: **ACCEPTED — perceptual definition only**。
+> Human ACCEPT：b616533；工程初审 PASS：a5a0d99；2026-09-18 用户转述 Engineering Lead 口头认可并明确要求收口，按 manual evidence 记录，不是 formal GitHub APPROVE。
 > ID：EXP-W-001。Human Intent：最新 Water Dual-Mode Perceptual/Product Brief plan；取代旧版 candidate-oriented 执行顺序。
-> 当前依据：Human Intent、获准 candidate baseline 与四参考人工反馈；Agent first-pass 仍仅为数值/图形层。整体 EXP-W-001 工程验收未完成。
+> 当前依据：Human Intent、获准 candidate baseline、四参考人工反馈及第 11/12 节验收记录。Agent first-pass 仍仅为数值/图形层；接受感知目标不代表 DSP、宏映射或运行时行为通过。
 > Implementation DRI：Sound & Host Lead；Engineering feasibility reviewer：Engineering Lead。
 > Tracking：[Issue #17](https://github.com/jjjphens-dot/FRAZIL/issues/17)。
 
@@ -11,7 +11,7 @@
 
 **用途**：当前即可用于初步可行性审查、工程问题拆分及四 macro 合同复审。无需等待 Q16/Q17
 bass 补充回答。本页是后文和 HI 记录的当前汇总；历史 Agent 提案不能覆盖用户已确认意图。
-本文件仍是唯一 canonical brief，不另建并行合同。
+本文件仍是唯一 canonical brief，不另建并行合同。第 0 节保留初次交接背景；当前验收与剩余证据处置以第 11/12 节为准。
 
 ### 0.1 已确认的产品方向
 
@@ -42,7 +42,7 @@ bass 补充回答。本页是后文和 HI 记录的当前汇总；历史 Agent �
 | Q17 bass 最低频保留程度 | 暂停；维持共同主体/起音/节奏边界 | 非初版交接前置条件；不据此指定分频或保留干声架构 |
 | 参考对应正例/反例、词汇听评 | 20 metadata、6 basic QA、4 numerical/visual first-pass；reference human calibration 4/4（2026-09-17，见 LISTENING_LOG） | 一轮人工语义反馈；不代表 DSP candidate 或完整 coverage 验收 |
 | 整份合同 Human Review | ACCEPT，用户于 2026-09-17 对 b616533 明确认可 | 产品审查已记录；不代替独立工程验收 |
-| 独立 Engineering feasibility review | PENDING | 可立即先做初审，正式收口保留可追溯记录 |
+| Engineering feasibility review | a5a0d99 初审 PASS；最终口头认可由用户转述 | 证据类型、限制和收口处置见第 11/12 节；不冒充 formal APPROVE |
 
 ### 0.3 Engineering Lead 现在可以推进什么
 
@@ -58,14 +58,16 @@ bass 补充回答。本页是后文和 HI 记录的当前汇总；历史 Agent �
 须按当前 framework 完成必要人工校准/合同验收及可行性审查后才能进入该阶段；本次只解除
 “必须把所有补充问答答完才能交给工程看”的人为等待，不改变 repository gate。
 
-### 0.4 初审回填（当前未执行）
+### 0.4 初审回填
 
-- Reviewer / date：PENDING。
-- Reviewed scope / evidence：PENDING。
-- Blocking findings（逐项注明影响的工作）：PENDING，不预设为零。
-- Non-blocking follow-ups：PENDING。
-- Decay definition reference：PR #35 / 第 5 节；本实例复审决定仍 PENDING。
-- Decision / rationale：PENDING；初审结果不能冒充最终 formal approval。
+- Reviewer：Engineering-side Codex，受工程侧用户委托，通过 Aspartameqwq 发布；不是新增人工听评。
+- Reviewed revision：a5a0d9997697ae93b954841c3111787cc9cf0ad4；Human-reviewed revision：b616533。
+- Evidence：[Issue #17 engineering review](https://github.com/jjjphens-dot/FRAZIL/issues/17#issuecomment-5701188940)。
+- Decision：PASS for documentation/evidence and preliminary feasibility；未发现 blocking finding。
+- Scope：Revision B 四 macro、六 UX 维度、preserve/reject、下游验证、实时与参数边界。
+- Reproduced：diff checks、Markdown links、portability 及两项 scanner tests；未复现原始参考/许可/听辨、DSP 或运行时行为。
+- Follow-up：第 12 节 coverage/acceptance checklist 须明确处置；初审本身不关闭 issue。
+- 最终认可及上述 follow-up 的处置见第 11/12 节。
 
 下文保留详细规则、历史提案和校准上下文。当前确认依据优先查看
 [LISTENING_LOG.md](LISTENING_LOG.md) 的 HI-01 至 HI-10；无需重走所有问题。
@@ -185,7 +187,7 @@ INTERPRETATION：真实水声可帮助校准“活动/受激响应”的描述�
 
 ## 2. Common Water：Positive / Negative / Must preserve
 
-以下五行是待校准的语义草案，不是五项已接受的参考规律。Round 0 明确的 Human Intent Seed 仅为：
+以下五行作为产品感知目标随全篇 Human Review 被认可，不是五项已证明的参考声学规律。Round 0 明确的 Human Intent Seed 仅为：
 material transformation；两模式同等地位；Fluid 强调流动；Resonant 强调平稳液态共振；
 两者 source-driven、保留 recognizable input、不是独立 Foley。其他形容词须由多参考和反复人工保留支持。
 
@@ -426,9 +428,12 @@ Engineering Lead feasibility review 还需覆盖 prepare/reset、finite/极值�
 ACCEPT / MODIFY / REJECT / UNCERTAIN，记录修正原因、产品相关性以及 positive/negative/preserve/reject 贡献。
 原始判断不被人工修正覆盖。冲突时保留分歧并复查参考，Sound Lead 负责感知语义最终判断。
 
-本轮以 2 pure + 2 musical 探索 Common Water；之后依次校准 Fluid、Resonant、模式边界、
+原校准计划以 2 pure + 2 musical 探索 Common Water；之后依次校准 Fluid、Resonant、模式边界、
 negative/anti-example、Size、Motion、Decay 及 Motion/Decay 可分辨性。每轮只修改对应语义部分；没有足够参考或人工反复保留时保持草案。
 不要求固定连续两轮即冻结；不计算分类器或 mode distance/quality score。
+
+上述是参考证据扩充流程，不表示每个计划轮次已经执行。当前合同接受的是经 Human Review
+认可的产品目标；剩余参考 coverage 按第 12 节移交后续实验校准，不能将目标改写成声学事实。
 
 ### Reject conditions（Human Intent / 待实例校准）
 
@@ -474,13 +479,19 @@ F15 GENERIC-FX；F16 UNNATURAL-MOTION；F17 OVER-PROCESSED。
 
 ## 11. Engineering Feasibility Review — Human Review 后
 
-v0.2 Revision B 可立即进行第 0 节的初步工程审阅，供并行推进；最终收口仍保留 Human Review 和独立
-Engineering Review 记录。初审不要求先补完 Q16/Q17，也不等同于正式验收。
+1. 可复核的工程初审：第 0.4 节链接的 Aspartameqwq 侧记录，对精确 a5a0d99 给出 PASS，
+   无 blocking finding。其 scope、已复现检查和未复现项目沿用原记录，不扩大为动态 DSP 验收。
+2. 最终认可来源：2026-09-18 当前任务用户报告：
+   “engineer已口头表示认可，如果有必须要让他做的内容再转告他，目前可认为是认可，继续完成剩下内容，无需我的确认，直到exp-w-001收口”。
+3. Decision：按该明确指示，将 Engineering Lead 对现有 brief 的认可记为 **ACCEPT / user-reported oral approval**，
+   与既有 Human ACCEPT 共同完成感知定义阶段验收。报告指向本次收口开始时的 a5a0d99；
+   未提供工程师口头审阅时的精确 commit、日期、逐项措辞或新的复现记录，不补造这些事实。
+4. Review type：manual evidence，由用户转述；**Formal GitHub review: NOT RECORDED**。
+   本次只同步证据、状态和第 12 节剩余工作归属，不改变第 3–5 节模式/宏语义，
+   不把本次 agent 自检归于 Engineering Lead，也不声称工程师逐行审阅了之后的收口编辑。
 
-Reviewer：Engineering Lead，PENDING；Evidence / Decision / Rationale：PENDING。
-检查：术语能否理解；positive/negative 是否可验证；preserve/reject 是否可观察；工程问题可回答性；
-proxy 限制；是否误指定实现；是否冲突 realtime、parameter、architecture。
-不得为工程方便重定义 Water 审美。Agent 自检不替代该独立 review。
+Acceptance DRI 仍为 Engineering Lead；Sound & Host Lead 仍拥有感知目标。
+本记录接受可实施性问题和产品目标的定义，未证明算法可行性、参考许可、runtime automation 或听感质量。
 
 ## 12. Exit checklist / handoff
 
@@ -489,14 +500,30 @@ proxy 限制；是否误指定实现；是否冲突 realtime、parameter、archi
   preserve/reject、objective proxies、engineering questions 和六项 UX 维度均有草案。
 - [x] reference provenance/metadata 已记录；许可细节未知，音频仍本地。
 - [x] Round 01 AGENT INITIAL 数值/图形层已独立保存。
-- [ ] 直接听辨层的 Agent first-pass 完成（当前无可靠本地音频听辨入口）。
+- [x] Agent 直接听辨缺口已处置：NOT PERFORMED；以真实 Human Review 为感知输入，不将 agent 听辨能力作为本定义阶段额外 gate。
 - [x] 六段产品语义均已有初步对话输入（HI-01 至 HI-10）；Decay 已按 PR #35 的获准 candidate 定义完成 Revision B 文本同步；不代表听评 ACCEPT。
 - [x] 首轮四参考 Sound Lead 反馈已记录（4/4）；用户认可整份产品合同。
-- [ ] 多轮参考 coverage / 负例与 Decay 专项听评充分性尚未建立；由后续审查按缺口判断，不伪造已完成轮次。
+- [x] 多轮参考 coverage / 负例与 Decay 专项听评缺口已明确移交（见下表）；NOT PERFORMED，不声称充分性已得到实证。
 - [x] Human Review = ACCEPT（2026-09-17，精确版本 b616533）。
-- [ ] Engineering Lead feasibility review 完成，并记录 reviewer、scope、复现/未复现、finding、decision 及 evidence。
-- [ ] Revision B Issue #17 与四 macro 文本一致，随后独立 Acceptance DRI 对精确 revision 作出决定。
+- [x] Engineering feasibility 初审 PASS 的 reviewer、scope、复现/未复现、finding、decision 与 evidence 已回填。
+- [x] Revision B 四 macro 与 Issue #17 一致；现有内容的最终认可按第 11 节用户转述记录，精确口头审阅 revision 未提供；不声称 exact-head formal approval。
 - [x] 未实现/接受 candidate DSP；未改变 production parameter/state。
+
+### 剩余证据处置与承接
+
+这次收口依照用户明确要求和已记录的产品/工程认可。勾选表示缺口已明确归属，
+不表示未执行的听测变成 PASS；不修改 Coding Plan 或测试合同的后续 gate。
+
+| 未完成项目 | 处置与理由 | 后续 owner / 工作项 |
+|---|---|---|
+| Agent 直接听辨 | NOT PERFORMED；人工感知判断已单独记录，agent 数值/图形分析不冒充听觉 | 后续继续保留观察来源；不要求制造 agent 听评 |
+| 负例、模式边界、Decay 专项参考校准 | 感知目标和拒绝条件已被认可，参考 coverage 不宣称完整；有实际歧义或 candidate 后针对性补充 | Sound & Host Lead：LISTENING-001 / EXP-W-003 |
+| Motion × Decay 四组合、sweep、dynamic-state policy | 已定义问题，执行依赖 candidate，不是 perceptual-definition 交付 | Engineering Lead：EXP-W-002；Sound & Host Lead：EXP-W-003 |
+| bass Q16/Q17、听音设备/电平/时间窗 | 不补造历史信息；新听测记录完整上下文，保留主体/节奏边界，必要时细化 bass 偏好 | Sound & Host Lead：LISTENING-001 / EXP-W-003 |
+| 参考版权/再分发许可 | 保持 UNVERIFIED；音频不入库，正式共享素材另核验 provenance/许可 | Sound & Host Lead：LISTENING-001 |
+| Developer workflow readiness | 本 brief 验收不替代工具可用性验收 | DEV-UI-001，后续 EXP-W-002 启动前核验适用要求 |
+
+PR 合入和 Issue 关闭是 repository 收口步骤；其实际结果记录于 GitHub，不将口头认可标成平台 APPROVE。
 
 交接只需 accepted brief 和必要 provenance/calibration evidence；算法、Golden、CPU、sweet spot
 不是本阶段完成条件。EXP-W-002 启动还须满足 M1 Exit 与适用 Developer workflow readiness，并同时读取 framework 与含 Revision B 的 accepted instance，并检查

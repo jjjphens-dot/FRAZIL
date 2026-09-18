@@ -94,5 +94,12 @@ User feedback on W-P002/W-P003/W-M001/W-M007 and Human Review ACCEPT for brief b
 [LISTENING_LOG.md](LISTENING_LOG.md). [Round 01 Agent first-pass](ROUND_01_COMMON_WATER.md) remains the
 original numerical/visual record; agent auditory interpretation is still incomplete. Cave reverberation and
 the musical bell/arrangement are explicit confounds. No exact time windows/playback levels, Fused/Layered
-classification, Decay sweep or engineering acceptance were supplied. The metadata/QA above remains historical;
+classification, Decay sweep or engineering acceptance were supplied in that listening-feedback round. The metadata/QA above remains historical;
 this index is provenance, not a perceptual label key.
+
+## Definition closeout — 2026-09-18
+
+Engineering preliminary PASS and user-reported final oral acceptance are recorded in
+[brief sections 11–12](EXP-W-001_PERCEPTUAL_BRIEF.md#11-engineering-feasibility-review-human-review-后).
+No new reference was heard or licensed by that acceptance record. Further negative/Decay calibration,
+source-preservation listening and licensed shared-corpus preparation remain LISTENING-001 / EXP-W-003 work.

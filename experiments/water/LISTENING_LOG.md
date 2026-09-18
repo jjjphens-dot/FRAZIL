@@ -1,7 +1,7 @@
 # EXP-W-001 — Human calibration log
 
 > Active workflow: latest plan, Agent First → Human Calibration.
-> Current round: 01 Common Water. Calibration count: 4/4 (user feedback, 2026-09-17). Human Review: ACCEPT at b616533; Engineering acceptance: PENDING.
+> Reference calibration count: 4/4 (user feedback, 2026-09-17). Human Review: ACCEPT at b616533; engineering preliminary PASS at a5a0d99; final oral acceptance reported by user on 2026-09-18 (manual evidence, not formal APPROVE). See brief sections 11–12.
 > Human Intent clarification HI-01: two statements explicitly accepted; reference calibration subsequently recorded below (4/4).
 > Previous unfilled blind-scorecard preparation is superseded; no human evidence was lost.
 
