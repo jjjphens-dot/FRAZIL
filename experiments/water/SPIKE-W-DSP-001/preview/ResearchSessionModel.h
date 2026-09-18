@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ResearchListeningCalibration.h"
 #include "ResearchMappingAdapter.h"
 #include "SessionMetadata.h"
 
@@ -31,7 +32,7 @@ struct ResearchSessionState final {
     juce::String mappingRevision{ResearchWaterMacroMapper::revision.data()};
     std::array<MappingStatus, 3> macroMappings{MappingStatus::mapped, MappingStatus::mapped,
                                                MappingStatus::mapped};
-    MappingStatus listeningCalibration{MappingStatus::custom};
+    MappingStatus listeningCalibration{MappingStatus::mapped};
     double auditionETrimDb{};
     std::array<ControlOwnership, kControls.size()> ownership{};
     ControlOwnership lastChange;
@@ -41,6 +42,7 @@ struct ResearchSessionState final {
     ResearchSessionState() {
         for (const auto macro : {MacroId::size, MacroId::motion, MacroId::decay})
             applyResearchMacro(engineering, water, macro);
+        ResearchListeningCalibration::apply(engineering);
     }
 };
 
@@ -164,6 +166,8 @@ class ResearchSessionModel final {
         draft_.customEngineering = true;
         if (const auto owner = macroOwner(id))
             draft_.macroMappings[static_cast<std::size_t>(*owner)] = MappingStatus::custom;
+        if (ResearchListeningCalibration::owns(id))
+            draft_.listeningCalibration = MappingStatus::custom;
         draft_.ownership[index] = {origin, revision_ + 1};
         changed(origin);
         return true;
@@ -222,6 +226,13 @@ class ResearchSessionModel final {
             mapMacro(macro, ChangeOrigin::mapper);
         // Composition is separately owned. Preserve ablations and unowned engineering controls.
         changed(ChangeOrigin::mapper);
+    }
+    void restoreListeningCalibration() {
+        ResearchListeningCalibration::apply(draft_.engineering);
+        draft_.listeningCalibration = MappingStatus::mapped;
+        for (const auto id : ResearchListeningCalibration::controls)
+            draft_.ownership[controlIndex(id)] = {ChangeOrigin::reset, revision_ + 1};
+        changed(ChangeOrigin::reset);
     }
 
     bool setProtect(ProtectId id, double value, ChangeOrigin origin) {

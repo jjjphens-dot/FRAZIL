@@ -30,8 +30,8 @@ research formula, disclose the gap and do not claim perceptual-contract complian
 
 ## Status and sequence
 
-Running Phase F preparation. Phases A-E implementation and self-review are complete; next checkpoint:
-independent listening calibration. No blockers; publish after Phase J.
+Running Phase G preparation. Phases A-F implementation and self-review are complete; next checkpoint:
+monitor-only audition trim. No blockers; publish after Phase J.
 
 | Phase | Work | Status |
 |---|---|---|
@@ -40,7 +40,7 @@ independent listening calibration. No blockers; publish after Phase J.
 | C | DSP/session dirty, v2 and conservative v1 migration | Complete; self-review PASS |
 | D | Pure research macro mapper and per-macro ownership | Complete; three presets and self-review PASS |
 | E | Deterministic normalized Modal excitation movement | Complete; three presets and self-review PASS |
-| F | Independent listening calibration and CUSTOM state | Pending |
+| F | Independent listening calibration and CUSTOM state | Complete; Debug and self-review PASS |
 | G | Monitor-only Focus/Reference/E trim | Pending |
 | H | Bounded component and pre/post Protect diagnostics | Pending |
 | I | Auto Audition, target/history views and native Windows tests | Pending |
@@ -169,3 +169,18 @@ Parameters, Accepted ADRs and production modules retain their existing contracts
 7. Documentation: guide, Module Index, Testing, research README/mapping describe fields, defaults,
    ownership and limitations. Host/production contracts unchanged; no listening acceptance.
 8. Final staged links/portability/format/diff checks PASS. Self-review complete. Next: independent listening calibration.
+
+## Phase F checkpoint
+
+1. Baseline: Phase E `67df82c`. Independent session-only research listening calibration.
+2. New ResearchListeningCalibration owns A/B/D/C gains .26/.24/.06/.30; renderer defaults and DSP
+   algorithms remain unchanged. Model/codec retain independent MAPPED/CUSTOM status; Engineering
+   exposes one composite restore operation. Macro mapping/Return never owns or overwrites gains.
+3. Functional validation: Debug 21/21; tests verify calibration ownership/restoration and macro
+   orthogonality. Scope is message-thread values/UI/schema claims; full Release/ASAN will next run
+   with Phase G's audio monitoring changes and again on the final integration where required.
+4. Code quality review: one destination table, no callback work, no ownership/reverse mapping
+   ambiguity; legacy/module imports retain values. Mapped calibration claims are schema-checked.
+5. Comment/documentation pass: guide, research mapping/README, Module Index and Testing updated.
+   No production/Host/parameter change; no listening or product-balance acceptance claimed.
+6. Next: monitor-only audition trim and Focus/Reference, then component diagnostics.

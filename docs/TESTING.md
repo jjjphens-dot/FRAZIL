@@ -826,3 +826,6 @@ Return isolation, unowned gain/Protect preservation and explicit legacy adoption
 Modal Motion validation includes exact zero-depth historical recurrence/renderer omission, active
 fixed-seed reset and partition identity, seed differentiation, positive normalized weights, finite
 float extrema and channel isolation at 44.1/48/96 kHz. Performance harness reports C Motion separately.
+
+Listening calibration tests verify raw gain CUSTOM ownership, preservation through macro movement
+and Return All, and isolated restoration of the four calibration gains.

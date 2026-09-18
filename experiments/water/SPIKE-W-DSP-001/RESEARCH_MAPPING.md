@@ -32,3 +32,15 @@ like comb filtering/chorus/flanging. Mapping direction and audibility require So
 objective monotonicity is not perceptual acceptance. Resonant temporal motion uses depth .35m and interval .7 * 2.8^(1-2m) s
 to redistribute excitation over six fixed modes. Both destinations belong to Motion; changing
 them manually marks Motion CUSTOM. Typed default depth=0 preserves legacy renderer behavior.
+
+## Independent listening calibration
+
+New research sessions and Reset Baseline use **Research Listening Calibration v0.1**:
+A/B/D/C residual gain = .26/.24/.06/.30. This is a listening starting point to reduce D dominance;
+it is not product balance or a loudness claim. Typed renderer defaults remain unchanged.
+
+Gains have calibration ownership, outside Size/Motion/Decay. Raw gain edits mark calibration
+CUSTOM without changing macro states; macro movement and Return All leave those gains intact.
+Engineering's Restore Listening Calibration changes only these four gains in one operation.
+Session v2 stores calibration status and rejects a mapped claim whose gains disagree. v1/module
+imports preserve their raw gains and mark calibration CUSTOM.

@@ -128,6 +128,8 @@ int runSessionTests() {
     session.setEngineering(ControlId::bubbleMinFrequency, 1234, ChangeOrigin::engineeringUI);
     session.setEngineering(ControlId::dropletDecay, .025, ChangeOrigin::engineeringUI);
     session.setEngineering(ControlId::flowGain, .02, ChangeOrigin::engineeringUI);
+    check(session.draft().listeningCalibration == MappingStatus::custom,
+          "gain edits mark listening calibration CUSTOM");
     check(session.draft().macroMappings ==
               std::array{MappingStatus::custom, MappingStatus::mapped, MappingStatus::custom},
           "raw target edit marks only owning macro CUSTOM");
@@ -163,6 +165,12 @@ int runSessionTests() {
     check(session.dspDirty() &&
               session.draft().mappingRevision == ResearchWaterMacroMapper::revision.data(),
           "explicit adoption maps legacy state");
+    const auto macrosBeforeCalibration = session.draft().macroMappings;
+    session.restoreListeningCalibration();
+    check(ResearchListeningCalibration::matches(session.draft().engineering) &&
+              session.draft().macroMappings == macrosBeforeCalibration &&
+              session.draft().listeningCalibration == MappingStatus::mapped,
+          "restoring calibration changes only its four gain destinations");
     std::cout << "session tests failures=" << failures << '\n';
     return failures;
 }

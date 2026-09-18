@@ -309,6 +309,9 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
              candidate.engineering.values[i] != std::floor(candidate.engineering.values[i])))
             return "Session: invalid field " + juce::String(spec.stableId());
     }
+    if (version == 2 && candidate.listeningCalibration == MappingStatus::mapped &&
+        !ResearchListeningCalibration::matches(candidate.engineering))
+        return "Session: listening calibration claim contradicts gains.";
     if (version == 2 && candidate.mappingRevision == ResearchWaterMacroMapper::revision.data()) {
         const auto mapped = ResearchWaterMacroMapper::map(candidate.water);
         for (const auto& spec : kControls) {

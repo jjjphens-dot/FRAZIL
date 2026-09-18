@@ -230,3 +230,10 @@ research context differs from the last Apply/Import/Recall checkpoint (not a dis
 Live monitor changes therefore never block playback. Retained Protect topology, recall depth and
 both detector calibrations participate in context comparison. Apply commits the complete context;
 Copy/Export continue to identify their APPLIED snapshot explicitly.
+
+### Listening Calibration v0.1
+
+新研究会话的 A/B/D/C residual gain 为 .26/.24/.06/.30，用于试听起点，不是产品默认。
+这四个增益不属于 Size/Motion/Decay；手改后只有 Listening Calibration 显示 CUSTOM。
+Engineering 页 **Restore Listening Calibration** 一次恢复四个增益，不改宏目标或 Protect。
+旧 v1/module import 保留原始增益；renderer 的缺省配置不变。

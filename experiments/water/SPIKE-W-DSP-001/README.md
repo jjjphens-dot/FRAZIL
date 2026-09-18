@@ -416,3 +416,6 @@ v1 sessions omit the new fields/provenance and receive typed depth=0/interval=.7
 v2 requires both fields. New mapped sessions use the research targets. Tests compare zero Motion
 against independent historical recurrence and legacy renderer omission, and active Motion across
 seeds/reset/block partitions/rates/finite extrema/channel isolation. No perceptual acceptance.
+
+`ResearchListeningCalibration.h` supplies the independent preview-session gain starting point,
+.26/.24/.06/.30 for A/B/D/C. The mapper never owns those gains; see [research mapping](RESEARCH_MAPPING.md).

@@ -104,3 +104,6 @@ Neither is a production mapper; see [mapping v0.1](../experiments/water/SPIKE-W-
 Research `LiquidModalResonator` additionally owns six normalized excitation weights and an instance
 RNG in seed domain 4. Fixed coefficients remain prepare-only; preview/renderer share the optional
 Motion fields with zero-depth legacy behavior. No production DSP dependency is introduced.
+
+`ResearchListeningCalibration.h` owns four research-session starting gains independently of macro
+mapping and typed renderer defaults. Session commands/codec track MAPPED/CUSTOM status; no DSP path added.

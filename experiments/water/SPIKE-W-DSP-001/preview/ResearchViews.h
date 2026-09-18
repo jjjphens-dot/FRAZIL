@@ -150,6 +150,11 @@ class EngineeringView final : public juce::Component {
         researchLabel(*this, provenance_,
                       "All raw controls APPLY | SPIKE-W-DSP-001 research baseline | inactive "
                       "values retained");
+        addAndMakeVisible(calibration_);
+        calibration_.onClick = [this] {
+            operations_.action("Restore Listening Calibration", ChangeOrigin::reset, true, false,
+                               [this] { session_.restoreListeningCalibration(); });
+        };
         for (std::size_t i = 0; i < kControls.size(); ++i) {
             const auto& spec = kControls[i];
             controls_[i].configure(juce::String(spec.label).replace("(s)", "(ms / s)"),
@@ -193,8 +198,9 @@ class EngineeringView final : public juce::Component {
         const auto& state = session_.draft();
         composition_.setSelectedId(state.engineering.mode + 1, juce::dontSendNotification);
         provenance_.setText(
-            juce::String(state.customEngineering ? "CUSTOM engineering" : "Research baseline") +
-                " | APPLY | SPIKE-W-DSP-001 | inactive values retained",
+            juce::String(ResearchListeningCalibration::revision) +
+                (state.listeningCalibration == MappingStatus::mapped ? " / MAPPED" : " / CUSTOM") +
+                " | A .26 / B .24 / D .06 / C .30 | independent of macros",
             juce::dontSendNotification);
         for (std::size_t i = 0; i < kControls.size(); ++i) {
             const auto& spec = kControls[i];
@@ -226,7 +232,9 @@ class EngineeringView final : public juce::Component {
     void resized() override {
         auto area = getLocalBounds().reduced(8);
         macros_.setBounds(area.removeFromTop(200));
-        composition_.setBounds(area.removeFromTop(30).removeFromLeft(240));
+        auto commands = area.removeFromTop(30);
+        composition_.setBounds(commands.removeFromLeft(240));
+        calibration_.setBounds(commands.removeFromLeft(245).reduced(3, 0));
         provenance_.setBounds(area.removeFromTop(28));
         for (std::size_t group = 0; group < headings_.size(); ++group) {
             headings_[group].setBounds(area.removeFromTop(36).reduced(2));
@@ -253,6 +261,7 @@ class EngineeringView final : public juce::Component {
     ResearchOperations& operations_;
     WaterMacroView macros_;
     juce::ComboBox composition_;
+    juce::TextButton calibration_{"Restore Listening Calibration"};
     juce::Label provenance_;
     std::array<juce::TextButton, 4> headings_;
     std::array<bool, 4> expanded_{true, false, false, false};
