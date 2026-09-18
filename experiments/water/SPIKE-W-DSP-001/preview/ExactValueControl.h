@@ -43,7 +43,7 @@ class ExactValueControl final : public juce::Component {
         };
     }
     void configure(const juce::String& label, double low, double high, double baseline, bool time,
-                   bool integer = false) {
+                   bool integer = false, double step = 0) {
         const juce::ScopedValueSetter<bool> guard(syncing_, true);
         low_ = low;
         high_ = high;
@@ -53,6 +53,7 @@ class ExactValueControl final : public juce::Component {
         entry_.setTitle(label);
         slider_.setTitle(label + " slider");
         slider_.setRange(low, high, integer ? 1.0 : 0.0);
+        slider_.normalStep = integer ? 1.0 : step;
         slider_.setDoubleClickReturnValue(true, baseline);
         if (time && low > 0 && high / low > 20)
             slider_.setSkewFactorFromMidPoint(std::sqrt(low * high));
@@ -98,6 +99,16 @@ class ExactValueControl final : public juce::Component {
     // Keep fine gestures in normalized slider space so skewed time ranges remain usable.
     class FineSlider final : public juce::Slider {
       public:
+        double normalStep{};
+        double snapValue(double value, DragMode) override {
+            // Snap user gestures only; text and model refresh retain exact legal values.
+            return normalStep > 0 && !fine_
+                       ? juce::jlimit(getMinimum(), getMaximum(),
+                                      getMinimum() +
+                                          std::round((value - getMinimum()) / normalStep) *
+                                              normalStep)
+                       : value;
+        }
         void mouseDown(const juce::MouseEvent& event) override {
             fine_ = event.mods.isShiftDown() && event.mods.isLeftButtonDown();
             start_ = valueToProportionOfLength(getValue());
@@ -117,6 +128,7 @@ class ExactValueControl final : public juce::Component {
         void mouseUp(const juce::MouseEvent& event) override {
             if (!fine_)
                 juce::Slider::mouseUp(event);
+            fine_ = false;
         }
 
       private:

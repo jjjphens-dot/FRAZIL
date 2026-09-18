@@ -161,8 +161,12 @@ juce::String PreviewController::load(const juce::File& wav) {
 }
 
 juce::String PreviewController::validate(const PreviewSettings& settings) const {
+    return validate(settings, impl_->sourceRate > 0 ? impl_->sourceRate : 48000);
+}
+juce::String PreviewController::validate(const PreviewSettings& settings, double rate) const {
+    if (!std::isfinite(rate) || rate < 44100 || rate > 96000)
+        return "Source: invalid research sample rate.";
     PreviewEngine candidate;
-    const auto rate = impl_->sourceRate > 0 ? impl_->sourceRate : 48000;
     if (candidate.prepare(rate, settings))
         return {};
     if (settings.mode < 0 || settings.mode >= static_cast<int>(kModes.size()))

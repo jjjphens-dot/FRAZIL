@@ -102,8 +102,10 @@ Session 同时保存源文件名（无目录）、采样率、声道、帧数，
 clean/dirty 状态、build variant 和 compiler。导入后保留导入 build 信息，并记录当前程序的 build；
 重新 configure 才会更新编译进去的 provenance。元数据只是复现线索，不是音频内容身份校验。
 若已加载源与导入 session 元数据不同，Play 禁用并提示所需文件；Load WAV 是明确选择新的源，
-会更新当前会话元数据。A/B 同样保留源元数据；音频需单独保存。该新研究格式尚未发布，
-不承诺兼容开发过程中的旧 manifest；正式插件 schema 不变。
+会更新当前会话元数据。A/B 同样保留源元数据；音频需单独保存。
+Session 导入和 A/B 恢复按各自记录的源采样率验证；当前 WAV 不得覆盖这个验证上下文。
+没有源元数据的会话以 48 kHz 验证，普通 Apply 则使用当前加载源的采样率。
+该新研究格式尚未发布，不承诺兼容开发过程中的旧 manifest；正式插件 schema 不变。
 
 ## 5. 工程参数对应的 DSP 作用
 
@@ -151,7 +153,8 @@ OFF transition 回到精确 unity，generator、RNG 和 tail 仍继续推进。
 所有工程时间输入支持 `70`、`70ms`、`0.07s`；无单位按 ms 解释，具体数值须在该控件范围内。
 `<=1 s` 显示 ms（恰好 1 s 显示 1000 ms），更大值显示 s；内部和导出仍为秒。
 非法后缀、非有限值或超范围输入显示错误并保留旧值。Enter/失焦提交，Escape 恢复；
-双击 slider 恢复研究基线；按住 Shift 后开始拖动可微调，宽时间范围采用非线性拖动。
+双击 slider 恢复研究基线；普通拖动遵守 descriptor 步进，按住 Shift 后开始拖动可小于该步进；
+文本输入保留合法精确值，宽时间范围采用非线性拖动。
 整数 Voices 拒绝小数；精确输入不经过 slider step 截断。切换 A/B 或导入有效配置会刷新旧编辑文本。
 Engineering 的 A/B/D/C 卡片可折叠，标题显示 ACTIVE/INACTIVE；inactive 值仍可编辑并保留。
 切换 D0/D1 会恢复对应阈值，不会将 dB 数字当作 amplitude。切换到 C 会保留 Fluid topology，

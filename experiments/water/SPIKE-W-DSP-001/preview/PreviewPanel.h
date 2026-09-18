@@ -214,7 +214,9 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             return;
         controller_.stop();
         const auto& candidate = *session_.slot(slot);
-        const auto error = controller_.validate(candidate.engineering);
+        const auto error = controller_.validate(
+            candidate.engineering,
+            candidate.source.sampleRate > 0 ? candidate.source.sampleRate : 48000);
         if (error.isNotEmpty()) {
             setStatus(error);
             return;
@@ -307,7 +309,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                 auto error = session ? decodeSession(text, candidate)
                                      : decodeModuleConfig(text, safe->session_.draft(), candidate);
                 if (error.isEmpty())
-                    error = safe->controller_.validate(candidate.engineering);
+                    error = session ? safe->controller_.validate(candidate.engineering,
+                                                                 candidate.source.sampleRate > 0
+                                                                     ? candidate.source.sampleRate
+                                                                     : 48000)
+                                    : safe->controller_.validate(candidate.engineering);
                 if (error.isNotEmpty()) {
                     safe->setStatus(error);
                     return;

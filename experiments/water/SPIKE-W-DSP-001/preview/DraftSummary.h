@@ -45,6 +45,10 @@ inline juce::String draftSummary(const ResearchSessionModel& session) {
                                   : d.protectMemory.difference;
     line("Retained inactive detector Low", oldInactive.low, newInactive.low);
     line("Retained inactive detector High", oldInactive.high, newInactive.high);
+    line("Retained Enable depth", a.protectMemory.lastNonzeroDepth,
+         d.protectMemory.lastNonzeroDepth);
+    if (a.protectMemory.fluidTopology != d.protectMemory.fluidTopology)
+        text += "Retained Fluid topology changed.\n";
     return text.isEmpty() ? "No unapplied value changes." : text;
 }
 } // namespace frazil::water::preview

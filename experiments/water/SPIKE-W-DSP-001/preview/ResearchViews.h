@@ -122,7 +122,7 @@ class EngineeringView final : public juce::Component {
             controls_[i].configure(juce::String(spec.label).replace("(s)", "(ms / s)"),
                                    spec.minimum, spec.maximum, spec.initial,
                                    spec.displayPolicy == DisplayPolicy::adaptiveTime,
-                                   spec.valueType == ControlValueType::integer);
+                                   spec.valueType == ControlValueType::integer, spec.step);
             controls_[i].onEdit = [this, i](double value) {
                 beforeEdit_();
                 return session_.setEngineering(kControls[i].id, value, ChangeOrigin::engineeringUI);

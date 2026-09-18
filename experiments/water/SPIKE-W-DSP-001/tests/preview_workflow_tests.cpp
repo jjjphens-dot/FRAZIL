@@ -84,6 +84,26 @@ int runWorkflowTests() {
     settings.values[controlIndex(ControlId::modalRoot)] = 9000;
     check(controller.validate(settings).contains("MODAL"),
           "sample-rate Modal error identifies module");
+    check(controller.validate(settings, 96000).isEmpty() &&
+              controller.validate(settings, 44100).isNotEmpty(),
+          "explicit candidate rate overrides unloaded-source 48k fallback");
+    check(controller.validate(settings, 0).isNotEmpty() &&
+              controller.validate(settings, std::numeric_limits<double>::quiet_NaN()).isNotEmpty(),
+          "explicit invalid rate is rejected, never silently replaced");
+    candidate = {};
+    // A legal UI config whose delay clearance is valid at 96k but not at 48k.
+    candidate.engineering.values[controlIndex(ControlId::flowBaseDelay)] = .001;
+    candidate.engineering.values[controlIndex(ControlId::flowDepth)] = .000985;
+    candidate.source = {"high-rate.wav", 96000, 2, 96000};
+    check(decodeSession(encodeSession(candidate).toStdString(), roundtrip).isEmpty() &&
+              controller.validate(roundtrip.engineering, roundtrip.source.sampleRate).isEmpty() &&
+              controller.validate(roundtrip.engineering, 48000).isNotEmpty(),
+          "96k session config remains valid without current source");
+    session.restoreValidated(candidate);
+    session.capture(0);
+    check(controller.validate(session.slot(0)->engineering, session.slot(0)->source.sampleRate)
+              .isEmpty(),
+          "A/B retains its own validation rate");
     settings = {};
     settings.protect.gain.epsilon = .01;
     check(controller.validate(settings).contains("PROTECT"), "Protect error identifies module");
@@ -141,6 +161,17 @@ int runWorkflowTests() {
         slider->mouseDrag(event(135));
         slider->mouseUp(event(135));
         check(std::abs(edited - .51) < 1e-12, "Shift drag fine adjustment in normalized space");
+        widget.configure("Stepped depth", 0, 1, .5, false, false, .1);
+        check(std::abs(slider->snapValue(.537, juce::Slider::absoluteDrag) - .5) < 1e-12,
+              "normal gesture honors descriptor step");
+        type("0.537");
+        check(edited == .537 && slider->getValue() == .537,
+              "exact legal text bypasses normal gesture step");
+        widget.refreshValue(.5);
+        slider->mouseDown(event(100));
+        slider->mouseDrag(event(107));
+        slider->mouseUp(event(107));
+        check(std::abs(edited - .502) < 1e-12, "fine gesture can move less than descriptor step");
         widget.configure("Voices", 1, 16, 8, false, true);
         widget.refreshValue(8);
         edited = 8;

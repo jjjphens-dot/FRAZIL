@@ -124,6 +124,8 @@ class ResearchSessionModel final {
                 : applied_.protectMemory.difference;
         count += draftInactive.low != appliedInactive.low;
         count += draftInactive.high != appliedInactive.high;
+        count += draft_.protectMemory.fluidTopology != applied_.protectMemory.fluidTopology;
+        count += draft_.protectMemory.lastNonzeroDepth != applied_.protectMemory.lastNonzeroDepth;
         return count;
     }
     bool dirty() const noexcept {

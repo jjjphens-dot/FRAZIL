@@ -103,6 +103,22 @@ int runSessionTests() {
                   moduleActive(ControlGroup::flow, mode) == bool(flags[mode] & 4),
               "active module truth table");
     }
+    session.reset();
+    session.setModel(WaterModel::resonant, ChangeOrigin::engineeringUI);
+    session.applyValidated();
+    session.setModel(WaterModel::fluid, ChangeOrigin::engineeringUI);
+    session.setTopology(frazil::water::research::FluidProtectTopology::dropletExempt,
+                        ChangeOrigin::engineeringUI);
+    session.setModel(WaterModel::resonant, ChangeOrigin::engineeringUI);
+    check(session.draft().engineering.moduleJson() == session.applied().engineering.moduleJson() &&
+              session.unappliedChanges() == 1 && session.dirty(),
+          "retained Fluid topology is dirty even when active C config is unchanged");
+    session.applyValidated();
+    session.setProtect(ProtectId::depth, .8, ChangeOrigin::soundLeadUI);
+    session.setProtect(ProtectId::depth, 0, ChangeOrigin::soundLeadUI);
+    session.reset();
+    check(session.dirty() && session.unappliedChanges() >= 2,
+          "reset counts retained enable-depth and topology changes");
     std::cout << "session tests failures=" << failures << '\n';
     return failures;
 }

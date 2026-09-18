@@ -806,3 +806,8 @@ Protect diagnostic tests check empty/full/drain/reset behavior, explicit overflo
 reader work and a real concurrent producer/reader with coherent payloads. Integrated readouts match
 the existing detector/envelope sample by sample. Runtime allocation instrumentation is not claimed;
 the fixed queue/atomic transport and callback call graph are separately reviewed for bounded work.
+
+The listening-UI follow-up adds regressions for retained Fluid topology/Enable-depth dirty state,
+explicit session/A/B sample-rate validation (a Flow clearance legal at 96k but invalid at 48k),
+normal descriptor-step gestures versus finer Shift movement and exact legal text. See
+[listening-UI execution](evidence/WATER_LISTENING_UI_EXECUTION.md) for staged results and scope.

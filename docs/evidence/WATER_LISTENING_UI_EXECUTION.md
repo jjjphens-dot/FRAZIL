@@ -1,0 +1,79 @@
+# Water listening research UI execution
+
+## Scope and authority
+
+User-authorized follow-up to PR #40: research-water-mapping-v0.1, operation transactions,
+session correctness, deterministic Modal excitation movement, listening calibration, audition
+trim, component diagnostics and Sound Lead handoff. Implementation owner: Engineering;
+acceptance owner: Sound Lead. No delegated workers. Production Host/APVTS/schema and adoption
+remain unchanged. No GitHub merge is authorized by this work.
+
+Readiness is separate from human ACCEPT/REVISE/REJECT. The accepted EXP-W-001 positive,
+negative, preserve and reject conditions have been read. One known candidate gap is explicit:
+the prescribed v0.1 Fluid Motion minimum retains a 30/s maximum event rate, whereas HI-08 seeks
+no new events under steady excitation at the final product minimum. Preserve the requested
+research formula, disclose the gap and do not claim perceptual-contract compliance or adoption.
+
+## Recovery and live baseline
+
+- PR #40 source: `34e4e6955a9f56d872f2f10022788185756bb622`.
+- Main: `3c95e47`, accepted EXP-W-001 definition from PR #41.
+- Protect: `1a1fb410238c274488bdd2ca0709c6831cc15859`; compared with `a883097`, only
+  `docs/planning/WATER_PROTECT_EXECUTION.md` changed (reference/input intake).
+- Working branch: `codex/feat/water-ui-control-bridge`; same isolated workspace as prior phases.
+- Protect integrated, then main's document update reconciled at `c08708c`; the sole conflict in
+  Module Index retains both preview/Protect ownership and reference-intake CLI documentation.
+  No changes or merge into the main branch. Original main-worktree unrelated edits remain intact.
+- Local user audio found under the workspace's `Sample_Examples/Sample_Input` and `Sample_Packs`.
+  Source audio remains external; local render/log files belong in ignored `build/listening-ui/`.
+  The complete supplied execution plan is retained there as `user-plan.txt` for recovery.
+
+## Status and sequence
+
+Running Phase B preparation. Phase A implementation and self-review are complete; next checkpoint:
+bounded operations and UI gesture/debounce integration. No blockers; publish after Phase J.
+
+| Phase | Work | Status |
+|---|---|---|
+| A | Reconcile latest branches and prior P1/P2 findings | Complete; three presets and self-review PASS |
+| B | 50-operation history, drag/debounce and stop-once boundary | Pending |
+| C | DSP/session dirty, v2 and conservative v1 migration | Pending |
+| D | Pure research macro mapper and per-macro ownership | Pending |
+| E | Deterministic normalized Modal excitation movement | Pending |
+| F | Independent listening calibration and CUSTOM state | Pending |
+| G | Monitor-only Focus/Reference/E trim | Pending |
+| H | Bounded component and pre/post Protect diagnostics | Pending |
+| I | Auto Audition, target/history views and native Windows tests | Pending |
+| J | Supplied-input renders, measurements and listening handoff | Pending |
+
+Each implementation slice follows Contract Review -> Implementation -> Functional Validation ->
+Code Quality Review -> Comment & Documentation Pass -> Final Validation. Run presets serially
+through the existing safe wrapper, retain failures/corrections, and publish only after all phases.
+Full documentation impact: UI behavior, research state/config, realtime diagnostics and research
+DSP change; update guide, module/testing/status and research docs in the same PR. Architecture,
+Parameters, Accepted ADRs and production modules retain their existing contracts.
+
+## Phase A checkpoint
+
+1. Baseline: `34e4e69`; reconciled docs at `c08708c` after latest Protect intake integration.
+2. Scope: the three supplied correctness findings, without changing DSP algorithms or schemas.
+3. Files: PreviewController/Panel, ResearchSessionModel, ExactValueControl/ResearchViews,
+   DraftSummary and existing workflow/session tests; guide, Testing and this evidence.
+4. Behavior: explicit candidate-rate validation for session/A/B, retained Fluid topology and
+   Enable recall depth counted in dirty state, descriptor step in normal gesture snapping only.
+   Shift movements and exact legal text retain finer precision.
+5. Tests: existing ignored validation helper performs configure with both research flags and
+   explicit Python binding, safe build, then CTest. All presets completed serially.
+6. Results: Debug 20/20 (32.53 s), Release 20/20 (19.57 s), ASAN 20/20 (59.50 s). Early fixtures failed:
+   mixed Model/composition, fractional mouse distance rounded by JUCE, and a Modal frequency above
+   the UI's conservative range. Corrected fixtures use consistent metadata, integer-pixel movement
+   and a legal Flow clearance distinguishing 96k from 48k. No validation rule was relaxed.
+7. Audio: header-only inventory found four supplied musical inputs and three named references;
+   no listening result inferred. StreamWater is 122.453 s; use its authorized 0–30 s window later.
+8. Realtime review: changes remain message-thread validation/state/widget code; callback unchanged.
+9. Documentation: guide and Testing synchronized; module boundaries/production contracts unchanged.
+10. Self-review: active and retained Protect fields have separate comparisons, exact entry avoids
+    gesture snapping, invalid explicit rates reject rather than fall back. No reverse mapping,
+    silent range expansion, new allocation on callback or generated audio staged.
+11. Final review: links, staged-file portability, clang-format and diff checks PASS. All code changes
+    are research-only; no production source diff against current main. Next: operation transactions.
