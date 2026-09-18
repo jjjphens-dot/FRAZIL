@@ -376,3 +376,48 @@ is verified; the independent final review/merge gate remains separate from Prote
 Release/ASAN were NOT RERUN for this CI-only change; earlier results retain their earlier scope. No new human
 listening, detector selection, DSP sweeps, pluginval/DAW, performance measurement, product adoption or merge.
 D0/D1 remain UNRESOLVED, Wave 7 stays BLOCKED, and no source/artifact/full/shortened hashes are calculated.
+
+## Sound Lead reference and input intake (2026-09-18)
+
+The Sound Lead supplied three Water references and one musical input after the earlier deferred-material
+records above. These are human intent/reference annotations, not processed-audio listening results or
+whole-contract acceptance. They are enough to prepare an initial bounded listening pack; broader musical
+coverage and actual independent scoring remain pending. Material names below are descriptive identifiers;
+audio remains in local storage, with no source hashes or personal absolute paths committed.
+
+| Material / selected range | Sound Lead intent | Exclusions / uncertainty |
+|---|---|---|
+| `ForestStream_BW.53693.wav`, whole current trimmed replacement (8.75 s) | High-frequency, clear, transparent Water; preserve a clean impression. | Exclude faint background birdsong from target identity. This replaces the previously inventoried longer local file. |
+| `StreamWater_S08AM.60.wav`, 0–30 s | Currently closer to the desired target than ForestStream; somewhat lower perceived frequency, still clear and transparent, like pure spring/stream water. | Excess noise-like background reduces musicality/recognizability and masks the source. Faint birds are tolerable in this reference, not desired output features. “White noise” is the user's perceptual description, not a measured spectral classification. |
+| `SubmergeContainer_SFXB.4860.wav`, whole (about 13.989 s) | Large Size and medium-high Motion reference: distinct low-frequency bubbles and prominent transients; preserve low-frequency bubble response at higher activity. | Do not reproduce the recording's large sparse/dense activity drift. Sound should remain within the acceptable perceptual range implied by the parameter combination. |
+| `ABL2_Loops_42_Partisan_BPM170.wav`, whole (about 5.647 s) | Drum loop input: original rhythm MUST remain recognizable; add flowing-water-like Foley texture. | Transient preservation is a PROVISIONAL listening objective: the Sound Lead will decide its desired extent after hearing the results. No transient-preservation outcome or numerical threshold is accepted yet. |
+
+The drum input header reports 48 kHz, stereo, PCM24. BPM170 is filename metadata, not a measured tempo.
+The user explicitly authorized use of the supplied collection and waived further source questions. Record
+that authorization without inventing an author or named third-party license; local source snapshots and
+derived renders remain local. No audio is included in this documentation update.
+
+Foley describes the requested material character within the existing source-driven Water boundary; it
+does not adopt independent sample playback. Stability means bounded natural variation, not periodic or
+constant autonomous output. Future review should distinguish unexplained activity collapse under comparable
+sustained source excitation from legitimate changes following weaker input or silence. No event-rate,
+frequency mapping, random policy or algorithm is prescribed by these reference annotations.
+
+For the drum pilot, assess rhythm and provisional transient retention separately from flowing texture and
+continuity. Use fixed_source as primary source/attack-preservation evidence; keep rms_matched preference
+scores and conclusions separate. Compare OFF, explicit D0/D1 and lower-residual control, then inspect hidden
+repeat consistency before any selection. These objectives do not weaken the existing source-preservation
+contract: the provisional point is the desired audible extent of transient retention, not permission to
+change timing, lose rhythm or bypass existing gates.
+
+No musical comparison pack has yet been generated for this input; human processed-audio listening is NOT RUN.
+D0/D1 remain UNRESOLVED and Wave 7 remains BLOCKED. Engineering Lead retains implementation ownership;
+Sound Lead retains perceptual judgment. EXP-W-001/Revision B acceptance, Developer readiness and production
+adoption are not granted by this intake. Independent PR review remains required; neither formal approval
+nor merge is claimed here. Unfinished listening/product acceptance must remain tracked after any research-only
+merge; this note does not close Issue #38 or change existing gates.
+
+Documentation impact: intake evidence only, no production/code/parameter/state/test-contract change.
+The PR execution record is updated; Perceptual Contract and the research listening workflow remain applicable
+without amendment. Historical “material pending” entries retain their historical meaning; this intake is the
+current update. No new build, render, DAW, timing or listening success is claimed.
