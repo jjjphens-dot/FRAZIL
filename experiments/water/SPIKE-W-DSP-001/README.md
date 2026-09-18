@@ -122,7 +122,7 @@ realtime, lifecycle, isolation, render and performance work. Engineering Lead im
 Sound & Host Lead independently reviews scope/evidence.
 
 Formal EXP-W-002 still requires accepted EXP-W-001 (#17). Subjective tuning/selection, Water
-identity acceptance, macro mapping and Fluid/Resonant quality rankings are forbidden before that
+identity acceptance, product macro adoption and Fluid/Resonant quality rankings are forbidden before that
 brief. This spike does not close EXP-W-002, accept ADR-W-001 or authorize production integration.
 Future EXP-W-002 reuses/revises these results against the accepted brief without duplicating DSP.
 LOCAL-WDSP-00..06 are engineering checkpoints; LOCAL-WDSP-07 remains deferred. No listening
@@ -364,7 +364,7 @@ direct-form recurrence for bounded quadrature state and clear excitation normali
 Known limitations: isolated bubbles omit coupling/geometry/pitch-rise; hard stealing can click;
 linear interpolation can color high frequencies; fixed modal ratios may sound generic or metallic;
 source-linked smooth random delay can still sound chorus-like. There is no evidence yet to justify
-refinements, macro mappings or production adoption. The modal normalization may be too subtle on
+accepted refinements, product macro mappings or production adoption. The modal normalization may be too subtle on
 some material; objective stability is not a Water-identity judgment. No claim of correct tonal
 recognizability is made from the source-carrier arithmetic alone.
 
@@ -433,3 +433,16 @@ and publishes in the existing Protect 256-entry SPSC queue. No second queue or c
 UI-only `WaterDiagnosticsText` formats sample-weighted RMS/peaks/activity; overflow is visible.
 
 Sound Lead Auto Audition defaults ON; completed macro gestures use one stopped prepare/apply/start. Engineering is manual. ResearchPresentation shows actual targets and the latest 50 completed operations. See the debugging guide for Reference/Focus, CUSTOM ownership, exact editing and session checkpoint semantics.
+
+## Supplied-input listening handoff
+
+`frazil_water_research_cases` exports the UI's 18 mapped configurations using the existing C++
+mapper/adapter/calibration. `render/listening_handoff.py` invokes the existing renderer and compares
+finite decoded audio, repeats, block partitions and channel isolation. Optional explicit reference
+excerpts remain read-only. Renderer stdout now includes input-window Flow min/max/travel observations;
+these are offline proxies outside the processing/timing harness. The handoff uses original sources,
+Protect OFF and fixed seed, with no automatic normalization or acceptance.
+
+See [handoff evidence and commands](../../../docs/evidence/WATER_LISTENING_HANDOFF.md): 72 cases
+pass objective checks, but Resonant residual/Motion can be very low-level. Human mapping/audibility
+and source-preservation decisions remain pending. No audio, generated pack or personal path is tracked.

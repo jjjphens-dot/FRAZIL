@@ -106,6 +106,8 @@ int render(int argc, char** argv) {
     if (!writer)
         return 1;
     double peak{}, squareSum{}, dcSum{}, residualSquareSum{};
+    double flowMinimum{}, flowMaximum{}, flowTravel{}, previousFlowDelay{};
+    bool observedFlow{};
     // Offline observations only: never placed inside the DSP or timed callback harness.
     std::uint64_t bubbleSilentEvents{}, dropletSilentEvents{};
     juce::int64 bubbleFirstFrame{-1}, dropletFirstFrame{-1};
@@ -133,6 +135,21 @@ int render(int argc, char** argv) {
                     applyFluidProtect(fluid.processComponents(frame), gain, protectConfig.topology);
             else if (!baseline.processResidual(frame, effect))
                 return 1;
+            // Input-window trajectory observation only; a final tail value returns to base delay
+            // and cannot describe Motion. This work is outside the realtime/timing harness.
+            if (!baselineMode && mode != "c" && fluidConfig.flowEnabled &&
+                start + sample < reader->lengthInSamples) {
+                const auto delay = fluid.flowDelaySamples();
+                if (!observedFlow) {
+                    flowMinimum = flowMaximum = delay;
+                    observedFlow = true;
+                } else {
+                    flowMinimum = std::min(flowMinimum, delay);
+                    flowMaximum = std::max(flowMaximum, delay);
+                    flowTravel += std::abs(delay - previousFlowDelay);
+                }
+                previousFlowDelay = delay;
+            }
             if (trace) {
                 const auto detection = protect.detection();
                 const auto line = juce::String(start + sample) + "," +
@@ -182,6 +199,10 @@ int render(int argc, char** argv) {
               << " residual_rms=" << std::sqrt(residualSquareSum / samples)
               << " bubble_events=" << fluid.bubbleEvents()
               << " droplet_events=" << fluid.dropletEvents()
+              << " flow_final_delay_samples=" << fluid.flowDelaySamples()
+              << " flow_input_min_samples=" << flowMinimum
+              << " flow_input_max_samples=" << flowMaximum
+              << " flow_input_travel_samples=" << flowTravel
               << " bubble_silent_events=" << bubbleSilentEvents
               << " droplet_silent_events=" << dropletSilentEvents
               << " bubble_first_frame=" << bubbleFirstFrame

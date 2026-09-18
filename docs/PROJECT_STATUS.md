@@ -414,3 +414,5 @@ provenance, module import and module-specific validation feedback are implemente
 Protect is connected only in the research preview: Depth/Enable are live, configuration edits require
 Apply, D0/D1 retain separate calibration, and C permits only Whole. Existing Protect DSP is reused;
 no new production or human acceptance is claimed. Sound Lead Auto Audition and bounded operation history are implemented; supplied-input handoff and human mapping/audibility decisions are tracked separately in the listening UI execution record.
+
+The research listening follow-up completed phases A-I and generated the Phase J fixed-source pack: 72 cases across four supplied inputs pass finite/repeat/partition/isolation checks. [Handoff](evidence/WATER_LISTENING_HANDOFF.md) explicitly retains low-level Resonant Motion as a candidate risk; human ACCEPT/REVISE/REJECT, independent code review and production adoption are not complete.

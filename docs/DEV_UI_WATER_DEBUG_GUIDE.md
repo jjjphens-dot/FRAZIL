@@ -102,7 +102,7 @@ Model 显示 CUSTOM，可用 **Return Model to Mapped** 返回该模型的完整
 两个视图的 Return Size/Motion/Decay/All 只恢复所属目标；legacy v1 必须显式 Adopt。
 公式、目标归属和限制见 [研究映射说明](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md)。
 工程参数手动修改不会反向改写宏值；inactive 控件变暗但保留值，生效前须启用对应 composition。
-编辑形成 Draft 并停止播放；Apply 校验后方可 Play。Decay 初值 0.5 是 provisional experiment baseline，
+工程编辑形成 Draft 并停止播放；Apply 校验后方可 Play。Sound Lead Auto Audition 在完成宏手势后自动执行这一步并从头播放。Decay 初值 0.5 是 provisional experiment baseline，
 参与 A/B、reset 和 session 保存，不是产品默认值。Protect 已接入；实测状态见 [执行记录](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md)。
 
 Session 同时保存源文件名（无目录）、采样率、声道、帧数，以及 configure 时的 Git commit、
@@ -285,3 +285,7 @@ DSP DIRTY 表示处理配置待应用；SESSION DIRTY 表示相对最后应用/�
 
 目标文本为便读摘要，工程 exact entry 保留原始精度。窗口可滚动，Operation history 与
 Audio diagnostics 默认收起。该工作流不构成 Host、产品声音或 perceptual acceptance。
+
+离线对比包、复现命令、参考素材范围、客观测量与人工 ACCEPT/REVISE/REJECT 表见
+[Listening handoff](evidence/WATER_LISTENING_HANDOFF.md)。当前 Resonant Motion 的低电平差异是明确待评审风险，
+不能以“非零”替代“可清晰听辨”。

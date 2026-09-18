@@ -116,3 +116,5 @@ Existing Protect block transport carries both readouts with one bounded producer
 formats them in `WaterDiagnosticsText.h`. DSP only exposes scalar activity getters, with no UI dependency.
 
 ResearchAuditionWorkflow coordinates message-thread stop/prepare/start once per completed Sound Lead gesture. ResearchPresentation formats actual targets and bounded operation history; neither owns DSP. PreviewController exposes detached prepare/start with explicit source-rate and callback-state guards.
+
+Research config exporter `render/research_cases.cpp` reuses the UI mapper/adapter/calibration; `render/listening_handoff.py` orchestrates the existing renderer and decoded checks. Both are offline, opt-in research tools with no production dependency.

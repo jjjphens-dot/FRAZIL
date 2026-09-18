@@ -838,3 +838,5 @@ payloads and explicit overflow. Integration covers pre/post Protect OFF identity
 counts, ablation/inactive zeros, reset, and sample-weighted (unequal block size) RMS aggregation.
 
 Phase I preview tests inject lifecycle commands to assert 100 drag updates yield one stop/prepare/start, and cover no-op, invalid, source-less, Engineering/OFF and live Protect paths. Native GUI observations and validation limits are in the Water listening UI execution record.
+
+[Supplied-input listening handoff](evidence/WATER_LISTENING_HANDOFF.md) records 72 research endpoint/center cases, exact decoded repeats and block partitions, channel isolation and component/activity/tail proxies. Human audibility and quality acceptance remain pending, particularly Resonant Motion.

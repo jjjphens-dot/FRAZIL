@@ -30,8 +30,9 @@ research formula, disclose the gap and do not claim perceptual-contract complian
 
 ## Status and sequence
 
-Phases A-I implementation and self-review are complete. Phase J supplied-input renders and
-listening handoff are next; publish after final validation. Human acceptance remains pending.
+Phases A-J engineering implementation, validation, self-review and listening handoff are complete.
+Publication follows final checks. Human mapping/audibility acceptance and independent PR approval
+remain pending; the candidate is not declared perceptually listening-ready.
 
 | Phase | Work | Status |
 |---|---|---|
@@ -44,7 +45,7 @@ listening handoff are next; publish after final validation. Human acceptance rem
 | G | Monitor-only Focus/Reference/E trim | Complete; three presets and self-review PASS |
 | H | Bounded component and pre/post Protect diagnostics | Complete; three presets and self-review PASS |
 | I | Auto Audition, target/history views and native Windows tests | Complete; three presets and self-review PASS; native limits below |
-| J | Supplied-input renders, measurements and listening handoff | Pending |
+| J | Supplied-input renders, measurements and listening handoff | Complete engineering handoff; human decisions PENDING |
 
 Each implementation slice follows Contract Review -> Implementation -> Functional Validation ->
 Code Quality Review -> Comment & Documentation Pass -> Final Validation. Run presets serially
@@ -278,3 +279,52 @@ ADRs reviewed unchanged: no production contract or Host target change. Links/por
 
 Phase I final validation: Debug 21/21 (35.58 s), Release 21/21 (18.12 s), ASAN 21/21 (64.50 s).
 Self-review complete; next Phase J. No listening acceptance inferred from finite output.
+
+## Phase J checkpoint
+
+1. Exact phase baseline: `4142db1`. Scope: offline supplied-input evidence and Sound Lead handoff.
+2. New `render/research_cases.cpp` exports the UI mapper/adapter/calibration's 18 configurations;
+   no formulas copied into Python. New `render/listening_handoff.py` orchestrates the existing
+   renderer, decoded checks and static monitoring files. Existing renderer adds offline Flow
+   input-window min/max/travel scalars; a post-tail final delay alone was misleading evidence.
+3. Latest local pack is ignored `build/listening-ui/handoff-v2/`; initial `handoff-v1/` retained.
+   Four original inputs x two models x three macros x three positions = 72 cases. Every case
+   has finite output, exact decoded repeat/128-vs-257 partition identity, and zero right residual
+   for left-only input. All 24 endpoint pairs differ; all identical centers agree. Eight extra
+   isolated A/B Size/Decay endpoints expose component behavior. No audio or absolute paths tracked.
+4. Partisan: Size lowers isolated A/B and C energy centroids; Decay increases tail time centroid
+   without changing A/B event counts. Motion A/B counts 8/44 -> 148/50; Flow delay travel
+   12.743 -> 237.225 samples during input. These are proxies, not perceptual claims.
+5. Candidate limitation: Partisan C Motion endpoint difference RMS is -102.9 dBFS before trim;
+   no clear-audibility claim. Existing C normalization also lowers level with longer Decay.
+   Retain formulas/gains; do not mask this with tuning. Human Focus +36 evaluation and separate
+   Audibility DSP Remediation if confirmed necessary remain explicit in the handoff.
+6. Supplied references checked read-only: ForestStream 8.75 s, StreamWater 0-30 s, Submerge 13.989 s.
+   User's birdsong exclusion, clarity/noise-masking and large-bubble intentions remain human criteria.
+7. Code Quality Review: exporter only serializes existing typed values; harness bounds input batch,
+   rejects existing output directory, never edits originals and compares decoded samples without hashes.
+   Renderer observation is offline only. No production source, parameter registry or callback changed.
+8. Comment & Documentation Pass: handoff, guide, README, Module Index, Testing, Developer Sound Tools,
+   Project Status and this record synchronized. Architecture/Parameters/state/accepted ADRs unchanged:
+   no production contract change. No formal CPU budget, pluginval/DAW or listening acceptance claimed.
+9. Final serial preset and governance checks in progress; publish after self-review, no merge.
+
+Phase J final validation: Debug 21/21 (34.98 s), Release 21/21 (16.69 s), ASAN 21/21 (63.62 s).
+Debug/Release/ASAN exporter JSON manifests are identical. The final supplied-input pack passes all
+72 cases, 24 different endpoint pairs and eight isolated component observations. Python syntax,
+clang-format, staged diff, Markdown links, portability, scanner regressions and VS Code references PASS.
+Original checkout's two unrelated edits remain untouched; production src/plugin, src/app and src/dsp
+have no diff against current main `3c95e47`. Remote main re-fetched and already contained in HEAD.
+Self-review and Comment & Documentation Pass complete; next publish existing PR #40, no merge.
+
+Actual command families: `cmd /c build/control-bridge/validate.cmd <windows-debug|windows-release|windows-asan>`
+(initializes MSVC, configures both research options with one Python interpreter, invokes
+`python tools/build_safe.py --preset <preset>`, then `ctest --preset <preset> --output-on-failure`);
+`python experiments/water/SPIKE-W-DSP-001/render/listening_handoff.py ...` (full portable invocation in
+[handoff](WATER_LISTENING_HANDOFF.md)); `python tools/check_markdown_links.py`,
+`python tools/check_portability.py`, their two regression scripts, `python tools/check_vscode_tasks.py`,
+`clang-format --dry-run --Werror` on changed C++ and `git diff --cached --check`.
+
+Not performed: human processed-audio listening/ACCEPT, independent code approval, production
+pluginval/DAW and new OS-DPI/multi-monitor tests. Native default/maximized and runtime controls were
+exercised; exact minimum size and file-dialog v1 migration were not repeated in Phase I.
