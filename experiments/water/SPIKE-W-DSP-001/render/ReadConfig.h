@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dsp/FluidCandidate.h"
+#include "dsp/FluidProtect.h"
 #include "dsp/LiquidModalResonator.h"
 
 #include <charconv>
@@ -15,9 +16,16 @@
 
 namespace frazil::water::research {
 
+struct ProtectRenderConfig final {
+    ProtectConfig gain;
+    double depth{};
+    FluidProtectTopology topology{FluidProtectTopology::whole};
+};
+
 // Offline-only strict configuration reader. Unknown fields and nonnumeric values are errors;
 // omitted values retain the versioned C++ research defaults, never production macro mappings.
-// Type/representation checks apply globally; only active DSP validates semantic ranges.
+// Type/representation checks apply globally; generator ranges apply only when enabled.
+// The renderer validates Protect ranges globally, including OFF and baseline modes.
 inline bool validVoiceRepresentation(double voices) noexcept {
     // Comparing with 2^digits avoids rounding SIZE_MAX upward before an unsafe integer cast.
     return std::isfinite(voices) && voices >= 0.0 &&
@@ -180,7 +188,9 @@ inline bool readNumbers(const juce::var& value,
 }
 
 // Non-realtime entry point shared by the offline renderer and standalone research preview.
-inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfig& modal) {
+// Callers without a Protect destination reject that module rather than silently discarding it.
+inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfig& modal,
+                           ProtectRenderConfig* protect = nullptr) {
     if (text.empty() || text.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()))
         return false;
     if (text.starts_with("\xef\xbb\xbf"))
@@ -246,6 +256,30 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
                                               {"decaySeconds", &modal.decaySeconds},
                                               {"residualGain", &modal.residualGain}}))
                 return false;
+        } else if (name == "protect") {
+            if (protect == nullptr)
+                return false;
+            auto& c = protect->gain;
+            double detector = static_cast<int>(c.score);
+            double topology = static_cast<int>(protect->topology);
+            if (!readNumbers(property.value, {{"depth", &protect->depth},
+                                              {"detector", &detector},
+                                              {"topology", &topology},
+                                              {"floor", &c.floor},
+                                              {"epsilon", &c.epsilon},
+                                              {"thresholdLow", &c.thresholdLow},
+                                              {"thresholdHigh", &c.thresholdHigh},
+                                              {"capDb", &c.capDb},
+                                              {"depthExponent", &c.depthExponent},
+                                              {"scoreExponent", &c.scoreExponent},
+                                              {"attackSeconds", &c.attackSeconds},
+                                              {"releaseSeconds", &c.releaseSeconds},
+                                              {"offSeconds", &c.offSeconds}}) ||
+                (detector != 0.0 && detector != 1.0) ||
+                (topology != 1.0 && topology != 2.0 && topology != 3.0))
+                return false;
+            c.score = static_cast<ProtectScore>(static_cast<int>(detector));
+            protect->topology = static_cast<FluidProtectTopology>(static_cast<int>(topology));
         } else {
             return false;
         }
@@ -253,11 +287,17 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
     return true;
 }
 
-inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal) {
+inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,
+                       ProtectRenderConfig* protect = nullptr) {
     juce::MemoryBlock bytes;
     if (!file.existsAsFile() || !file.loadFileAsData(bytes))
         return false;
     return readConfigText({static_cast<const char*>(bytes.getData()), bytes.getSize()}, fluid,
-                          modal);
+                          modal, protect);
+}
+
+inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,
+                       ProtectRenderConfig& protect) {
+    return readConfig(file, fluid, modal, &protect);
 }
 } // namespace frazil::water::research

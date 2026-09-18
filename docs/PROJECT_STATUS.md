@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-16（仅追加 Decay baseline review/finalization 事实，其余 evidence 保留原适用范围）<br>
+> 快照日期：2026-09-18（仅追加 Protect review remediation；Decay baseline 与其余 evidence 保留原适用范围）<br>
 > 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -23,13 +23,31 @@ Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未实现�
 `CODING_PLAN.md` v1.4 的 candidate contract / engineering boundaries 已获
 [PR #35 proposal HEAD 765f42a 的独立 APPROVE](https://github.com/jjjphens-dot/FRAZIL/pull/35#pullrequestreview-5223609754)，
 该 HEAD 的 [Hosted Windows Debug / CMake / CTest](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35103827055) 已通过。
-本 finalization 定义 v1.4 为 Approved Development Baseline，随 PR #35 合入 main 生效；最终 HEAD 仍须满足
-review/check gates，不能复用 proposal approval/CI 作为最终提交证据。v1.3 / [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23)
-是 previous approved baseline；实际 merge 与 final-head review/check 以 GitHub evidence 为准。本段不宣称已合并。
+2026-09-17 live query 确认 [PR #35](https://github.com/jjjphens-dot/FRAZIL/pull/35) 已于
+2026-09-16 14:32:33 UTC 合入 `main@fc20370`，v1.4 Approved Development Baseline 已生效。
+上述 proposal HEAD 的历史 approval/CI 不冒充 merge commit 的新验证；v1.3 /
+[PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23) 是 previous approved baseline。
 这不代表 FRAZIL plugin v1.0 release，
 也不改变 M1、Water/Ice/Routing 的实际完成状态：Water production DSP、production candidate controls
 和 model transition 均未实现或注册；Debug/ASAN 开发面板中的 experiment-only controls 不属于该
 production scope。
+
+[DOC-W-PROTECT-001 / #36](planning/WATER_PROTECT_CANDIDATE_REVISION.md) 是历史 Wave 1 提案。用户后续授权
+逐波工程自审并最终统一上传；[PROTECT-EXP-001 execution](planning/WATER_PROTECT_EXECUTION.md) 记录现有
+独立 experiment 中的 detector、residual gain、Fluid placement、renderer 与数值验证，及每项实际结果。
+没有 production Water/Developer/Host Protect control 或第五个已接受 macro。Issue #17 的 owner brief/
+Decay Revision B、精确版本 re-review 和 whole-contract acceptance 仍待完成。该 objective follow-up 不等于
+formal EXP-W-002 或 product adoption；用户将后续提供音频/结论，人类听测尚未执行。PR #37 remediation
+将 fixed-source-gain 主听测与 RMS-matched preference evidence 分开，加入显式 D0/D1 盲测条件；
+detector selection 仍未完成，Wave 7 产品决定在 selection 和人类听测完成前保持 BLOCKED。
+
+PR #37 CI interpreter remediation：历史 head `90b7f2c` 的
+[run 35310887776](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35310887776) 为 FAIL（18/19；pip 使用
+Python 3.12.10，CMake/CTest 使用 3.14.7，听测测试缺 NumPy）。修复 head `82f6960` 的
+[run 35313675800](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35313675800) 已 SUCCESS，19/19 PASS，
+`frazil_water_protect_listening` PASS；日志核实 pip/CMake/CTest 同为 Python 3.12.10 的同一个 executable。
+此结果只适用于该 implementation head，后续文档提交仍需自己的 exact-head CI 和最终独立 review。
+本次不诊断或宣称修复此前本地 `python312.dll` 崩溃，也不形成 Hosted Release/ASAN、听测或产品采纳证据。
 
 当前阻塞性差距：
 

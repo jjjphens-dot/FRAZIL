@@ -153,6 +153,24 @@ first three experiment controls; Decay UI/export is a separate follow-up. In tha
 Developer UI visibility never changes the Host-visible parameter set. The complete tooling boundary is maintained
 in [`DEVELOPER_SOUND_TOOLS.md`](DEVELOPER_SOUND_TOOLS.md).
 
+### 1.3 Protect research proposal (outside approved candidate baseline)
+
+`Protect` / possible `Water Protect`, candidate ID `water.protect`, is a **PROPOSED / NOT ACCEPTED** research
+control in [DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md). It is not part of v1.4's accepted
+Model/Size/Motion/Decay candidate scope. No fifth macro, Host registration, range/default, choice order,
+automation contract or persisted field is frozen. Current nine Host parameters and `schemaVersion=1` remain
+unchanged; Developer snapshot/editor/export currently contain only Model/Size/Motion.
+
+Experimental depth `P in [0,1]` would mean how much Water temporarily yields around source attacks. Candidate
+tooltip: “Keeps source attacks clear by briefly reducing Water texture around transients.” P=0 is proposed
+OFF; this is not a public parameter default. It must be distinguishable from Amount, Global Mix, Parallel
+Balance, Motion and Decay. Attack/release/threshold/ratio are engineering controls, not proposed main UX.
+
+The outcome may be Reject, Internal safeguard or User macro. Even an internal safeguard needs the applicable
+product/algorithm adoption gate. Only a justified User macro outcome opens explicit registry/state/automation
+design. If adopted, follow the existing Snapshot -> ParameterMapper -> Water-domain values -> WaterMacroMapper
+-> DSP target boundary; no app-owned Water type or public `protect` field is introduced by this proposal.
+
 ### Contract freeze stages
 
 M1 是 `core contract stabilization`：建立静态参数注册、Snapshot、mapping、state、automation granularity 和基础 smoothing 合同，但允许 Water/Ice 实验在 v1 API 范围内提出经过验证的 product macros。M2 Water 与 M3 Ice 完成后，`PARAM-FREEZE-001` 才是 `v1 host API freeze`：它冻结最终 Parameter ID、order、choice index、range、default、unit、smoothing、inactive-mode behavior，并要求 automation tests 与 state compatibility fixtures。此后 M4/M5 不得随意修改 Host Parameter ID；变更必须有 ADR 与 migration/compatibility review。

@@ -52,6 +52,15 @@ experiments/water/
 production work 均 DEFERRED，只有在 M2 Exit 后通过 Explicit Joint Gate 确认 Water workflow 可复用于 Ice，
 才恢复 M3 planning/work。
 
+## Proposed Protect research
+
+[DOC-W-PROTECT-001](../docs/planning/WATER_PROTECT_CANDIDATE_REVISION.md) is the historical Wave 1 proposal.
+The user's follow-up authorizes sequential local objective experiments/self-review and one final upload:
+[PROTECT-EXP-001](../docs/planning/WATER_PROTECT_EXECUTION.md) reuses the existing spike engines/renderer/tests.
+No parallel Water implementation or production dependency is created. This separate follow-up does not
+retroactively expand closed SPIKE scope or accept EXP-W-001/Decay Revision B, formal EXP-W-002 or product DSP.
+Human audio/conclusions will be supplied later; listening and product adoption remain pending.
+
 ## Water objective feasibility
 
 [SPIKE-W-DSP-001](water/SPIKE-W-DSP-001/README.md) contains independently testable Bubble A,

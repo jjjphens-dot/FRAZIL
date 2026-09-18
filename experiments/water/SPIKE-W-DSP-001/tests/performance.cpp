@@ -1,6 +1,7 @@
 #include "app/AudioEngine.h"
 #include "dsp/FlowModulator.h"
 #include "dsp/FluidCandidate.h"
+#include "dsp/FluidProtect.h"
 #include "dsp/LiquidModalResonator.h"
 
 #include <algorithm>
@@ -8,6 +9,7 @@
 #include <cmath>
 #include <iostream>
 #include <numeric>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -107,6 +109,50 @@ int main() {
                 }
             },
             baseline);
+    }
+    // PROTECT-EXP-001: same-run engine baselines, including detector/envelope cost at OFF.
+    // No trace/file I/O in measure; existing gated workload, warmup and percentiles apply.
+    for (bool resonant : {false, true}) {
+        FluidCandidate fluid;
+        LiquidModalResonator resonator;
+        if (!fluid.prepare({}) || !resonator.prepare(kRate))
+            return 1;
+        const auto render = [&](auto& buffer, ResidualProtect* protect,
+                                FluidProtectTopology topology) {
+            for (int i = 0; i < kBlock; ++i) {
+                const StereoFrame x{buffer.getSample(0, i), buffer.getSample(1, i)};
+                const double g = protect ? protect->processSource(x) : 1.0;
+                const auto e = resonant
+                                   ? ResidualProtect::apply(resonator.process(x), g)
+                                   : applyFluidProtect(fluid.processComponents(x), g, topology);
+                for (int c = 0; c < 2; ++c)
+                    buffer.addSample(c, i, e[c]);
+            }
+        };
+        const double reference = measure(
+            resonant ? "protect_C_reference" : "protect_F_reference",
+            [&](auto& buffer) { render(buffer, nullptr, FluidProtectTopology::whole); }, 0.0);
+        for (auto score : {ProtectScore::difference, ProtectScore::logRatio})
+            for (double depth : {0.0, .5, 1.0}) {
+                fluid.reset();
+                resonator.reset();
+                ProtectConfig config;
+                config.score = score;
+                if (score == ProtectScore::difference) {
+                    config.thresholdLow = .01;
+                    config.thresholdHigh = .12;
+                }
+                ResidualProtect protect;
+                if (!protect.prepare(kRate, config, depth))
+                    return 1;
+                const std::string name = std::string(resonant ? "protect_C_" : "protect_F_") +
+                                         (score == ProtectScore::difference ? "D0_" : "D1_") +
+                                         std::to_string(depth);
+                measure(
+                    name.c_str(),
+                    [&](auto& buffer) { render(buffer, &protect, FluidProtectTopology::whole); },
+                    reference);
+            }
     }
     return 0;
 }

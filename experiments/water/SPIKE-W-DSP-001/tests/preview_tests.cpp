@@ -27,6 +27,20 @@ int main() {
               fluidConfig.flow.depthSeconds == .001 && modalConfig.rootFrequencyHz == 260,
           "units and defaults round trip");
     file.deleteFile();
+    // Integration boundary: importing Protect must never silently discard its settings.
+    constexpr std::string_view protectJson =
+        R"({"protect":{"depth":0.6,"detector":0,"topology":2,"thresholdHigh":0.12}})";
+    research::ProtectRenderConfig protectConfig;
+    check(research::readConfigText(protectJson, fluidConfig, modalConfig, &protectConfig) &&
+              protectConfig.depth == .6 &&
+              protectConfig.gain.score == research::ProtectScore::difference &&
+              protectConfig.gain.thresholdHigh == .12,
+          "in-memory parser retains Protect config");
+    check(!research::readConfigText(protectJson, fluidConfig, modalConfig),
+          "unconnected preview rejects Protect config");
+    check(!research::readConfigText(R"({"protect":{"depth":0,"depth":1}})", fluidConfig,
+                                    modalConfig, &protectConfig),
+          "in-memory parser rejects duplicate Protect fields");
     preview::PreviewController controller;
     check(controller.validate(settings).isEmpty(), "default application config valid");
     check(controller.play(settings).isNotEmpty(), "play without source fails before device start");
