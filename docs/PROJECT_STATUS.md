@@ -315,8 +315,8 @@ PluginProcessor
   developer Dry/Processed path、prepared/latest diagnostics 和完整 draft config representation。它不是
   M5 Production UI；usability、DAW/listening evidence 和 Offline Sound Lab handoff 仍未完成。它是大规模
   `EXP-W-002` 前的 Water M2 effective-development-readiness prerequisite，但不是 M1 Exit hard gate。
-- M2 Water：**未开始**；`EXP-W-001` Perceptual Contract preparation 为 PLANNED，不表示 M2 或 Water DSP 已开始。
-- Perceptual Contract framework/template：当前已随批准并合入的 v1.3 baseline 成为 **CURRENT / CONTROLLED**。`EXP-W-001` Water contract instance 仍为 **PLANNED**，尚未产出或验收。
+- M2 Water：本次 EXP-W-001 收口未启动 EXP-W-002 或 Water production DSP；后续启动仍须核验适用 Developer workflow readiness。
+- Perceptual Contract framework/template：**CURRENT / CONTROLLED**。2026-09-18，[EXP-W-001 Revision B 四 macro 感知合同](../experiments/water/EXP-W-001_PERCEPTUAL_BRIEF.md) 已记录 **ACCEPTED（definition only）**：Human ACCEPT at b616533、[工程初审 PASS at a5a0d99](https://github.com/jjjphens-dot/FRAZIL/issues/17#issuecomment-5701188940)，以及用户转述 Engineering Lead 口头认可并要求完成收口。后者是 manual evidence，不是 formal GitHub APPROVE；口头审阅的精确 revision/date 未提供。brief 第 11/12 节保留证据限制及未执行听测的下游归属；实际 PR 合入/Issue 关闭以 [Issue #17](https://github.com/jjjphens-dot/FRAZIL/issues/17) 的 GitHub 记录为准。
 - M3 Ice：**DEFERRED**；长期 milestone 保留，在 `M2 Exit + Explicit Joint Gate` 确认 Water workflow 可复用于 Ice 前，不启动 Ice experiment、perceptual/parameter redesign 或 production implementation。
 - M4 Routing：**未开始**。
 - M5 UI & Edit History：**未开始**。

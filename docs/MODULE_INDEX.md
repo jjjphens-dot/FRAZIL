@@ -28,6 +28,16 @@ ProcessSpec 当前实际位于 `src/app/ProcessSpec.h`，由 M1 AudioEngine 消�
 | Developer diagnostics presentation | `src/ui/DeveloperDiagnosticsView.*`, `src/ui/DeveloperLevelMeter.*` | compact runtime/finite text and aggregate INPUT/OUTPUT dBFS meters; no measurement or state ownership | `update(snapshot, routing)`; `setLevels(peak, rms)` | JUCE; existing diagnostics value type only in the view; no Processor/APVTS/engine access | message only, editor-owned | Debug/Release/ASAN isolation, CTest, pluginval and local size/signal observations; see Project Status 2.9 | 0003 (unchanged) | `DEV-UI-001` | Implementation candidate; human usability acceptance pending; not Production UI |
 | Production UI components | planned `src/ui/` | 产品参数表达、attachment、gesture 和 UI transaction | narrow plugin parameter interface、narrow app edit/history command interface | plugin parameter interface、app edit/history command interface | message only | interaction/resize/automation | 0002 | `UI-001..008`, `HIST-002..004` | Planned M5 |
 
+## Experiment support
+
+`experiments/water/reference_intake.py` is the bounded EXP-W-001 offline reference-intake CLI.
+It reads 1–6 explicit IDs from `REFERENCE_INDEX.csv`, resolves audio inside a caller-supplied external
+library, and reuses `tools/analyze_testdata.py` for development-only analysis/plots. JSON and plots stay
+under ignored `testdata/rendered/`; it does not copy audio, infer listening labels or enter production targets.
+See [reference usage](../experiments/water/REFERENCE_INDEX.md) and
+[acceptance/validation record](../experiments/water/task_plan.md). Its runtime is Python plus
+`requirements-dsp.txt`, on the offline caller thread; it has no plugin/app/DSP dependency.
+
 ## Registration and update rules
 
 - 新模块进入本表前必须有真实需求、路径、公共接口、依赖方向、线程模型、测试入口和 Coding Plan ID；人员 owner 由 GitHub Issue/Project 维护，不写死在长期索引中。

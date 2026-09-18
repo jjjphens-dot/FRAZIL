@@ -1,0 +1,21 @@
+id,relative_path,kind,filename_category_hint,song_group,excerpt_number,split,perceptual_class,license,sound_lead_note
+W-P001,Sample_Packs/BubbleSurfaceLarge_SFXB.4_1.wav,PURE,complex,,,development,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-P002,Sample_Packs/CaveWaterFlow_BW.53725.wav,PURE,continuous,,,development,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-P003,Sample_Packs/ChlorinePourInto_SFXB.4785.wav,PURE,pour_container,,,development,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-P004,Sample_Packs/DripsBodyStandUp_S08WR.37.wav,PURE,drip_splash,,,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-P005,Sample_Packs/ForestStream_BW.53693.wav,PURE,continuous,,,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-P006,Sample_Packs/FountainRun_BW.62841.wav,PURE,continuous,,,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-P007,Sample_Packs/LakeDockWavesSplash_SFXB._1.wav,PURE,drip_splash,,,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-P008,Sample_Packs/ObjectSurface_S08WR.71.wav,PURE,complex,,,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-P009,Sample_Packs/PebbleDropSplash_SFXB.4803.wav,PURE,drip_splash,,,development,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-P010,Sample_Packs/SubmergeContainer_SFXB.4860.wav,PURE,pour_container,,,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-P011,Sample_Packs/UnderwaterBubbles_SFXB.4876.wav,PURE,complex,,,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-P012,Sample_Packs/WaterWalkWadeFast_SFXB.4909.wav,PURE,complex,,,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-M001,"Sample_Songs/Aut0,ILusMin,Shizu - Flux (feat. Shizu)1.wav",MUSICAL,UNREVIEWED,"Aut0,ILusMin,Shizu - Flux (feat. Shizu)",1,development,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-M002,"Sample_Songs/Aut0,ILusMin,Shizu - Flux (feat. Shizu)2.wav",MUSICAL,UNREVIEWED,"Aut0,ILusMin,Shizu - Flux (feat. Shizu)",2,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-M003,"Sample_Songs/Aut0,ILusMin,Shizu - Flux (feat. Shizu)3.wav",MUSICAL,UNREVIEWED,"Aut0,ILusMin,Shizu - Flux (feat. Shizu)",3,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-M004,Sample_Songs/ILusMin - Diphylleia (山荷叶)1.wav,MUSICAL,UNREVIEWED,ILusMin - Diphylleia (山荷叶),1,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-M005,Sample_Songs/ILusMin - Diphylleia (山荷叶)2.wav,MUSICAL,UNREVIEWED,ILusMin - Diphylleia (山荷叶),2,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-M006,Sample_Songs/ILusMin - Diphylleia (山荷叶)3.wav,MUSICAL,UNREVIEWED,ILusMin - Diphylleia (山荷叶),3,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-M007,Sample_Songs/削除 - Woelvinquesh1.wav,MUSICAL,UNREVIEWED,削除 - Woelvinquesh,1,development,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
+W-M008,Sample_Songs/削除 - Woelvinquesh2.wav,MUSICAL,UNREVIEWED,削除 - Woelvinquesh,2,unassigned,UNREVIEWED,UNVERIFIED_LOCAL_ONLY,PENDING
