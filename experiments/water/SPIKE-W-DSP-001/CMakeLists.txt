@@ -37,6 +37,11 @@ target_link_libraries(frazil_water_performance PRIVATE frazil_water_research juc
 
 # Separate research application. It is never linked into FRAZIL or registered as a Host plugin.
 if(FRAZIL_BUILD_WATER_PREVIEW)
+    set(FRAZIL_PREVIEW_VARIANT "${CMAKE_BUILD_TYPE}")
+    if(CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
+        string(APPEND FRAZIL_PREVIEW_VARIANT "+ASAN")
+    endif()
+    configure_file(preview/PreviewBuildInfo.h.in generated/PreviewBuildInfo.h @ONLY)
     juce_add_gui_app(frazil_water_preview PRODUCT_NAME "FRAZIL Water Research Preview")
     target_sources(frazil_water_preview PRIVATE preview/PreviewMain.cpp preview/PreviewController.cpp
         ../../../src/ui/DeveloperDiagnosticsView.cpp ../../../src/ui/DeveloperLevelMeter.cpp
@@ -48,11 +53,15 @@ if(FRAZIL_BUILD_WATER_PREVIEW)
     juce_add_console_app(frazil_water_preview_tests PRODUCT_NAME "FRAZIL Water Preview Tests")
     target_sources(frazil_water_preview_tests PRIVATE tests/preview_tests.cpp tests/preview_time_tests.cpp
         tests/preview_descriptor_tests.cpp tests/preview_session_tests.cpp tests/preview_session_codec_tests.cpp
-        tests/preview_protect_tests.cpp tests/preview_diagnostics_tests.cpp preview/PreviewController.cpp
+        tests/preview_protect_tests.cpp tests/preview_diagnostics_tests.cpp tests/preview_workflow_tests.cpp
+        preview/PreviewController.cpp
         ../../../src/dsp/primitives/LinearSmoother.cpp)
     target_compile_definitions(frazil_water_preview_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
         FRAZIL_ENABLE_DEVELOPER_UI=1)
     target_link_libraries(frazil_water_preview_tests PRIVATE frazil_water_research juce::juce_audio_utils)
+    foreach(target IN ITEMS frazil_water_preview frazil_water_preview_tests)
+        target_include_directories(${target} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
+    endforeach()
     add_test(NAME frazil_water_preview COMMAND frazil_water_preview_tests)
     list(APPEND water_test_targets frazil_water_preview frazil_water_preview_tests)
     list(APPEND water_test_names frazil_water_preview)

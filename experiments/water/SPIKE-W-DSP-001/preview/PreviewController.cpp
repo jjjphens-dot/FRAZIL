@@ -162,10 +162,47 @@ juce::String PreviewController::load(const juce::File& wav) {
 
 juce::String PreviewController::validate(const PreviewSettings& settings) const {
     PreviewEngine candidate;
-    if (!candidate.prepare(impl_->sourceRate > 0 ? impl_->sourceRate : 48000, settings))
-        return "Invalid active DSP config: check frequency order, modal root*4.17 <= .45*fs, "
-               "and Flow base-depth >= 1/fs, base+depth <= .02 s.";
-    return {};
+    const auto rate = impl_->sourceRate > 0 ? impl_->sourceRate : 48000;
+    if (candidate.prepare(rate, settings))
+        return {};
+    if (settings.mode < 0 || settings.mode >= static_cast<int>(kModes.size()))
+        return "Composition: unknown mode.";
+    research::FluidConfig fluid;
+    research::ModalConfig modal;
+    ProtectSettings protect;
+    if (!research::readConfigText(settings.moduleJson().toStdString(), fluid, modal, &protect))
+        return "Module config: nonnumeric, nonfinite or invalid representation.";
+    if (settings.mode == 1 && protect.topology != research::FluidProtectTopology::whole)
+        return "PROTECT: Resonant C supports Whole topology only.";
+    // Reuse the authoritative prepare validators to identify the failed module, not parallel
+    // numerical rules. These diagnostic-only probes run on the UI thread after prepare failed.
+    research::ResidualProtect protectProbe;
+    if (!protectProbe.prepare(rate, protect.gain, protect.depth))
+        return "PROTECT: check Low < High (D0 amplitude / D1 dB), 0 < Epsilon <= Floor, and "
+               "timing/curve ranges.";
+    if (settings.mode == 1)
+        return "MODAL: root * 4.17 must be <= 0.45 * sample rate; check decay/gain ranges.";
+    const std::string_view mode(kModes[static_cast<std::size_t>(settings.mode)]);
+    const research::ResearchConfig config{rate, PreviewEngine::kSeed};
+    if (mode.find('a') != std::string_view::npos) {
+        research::BubbleEnsemble probe;
+        if (!probe.prepare(config, fluid.bubble))
+            return "BUBBLE: minimum frequency must be <= maximum; check rate, decay, threshold, "
+                   "gain and voices.";
+    }
+    if (mode.find('b') != std::string_view::npos) {
+        research::DropletImpactExciter probe;
+        if (!probe.prepare(config, fluid.droplet))
+            return "DROPLET: minimum frequency must be <= maximum; check decay, refractory, "
+                   "threshold, gain and voices.";
+    }
+    if (mode.find('d') != std::string_view::npos) {
+        research::FlowModulator probe;
+        if (!probe.prepare(config, fluid.flow))
+            return "FLOW: baseDelay - depth must be >= 1/sampleRate; baseDelay + depth <= 0.02 s; "
+                   "check target interval/gain.";
+    }
+    return "Invalid research configuration; keep the previous applied state.";
 }
 
 juce::String PreviewController::play(const PreviewSettings& settings) {
@@ -223,6 +260,10 @@ juce::String PreviewController::sourceDescription() const {
     return impl_->sourceName + " | " + juce::String(impl_->sourceRate, 0) + " Hz | " +
            juce::String(impl_->source.getNumChannels()) + " ch | " +
            juce::String(impl_->source.getNumSamples() / impl_->sourceRate, 2) + " s";
+}
+SourceMetadata PreviewController::sourceMetadata() const {
+    return {impl_->sourceName, impl_->sourceRate, impl_->source.getNumChannels(),
+            impl_->source.getNumSamples()};
 }
 double PreviewController::positionSeconds() const noexcept {
     return impl_->sourceRate > 0 ? impl_->position.load() / impl_->sourceRate : 0;

@@ -8,6 +8,12 @@
 
 namespace frazil::water::preview {
 namespace sessionDetail {
+inline bool textValue(const juce::var& value, juce::String& output, int maximum) {
+    if (!value.isString() || value.toString().length() > maximum)
+        return false;
+    output = value.toString();
+    return true;
+}
 inline juce::var object() {
     return juce::var(new juce::DynamicObject());
 }
@@ -56,6 +62,24 @@ inline bool readOwnership(const juce::var& value, ControlOwnership& output) {
     output = {static_cast<ChangeOrigin>(origin), static_cast<std::uint64_t>(revision)};
     return true;
 }
+inline juce::var buildValue(const BuildMetadata& build) {
+    auto value = object();
+    put(value, "commit", build.commit);
+    put(value, "state", build.state);
+    put(value, "variant", build.variant);
+    put(value, "compiler", build.compiler);
+    return value;
+}
+inline bool readBuild(const juce::var& value, BuildMetadata& build) {
+    return fields(value, {"commit", "state", "variant", "compiler"}) &&
+           textValue(value["commit"], build.commit, 64) &&
+           (build.commit == "unknown" ||
+            (build.commit.length() == 40 && build.commit.containsOnly("0123456789abcdefABCDEF"))) &&
+           textValue(value["state"], build.state, 16) &&
+           (build.state == "clean" || build.state == "dirty" || build.state == "unknown") &&
+           textValue(value["variant"], build.variant, 64) &&
+           textValue(value["compiler"], build.compiler, 128);
+}
 } // namespace sessionDetail
 
 // Separate research manifest. It is never plugin state or renderer module schema. Encoding and
@@ -96,6 +120,14 @@ inline juce::String encodeSession(const ResearchSessionState& state) {
     put(memory, "lastNonzeroDepth", state.protectMemory.lastNonzeroDepth);
     put(memory, "fluidTopology", static_cast<int>(state.protectMemory.fluidTopology));
     put(root, "protectMemory", memory);
+    auto source = object();
+    put(source, "name", state.source.name);
+    put(source, "sampleRate", state.source.sampleRate);
+    put(source, "channels", state.source.channels);
+    put(source, "frames", static_cast<juce::int64>(state.source.frames));
+    put(root, "source", source);
+    put(root, "build", buildValue(state.build));
+    put(root, "importedBuild", state.importedBuild ? buildValue(*state.importedBuild) : object());
     return juce::JSON::toString(root, false, 17);
 }
 
@@ -114,13 +146,38 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
         SessionJsonSyntax::decodedProperties(root) != syntax.properties())
         return "Session: duplicate or invalid fields.";
     int version{}, seed{};
-    if (!fields(root, {"format", "version", "water", "configuration", "composition", "seed",
-                       "monitor", "ownership", "protectMemory"}) ||
+    if (!fields(root,
+                {"format", "version", "water", "configuration", "composition", "seed", "monitor",
+                 "ownership", "protectMemory", "source", "build", "importedBuild"}) ||
         !root["format"].isString() ||
         root["format"].toString() != "frazil.water-research-session" ||
         !integer(root["version"], 1, 1, version) || !integer(root["seed"], 42, 42, seed))
         return "Session: unsupported format/version/seed.";
     ResearchSessionState candidate;
+    const auto& source = root["source"];
+    int channels{}, frames{};
+    if (!fields(source, {"name", "sampleRate", "channels", "frames"}) ||
+        !textValue(source["name"], candidate.source.name, 255) ||
+        candidate.source.name.containsAnyOf("/\\") ||
+        !number(source["sampleRate"], 0, 96000, candidate.source.sampleRate) ||
+        !integer(source["channels"], 0, 2, channels) ||
+        !integer(source["frames"], 0, 11520000, frames))
+        return "Session: invalid source metadata.";
+    candidate.source.channels = channels;
+    candidate.source.frames = frames;
+    if (candidate.source.name.isEmpty()
+            ? (candidate.source.sampleRate != 0 || channels != 0 || frames != 0)
+            : (candidate.source.sampleRate < 44100 || channels < 1 || frames < 1 ||
+               frames > 120 * candidate.source.sampleRate))
+        return "Session: inconsistent source metadata.";
+    if (!readBuild(root["build"], candidate.build) || !root["importedBuild"].isObject())
+        return "Session: invalid build provenance.";
+    if (root["importedBuild"].getDynamicObject()->getProperties().size() != 0) {
+        BuildMetadata imported;
+        if (!readBuild(root["importedBuild"], imported))
+            return "Session: invalid imported build provenance.";
+        candidate.importedBuild = imported;
+    }
     int model{}, mode{}, monitorMode{}, mapping{};
     const auto& water = root["water"];
     if (!fields(water, {"model", "size", "motion", "decay"}) ||
@@ -204,6 +261,49 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
              candidate.engineering.values[i] != std::floor(candidate.engineering.values[i])))
             return "Session: invalid field " + juce::String(spec.stableId());
     }
+    output = std::move(candidate);
+    return {};
+}
+// Renderer module import uses that parser's default-for-omitted-fields semantics. It retains the
+// current composition/macros/source, marks engineering CUSTOM, and never changes state on failure.
+inline juce::String decodeModuleConfig(std::string_view text, const ResearchSessionState& current,
+                                       ResearchSessionState& output) {
+    if (text.size() > 1024 * 1024)
+        return "Module config: maximum size is 1 MiB.";
+    research::FluidConfig fluid;
+    research::ModalConfig modal;
+    ProtectSettings protect;
+    if (!research::readConfigText(text, fluid, modal, &protect))
+        return "Module config: invalid, unknown or duplicate fields.";
+    auto candidate = current;
+    candidate.engineering.assignConfigs(fluid, modal, protect);
+    for (std::size_t i = 0; i < kControls.size(); ++i) {
+        const auto& spec = kControls[i];
+        const double value = candidate.engineering.values[i];
+        if (!std::isfinite(value) || value < spec.minimum || value > spec.maximum ||
+            (spec.valueType == ControlValueType::integer && value != std::floor(value)))
+            return "Module config: outside UI range for " + juce::String(spec.stableId());
+    }
+    for (const auto& spec : kProtectControls) {
+        const double value = protectValue(protect, spec.id);
+        if (!std::isfinite(value) || value < spec.minimum ||
+            value > protectMaximum(spec, protect.gain.score))
+            return "Module config: invalid protect." + juce::String(spec.key);
+    }
+    if (candidate.engineering.mode == 1 &&
+        protect.topology != research::FluidProtectTopology::whole)
+        return "Protect: Resonant C requires Whole topology; select Fluid before importing F2/F3.";
+    auto& calibration = protect.gain.score == research::ProtectScore::difference
+                            ? candidate.protectMemory.difference
+                            : candidate.protectMemory.logRatio;
+    calibration = {protect.gain.thresholdLow, protect.gain.thresholdHigh};
+    if (candidate.engineering.mode != 1)
+        candidate.protectMemory.fluidTopology = protect.topology;
+    if (protect.depth > 0)
+        candidate.protectMemory.lastNonzeroDepth = protect.depth;
+    if (!validProtectMemory(candidate.protectMemory))
+        return "Protect: Low must be less than High in each retained detector domain.";
+    candidate.customEngineering = true;
     output = std::move(candidate);
     return {};
 }

@@ -9,9 +9,9 @@ algorithm redesign, inferred macro curves or perceptual acceptance.
 
 ## Status
 
-Running, Phase 7 preparation. The user explicitly requested autonomous progression through
+Running, Phase 8 preparation. The user explicitly requested autonomous progression through
 all phases after each self-review, then a single GitHub publication of the completed work. Separate
-local commits/checkpoints remain required; Phases 2–8 are next. Owner: Engineering implementation;
+local commits/checkpoints remain required; Phases 0–7 are complete locally. Owner: Engineering implementation;
 Sound Lead retains human workflow/perceptual acceptance. No delegated workers.
 
 ## Live baseline
@@ -281,3 +281,30 @@ independent approval and main merge are not part of this local checkpoint.
     UI consumer. Tests exercise actual concurrent observation; ASAN is not claimed as race detection.
     Optional rolling trace is omitted; numerical diagnostics meet this phase's required scope.
 12. Next: complete module/session workflow, source/build provenance, atomic imports and Apply feedback.
+
+## Phase 7 implementation and review
+
+1. Baseline: Phase 6 `f24bd08`, same isolated integration branch.
+2. Scope: renderer module import, portable source/build context, complete session/A/B/reset workflow,
+   module-specific validation feedback and transaction regression coverage.
+3. Files: new build-info template, SessionMetadata and workflow tests; preview CMake/settings/model/
+   codec/controller/panel updated. No production source or Protect algorithm edit.
+4. Behavior: imports parse into a candidate, use authoritative prepare validation and commit only
+   after success. Omitted module fields use renderer defaults; macros/source/monitor are retained.
+   Session/A/B preserve source filename/rate/channels/frames; mismatch disables Play until explicit
+   source selection. Reset retains source. Current/imported configure-time builds remain distinguishable.
+5. Contracts: renderer schema unchanged; new unreleased research manifest v1 expanded. No Host schema,
+   parameter, accepted mapping, content hash, personal path or production dependency introduced.
+6. Tests: `cmd /c build\control-bridge\validate.cmd windows-debug`; workflow tests cover roundtrips,
+   defaults, coupled constraints, atomic rejection and live-edit provenance.
+7. Results: Debug safe build and 20/20 CTest PASS; staged links/portability/diff checks PASS.
+8. Human/UI: functional model/codec evidence; actual Windows workflow remains Phase 8.
+9. Realtime: all new parsing, source metadata, error probes and build strings remain on message thread;
+   callback unchanged. Validation probes allocate only while preparing failed candidate diagnostics.
+10. Documentation: debug guide, Developer Sound Tools, Module Index, Project Status, Testing, research
+    README and execution record synchronized. Architecture, Parameters, Coding Plan, Accepted ADRs,
+    Environment and production UI README reviewed; no contract change required.
+11. Self-review: separate source descriptors are not content identity; imported audio is not embedded
+    or automatically loaded. Invalid imports preserve both applied and draft values. Build provenance
+    is configure-time, clearly documented; module fields never receive macro values or new mappings.
+12. Next: strict inputs for all controls, collapsible modules, responsive layout and Windows GUI checks.

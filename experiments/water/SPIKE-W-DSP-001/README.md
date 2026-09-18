@@ -309,6 +309,10 @@ Phase 4 adds normalized Decay with the DOC-W-DECAY-001 provisional baseline `0.5
 and cannot affect Flow or any DSP parameter. Four macros participate in A/B/reset and separate
 `frazil.water-research-session` version 1 manifests. `SessionCodec.h` covers config/composition,
 fixed seed 42, monitor and provenance. `SessionJsonSyntax.h` is required because the renderer gate
+also excludes source/build context, which the session retains without audio bytes or absolute paths.
+Module imports reuse renderer defaults and validation, preserve session macros/source/monitor, and
+mark engineering values CUSTOM. Configure-time Git/build provenance requires reconfigure to refresh.
+`SessionJsonSyntax.h` remains necessary because the renderer gate
 only supports two numeric object levels; the bounded session syntax additionally supports strings,
 booleans and nested provenance, rejects duplicate keys/full-input violations, and never runs in
 the callback. Import decodes a candidate, then validates existing DSP config before replacement.

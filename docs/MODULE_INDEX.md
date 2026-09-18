@@ -47,6 +47,9 @@ without changing module JSON; DSP continues to use its existing typed config str
 `SessionCodec.h` owns the separate versioned research manifest including provisional Decay;
 `SessionJsonSyntax.h` bounds and validates its richer JSON syntax before schema decoding. Imports
 produce candidates and use the controller's existing DSP validation before restoring the model.
+`SessionMetadata.h` separates portable source/build context from audio bytes; generated
+`PreviewBuildInfo.h` records configure-time Git/build provenance for both preview and its tests.
+Module imports reuse renderer parsing/defaults and the existing prepare validators.
 `ProtectControls.h` adapts typed research config and separate calibration/enable memory;
 `ProtectView.h` owns its research presentation. `ExactValueControl.h` validates text before slider
 clamping and currently serves Protect. `PreviewEngine` reuses `ResidualProtect`/`applyFluidProtect`,

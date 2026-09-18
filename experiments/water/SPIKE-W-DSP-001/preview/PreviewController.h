@@ -2,6 +2,7 @@
 
 #include "PreviewSettings.h"
 #include "ProtectDiagnostics.h"
+#include "SessionMetadata.h"
 #include "plugin/DeveloperDiagnostics.h"
 
 #include <juce_audio_utils/juce_audio_utils.h>
@@ -24,6 +25,7 @@ class PreviewController final {
     plugin::DeveloperDiagnosticsSnapshot diagnostics() const noexcept;
     ProtectDiagnosticsSnapshot protectDiagnostics() noexcept;
     juce::String sourceDescription() const;
+    SourceMetadata sourceMetadata() const;
     double positionSeconds() const noexcept;
     bool playing() const noexcept;
     bool finished() const noexcept;

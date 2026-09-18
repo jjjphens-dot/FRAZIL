@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PreviewSettings.h"
+#include "SessionMetadata.h"
 
 #include <cmath>
 #include <cstdint>
@@ -48,6 +49,9 @@ struct ResearchSessionState final {
     bool customEngineering{};
     std::array<ControlOwnership, kControls.size()> ownership{};
     ControlOwnership lastChange;
+    SourceMetadata source;
+    BuildMetadata build;
+    std::optional<BuildMetadata> importedBuild;
 };
 
 constexpr const char* originName(ChangeOrigin origin) noexcept {
@@ -189,6 +193,7 @@ class ResearchSessionModel final {
         if (!setProtectValue(draft_.engineering.protect, id, value))
             return false;
         if (id == ProtectId::depth) {
+            applied_.lastChange = {origin, revision_ + 1};
             applied_.engineering.protect.depth =
                 value; // LIVE independently of other draft changes.
             if (value > 0)
@@ -244,6 +249,12 @@ class ResearchSessionModel final {
             return;
         draft_.monitor = applied_.monitor = mode;
         draft_.monitorGainDb = applied_.monitorGainDb = gainDb;
+        applied_.lastChange = {ChangeOrigin::soundLeadUI, revision_ + 1};
+        changed(ChangeOrigin::soundLeadUI);
+    }
+    void setSource(const SourceMetadata& source) {
+        draft_.source = applied_.source = source;
+        applied_.lastChange = {ChangeOrigin::soundLeadUI, revision_ + 1};
         changed(ChangeOrigin::soundLeadUI);
     }
     // Coordinator must validate draft engineering config with the existing DSP authority first.
@@ -252,7 +263,9 @@ class ResearchSessionModel final {
         notify();
     }
     void reset() {
+        const auto source = draft_.source;
         draft_ = {};
+        draft_.source = source;
         changed(ChangeOrigin::reset);
     }
     void capture(std::size_t slot) {
@@ -264,6 +277,8 @@ class ResearchSessionModel final {
     }
     void restoreValidated(const ResearchSessionState& state) {
         draft_ = state;
+        draft_.importedBuild = state.build;
+        draft_.build = {};
         for (auto& ownership : draft_.ownership)
             ownership = {ChangeOrigin::sessionLoad, revision_ + 1};
         draft_.lastChange = {ChangeOrigin::sessionLoad, ++revision_};

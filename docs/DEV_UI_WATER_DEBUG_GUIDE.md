@@ -72,11 +72,12 @@ WAV 播完后输入自动为零，再处理 **30 秒 tail** 后停止；没有�
 | Full / x+E | 监听源加 residual，源仅添加一次 | 无隐藏 limiter、normalization 或 makeup |
 | Water only / E | 只听实验 residual | 这是工程诊断，不是产品 Wet 宏 |
 | Monitor output (dB) | -60..0 dB，默认 -12 dB | 三种监听路径共用；10 ms 平滑；不写入导出的 DSP config |
-| Capture A / B | 记录**已应用**宏实验值、工程配置、composition、监听模式和 monitor gain | 不记录未应用草稿、WAV、游标或 DSP 状态；内存临时槽 |
+| Capture A / B | 记录**已应用**宏实验值、工程配置、composition、监听模式、monitor gain 和源元数据 | 不记录未应用草稿、音频字节、游标或 DSP 状态；内存临时槽 |
 | Apply A / B | 停止播放，恢复对应配置与监听状态 | 空槽禁用；点击 Play 才开始新一次处理 |
 | Reset baseline | 恢复研究默认值、ABD、Processed、-12 dB | 停止播放；保留 WAV 与已捕获 A/B 槽；不是 Host reset |
 | Copy config | 复制**已应用** module JSON | 不是插件 state/preset；不包含 WAV、composition、seed、monitor gain |
 | Export config | 保存同一 module JSON | 可直接交给现有 Water renderer；composition/seed 另行提供 |
+| Import Module Config | 按 renderer schema 导入；缺省字段恢复研究默认值，再校验当前 composition | 保留宏、源、monitor；工程值标记 CUSTOM；无效文件不改变状态 |
 | Copy Session / Export Session | 保存已应用四宏、工程值、composition、监听及来源 revision | 独立研究 manifest，不是 renderer config 或 Host state；不包含音频 |
 | Import Session | 严格解析并校验，再停止播放并恢复会话值 | 无效文件不替换当前状态；保留当前 WAV，需手动匹配源素材 |
 
@@ -92,7 +93,14 @@ Model 显示 CUSTOM，可用 **Return Model to Mapped** 返回该模型的完整
 Size/Motion/Decay 显示 **UNMAPPED**：目前只保留实验值，不改变频率、事件率或延迟。
 工程参数手动修改不会反向改写宏值；inactive 控件变暗但保留值，生效前须启用对应 composition。
 编辑形成 Draft 并停止播放；Apply 校验后方可 Play。Decay 初值 0.5 是 provisional experiment baseline，
-参与 A/B、reset 和 session 保存，不是产品默认值。Protect 已接入，source/build provenance 后续补齐；实测状态见 [执行记录](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md)。
+参与 A/B、reset 和 session 保存，不是产品默认值。Protect 已接入；实测状态见 [执行记录](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md)。
+
+Session 同时保存源文件名（无目录）、采样率、声道、帧数，以及 configure 时的 Git commit、
+clean/dirty 状态、build variant 和 compiler。导入后保留导入 build 信息，并记录当前程序的 build；
+重新 configure 才会更新编译进去的 provenance。元数据只是复现线索，不是音频内容身份校验。
+若已加载源与导入 session 元数据不同，Play 禁用并提示所需文件；Load WAV 是明确选择新的源，
+会更新当前会话元数据。A/B 同样保留源元数据；音频需单独保存。该新研究格式尚未发布，
+不承诺兼容开发过程中的旧 manifest；正式插件 schema 不变。
 
 ## 5. 工程参数对应的 DSP 作用
 

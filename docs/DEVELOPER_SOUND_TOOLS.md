@@ -133,6 +133,9 @@ the standalone preview also carries provisional Decay `0.5`, explicitly UNMAPPED
 A/B/reset and the separate `frazil.water-research-session` version 1 manifest. Copy/Export Session
 uses applied values; Import Session validates syntax/schema/config before replacing state. The
 original `DeveloperWaterExperimentSnapshot` and `frazil.dev-experiment` export are unchanged.
+Session source metadata is filename/rate/channels/frames only; configure-time Git/build information
+is retained on import alongside current build context. It is not a content-identity check. Module
+imports preserve macros/monitor/source and use renderer defaults for omitted configuration fields.
 Protect research controls now reuse the existing residual-only processor. Depth/Enable publish one
 lock-free target consumed at a callback boundary; detector/topology/timing changes require Apply.
 D0/D1 calibration memory and Fluid topology are retained separately, with C restricted to Whole.

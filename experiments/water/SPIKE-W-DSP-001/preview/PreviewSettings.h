@@ -21,6 +21,33 @@ struct PreviewSettings final {
             values[i] = kControls[i].initial;
     }
 
+    // Typed config -> UI value adapter. No DSP processor reads descriptor IDs or strings.
+    void assignConfigs(const research::FluidConfig& fluid, const research::ModalConfig& modal,
+                       const ProtectSettings& protection) {
+        values = {fluid.bubble.minimumFrequencyHz,
+                  fluid.bubble.maximumFrequencyHz,
+                  fluid.bubble.decaySeconds,
+                  fluid.bubble.maximumEventRateHz,
+                  fluid.bubble.excitationThreshold,
+                  fluid.bubble.residualGain,
+                  static_cast<double>(fluid.bubble.voices),
+                  fluid.droplet.minimumFrequencyHz,
+                  fluid.droplet.maximumFrequencyHz,
+                  fluid.droplet.decaySeconds,
+                  fluid.droplet.transientThreshold,
+                  fluid.droplet.refractorySeconds,
+                  fluid.droplet.residualGain,
+                  static_cast<double>(fluid.droplet.voices),
+                  fluid.flow.baseDelaySeconds,
+                  fluid.flow.depthSeconds,
+                  fluid.flow.targetIntervalSeconds,
+                  fluid.flow.residualGain,
+                  modal.rootFrequencyHz,
+                  modal.decaySeconds,
+                  modal.residualGain};
+        protect = protection;
+    }
+
     // Message-thread serialization, identical module keys/units to the existing renderer.
     juce::String moduleJson() const {
         juce::var root(new juce::DynamicObject());

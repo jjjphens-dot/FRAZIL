@@ -78,6 +78,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         export_.onClick = [this] { chooseExport(); };
         exportSession_.onClick = [this] { chooseExport(true); };
         importSession_.onClick = [this] { chooseSessionImport(); };
+        importModule_.onClick = [this] { chooseSessionImport(false); };
         copySession_.onClick = [this] {
             juce::SystemClipboard::copyTextToClipboard(encodeSession(session_.applied()));
             setStatus("Copied APPLIED research session, including four experiment macros.");
@@ -123,17 +124,18 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         for (auto* button : {&captureA_, &applyA_, &captureB_, &applyB_, &reset_, &copy_, &export_})
             button->setBounds(workflow.removeFromLeft(width).reduced(3));
         auto sessions = area.removeFromTop(38);
-        for (auto* button : {&importSession_, &exportSession_, &copySession_})
+        for (auto* button : {&importModule_, &importSession_, &exportSession_, &copySession_})
             button->setBounds(sessions.removeFromLeft(170).reduced(3));
         status_.setBounds(area.removeFromBottom(52));
         diagnostics_.setBounds(area.reduced(4));
     }
 
   private:
-    std::array<juce::TextButton*, 17> buttons() {
-        return {&load_,     &play_,     &stop_,          &apply_,         &dry_,        &processed_,
-                &residual_, &captureA_, &applyA_,        &captureB_,      &applyB_,     &reset_,
-                &copy_,     &export_,   &importSession_, &exportSession_, &copySession_};
+    std::array<juce::TextButton*, 18> buttons() {
+        return {&load_,          &play_,        &stop_,        &apply_,  &dry_,
+                &processed_,     &residual_,    &captureA_,    &applyA_, &captureB_,
+                &applyB_,        &reset_,       &copy_,        &export_, &importSession_,
+                &exportSession_, &copySession_, &importModule_};
     }
     void applyDraft() {
         controller_.stop();
@@ -183,7 +185,16 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                                   juce::dontSendNotification);
         residual_.setToggleState(state.monitor == MonitorMode::residual,
                                  juce::dontSendNotification);
-        play_.setEnabled(!session_.dirty());
+        const auto actualSource = controller_.sourceMetadata();
+        const auto& requiredSource = session_.applied().source;
+        const bool sourceMatches = requiredSource.name.isEmpty() || actualSource == requiredSource;
+        play_.setEnabled(!session_.dirty() && actualSource.name.isNotEmpty() && sourceMatches);
+        source_.setText(controller_.sourceDescription() +
+                            (sourceMatches ? "" : " | Session requires: " + requiredSource.name),
+                        juce::dontSendNotification);
+        source_.setTooltip(
+            controller_.sourceDescription() + " | Session source: " + requiredSource.name +
+            "; filename/rate/channels/frames are descriptive, not a content identity check.");
         applyA_.setEnabled(session_.slot(0).has_value());
         applyB_.setEnabled(session_.slot(1).has_value());
         refreshApplied();
@@ -204,6 +215,8 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     }
     void loadSource(const juce::File& file) {
         const auto error = controller_.load(file);
+        if (error.isEmpty())
+            session_.setSource(controller_.sourceMetadata());
         source_.setText(controller_.sourceDescription(), juce::dontSendNotification);
         setStatus(error.isEmpty() ? "Source loaded; no resampling. Play uses APPLIED config."
                                   : error);
@@ -220,13 +233,14 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                                       safe->loadSource(result.getResult());
                               });
     }
-    void chooseSessionImport() {
-        chooser_ =
-            std::make_unique<juce::FileChooser>("Import research session", juce::File{}, "*.json");
+    void chooseSessionImport(bool session = true) {
+        chooser_ = std::make_unique<juce::FileChooser>(session ? "Import research session"
+                                                               : "Import renderer module config",
+                                                       juce::File{}, "*.json");
         chooser_->launchAsync(
             juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-            [safe = juce::Component::SafePointer<PreviewPanel>(this)](
-                const juce::FileChooser& result) {
+            [safe = juce::Component::SafePointer<PreviewPanel>(this),
+             session](const juce::FileChooser& result) {
                 if (!safe || !result.getResult().existsAsFile())
                     return;
                 const auto file = result.getResult();
@@ -236,8 +250,10 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                     return;
                 }
                 ResearchSessionState candidate;
-                auto error = decodeSession(
-                    {static_cast<const char*>(bytes.getData()), bytes.getSize()}, candidate);
+                const std::string_view text{static_cast<const char*>(bytes.getData()),
+                                            bytes.getSize()};
+                auto error = session ? decodeSession(text, candidate)
+                                     : decodeModuleConfig(text, safe->session_.draft(), candidate);
                 if (error.isEmpty())
                     error = safe->controller_.validate(candidate.engineering);
                 if (error.isNotEmpty()) {
@@ -246,8 +262,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                 }
                 safe->controller_.stop();
                 safe->session_.restoreValidated(candidate);
-                safe->setStatus("Imported research session. Current WAV retained; Play restarts "
-                                "from its beginning.");
+                safe->setStatus(session
+                                    ? "Imported session. If source metadata differs, load the "
+                                      "matching WAV before Play; audio is not embedded."
+                                    : "Imported module config using renderer defaults for omitted "
+                                      "fields; macros/source retained; engineering CUSTOM.");
             });
     }
     void chooseExport(bool session = false) {
@@ -301,6 +320,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     juce::TextButton reset_{"Reset baseline"}, copy_{"Copy config"}, export_{"Export config"};
     juce::TextButton importSession_{"Import Session"}, exportSession_{"Export Session"},
         copySession_{"Copy Session"};
+    juce::TextButton importModule_{"Import Module Config"};
     ui::DeveloperDiagnosticsView diagnostics_;
     std::unique_ptr<juce::FileChooser> chooser_;
 };
