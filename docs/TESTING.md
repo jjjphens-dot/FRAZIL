@@ -790,3 +790,7 @@ UI ranges/steps, module grouping, seconds display metadata, lifecycle and comple
 Session regressions cover shared observation, origin/revision, idempotent edits, Model/composition
 mapping, UNMAPPED macros, no reverse mapping, inactive value retention, Draft/Applied isolation and
 temporary A/B. These model tests do not substitute for Phase 8 Windows GUI interaction evidence.
+Decay/session regressions cover provisional baseline, A/B/reset, complete macro/config/monitor and
+target-provenance roundtrip, duplicate decoded keys, unknown fields, nonfinite/invalid numbers,
+unsupported versions/seeds and failure atomicity. Session candidates are still validated by the
+existing prepare-time DSP authority before UI restore; session JSON is not renderer module JSON.

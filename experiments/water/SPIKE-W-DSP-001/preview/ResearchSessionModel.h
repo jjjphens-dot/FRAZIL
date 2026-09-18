@@ -11,13 +11,15 @@
 namespace frazil::water::preview {
 
 enum class WaterModel { fluid, resonant };
-enum class MacroId { size, motion };
+enum class MacroId { size, motion, decay };
 enum class ChangeOrigin { soundLeadUI, engineeringUI, mapper, sessionLoad, reset };
 enum class MappingStatus { unmapped, mapped, custom };
 
 struct WaterExperimentState final {
     WaterModel model{WaterModel::fluid};
     double size{.5}, motion{.5};
+    // DOC-W-DECAY-001 Revision C provisional experiment baseline, never a product default.
+    double decay{.5};
     bool operator==(const WaterExperimentState&) const = default;
 };
 
@@ -101,6 +103,7 @@ class ResearchSessionModel final {
             count += draft_.engineering.values[i] != applied_.engineering.values[i];
         count += draft_.water.size != applied_.water.size;
         count += draft_.water.motion != applied_.water.motion;
+        count += draft_.water.decay != applied_.water.decay;
         return count;
     }
     bool dirty() const noexcept {
@@ -124,10 +127,12 @@ class ResearchSessionModel final {
         return true;
     }
     bool setMacro(MacroId id, double value, ChangeOrigin origin) {
-        if ((id != MacroId::size && id != MacroId::motion) || !std::isfinite(value) || value < 0 ||
-            value > 1)
+        if ((id != MacroId::size && id != MacroId::motion && id != MacroId::decay) ||
+            !std::isfinite(value) || value < 0 || value > 1)
             return false;
-        auto& target = id == MacroId::size ? draft_.water.size : draft_.water.motion;
+        auto& target = id == MacroId::size     ? draft_.water.size
+                       : id == MacroId::motion ? draft_.water.motion
+                                               : draft_.water.decay;
         if (target == value)
             return true;
         target = value;

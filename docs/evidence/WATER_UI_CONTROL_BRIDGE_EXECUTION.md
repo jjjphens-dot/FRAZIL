@@ -9,7 +9,7 @@ algorithm redesign, inferred macro curves or perceptual acceptance.
 
 ## Status
 
-Running, Phase 4 preparation. The user explicitly requested autonomous progression through
+Running, Phase 5 baseline refresh. The user explicitly requested autonomous progression through
 all phases after each self-review, then a single GitHub publication of the completed work. Separate
 local commits/checkpoints remain required; Phases 2–8 are next. Owner: Engineering implementation;
 Sound Lead retains human workflow/perceptual acceptance. No delegated workers.
@@ -62,7 +62,7 @@ Protect work, not newly authored algorithms.
 | 1 | Isolated strict time formatter/parser and tests | Implemented; self-review and three presets pass |
 | 2 | Typed descriptors for existing controls | Implemented; self-review and Debug pass |
 | 3 | Shared ResearchSessionModel and dual views | Implemented; self-review, final Debug and docs pass |
-| 4 | Experiment-only Decay state/workflow | Pending |
+| 4 | Experiment-only Decay state/workflow | Implemented; self-review, Debug and docs pass |
 | 5 | Existing Protect DSP integration and calibration memory | Pending |
 | 6 | Bounded Protect numerical diagnostics | Pending |
 | 7 | Module/session imports, exports, A/B and reset | Pending |
@@ -105,7 +105,7 @@ No human/UI acceptance has been performed for this integration.
 - Next phase: typed descriptors for the existing 21 controls, preserving applied DSP config.
   Protect/Decay/session/UI work remains explicitly pending and needs its own later checkpoints.
 
-## Commands and final validation
+## Phase 1 commands and three-preset validation
 
 Run from the integration repository root in the discovered MSVC developer environment. The ignored
 local command wrapper only sequences the existing tools and redirects full logs beneath
@@ -188,3 +188,33 @@ independent approval and main merge are not part of this local checkpoint.
     state. Per-target edit provenance, retained inactive values and macro non-mutation are tested.
     The coordinator owns command lifecycle, the session owns values, views own presentation.
 12. Next: add provisional Decay experiment value with complete state/workflow coverage; then Protect.
+
+## Phase 4 implementation and review
+
+1. Baseline: Phase 3 `2182672`, same integration branch.
+2. Scope: provisional normalized Decay in both views, shared state, applied A/B/reset and a separate
+   session file/clipboard workflow. Session infrastructure is introduced here because Decay must
+   survive export/import; Phase 7 adds module import and complete source/build/Protect provenance.
+3. Files: model/views/panel/window and existing test entry/CMake updated; new `SessionCodec.h`,
+   `SessionJsonSyntax.h`, `tests/preview_session_codec_tests.cpp`; directly affected docs synchronized.
+4. Behavior: Decay `0.5` provisional baseline is visible, editable and saved with Model/Size/Motion.
+   Copy/Export Session saves applied values; strict Import Session prepares a candidate and validates
+   with the existing controller before replacing state. Invalid imports retain the current session.
+5. Contracts: no Decay DSP mapping, no Flow decay destination, no Host/APVTS/schema change. The old
+   plugin `frazil.dev-experiment` v1 and DeveloperWaterExperimentSnapshot remain unchanged. New
+   `frazil.water-research-session` v1 is a separate unreleased research format, not renderer config.
+6. Tests: Debug safe build/20 CTests with baseline, Decay A/B/reset, roundtrip, provenance and atomic
+   failure tests; malformed numeric tokens, duplicate/escaped duplicate keys, unknown fields and
+   wrong version/seed are rejected.
+7. Results: Debug 20/20 PASS; final markdown links, portability and diff checks PASS.
+8. Human/UI evidence: compilation/model/codec tests only; Windows interaction remains Phase 8.
+9. Realtime: JSON/file/string work stays on message thread; no callback or Protect DSP change.
+10. Documentation: guide, Developer Sound Tools, Module Index, Project Status, Testing, research
+    README and this record updated. Decay Revision C consumer inventory: only the new standalone
+    session consumes the new four-macro format; original plugin consumers do not change. Architecture,
+    Parameters, Coding Plan, ADRs and production UI README need no contract change for this scope.
+11. Self-review: bounded 1 MiB/eight-level syntax gate is necessary because module config grammar
+    cannot validate nested/string session metadata. Full consumption, decoded duplicate detection,
+    enum/range checks and candidate-only assignment precede controller validation. No generic preset
+    framework, ownership duplication, reverse mapping or production default claim was introduced.
+12. Next: consume the latest Protect source, add residual-only controls and D0/D1 calibration memory.

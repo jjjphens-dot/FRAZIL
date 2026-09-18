@@ -36,15 +36,23 @@ class WaterMacroView final : public juce::Component {
             knob.setTooltip("Experiment baseline 0.5; UNMAPPED: does not change DSP targets.");
             knob.onValueChange = [this, i] {
                 beforeEdit_();
-                session_.setMacro(i == 0 ? MacroId::size : MacroId::motion, knobs_[i].getValue(),
-                                  origin_);
+                session_.setMacro(i == 0   ? MacroId::size
+                                  : i == 1 ? MacroId::motion
+                                           : MacroId::decay,
+                                  knobs_[i].getValue(), origin_);
             };
             addAndMakeVisible(knob);
-            researchLabel(*this, names_[i], i == 0 ? "Size / UNMAPPED" : "Motion / UNMAPPED");
+            researchLabel(*this, names_[i],
+                          i == 0   ? "Size / UNMAPPED"
+                          : i == 1 ? "Motion / UNMAPPED"
+                                   : "Decay / UNMAPPED");
         }
+        knobs_[2].setTooltip("DOC-W-DECAY-001 provisional experiment baseline 0.5. Response "
+                             "persistence; UNMAPPED, not a product default.");
         researchLabel(*this, mapping_, "");
-        researchLabel(*this, notice_,
-                      "Experiment state only. No Size / Motion DSP mapping has been accepted.");
+        researchLabel(
+            *this, notice_,
+            "Experiment state only. No Size / Motion / Decay DSP mapping has been accepted.");
         addAndMakeVisible(returnMapped_);
         returnMapped_.onClick = [this] {
             beforeEdit_();
@@ -58,6 +66,7 @@ class WaterMacroView final : public juce::Component {
                              juce::dontSendNotification);
         knobs_[0].setValue(state.water.size, juce::dontSendNotification);
         knobs_[1].setValue(state.water.motion, juce::dontSendNotification);
+        knobs_[2].setValue(state.water.decay, juce::dontSendNotification);
         mapping_.setText(state.modelMapping == MappingStatus::mapped ? "Model: MAPPED"
                                                                      : "Model: CUSTOM composition",
                          juce::dontSendNotification);
@@ -82,8 +91,8 @@ class WaterMacroView final : public juce::Component {
     ChangeOrigin origin_;
     std::function<void()> beforeEdit_;
     juce::ComboBox model_;
-    std::array<juce::Slider, 2> knobs_;
-    std::array<juce::Label, 2> names_;
+    std::array<juce::Slider, 3> knobs_;
+    std::array<juce::Label, 3> names_;
     juce::Label mapping_, notice_;
     juce::TextButton returnMapped_{"Return Model to Mapped"};
 };

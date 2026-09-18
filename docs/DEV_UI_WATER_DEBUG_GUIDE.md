@@ -77,6 +77,8 @@ WAV 播完后输入自动为零，再处理 **30 秒 tail** 后停止；没有�
 | Reset baseline | 恢复研究默认值、ABD、Processed、-12 dB | 停止播放；保留 WAV 与已捕获 A/B 槽；不是 Host reset |
 | Copy config | 复制**已应用** module JSON | 不是插件 state/preset；不包含 WAV、composition、seed、monitor gain |
 | Export config | 保存同一 module JSON | 可直接交给现有 Water renderer；composition/seed 另行提供 |
+| Copy Session / Export Session | 保存已应用四宏、工程值、composition、监听及来源 revision | 独立研究 manifest，不是 renderer config 或 Host state；不包含音频 |
+| Import Session | 严格解析并校验，再停止播放并恢复会话值 | 无效文件不替换当前状态；保留当前 WAV，需手动匹配源素材 |
 
 界面显示 Applied composition、未应用变更数、revision、最后修改来源及播放时间；监听按钮显示当前模式。
 Dry/Processed/Residual 切换采用 monitor-only 10 ms 线性交叉变化；算法参数没有实时自动化能力。
@@ -84,13 +86,13 @@ Output meter 位于 monitor gain 后；Input meter 是 WAV 源，保持原有 ag
 
 ### 双视图与共享实验状态
 
-默认 Sound Lead 页显示 Model、Size、Motion；Engineering 页显示相同宏和 21 个工程控件。
+默认 Sound Lead 页显示 Model、Size、Motion、Decay；Engineering 页显示相同宏和 21 个工程控件。
 两页读取同一个会话模型。Fluid 对应 ABD，Resonant 对应 C；选择其他 ablation composition 时
 Model 显示 CUSTOM，可用 **Return Model to Mapped** 返回该模型的完整组合。
-Size/Motion 显示 **UNMAPPED**：目前只保留实验值，不改变频率、事件率或延迟。
+Size/Motion/Decay 显示 **UNMAPPED**：目前只保留实验值，不改变频率、事件率或延迟。
 工程参数手动修改不会反向改写宏值；inactive 控件变暗但保留值，生效前须启用对应 composition。
-编辑形成 Draft 并停止播放；Apply 校验后方可 Play。Decay、Protect 和完整 session 文件工作流
-在后续阶段接入；本阶段的双视图实测状态见 [执行记录](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md)。
+编辑形成 Draft 并停止播放；Apply 校验后方可 Play。Decay 初值 0.5 是 provisional experiment baseline，
+参与 A/B、reset 和 session 保存，不是产品默认值。Protect、source/build provenance 后续接入；实测状态见 [执行记录](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md)。
 
 ## 5. 工程参数对应的 DSP 作用
 

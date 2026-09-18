@@ -405,6 +405,7 @@ remain pending. Actual validation and limits are recorded in
 The staged [Water UI control bridge](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md) has reconciled
 Preview and Protect on a separate integration branch and added isolated time-value tooling tests.
 Shared session state and Sound Lead/Engineering views are implemented with Model/composition sync,
-unmapped Size/Motion, edit provenance, retained inactive controls and applied A/B state. Widget unit
-conversion, Decay workflow, Protect UI wiring and GUI usability validation remain pending;
+unmapped Size/Motion/Decay, edit provenance, retained inactive controls and applied A/B state. Decay
+uses provisional `0.5` and participates in reset and separate session copy/export/import. Widget unit
+conversion, Protect UI wiring, complete source provenance and GUI usability validation remain pending;
 no new production or human acceptance is claimed.

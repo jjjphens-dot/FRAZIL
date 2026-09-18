@@ -56,7 +56,7 @@ input.gain         global.mix           output.gain
 ```
 
 During Water experiments the candidate vocabulary is Water Model, Water Size, Water Motion and Water Decay.
-The existing implementation exposes the first three; Decay is a PLANNED extension under
+The original plugin Developer surface exposes the first three; its Decay is a PLANNED extension under
 [DOC-W-DECAY-001](planning/WATER_DECAY_CANDIDATE_REVISION.md), not an implemented control.
 Before explicit parameter adoption, these controls are not Host parameters, do not enter
 `ParameterLayout`, do not change `schemaVersion`, and create no automation or compatibility promise. Their exact
@@ -129,7 +129,11 @@ Fluid/ABD and Resonant/C, while Size/Motion remain explicitly UNMAPPED experimen
 edits retain inactive values, record origin/revision and require Apply. A/B captures complete applied
 experiment/engineering/monitor values. No reverse mapping is inferred from manual engineering edits.
 The [control-bridge record](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md) identifies staged validation;
-GUI usability, Decay and Protect integration have separate later checkpoints.
+the standalone preview also carries provisional Decay `0.5`, explicitly UNMAPPED, in both views,
+A/B/reset and the separate `frazil.water-research-session` version 1 manifest. Copy/Export Session
+uses applied values; Import Session validates syntax/schema/config before replacing state. The
+original `DeveloperWaterExperimentSnapshot` and `frazil.dev-experiment` export are unchanged.
+GUI usability and Protect integration have separate later checkpoints.
 
 The original Debug UI still stores Water Model/Size/Motion locally without DSP mapping; its wet
 path remains M1 pass-through. The standalone preview uses engineering quantities, not inferred
@@ -142,7 +146,7 @@ gates are unchanged. See the [button and debugging guide](DEV_UI_WATER_DEBUG_GUI
 [DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) is the historical Wave 1 proposal. The
 user-authorized [PROTECT-EXP-001](planning/WATER_PROTECT_EXECUTION.md) adds offline research only. Protect has
 no Developer snapshot/editor/export implementation and does not extend DEV-UI-001 acceptance. Current Water
-experiment controls remain Model/Size/Motion; the Decay follow-up above remains planned. A future Protect
+plugin experiment controls remain Model/Size/Motion; the plugin Decay follow-up above remains planned. A future Protect
 experiment-control change needs its own accepted scope/readiness, bounded state handoff and config tests;
 it cannot register an APVTS/Host parameter or alter the production schema for convenience.
 

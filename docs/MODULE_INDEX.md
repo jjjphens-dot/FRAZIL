@@ -44,6 +44,9 @@ See [staged execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
 `ControlDescriptor.h` supplies typed IDs, module groups, units/display policy, baseline provenance,
 range and lifecycle metadata for the existing 21 controls. `PreviewSettings` consumes the descriptors
 without changing module JSON; DSP continues to use its existing typed config structs.
+`SessionCodec.h` owns the separate versioned research manifest including provisional Decay;
+`SessionJsonSyntax.h` bounds and validates its richer JSON syntax before schema decoding. Imports
+produce candidates and use the controller's existing DSP validation before restoring the model.
 
 ## Proposed Protect research
 

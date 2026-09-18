@@ -305,6 +305,16 @@ No view owns duplicate parameter state or holds DSP objects. Session tests verif
 one notification per change, no-op feedback suppression, composition/active-module truth tables,
 provenance, invalid commands, applied isolation and complete temporary A/B restore.
 
+Phase 4 adds normalized Decay with the DOC-W-DECAY-001 provisional baseline `0.5`; it is UNMAPPED
+and cannot affect Flow or any DSP parameter. Four macros participate in A/B/reset and separate
+`frazil.water-research-session` version 1 manifests. `SessionCodec.h` covers config/composition,
+fixed seed 42, monitor and provenance. `SessionJsonSyntax.h` is required because the renderer gate
+only supports two numeric object levels; the bounded session syntax additionally supports strings,
+booleans and nested provenance, rejects duplicate keys/full-input violations, and never runs in
+the callback. Import decodes a candidate, then validates existing DSP config before replacement.
+Source/build provenance and Protect state are added in later phases; the format is a research
+work-in-progress, not a public preset compatibility promise. Renderer module JSON remains unchanged.
+
 LOCAL-WDSP-00..06 cover baseline, features, C, A, D, B and Fluid integration respectively.
 Historical measurements are retained in [EVIDENCE.md](EVIDENCE.md). Current source, three-preset
 regression, isolation/capacity fixes, typical-signal smoke, 80 renders and preliminary timing are

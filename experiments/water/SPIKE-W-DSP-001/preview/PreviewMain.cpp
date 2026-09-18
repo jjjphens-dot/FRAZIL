@@ -28,7 +28,7 @@ class PreviewApplication final : public juce::JUCEApplication {
         void resized() override {
             juce::Viewport::resized();
             if (auto* panel = getViewedComponent())
-                panel->setSize(getWidth() - getScrollBarThickness(), std::max(1100, getHeight()));
+                panel->setSize(getWidth() - getScrollBarThickness(), std::max(1140, getHeight()));
         }
     };
     class Window final : public juce::DocumentWindow {

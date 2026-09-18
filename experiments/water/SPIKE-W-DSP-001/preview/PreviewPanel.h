@@ -2,6 +2,7 @@
 
 #include "PreviewController.h"
 #include "ResearchViews.h"
+#include "SessionCodec.h"
 #include "ui/DeveloperDiagnosticsView.h"
 
 namespace frazil::water::preview {
@@ -71,16 +72,22 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             setStatus("Copied APPLIED module config; composition/seed/monitor are separate.");
         };
         export_.onClick = [this] { chooseExport(); };
+        exportSession_.onClick = [this] { chooseExport(true); };
+        importSession_.onClick = [this] { chooseSessionImport(); };
+        copySession_.onClick = [this] {
+            juce::SystemClipboard::copyTextToClipboard(encodeSession(session_.applied()));
+            setStatus("Copied APPLIED research session, including four experiment macros.");
+        };
         session_.onChange = [this] { refresh(); };
         addAndMakeVisible(diagnostics_);
         refresh();
         source_.setText(controller_.sourceDescription(), juce::dontSendNotification);
-        setStatus(
-            "Load WAV -> edit -> Apply config -> Play. Size/Motion are UNMAPPED experiment state.");
+        setStatus("Load WAV -> edit -> Apply config -> Play. Size/Motion/Decay are UNMAPPED "
+                  "experiment state.");
         if (sourceArgument.isNotEmpty())
             loadSource(
                 juce::File::getCurrentWorkingDirectory().getChildFile(sourceArgument.unquoted()));
-        setSize(1180, 1100);
+        setSize(1180, 1140);
         startTimerHz(10);
     }
     ~PreviewPanel() override {
@@ -110,14 +117,18 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         const int width = workflow.getWidth() / 7;
         for (auto* button : {&captureA_, &applyA_, &captureB_, &applyB_, &reset_, &copy_, &export_})
             button->setBounds(workflow.removeFromLeft(width).reduced(3));
+        auto sessions = area.removeFromTop(38);
+        for (auto* button : {&importSession_, &exportSession_, &copySession_})
+            button->setBounds(sessions.removeFromLeft(170).reduced(3));
         status_.setBounds(area.removeFromBottom(52));
         diagnostics_.setBounds(area.reduced(4));
     }
 
   private:
-    std::array<juce::TextButton*, 14> buttons() {
-        return {&load_,     &play_,   &stop_,     &apply_,  &dry_,   &processed_, &residual_,
-                &captureA_, &applyA_, &captureB_, &applyB_, &reset_, &copy_,      &export_};
+    std::array<juce::TextButton*, 17> buttons() {
+        return {&load_,     &play_,     &stop_,          &apply_,         &dry_,        &processed_,
+                &residual_, &captureA_, &applyA_,        &captureB_,      &applyB_,     &reset_,
+                &copy_,     &export_,   &importSession_, &exportSession_, &copySession_};
     }
     void applyDraft() {
         controller_.stop();
@@ -197,21 +208,56 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                                       safe->loadSource(result.getResult());
                               });
     }
-    void chooseExport() {
+    void chooseSessionImport() {
+        chooser_ =
+            std::make_unique<juce::FileChooser>("Import research session", juce::File{}, "*.json");
+        chooser_->launchAsync(
+            juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+            [safe = juce::Component::SafePointer<PreviewPanel>(this)](
+                const juce::FileChooser& result) {
+                if (!safe || !result.getResult().existsAsFile())
+                    return;
+                const auto file = result.getResult();
+                juce::MemoryBlock bytes;
+                if (file.getSize() > 1024 * 1024 || !file.loadFileAsData(bytes)) {
+                    safe->setStatus("Session: cannot read file (maximum 1 MiB).");
+                    return;
+                }
+                ResearchSessionState candidate;
+                auto error = decodeSession(
+                    {static_cast<const char*>(bytes.getData()), bytes.getSize()}, candidate);
+                if (error.isEmpty())
+                    error = safe->controller_.validate(candidate.engineering);
+                if (error.isNotEmpty()) {
+                    safe->setStatus(error);
+                    return;
+                }
+                safe->controller_.stop();
+                safe->session_.restoreValidated(candidate);
+                safe->setStatus("Imported research session. Current WAV retained; Play restarts "
+                                "from its beginning.");
+            });
+    }
+    void chooseExport(bool session = false) {
         chooser_ = std::make_unique<juce::FileChooser>(
-            "Export applied research config",
-            juce::File::getCurrentWorkingDirectory().getChildFile("water-research.json"), "*.json");
-        const auto json = session_.applied().engineering.moduleJson();
+            session ? "Export applied research session" : "Export applied research config",
+            juce::File::getCurrentWorkingDirectory().getChildFile(session ? "water-session.json"
+                                                                          : "water-research.json"),
+            "*.json");
+        const auto json = session ? encodeSession(session_.applied())
+                                  : session_.applied().engineering.moduleJson();
         chooser_->launchAsync(
             juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles |
                 juce::FileBrowserComponent::warnAboutOverwriting,
-            [safe = juce::Component::SafePointer<PreviewPanel>(this),
-             json](const juce::FileChooser& result) {
+            [safe = juce::Component::SafePointer<PreviewPanel>(this), json,
+             session](const juce::FileChooser& result) {
                 if (!safe || result.getResult() == juce::File{})
                     return;
                 safe->setStatus(
                     result.getResult().replaceWithText(json)
-                        ? "Exported APPLIED module JSON; supply composition and seed separately."
+                        ? (session ? "Exported APPLIED research session; source audio is separate."
+                                   : "Exported APPLIED module JSON; supply composition and seed "
+                                     "separately.")
                         : "Export failed.");
             });
     }
@@ -239,6 +285,8 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     juce::TextButton captureA_{"Capture A"}, applyA_{"Apply A"}, captureB_{"Capture B"},
         applyB_{"Apply B"};
     juce::TextButton reset_{"Reset baseline"}, copy_{"Copy config"}, export_{"Export config"};
+    juce::TextButton importSession_{"Import Session"}, exportSession_{"Export Session"},
+        copySession_{"Copy Session"};
     ui::DeveloperDiagnosticsView diagnostics_;
     std::unique_ptr<juce::FileChooser> chooser_;
 };
