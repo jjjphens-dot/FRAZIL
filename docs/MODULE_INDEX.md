@@ -71,6 +71,16 @@ with explicit D0/D1 conditions and a real-renderer CTest regression. See the
 [research README](../experiments/water/SPIKE-W-DSP-001/README.md#protect-follow-up--protect-exp-001).
 Production Water-domain ownership/adoption gates remain; no fifth accepted macro or production module is created.
 
+## Experiment support
+
+`experiments/water/reference_intake.py` is the bounded EXP-W-001 offline reference-intake CLI.
+It reads 1–6 explicit IDs from `REFERENCE_INDEX.csv`, resolves audio inside a caller-supplied external
+library, and reuses `tools/analyze_testdata.py` for development-only analysis/plots. JSON and plots stay
+under ignored `testdata/rendered/`; it does not copy audio, infer listening labels or enter production targets.
+See [reference usage](../experiments/water/REFERENCE_INDEX.md) and
+[acceptance/validation record](../experiments/water/task_plan.md). Its runtime is Python plus
+`requirements-dsp.txt`, on the offline caller thread; it has no plugin/app/DSP dependency.
+
 ## Registration and update rules
 
 - 新模块进入本表前必须有真实需求、路径、公共接口、依赖方向、线程模型、测试入口和 Coding Plan ID；人员 owner 由 GitHub Issue/Project 维护，不写死在长期索引中。
