@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dsp/FluidCandidate.h"
+#include "dsp/FluidProtect.h"
 #include "dsp/LiquidModalResonator.h"
 
 #include <charconv>
@@ -15,9 +16,16 @@
 
 namespace frazil::water::research {
 
+struct ProtectRenderConfig final {
+    ProtectConfig gain;
+    double depth{};
+    FluidProtectTopology topology{FluidProtectTopology::whole};
+};
+
 // Offline-only strict configuration reader. Unknown fields and nonnumeric values are errors;
 // omitted values retain the versioned C++ research defaults, never production macro mappings.
-// Type/representation checks apply globally; only active DSP validates semantic ranges.
+// Type/representation checks apply globally; generator ranges apply only when enabled.
+// The renderer validates Protect ranges globally, including OFF and baseline modes.
 inline bool validVoiceRepresentation(double voices) noexcept {
     // Comparing with 2^digits avoids rounding SIZE_MAX upward before an unsafe integer cast.
     return std::isfinite(voices) && voices >= 0.0 &&
@@ -179,7 +187,8 @@ inline bool readNumbers(const juce::var& value,
     return true;
 }
 
-inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal) {
+inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,
+                       ProtectRenderConfig& protect) {
     if (!file.existsAsFile())
         return false;
     juce::MemoryBlock bytes;
@@ -250,6 +259,28 @@ inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& 
                                               {"decaySeconds", &modal.decaySeconds},
                                               {"residualGain", &modal.residualGain}}))
                 return false;
+        } else if (name == "protect") {
+            auto& c = protect.gain;
+            double detector = static_cast<int>(c.score);
+            double topology = static_cast<int>(protect.topology);
+            if (!readNumbers(property.value, {{"depth", &protect.depth},
+                                              {"detector", &detector},
+                                              {"topology", &topology},
+                                              {"floor", &c.floor},
+                                              {"epsilon", &c.epsilon},
+                                              {"thresholdLow", &c.thresholdLow},
+                                              {"thresholdHigh", &c.thresholdHigh},
+                                              {"capDb", &c.capDb},
+                                              {"depthExponent", &c.depthExponent},
+                                              {"scoreExponent", &c.scoreExponent},
+                                              {"attackSeconds", &c.attackSeconds},
+                                              {"releaseSeconds", &c.releaseSeconds},
+                                              {"offSeconds", &c.offSeconds}}) ||
+                (detector != 0.0 && detector != 1.0) ||
+                (topology != 1.0 && topology != 2.0 && topology != 3.0))
+                return false;
+            c.score = static_cast<ProtectScore>(static_cast<int>(detector));
+            protect.topology = static_cast<FluidProtectTopology>(static_cast<int>(topology));
         } else {
             return false;
         }

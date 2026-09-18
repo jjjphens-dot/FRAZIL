@@ -28,6 +28,17 @@ ProcessSpec 当前实际位于 `src/app/ProcessSpec.h`，由 M1 AudioEngine 消�
 | Developer diagnostics presentation | `src/ui/DeveloperDiagnosticsView.*`, `src/ui/DeveloperLevelMeter.*` | compact runtime/finite text and aggregate INPUT/OUTPUT dBFS meters; no measurement or state ownership | `update(snapshot, routing)`; `setLevels(peak, rms)` | JUCE; existing diagnostics value type only in the view; no Processor/APVTS/engine access | message only, editor-owned | Debug/Release/ASAN isolation, CTest, pluginval and local size/signal observations; see Project Status 2.9 | 0003 (unchanged) | `DEV-UI-001` | Implementation candidate; human usability acceptance pending; not Production UI |
 | Production UI components | planned `src/ui/` | 产品参数表达、attachment、gesture 和 UI transaction | narrow plugin parameter interface、narrow app edit/history command interface | plugin parameter interface、app edit/history command interface | message only | interaction/resize/automation | 0002 | `UI-001..008`, `HIST-002..004` | Planned M5 |
 
+## Proposed Protect research
+
+[DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) records the theory. The user-authorized
+[PROTECT-EXP-001](planning/WATER_PROTECT_EXECUTION.md) adds `ProtectDetector`, `ResidualProtect` and pure
+`applyFluidProtect` in the existing opt-in research tree. They own linked detection/gain state and residual
+composition, with prepare/reset/sample processing and research unit/CLI tests; no production target depends
+on them. Offline listening preparation separates fixed-source primary and RMS-matched preference evidence,
+with explicit D0/D1 conditions and a real-renderer CTest regression. See the
+[research README](../experiments/water/SPIKE-W-DSP-001/README.md#protect-follow-up--protect-exp-001).
+Production Water-domain ownership/adoption gates remain; no fifth accepted macro or production module is created.
+
 ## Registration and update rules
 
 - 新模块进入本表前必须有真实需求、路径、公共接口、依赖方向、线程模型、测试入口和 Coding Plan ID；人员 owner 由 GitHub Issue/Project 维护，不写死在长期索引中。

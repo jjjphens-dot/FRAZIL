@@ -523,6 +523,30 @@ Bubble/Droplet/Modal 分别评估 normalized mapping curves，Flow 默认无直�
 recognizability 是否保留。检查 masking、runaway ringing、excessive steals/CPU/gain buildup；工程 proxy
 不替代 human decision。完整验证边界见 `TESTING.md`，后续采纳仍需 Joint Gate / ADR-W-001。
 
+### Protect objective research follow-up (no production adoption)
+
+`DOC-W-PROTECT-001` / [#36](https://github.com/jjjphens-dot/FRAZIL/issues/36) proposes source-keyed residual
+attenuation around attacks. Its [audit, perceptual draft and seven-wave plan](planning/WATER_PROTECT_CANDIDATE_REVISION.md)
+are **Wave 1 / PROPOSED / NOT ACCEPTED**. The subsequent user-authorized
+[PROTECT-EXP-001 execution](planning/WATER_PROTECT_EXECUTION.md) permits local objective research after each
+wave's self-review, followed by one overall review/upload. v1.4 remains the approved four-macro baseline; Protect is not an
+additional M2 Exit requirement or a fifth accepted product macro.
+
+Engineering owns theory and bounded implementation proposals; Sound & Host owns perceptual acceptance and
+the product-control decision. The task-specific user instruction supersedes the proposal's per-wave external
+review/merge wait for this objective follow-up, not the accepted-instance prerequisite for formal EXP-W-002
+or subjective tuning/selection. No EXP-W-001/Decay Revision B or Developer readiness acceptance is inferred.
+The closed SPIKE-W-DSP-001 scope is not retrospectively expanded. Human listening is deferred until the user
+supplies audio/conclusions; self-review is not formal independent GitHub approval or product acceptance.
+Protect's Wave 7 product decision remains BLOCKED until explicit detector selection and human listening
+evidence exist. Fixed-source attack/source-preservation judgments and RMS-matched preference judgments are
+independent evidence; the latter cannot substitute for the former. D1's renderer default is not a selection.
+
+Proposed sequence: detector comparison -> whole-residual gain -> Fluid topology comparison -> Motion/Decay
+interaction -> human listening -> Reject / Internal safeguard / User macro decision. Each is separately
+bounded; no production adoption, Host registration, state change or UI implementation follows from this table.
+Joint Gate, ADR-W-001 and compatibility review remain required at the existing adoption boundary.
+
 ### 生产实现
 
 | ID | P | 模块/工作 | 具体要求 | 验收 |

@@ -7,7 +7,7 @@ target_compile_features(frazil_water_research PUBLIC cxx_std_20)
 
 set(water_test_targets)
 set(water_test_names)
-foreach(module IN ITEMS baseline features modal bubble flow droplet fluid event_pool)
+foreach(module IN ITEMS baseline features modal bubble flow droplet fluid event_pool protect_detector protect)
     set(target "frazil_water_${module}_tests")
     if(module STREQUAL "baseline")
         set(target frazil_water_experiment_tests)
@@ -26,6 +26,9 @@ target_link_libraries(frazil_water_experiment_render PRIVATE frazil_water_resear
 add_test(NAME frazil_water_experiment_render_cli
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/render_cli_test.py"
             $<TARGET_FILE:frazil_water_experiment_render>)
+add_test(NAME frazil_water_protect_listening
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/protect_listening_test.py"
+            $<TARGET_FILE:frazil_water_experiment_render>)
 
 add_executable(frazil_water_performance tests/performance.cpp
     ../../../src/app/AudioEngine.cpp ../../../src/dsp/DryWetMixer.cpp
@@ -37,7 +40,7 @@ add_dependencies(frazil_smoke ${water_test_targets} frazil_water_experiment_rend
 
 if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
     get_filename_component(water_msvc_bin "${CMAKE_CXX_COMPILER}" DIRECTORY)
-    set_property(TEST ${water_test_names} frazil_water_experiment_render_cli
+    set_property(TEST ${water_test_names} frazil_water_experiment_render_cli frazil_water_protect_listening
         PROPERTY ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${water_msvc_bin}")
     foreach(target IN LISTS water_test_targets)
         add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different

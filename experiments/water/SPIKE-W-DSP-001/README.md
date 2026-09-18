@@ -4,6 +4,109 @@ Research-only A/B/D/C mechanisms; local Debug/Release/ASAN 16/16 each, 138 core 
 and 80 corpus renders PASS. Exact-head Hosted CI is separately recorded in PR #30.
 No production WaterProcessor or perceptual acceptance. Source and limitations: [REVALIDATION.md](REVALIDATION.md).
 
+Those counts describe the historical SPIKE revision. Current Protect follow-up results and limitations are
+separately recorded in [PROTECT-EXP-001](../../../docs/planning/WATER_PROTECT_EXECUTION.md).
+
+## Protect follow-up — PROTECT-EXP-001
+
+The user authorized sequential objective engineering waves/self-review and one final upload after Wave 1.
+This is separate from the closed SPIKE scope and does not satisfy formal EXP-W-002 or human/product gates.
+The original A/B/D/C generators are reused unchanged; Protect owns no generator, random stream or tail.
+
+| Addition | API / ownership | Validation |
+|---|---|---|
+| `dsp/ProtectDetector.h` | prepare/reset/process; own linked fast/slow follower; D0 difference and D1 positive log ratio with slow floor | Level/floor/cap/rate/reset/stereo tests |
+| `dsp/ResidualProtect.h` | prepare/reset/setDepth/processSource; score-to-dB computer, own gain envelope; apply whole residual | Bounds, exact OFF/continuation, retarget, lifecycle and partition tests |
+| `dsp/FluidProtect.h` | Pure F1 whole / F2 Droplet exempt / F3 half-weight composition | Exact unity and cancellation counterexample |
+
+Single processing owner: lifecycle/targets and process must not race. Config is prepare-only except depth,
+which can be retargeted at sample boundaries by the research caller; no plugin transport exists. Follower
+and generator advance during OFF. Positive depth uses dB attack/release; OFF uses a finite dB ramp then exact
+unity. Repeated OFF does not restart; reset clears envelope state while retaining the prepared depth/config.
+The step-bound test is not a human click-free claim. F2/F3 can increase the summed residual through cancellation.
+
+The existing JSON config now optionally accepts a numeric `protect` object (omitted = exact OFF):
+
+| Field | Default | Valid experimental range / units |
+|---|---|---|
+| depth | 0 | 0..1; not a Host default |
+| detector / topology | 1 / 1 | detector 0=D0, 1=D1; topology 1=F1, 2=F2, 3=F3 (C always whole residual) |
+| floor / epsilon | 1e-4 / 1e-8 | floor 1e-8..0.1; 0 < epsilon <= floor; amplitude |
+| thresholdLow / thresholdHigh | 1 / 9 | 0 <= low < high <= 100 dB (D1), <=1 amplitude (D0); D0 examples use .01/.12 |
+| capDb | 9 | 0..12 dB attenuation; search cases 3/6/9/12 |
+| depthExponent / scoreExponent | 1 / 1 | .1..8; finite |
+| attackSeconds / releaseSeconds | .001 / .08 | .00025.. .002 / .04.. .2 seconds |
+| offSeconds | .01 | .001.. .1 seconds; finite transition duration |
+
+All Protect config semantics are validated before output, including OFF/baseline. No log/linear smoothing
+comparison, live Decay, macro mapping or optimized production settings are claimed. The renderer accepts
+an optional final `NEW-protect-trace.csv` after tail seconds. It records frame/D0/D1/GR outside DSP and timing,
+refuses output/source collisions and existing trace files, and fails on write errors. No makeup/limiter is used.
+
+```powershell
+# Existing research-enabled Release build, using the safe wrapper as documented below.
+$renderer = 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe'
+python experiments/water/SPIKE-W-DSP-001/analysis/protect_review.py --renderer $renderer --suite diagnostics --output build/protect-diagnostics
+python experiments/water/SPIKE-W-DSP-001/analysis/protect_review.py --renderer $renderer --suite interaction --output build/protect-interaction
+python experiments/water/SPIKE-W-DSP-001/analysis/protect_review.py --renderer $renderer --suite sweep --output build/protect-sweep
+```
+
+All output directories must be new. Reports contain raw metrics/config/seed, source commit+dirty state,
+per-sample traces and selected diagnostic plots. Canonical fixture onset annotations use 5 ms pre/50 ms post
+windows, union pooling, 1 dB duty threshold, nearest-rank P95 and a fixed 1 ms rectified-peak analysis envelope.
+These are declared engineering observations, not psychoacoustic timing constants or detector-derived labels.
+Silent denominator/zero residual are explicit N/A/negative-infinity reasons, never fake finite scores.
+Interaction uses static engineering activity/persistence proxies: 12 Fluid cases and 6 unique C cases; C
+Motion is N/A because the existing resonator has no such destination. No accepted macro curve is inferred.
+
+Listening handoff (user supplies audio/permission later):
+
+```powershell
+python -m pip install -r requirements-dsp.txt
+python experiments/water/SPIKE-W-DSP-001/analysis/prepare_protect_listening.py --renderer $renderer --source <authorized-input.wav> --source-metadata <local-metadata.json> --mode abd --dsp-seed 42 --randomization-seed 42 --appended-tail-seconds 3 --output build/protect-listening-fluid-v2
+```
+
+Use `--mode c` for Resonant; add `--diagnostic` for engineering fixtures. The metadata JSON requires nonempty
+`source`, `author`, `license`, `permission` and `storage_policy` strings. Describe the actual source/version and
+permission for local copies/derived renders; a filled field does not itself establish permission. Sources must
+be PCM/float WAV at 44.1/48/96 kHz, mono/stereo. Keep metadata, source copies and packs in ignored local storage.
+For example, a self-created fixture's metadata can identify its generator/version, author, applicable license,
+local-test permission and temporary retention policy. Do not copy those claims onto third-party music.
+
+Each run creates two independent randomized packs, each containing **21 Fluid or 13 C trials**:
+
+- `fixed_source/`: primary attack/source-preservation evidence. Every condition uses one common gain
+  `min(1, .9 / maximum_raw_peak)`, including dry/OFF and lower-residual controls. There is no per-condition
+  normalization, so the carrier coefficient is identical. The common gain and every playback gain are recorded.
+- `rms_matched/`: **preference-supporting evidence only**. Full comparison-window RMS (including the appended
+  tail) is matched with condition-specific gains and .9 peak headroom. This is neither LUFS nor proven equal
+  perceived loudness, and cannot establish attack/source preservation. It has separate scores and conclusions;
+  never copy/pool conclusions between the two packs.
+
+Both include explicit D0/D1 OFF/mild/medium/strong pairs and surviving Fluid topology pairs. D0 uses .01/.12
+amplitude thresholds; D1 uses 1/9 dB. All Protect fields are written explicitly to renderer configs. These are
+bounded configurations, not equally tuned detector families. OFF, D0-medium and D1-medium have hidden repeats
+with identical config/seed/gain/audio. Fixed-source randomization uses the supplied seed; RMS uses seed + 1.
+DSP seed is independent. Trial WAVs alone are the blind handoff; the coordinator retains keys and `reviewer/`
+raw/config/source files until scoring ends. Both scorecards start blank.
+
+Manifest schema 2 records source name/description, original `source_frames`/`source_duration_seconds`, channels,
+subtype/bit-depth, source/author/license/permission/storage policy, `dsp_seed`, actual `randomization_seed`,
+`comparison_frames`/duration and separate `appended_tail_seconds`. The original byte snapshot is retained as
+`reviewer/source.wav` relative to the run root; renderers use that snapshot. No source/artifact hashes are
+computed, per the user's superseding instruction. Names/metadata/copies distinguish sources, without a
+cryptographic identity claim. `code_commit`/`code_dirty` identify repository code, not source audio.
+
+`DETECTOR_SELECTION.md` requires independent fixed-source observations, repeat consistency, attack/identity,
+quiet-after-loud response and recovery tradeoffs, exact condition references, reviewer and rationale (including
+neither/revise). **D1 is not selected by default; Wave 7 remains BLOCKED until detector selection and human
+listening evidence exist.** Product adoption still needs Joint Gate/ADR. Historical 12/8 RMS-only packs are
+superseded preparation artifacts and cannot support attack/source-preservation conclusions.
+
+CTest `frazil_water_protect_listening` invokes the real renderer and pack CLI, checks decoded carrier gains,
+explicit detector behavior/configs, source metadata/tail separation, hidden repeats, deterministic order/audio,
+independent evidence labels/blank scores and missing-rights rejection. Hosted CI installs `requirements-dsp.txt`.
+
 ## Scope and execution state
 
 The optional pre-EXP-W-002 work item is defined in [Coding Plan](../../../docs/CODING_PLAN.md),
@@ -26,8 +129,9 @@ Current remediation evidence is recorded in [REVALIDATION.md](REVALIDATION.md); 
 ## Module map and output contract
 
 All DSP lives here and is excluded from production plugin targets. State belongs to the calling
-processing owner; prepare/reset/process must not execute concurrently. Controls are fixed by
-prepare; no runtime parameter transport, automation smoothing or mode transitions are claimed.
+processing owner; prepare/reset/process must not execute concurrently. A/B/D/C generator controls are fixed
+by prepare; they have no runtime parameter transport, automation smoothing or mode transitions. The separate
+Protect depth retarget/OFF envelope is described above; it does not implement generator macro automation.
 
 | Module | Responsibility | State/reset/tail |
 |---|---|---|
@@ -119,7 +223,8 @@ python experiments/water/SPIKE-W-DSP-001/analysis/render_corpus.py --renderer $r
 ```
 
 Renderer arguments: input WAV, **new** output WAV, mode, block (1..8192), uint32 seed, optional
-JSON path (or `-` for defaults), optional integer tail seconds (0..30). Modes: `a`, `b`, `d`, `ab`,
+JSON path (or `-` for defaults), optional integer tail seconds (0..30), then optional new Protect trace CSV.
+Modes: `a`, `b`, `d`, `ab`,
 `ad`, `bd`, `abd`, `c`; append `-residual` for E only. `baseline` is pass-through PCM24; `residual`
 is its zero residual. Sonic renders are float32 WAV, retaining peaks above 1 for analysis. Input
 must be finite mono/stereo within full scale. Existing outputs are refused; failed renders are

@@ -9,6 +9,10 @@
 - Ninja；可以使用系统 PATH 中的 Ninja，也可以把本地副本放在 repository-local 的 tools/bin。
 - MSVC v143 和 Windows SDK，且 MSVC developer environment 已初始化，使 cl、rc 和 mt 可以被工具发现。
 - Python 用于 DSP 实验和跨平台工具；Python 依赖见 requirements-dsp.txt。
+- 启用 `FRAZIL_BUILD_WATER_EXPERIMENT=ON` 时，先运行 `python -m pip install -r requirements-dsp.txt`；
+  Protect listening-pack CTest 使用其中的 NumPy/SoundFile 并调用真实 research renderer。Hosted CI 同样安装
+  该依赖文件；安装依赖的解释器必须与 CMake 的 `Python3_EXECUTABLE` 和生成的 CTest 命令一致。
+  未启用 research 的 production build 不新增 Python 包依赖。
 - JUCE 9.0.1 由 tools/bootstrap_dependencies.ps1 获取和校验；external/JUCE 是生成的本地依赖目录，不提交到 FRAZIL 主仓库。
 - pluginval 仅在执行 VST3 验证时需要；工具版本和下载来源由验证记录维护。
 
@@ -65,6 +69,25 @@ such as `build/windows-debug/rendered/`; no audio device or DAW is required.
 Manual `tools/render_testdata.py` runs default to the separate ignored
 `testdata/rendered/` directory.
 
+启用 Water research 时，在同一个 MSVC developer PowerShell 中解析一次解释器，并将同一个路径用于
+安装依赖和 configure。不要假设 PATH 的 `python` 与 CMake 自动发现的最高版本相同，也不需要安装多套 Python：
+
+```powershell
+$frazilPython = python -c "import sys; print(sys.executable)"
+if ($LASTEXITCODE -ne 0) { throw 'Python discovery failed' }
+& $frazilPython -m pip install -r requirements-dsp.txt
+if ($LASTEXITCODE -ne 0) { throw 'DSP dependency installation failed' }
+cmake --preset windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON "-DPython3_EXECUTABLE:FILEPATH=$frazilPython"
+if ($LASTEXITCODE -ne 0) { throw 'Configure failed' }
+& $frazilPython tools/build_safe.py --preset windows-debug
+if ($LASTEXITCODE -ne 0) { throw 'Safe build failed' }
+ctest --preset windows-debug --output-on-failure
+```
+
+引号保留带空格的 executable 路径。Release/ASAN 如需启用 research，也用同一变量显式 configure 对应
+preset，串行构建/测试。可从对应 `build/<preset>/CMakeCache.txt` 的 `Python3_EXECUTABLE` 与
+`ctest --preset <preset> -R '^frazil_water_protect_listening$' --show-only=json-v1` 的 command 首项复核路径。
+
 ASAN configure 会从 C++ 编译器位置发现 MSVC runtime directory；测试 target 会把 clang_rt.asan_dynamic-x86_64.dll 复制到可执行文件旁，并为 CTest 注入同一目录。因此构建仍需 VS Code/MSVC developer environment，但构建完成后可从普通 PowerShell、VS Code 测试面板或可执行文件目录运行 ASAN 测试。
 
 本地 build 必须通过 tools/build_safe.py；默认使用 6 个 job，硬上限 8 个 job，并按可用物理内存执行 preflight。wrapper 将完整编译输出写入 ignored 的 build/safe-build 日志，避免终端被 include trace 淹没。 共享 configure preset 将 CMAKE_BUILD_PARALLEL_LEVEL 固定为 6，用于约束 JUCE configure 阶段的 nested build；本机重型 pipeline 必须串行执行。
@@ -103,13 +126,20 @@ GitHub Actions 和其他已初始化 MSVC developer environment 的 Windows 机�
     python tools/check_portability.py
     python tools/check_markdown_links.py
     python tools/check_vscode_tasks.py
-    cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON
+    $frazilPython = python -c "import sys; print(sys.executable)"
+    & $frazilPython -m pip install -r requirements-dsp.txt
+    cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON "-DPython3_EXECUTABLE:FILEPATH=$frazilPython"
     python tools/build_safe.py --preset ci-windows-debug
     ctest --preset ci-windows-debug
 
 Hosted CI explicitly enables the standalone Water research targets so their property and decoded-render
 tests run alongside the production regression suite. Local builds leave the option OFF unless explicitly
 requested; details are in [the research README](../experiments/water/SPIKE-W-DSP-001/README.md).
+
+Hosted CI captures `sys.executable` once, installs dependencies with it and passes that exact executable through
+`FRAZIL_CI_PYTHON` to CMake. Configure checks the cache and generated listening-test command against the captured
+path, failing on mismatch or missing test registration, and logs all three paths. No interpreter version or
+machine-specific path is hardcoded; the unchanged listening regression still executes in the full CTest suite.
 
 ci-windows-debug 不引用个人盘符、用户名或工具安装目录。CI 在 configure 前运行 portability scan。
 
