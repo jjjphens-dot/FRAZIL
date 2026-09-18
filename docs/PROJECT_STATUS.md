@@ -372,3 +372,14 @@ feasibility before the accepted brief, not production Water DSP or perceptual ac
 It does not close EXP-W-002. Brief integration and human listening remain outstanding with
 Sound & Host Lead. Current validation and limitations are recorded in the
 [research checkpoint](../experiments/water/SPIKE-W-DSP-001/README.md).
+
+## Standalone Water preview implementation candidate
+
+An opt-in research executable connects WAV playback and explicit engineering controls to SPIKE-W-DSP-001
+A/B/D/C. It reuses the developer diagnostic view without changing the FRAZIL plugin, nine Host parameters,
+M1 wet path or plugin state. Draft/apply/restart preserves prepare-time DSP configuration; temporary A/B,
+monitor comparisons and renderer-compatible module export support Sound Lead engineering inspection.
+Production Water integration, Size/Motion/Decay macro mappings and final workflow/perceptual acceptance
+remain pending. Actual validation and limits are recorded in
+[WATER_PREVIEW_VALIDATION](evidence/WATER_PREVIEW_VALIDATION.md); usage in the
+[debugging guide](DEV_UI_WATER_DEBUG_GUIDE.md).

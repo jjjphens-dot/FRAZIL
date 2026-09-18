@@ -28,6 +28,13 @@ ProcessSpec 当前实际位于 `src/app/ProcessSpec.h`，由 M1 AudioEngine 消�
 | Developer diagnostics presentation | `src/ui/DeveloperDiagnosticsView.*`, `src/ui/DeveloperLevelMeter.*` | compact runtime/finite text and aggregate INPUT/OUTPUT dBFS meters; no measurement or state ownership | `update(snapshot, routing)`; `setLevels(peak, rms)` | JUCE; existing diagnostics value type only in the view; no Processor/APVTS/engine access | message only, editor-owned | Debug/Release/ASAN isolation, CTest, pluginval and local size/signal observations; see Project Status 2.9 | 0003 (unchanged) | `DEV-UI-001` | Implementation candidate; human usability acceptance pending; not Production UI |
 | Production UI components | planned `src/ui/` | 产品参数表达、attachment、gesture 和 UI transaction | narrow plugin parameter interface、narrow app edit/history command interface | plugin parameter interface、app edit/history command interface | message only | interaction/resize/automation | 0002 | `UI-001..008`, `HIST-002..004` | Planned M5 |
 
+The standalone Water engineering preview lives in
+`experiments/water/SPIKE-W-DSP-001/preview/`: `PreviewSettings` owns application values/export,
+`PreviewEngine` owns existing research DSP selection/lifecycle, `PreviewController` owns source/device
+and audio callback state, and `PreviewMain` owns UI commands only. It reuses the value-only diagnostic
+view/meter. Dependencies point from research application to existing DSP/UI primitives; FRAZIL targets
+do not depend on the preview. Tests and limitations: [validation](evidence/WATER_PREVIEW_VALIDATION.md).
+
 ## Registration and update rules
 
 - 新模块进入本表前必须有真实需求、路径、公共接口、依赖方向、线程模型、测试入口和 Coding Plan ID；人员 owner 由 GitHub Issue/Project 维护，不写死在长期索引中。

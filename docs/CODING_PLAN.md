@@ -347,6 +347,11 @@ implementation responsibility 换人时才记录 Implementation DRI Transfer。
 |---|---:|---|---|
 | `SPIKE-W-DSP-001` | P1 (optional; not an M1/M2 exit gate) | Engineering Lead implements and validates; Sound & Host Lead independently reviews scope/evidence | [Issue #29](https://github.com/jjjphens-dot/FRAZIL/issues/29); standalone `experiments/water/SPIKE-W-DSP-001/`; numerical/realtime feasibility, determinism, residual/carrier, finite/reset/tail/state, RNG isolation, rate/block behavior, ablation, offline engineering renders and preliminary performance only. |
 
+A separately opt-in engineering preview may connect these same research mechanisms to a WAV
+transport and explicit-unit controls for inspection. Engineering configuration changes require stopped-callback
+prepare/restart; this does not authorize product macro mapping, subjective selection or production
+plugin integration. Implementation and Sound Lead usage: [debugging guide](DEV_UI_WATER_DEBUG_GUIDE.md).
+
 This spike may precede accepted EXP-W-001 and M1 Joint Exit. Acceptance requires bounded
 prepare/process contracts, enabled-component isolation, strict config representation, finite and
 repeatable property/render evidence, safe Debug/Release/ASAN validation, preliminary timing and

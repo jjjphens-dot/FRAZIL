@@ -179,14 +179,10 @@ inline bool readNumbers(const juce::var& value,
     return true;
 }
 
-inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal) {
-    if (!file.existsAsFile())
+// Non-realtime entry point shared by the offline renderer and standalone research preview.
+inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfig& modal) {
+    if (text.empty() || text.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()))
         return false;
-    juce::MemoryBlock bytes;
-    if (!file.loadFileAsData(bytes) || bytes.getSize() == 0 ||
-        bytes.getSize() > static_cast<std::size_t>(std::numeric_limits<int>::max()))
-        return false;
-    std::string_view text(static_cast<const char*>(bytes.getData()), bytes.getSize());
     if (text.starts_with("\xef\xbb\xbf"))
         text.remove_prefix(3); // Tolerate a UTF-8 BOM, but never discard trailing file bytes.
     detail::ConfigJsonSyntax syntax(text);
@@ -255,5 +251,13 @@ inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& 
         }
     }
     return true;
+}
+
+inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal) {
+    juce::MemoryBlock bytes;
+    if (!file.existsAsFile() || !file.loadFileAsData(bytes))
+        return false;
+    return readConfigText({static_cast<const char*>(bytes.getData()), bytes.getSize()}, fluid,
+                          modal);
 }
 } // namespace frazil::water::research

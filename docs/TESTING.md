@@ -662,3 +662,13 @@ gates; spectra/coloration are observations, not subjective selection. The option
 `analyze_testdata.py`; generated WAV/metrics remain ignored. These engineering checks do not
 establish Water identity, source recognizability, musical acceptance or production readiness.
 Commands, actual results and limitations: [research README](../experiments/water/SPIKE-W-DSP-001/README.md).
+
+### Standalone Water preview regression
+
+With both research/preview options enabled, `frazil_water_preview` CTest compares all nine preview
+compositions to the unchanged research DSP at 44.1/48/96 kHz, checks fixed-seed reset, stereo isolation,
+finite output, engineering-control effects, rejected invalid configs and renderer-compatible export.
+It requires no audio device. GUI/physical-output operations are separately observed; see
+[WATER_PREVIEW_VALIDATION](evidence/WATER_PREVIEW_VALIDATION.md) and the
+[Sound Lead guide](DEV_UI_WATER_DEBUG_GUIDE.md). No product macro mapping, real DAW acceptance or
+subjective Water quality is inferred from this test.

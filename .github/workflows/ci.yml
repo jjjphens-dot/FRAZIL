@@ -70,7 +70,7 @@ jobs:
         run: ./tools/bootstrap_dependencies.ps1
 
       - name: Configure
-        run: cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON
+        run: cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=ON
 
       - name: Build
         run: python tools/build_safe.py --preset ci-windows-debug

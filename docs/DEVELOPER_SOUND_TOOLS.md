@@ -112,6 +112,24 @@ Required follow-up evidence: default value, A/B retain Decay, experiment reset, 
 consumer round-trip where a parser exists, unchanged nine Host parameters/plugin schema, Release Host enumeration
 and Developer-control exclusion. GUI/build/plugin validation follows `TESTING.md`; none is claimed by this revision.
 
+### Standalone Water engineering preview
+
+The opt-in `frazil_water_preview` application connects a WAV source and explicit engineering-unit
+controls to the existing SPIKE A/B/D/C DSP, with the same value-only diagnostic meters. This is a
+separate research target, not a modification of the FRAZIL plugin or its nine Host parameters.
+It may use the Release compiler configuration for research timing; that executable is not a
+FRAZIL release product/artifact. The plugin Developer/Release isolation invariant below is unchanged.
+The application supports applied/draft config, temporary A/B, Dry/Processed/Residual monitoring,
+fixed-seed restart and renderer-compatible module JSON export. Source loading/config preparation
+runs with the callback detached; algorithm values are prepare-time only. Monitoring gain and
+source/residual crossfade use 10 ms smoothing; no production automation/model transition is claimed.
+
+The original Debug UI still stores Water Model/Size/Motion locally without DSP mapping; its wet
+path remains M1 pass-through. The standalone preview uses engineering quantities, not inferred
+Size/Motion/Decay product mappings. Accepted EXP-W-001, subjective EXP-W-002 and production adoption
+gates are unchanged. See the [button and debugging guide](DEV_UI_WATER_DEBUG_GUIDE.md) and
+[validation record](evidence/WATER_PREVIEW_VALIDATION.md).
+
 ## 4. Realtime-to-offline handoff
 
 The intended workflow is:

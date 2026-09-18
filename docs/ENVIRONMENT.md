@@ -128,3 +128,14 @@ ci-windows-debug 不引用个人盘符、用户名或工具安装目录。CI 在
 - 这台机器的历史 Debug、Release、ASAN 和基础 CTest 结果属于 reference-machine-only evidence；新的结果必须用实际命令和日期重新记录。
 
 Reference-machine-only evidence. Not part of the FRAZIL project contract.
+
+## Standalone Water engineering preview
+
+To build the separate research GUI and its regression, add
+`-DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=ON` to a standard configure command,
+then use the unchanged `tools/build_safe.py --preset <preset>` and CTest commands. Both options default
+OFF; preview without the experiment option is a configure error. The output is
+`build/<preset>/experiments/water/SPIKE-W-DSP-001/frazil_water_preview_artefacts/<config>/FRAZIL Water Research Preview.exe`.
+It uses the default stereo output at the loaded WAV sample rate, with no microphone or resampling.
+See the [debugging guide](DEV_UI_WATER_DEBUG_GUIDE.md). CI opts in to the preview and its device-free test;
+it does not claim physical-device or GUI acceptance.

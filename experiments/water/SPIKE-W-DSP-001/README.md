@@ -93,6 +93,19 @@ choices. Bubble radius/frequency direction is inspired by isolated-bubble acoust
 uses frequency controls and does not claim a calibrated physical radius model. B v0 has deterministic
 threshold timing; stochastic timing is optional in the proposal and is not implemented.
 
+## Standalone engineering preview
+
+The optional `frazil_water_preview` GUI reuses these mechanisms for source-driven engineering
+inspection. It has a WAV transport, explicit-unit draft/apply controls, temporary applied-config
+A/B, Dry/Processed/Residual monitoring and JSON export understood by this renderer. Every algorithm
+change stops playback and requires Apply + Play; no DSP prepare runs in the audio callback. This
+adds no product macro mapping, perceptual acceptance or production plugin dependency.
+
+Enable `FRAZIL_BUILD_WATER_EXPERIMENT=ON` and `FRAZIL_BUILD_WATER_PREVIEW=ON` using the existing safe
+presets. The preview remains a separate executable even in Release. See the
+[Sound Lead debugging guide](../../../docs/DEV_UI_WATER_DEBUG_GUIDE.md) for buttons, raw controls,
+source/device limits and reproducibility, and [validation](../../../docs/evidence/WATER_PREVIEW_VALIDATION.md).
+
 ## Build, tests, render and measurement
 
 From an initialized MSVC developer environment at repository root:

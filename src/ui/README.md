@@ -2,7 +2,7 @@
 
 ## Purpose
 
-承载 Developer diagnostics 呈现组件和未来产品控件。当前 `DeveloperDiagnosticsView` / `DeveloperLevelMeter` 是 Debug/ASAN-only GUI candidate；正式产品 UI 仍未实现，editor lifecycle 位于 `src/plugin/PluginEditor.*`。
+承载 Developer diagnostics 呈现组件和未来产品控件。当前 `DeveloperDiagnosticsView` / `DeveloperLevelMeter` 在正式插件中仅用于 Debug/ASAN GUI candidate；独立 Water research preview 也复用这些只读组件。正式产品 UI 仍未实现，editor lifecycle 位于 `src/plugin/PluginEditor.*`。
 
 ## Responsibilities
 
@@ -40,7 +40,10 @@ UI 只在 message thread 工作，不阻塞 audio thread；UI 不能读取或写
 
 M5 才实现正式产品 UI。现有 DEV-UI-001 editor 的 diagnostics 呈现已在本 candidate 中抽离到本目录：
 RMS 填充、Peak 竖线、-60 至 0 dBFS 图形标尺和当前快照数值；10 Hz message-thread 更新，无 smoothing、
-history 或 Peak Hold。Release 不编译这些呈现源文件，并保留静态非开发占位界面。
+history 或 Peak Hold。FRAZIL Release 插件不编译这些呈现源文件，并保留静态非开发占位界面。
+单独 opt-in 的 Water research preview 在 Debug/Release/ASAN 中复用它们；其音频与 DSP owner 位于
+`experiments/water/SPIKE-W-DSP-001/preview/`，没有向本目录增加 DSP 状态或处理逻辑。
+操作说明见 [Water 联调指南](../../docs/DEV_UI_WATER_DEBUG_GUIDE.md)。
 该 candidate 的人工可用性验收仍待完成，不创建生产参数依赖。
 
 若 M2 candidate controls 经 Water ADR、state compatibility 和 parameter freeze 正式采纳，planned Water

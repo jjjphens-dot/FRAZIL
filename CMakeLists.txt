@@ -330,6 +330,10 @@ add_test(
 
 # Research targets are opt-in and never linked into the production plugin.
 option(FRAZIL_BUILD_WATER_EXPERIMENT "Build the standalone Water DSP research candidates" OFF)
+option(FRAZIL_BUILD_WATER_PREVIEW "Build standalone engineering Water preview GUI" OFF)
+if(FRAZIL_BUILD_WATER_PREVIEW AND NOT FRAZIL_BUILD_WATER_EXPERIMENT)
+    message(FATAL_ERROR "Water Preview requires FRAZIL_BUILD_WATER_EXPERIMENT=ON")
+endif()
 if(FRAZIL_BUILD_WATER_EXPERIMENT)
     add_subdirectory(experiments/water/SPIKE-W-DSP-001)
 endif()
