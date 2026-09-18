@@ -114,3 +114,5 @@ transfers validated linear trim atomically; model/session own dB context, exclud
 `WaterDiagnostics.h` owns fixed numeric Water readouts/energy accumulation in the research preview.
 Existing Protect block transport carries both readouts with one bounded producer/consumer; the UI
 formats them in `WaterDiagnosticsText.h`. DSP only exposes scalar activity getters, with no UI dependency.
+
+ResearchAuditionWorkflow coordinates message-thread stop/prepare/start once per completed Sound Lead gesture. ResearchPresentation formats actual targets and bounded operation history; neither owns DSP. PreviewController exposes detached prepare/start with explicit source-rate and callback-state guards.

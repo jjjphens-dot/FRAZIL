@@ -405,7 +405,7 @@ remain pending. Actual validation and limits are recorded in
 The staged [Water UI control bridge](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md) has reconciled
 Preview and Protect on a separate integration branch and added isolated time-value tooling tests.
 Shared session state and Sound Lead/Engineering views are implemented with Model/composition sync,
-research Size/Fluid Motion/Decay mappings (legacy imports stay unmapped), edit provenance, retained
+research Size/Fluid Motion/Decay mappings and Modal excitation-weight Motion (legacy imports stay unmapped), edit provenance, retained
 inactive controls and applied A/B state. The listening-ready follow-up is tracked in the
 [new execution record](evidence/WATER_LISTENING_UI_EXECUTION.md). Decay
 uses provisional `0.5` and participates in reset and separate session copy/export/import. Strict exact
@@ -413,4 +413,4 @@ entry, adaptive time units, collapsible module cards and draft details are imple
 provenance, module import and module-specific validation feedback are implemented and regression-tested.
 Protect is connected only in the research preview: Depth/Enable are live, configuration edits require
 Apply, D0/D1 retain separate calibration, and C permits only Whole. Existing Protect DSP is reused;
-no new production or human acceptance is claimed.
+no new production or human acceptance is claimed. Sound Lead Auto Audition and bounded operation history are implemented; supplied-input handoff and human mapping/audibility decisions are tracked separately in the listening UI execution record.

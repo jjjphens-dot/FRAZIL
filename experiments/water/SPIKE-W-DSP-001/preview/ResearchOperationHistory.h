@@ -94,8 +94,12 @@ class ResearchOperations final {
         pending_.reset();
         mouse_ = false;
         operation.after = session_.draft();
-        if (sameOperationValues(operation.before, operation.after))
+        if (sameOperationValues(operation.before, operation.after)) {
+            // Closing a no-op gesture still resumes Auto Audition, without fabricating history.
+            if (onCompleted)
+                onCompleted(macro_ && allowAutoAudition);
             return;
+        }
         const bool macro = macro_;
         history_.append(std::move(operation));
         if (onCompleted)

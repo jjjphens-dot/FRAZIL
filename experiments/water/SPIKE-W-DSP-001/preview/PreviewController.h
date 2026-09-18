@@ -18,6 +18,10 @@ class PreviewController final {
     ~PreviewController();
     juce::String load(const juce::File& wav);
     juce::String play(const PreviewSettings&);
+    // Transaction owner stops once before prepare. Successful prepare validates the actual
+    // processing engine; startPrepared attaches the callback without a second prepare/stop.
+    juce::String prepareStopped(const PreviewSettings&);
+    juce::String startPrepared();
     void stop();
     juce::String validate(const PreviewSettings&) const;
     // Candidate imports/recalls use their recorded rate, independent of the loaded device/source.

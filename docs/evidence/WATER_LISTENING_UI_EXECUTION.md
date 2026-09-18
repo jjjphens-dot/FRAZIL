@@ -30,8 +30,8 @@ research formula, disclose the gap and do not claim perceptual-contract complian
 
 ## Status and sequence
 
-Running Phase I preparation. Phases A-H implementation and self-review are complete; next checkpoint:
-Sound Lead workflow and native Windows validation. No blockers; publish after Phase J.
+Phases A-I implementation and self-review are complete. Phase J supplied-input renders and
+listening handoff are next; publish after final validation. Human acceptance remains pending.
 
 | Phase | Work | Status |
 |---|---|---|
@@ -43,7 +43,7 @@ Sound Lead workflow and native Windows validation. No blockers; publish after Ph
 | F | Independent listening calibration and CUSTOM state | Complete; Debug and self-review PASS |
 | G | Monitor-only Focus/Reference/E trim | Complete; three presets and self-review PASS |
 | H | Bounded component and pre/post Protect diagnostics | Complete; three presets and self-review PASS |
-| I | Auto Audition, target/history views and native Windows tests | Pending |
+| I | Auto Audition, target/history views and native Windows tests | Complete; three presets and self-review PASS; native limits below |
 | J | Supplied-input renders, measurements and listening handoff | Pending |
 
 Each implementation slice follows Contract Review -> Implementation -> Functional Validation ->
@@ -223,3 +223,58 @@ Parameters, Accepted ADRs and production modules retain their existing contracts
    These measurements do not establish perceptual quality. Next: full Sound Lead workflow/native GUI.
 
 7. Final links/portability/format/diff checks PASS. Self-review complete.
+
+## Phase I active checkpoint
+
+Baseline: Phase H `7df1785`. Auto Audition workflow and presentation implemented; validation ongoing.
+New ResearchAuditionWorkflow coordinates one stopped prepare and one startPrepared per completed
+Sound Lead gesture. Controller now splits detached preparation/start, avoiding repeated prepare.
+Engineering stays manual; no-op mouse gestures resume audition without adding history. Tests inject
+lifecycle commands to verify 100 updates -> 1 stop/prepare/start, invalid/source-less/OFF/live cases.
+ResearchPresentation formats targets and completed operations; shared macro view grows knobs/readouts.
+
+Initial Debug 21/21 (31.67 s). Native Windows on supplied 48k Partisan loop verified Size .5 -> .684
+in one real drag: operation count 1 -> 2 (initial source load is #1), counters 0/0/0 -> 1/1/1,
+APPLIED and restart position .2 s. History shows one Size operation with owned target changes.
+Initial GUI review found audition controls below the first viewport and dense target text; layout
+is being corrected (monitor before Protect; readonly target text panels with compact Hz precision).
+Second Debug pipeline is running. No Phase I completion or final GUI evidence yet.
+
+Computer-use skill/current guidance/API/confirmations have been read. Use @oai/sky via node_repl,
+one state-derived action then refresh; never PowerShell UI automation. Prior GUI was closed before
+rebuild. Current desktop selection must be refreshed after relaunch; don't reuse old window handles.
+
+Phase I GUI follow-up: moved Source/Full/Water Only and Focus/Reference above Protect so they are
+visible on the default first screen. Native Motion .5 -> .801 again produced exactly 1/1/1 lifecycle
+counts and one history entry. Real 48k playback completed with finite output, queue dropped=0,
+A=90 events/74 steals and B=50 events. This is activity evidence, not a listening conclusion.
+Non-round Motion revealed excessively precise adaptive target strings wrapping; readouts now use
+compact ms/s and Hz/rate precision, while engineering exact entry retains full numeric precision.
+For sustained native diagnostic checks only, an ignored 60 s repeat of the supplied Partisan loop
+was generated; originals remain unchanged and Phase J measurements will use original input files.
+
+Phase I self-review follow-up: native exact keyboard entry changed Bubble minimum 250 -> 100 Hz;
+only Size became CUSTOM, Play disabled, counters 1/0/0. Manual Apply produced 2/1/0 and stayed stopped.
+Return Size restored 250 Hz without changing Motion/Decay/calibration. Resonant model selection and
+Motion .5 -> .769 each added exactly one stop/prepare/restart; actual C depth .26915 and interval
+402.279 ms displayed. Protect Enable and Depth .5 -> .54, Reference 0 and Focus 18 left lifecycle
+counters unchanged while diagnostics continued. Capture A at Reference, Focus, then Apply A restored
+trim 0 and stopped. Runtime history reached 10 completed operations without per-frame entries.
+Native numeric key events work; automation Unicode type_text was ignored and UIA focus labels were
+unreliable, so those tool observations are not claimed as an application input defect.
+
+Final live Fluid diagnostics on the derived 60 s loop: 48 kHz stereo, block 480, FINITE OK, dropped=0;
+A/B/D nonzero, C inactive; Protect OFF pre/post levels equal. Observed UI interval E peak -23.4 dBFS /
+RMS -46.5 dBFS; A/B event counts 77/97 (cumulative at capture). Interval values are transient snapshots.
+Default and maximized windows were inspected. Separate OS DPI settings, exact minimum-size native
+verification and file-dialog migration interaction were not exercised; v1/v2/import/A-B state semantics
+are covered by automated preview tests. Local screenshots remain ignored.
+
+Code Quality Review: lifecycle ownership is message-thread-only; detached prepare/start guards source
+rate and active callback; audio path unchanged in I. Narrow workflow/presentation files serve lifecycle
+regression and shared readouts respectively. Comment & Documentation Pass updated guide, tools,
+Module Index, Testing, README and Project Status. Architecture, Parameters, state schema and accepted
+ADRs reviewed unchanged: no production contract or Host target change. Links/portability/diff checks PASS.
+
+Phase I final validation: Debug 21/21 (35.58 s), Release 21/21 (18.12 s), ASAN 21/21 (64.50 s).
+Self-review complete; next Phase J. No listening acceptance inferred from finite output.

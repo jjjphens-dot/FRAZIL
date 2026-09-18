@@ -836,3 +836,5 @@ Preview audition tests check Source/Full/Water Only at 0/18/36 dB E trim across 
 Extended diagnostic queue tests run a real concurrent producer/consumer and verify coherent Water
 payloads and explicit overflow. Integration covers pre/post Protect OFF identity, activity/voice
 counts, ablation/inactive zeros, reset, and sample-weighted (unequal block size) RMS aggregation.
+
+Phase I preview tests inject lifecycle commands to assert 100 drag updates yield one stop/prepare/start, and cover no-op, invalid, source-less, Engineering/OFF and live Protect paths. Native GUI observations and validation limits are in the Water listening UI execution record.

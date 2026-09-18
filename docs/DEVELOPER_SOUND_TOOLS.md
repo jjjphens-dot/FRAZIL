@@ -283,3 +283,5 @@ internal implementation used to achieve them.
 
 `HOST-001` must still use DAW parameter enumeration, automation lanes, state restore and save/reopen. Developer UI
 success cannot be cited as Host evidence; interactive success cannot be cited as deterministic offline evidence.
+
+Sound Lead Auto Audition defaults ON: one completed macro gesture prepares/applies/restarts once. Engineering remains manual. Actual mapped targets and a bounded 50-operation history are visible. Monitor controls are above Protect; Reference/Focus and live Protect changes never restart DSP.

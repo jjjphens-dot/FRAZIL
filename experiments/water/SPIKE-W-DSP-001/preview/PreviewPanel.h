@@ -3,6 +3,7 @@
 #include "DraftSummary.h"
 #include "PreviewController.h"
 #include "ProtectView.h"
+#include "ResearchAuditionWorkflow.h"
 #include "ResearchViews.h"
 #include "SessionCodec.h"
 #include "WaterDiagnosticsText.h"
@@ -16,12 +17,28 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
   public:
     std::function<void()> onLayoutChange;
     explicit PreviewPanel(const juce::String& sourceArgument)
-        : operations_(session_), sound_(session_, ChangeOrigin::soundLeadUI, operations_),
+        : workflow_(session_), operations_(session_),
+          sound_(session_, ChangeOrigin::soundLeadUI, operations_),
           engineering_(session_, operations_), protect_(session_, operations_, [this] {
               return tabs_.getCurrentTabIndex() == 0 ? ChangeOrigin::soundLeadUI
                                                      : ChangeOrigin::engineeringUI;
           }) {
-        operations_.onPrepareBegin = [this] { controller_.stop(); };
+        workflow_.stop = [this] { controller_.stop(); };
+        workflow_.prepare = [this](const PreviewSettings& settings) {
+            return controller_.prepareStopped(settings);
+        };
+        workflow_.start = [this] { return controller_.startPrepared(); };
+        workflow_.sourceReady = [this] {
+            const auto actual = controller_.sourceMetadata();
+            return actual.name.isNotEmpty() && (session_.applied().source.name.isEmpty() ||
+                                                actual == session_.applied().source);
+        };
+        workflow_.status = [this](const juce::String& value) { setStatus(value); };
+        operations_.onPrepareBegin = [this] { workflow_.beginPrepare(); };
+        operations_.onCompleted = [this](bool macro) {
+            workflow_.completed(macro);
+            refreshHistory();
+        };
         researchLabel(*this, title_, "FRAZIL / WATER RESEARCH PREVIEW");
         title_.setFont(juce::FontOptions(22));
         researchLabel(*this, note_,
@@ -33,9 +50,26 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         tabs_.addTab("Engineering", juce::Colour(0xff182b36), &engineering_, false);
         addAndMakeVisible(tabs_);
         addAndMakeVisible(protect_);
-        protect_.onLayoutChange = engineering_.onLayoutChange =
-            tabs_.onChange = [this] { updateLayout(); };
-        for (auto* toggle : {&showDraft_, &showDiagnostics_}) {
+        protect_.onLayoutChange = engineering_.onLayoutChange = [this] { updateLayout(); };
+        tabs_.onChange = [this] {
+            operations_.finish(false);
+            workflow_.autoAudition = tabs_.getCurrentTabIndex() == 0 && soundAuto_;
+            autoAudition_.setToggleState(workflow_.autoAudition, juce::dontSendNotification);
+            autoAudition_.setEnabled(tabs_.getCurrentTabIndex() == 0);
+            updateLayout();
+        };
+        addAndMakeVisible(autoAudition_);
+        autoAudition_.setToggleState(true, juce::dontSendNotification);
+        autoAudition_.onClick = [this] {
+            soundAuto_ = autoAudition_.getToggleState();
+            workflow_.autoAudition = soundAuto_;
+        };
+        researchLabel(*this, workflowCounts_, "");
+        historyText_.setMultiLine(true);
+        historyText_.setReadOnly(true);
+        historyText_.setTitle("Completed user operations");
+        addChildComponent(historyText_);
+        for (auto* toggle : {&showDraft_, &showDiagnostics_, &showHistory_}) {
             addAndMakeVisible(toggle);
             toggle->onClick = [this] { updateLayout(); };
         }
@@ -130,6 +164,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         waterDiagnostics_.setTitle("Water component diagnostics");
         addChildComponent(waterDiagnostics_);
         refresh();
+        refreshHistory();
         source_.setText(controller_.sourceDescription(), juce::dontSendNotification);
         setStatus("Load WAV -> edit -> Apply config -> Play. Size/Motion/Decay use research "
                   "mapping v0.1; "
@@ -149,8 +184,8 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         g.fillAll(juce::Colour(0xff0d181f));
     }
     int preferredHeight() const noexcept {
-        return 518 + tabHeight() + protect_.preferredHeight() +
-               (showDraft_.getToggleState() ? 110 : 0) +
+        return 552 + tabHeight() + protect_.preferredHeight() +
+               (showDraft_.getToggleState() ? 110 : 0) + (showHistory_.getToggleState() ? 180 : 0) +
                (showDiagnostics_.getToggleState() ? 445 : 0);
     }
     void resized() override {
@@ -168,8 +203,14 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         draftDetails_.setVisible(showDraft_.getToggleState());
         if (showDraft_.getToggleState())
             draftDetails_.setBounds(area.removeFromTop(110).reduced(3));
+        auto automatic = area.removeFromTop(34);
+        autoAudition_.setBounds(automatic.removeFromLeft(220));
+        showHistory_.setBounds(automatic.removeFromLeft(180));
+        workflowCounts_.setBounds(automatic);
+        historyText_.setVisible(showHistory_.getToggleState());
+        if (showHistory_.getToggleState())
+            historyText_.setBounds(area.removeFromTop(180).reduced(3));
         tabs_.setBounds(area.removeFromTop(tabHeight()));
-        protect_.setBounds(area.removeFromTop(protect_.preferredHeight()));
         auto monitor = area.removeFromTop(38);
         for (auto* button : {&dry_, &processed_, &residual_})
             button->setBounds(monitor.removeFromLeft(145).reduced(3));
@@ -180,6 +221,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         focus_.setBounds(audition.removeFromLeft(170).reduced(3, 18));
         trim_.setBounds(audition.reduced(8, 0));
         auditionLabel_.setBounds(area.removeFromTop(26));
+        protect_.setBounds(area.removeFromTop(protect_.preferredHeight()));
         auto workflow = area.removeFromTop(38);
         const int width = workflow.getWidth() / 7;
         for (auto* button : {&captureA_, &applyA_, &captureB_, &applyB_, &reset_, &copy_, &export_})
@@ -215,7 +257,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         }
     };
     int tabHeight() const noexcept {
-        return 32 + (tabs_.getCurrentTabIndex() == 0 ? 205 : engineering_.preferredHeight());
+        return 32 + (tabs_.getCurrentTabIndex() == 0 ? 320 : engineering_.preferredHeight());
     }
     void updateLayout() {
         resized();
@@ -229,20 +271,18 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                 &exportSession_, &copySession_, &importModule_};
     }
     void applyDraft() {
-        controller_.stop();
-        if (!validProtectMemory(session_.draft().protectMemory)) {
-            setStatus(
-                "Protect: retained D0/D1 calibrations require Low < High in their own units.");
-            return;
-        }
-        const auto error = controller_.validate(session_.draft().engineering);
-        if (error.isNotEmpty()) {
-            setStatus(error);
-            return;
-        }
-        session_.applyValidated();
-        setStatus("Applied. Play starts a fresh run. Legacy-unmapped macros retain values without "
-                  "modifying DSP.");
+        workflow_.apply();
+        refreshHistory();
+    }
+    void refreshHistory() {
+        historyText_.setText(operationHistoryText(operations_.history()), false);
+        workflowCounts_.setText(
+            "Ops " + juce::String(static_cast<juce::int64>(operations_.history().sequence())) +
+                " | stop / prepare / restart: " +
+                juce::String(static_cast<juce::int64>(workflow_.stops)) + " / " +
+                juce::String(static_cast<juce::int64>(workflow_.preparations)) + " / " +
+                juce::String(static_cast<juce::int64>(workflow_.restarts)),
+            juce::dontSendNotification);
     }
     void discardPendingText() {
         engineering_.discardPendingText();
@@ -429,6 +469,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         }
     }
     ResearchSessionModel session_;
+    ResearchAuditionWorkflow workflow_;
     ResearchOperations operations_;
     PreviewController controller_;
     WaterMacroView sound_;
@@ -436,7 +477,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     ProtectView protect_;
     ViewTabs tabs_;
     juce::ToggleButton showDraft_{"Draft details"}, showDiagnostics_{"Audio diagnostics"};
-    juce::TextEditor draftDetails_, waterDiagnostics_;
+    juce::TextEditor draftDetails_, waterDiagnostics_, historyText_;
+    juce::ToggleButton autoAudition_{"AUTO AUDITION (Sound Lead)"},
+        showHistory_{"Operation history"};
+    juce::Label workflowCounts_;
+    bool soundAuto_{true};
     juce::TooltipWindow tooltips_{this, 500};
     juce::Label title_, note_, source_, status_, appliedLabel_, gainLabel_;
     ResearchSlider gain_;

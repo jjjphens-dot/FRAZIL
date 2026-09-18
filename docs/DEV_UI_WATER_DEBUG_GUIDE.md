@@ -47,9 +47,9 @@ Release、ASAN 可使用对应 preset 串行构建这个独立工具；FRAZIL Re
    可用 `testdata/input/zero_state_response__impulse.wav` 做连线检查。
 2. 使用系统默认立体声输出设备。设备必须支持 WAV 的采样率；工具不重采样、不打开麦克风。
    不匹配时明确拒绝播放，选择合适采样率的 WAV 或系统输出设备后重试。
-3. 保持 monitor gain 初始 **-18 dB**。在 Sound Lead 页选择 `Resonant`（对应 Engineering 页的 `c`），点击 **Apply config**，再 **Play / Restart**。
+3. 保持 monitor gain 初始 **-18 dB**。在 Sound Lead 页选择 `Resonant`（对应 Engineering 页的 `c`），保持 **AUTO AUDITION** 开启，模型/宏修改完成后自动应用并从头播放；关闭它时使用 **Apply config**，再 **Play / Restart**。
 4. 观察 INPUT / OUTPUT meter 和 FINITE 状态；在 **Source / x**、**Full / x+E**、**Water only / E** 间切换。
-   Residual 用于单独定位响应。默认 C 的 E 可能很轻，不能把“很轻”误判成未连接。
+   Residual 用于单独定位响应。使用 **Focus / E +18 dB** 辅助检查轻微响应；E Trim 可调至 +36 dB，仅影响监听。
 5. 点击 **Capture A**；改变 C 的 `Root frequency (Hz)` 或 `Decay (s)`。
    改工程参数会停止播放；点击 **Apply config**，再 Play，然后 Capture B。
    用 Apply A / Apply B + Play 从同一源起点、同一 seed 比较。
@@ -67,15 +67,19 @@ WAV 播完后输入自动为零，再处理 **30 秒 tail** 后停止；没有�
 | Load WAV | 停止播放并加载输入 | I/O 与内存分配在 message thread；加载失败保留此前源并显示错误 |
 | Play / Restart | 用已应用配置，从源起点和 seed 42 播放 | 有未应用草稿时禁用；每次重新 prepare/reset |
 | Stop | 等待当前 callback 退出并停止处理 | 下一次 Play 从头开始，不是暂停 |
+| AUTO AUDITION | Sound Lead 默认 ON；一次宏手势结束后停止后的 prepare/apply/restart 各一次 | Engineering 固定 OFF；无有效匹配源则只应用；无中间点重播 |
+| Operation history | 最近 50 个完成操作，含来源和 before/after | 拖动只记一条；250 ms 合并滚轮/键盘；不写入会话 |
+| Return Size/Motion/Decay to Mapped | 只恢复该宏拥有的工程目标 | 保留其他宏、校准增益与 Protect |
+| Return All to Mapped / Adopt | 恢复三组宏映射；v1 显式采用新映射 | 不改变独立 Model/composition；不是 undo |
 | Composition 下拉框 | ABD、C、A、B、D、AB、AD、BD、baseline | 改动是草稿；不是 Host Routing Mode |
 | Apply config | 停止并校验草稿，将其设为已应用配置 | 不自动播放；准备工作不在音频 callback 内执行 |
 | Source / x | 监听源 | DSP 仍继续推进；不重置 RNG/tail |
 | Full / x+E | 监听源加 residual，源仅添加一次 | 无隐藏 limiter、normalization 或 makeup |
 | Water only / E | 只听实验 residual | 这是工程诊断，不是产品 Wet 宏 |
-| Monitor output (dB) | -60..0 dB，默认 -12 dB | 三种监听路径共用；10 ms 平滑；不写入导出的 DSP config |
+| Monitor output (dB) | -60..0 dB，默认 -18 dB | 三种监听路径共用；10 ms 平滑；不写入导出的 DSP config |
 | Capture A / B | 记录**已应用**宏实验值、工程配置、composition、监听模式、monitor gain 和源元数据 | 不记录未应用草稿、音频字节、游标或 DSP 状态；内存临时槽 |
 | Apply A / B | 停止播放，恢复对应配置与监听状态 | 空槽禁用；点击 Play 才开始新一次处理 |
-| Reset baseline | 恢复研究默认值、ABD、Processed、-12 dB | 停止播放；保留 WAV 与已捕获 A/B 槽；不是 Host reset |
+| Reset baseline | 恢复研究默认值、ABD、Processed、-18 dB、E Trim +18 dB | 停止播放；保留 WAV 与已捕获 A/B 槽；不是 Host reset |
 | Copy config | 复制**已应用** module JSON | 不是插件 state/preset；不包含 WAV、composition、seed、monitor gain |
 | Export config | 保存同一 module JSON | 可直接交给现有 Water renderer；composition/seed 另行提供 |
 | Import Module Config | 按 renderer schema 导入；缺省字段恢复研究默认值，再校验当前 composition | 保留宏、源、monitor；工程值标记 CUSTOM；无效文件不改变状态 |
@@ -263,3 +267,21 @@ A/B events 与 A steals 从 Play/Restart 起累计；active voices、D delay、C
 Protect GR 是最近数值。C 模式下不显示过期 Fluid 活动。无新样本明确显示 no new samples。
 全部数字与 Protect 共用 256 项固定 SPSC 队列，满队列丢弃新 block 并显示 dropped 计数。
 这些是工程观察，不能直接证明 Water 身份、自然度或感知质量。
+
+## Sound Lead 连续试听工作流（Phase I）
+
+Sound Lead 页默认开启 Auto Audition。选择模型，拖动 Size/Motion/Decay；按下时停止，
+拖动中只更新草稿和工程目标，松开后只准备/应用一次、从 WAV 起点和 seed 42 重播一次。
+Engineering 页固定手动 Apply；切回 Sound Lead 恢复上次 Auto Audition 开关。
+Shift 精调，双击回中心；工程 exact entry 按 Enter 提交、Escape 撤销文本。
+目标摘要显示实际 raw target；CUSTOM 表示该宏所属目标被工程编辑，不进行反算。
+
+先用 Water Only + Focus 定位 E，再以 Reference 比较真实相对电平，最后用 Full 检查源保留。
+Protect Enable/Depth、监听模式、E Trim 和 Monitor output 都实时平滑更新，不触发重播；
+算法、detector/topology 和非 Depth Protect 参数仍需停止后应用。
+Capture A/B 保存已应用研究状态；Apply A/B 恢复后保持停止，Play 从头重播。
+DSP DIRTY 表示处理配置待应用；SESSION DIRTY 表示相对最后应用/导入/回忆检查点的上下文变化，
+不是“文件未保存”。右侧 lifecycle 数字用于工作流诊断，不是音频 callback 次数。
+
+目标文本为便读摘要，工程 exact entry 保留原始精度。窗口可滚动，Operation history 与
+Audio diagnostics 默认收起。该工作流不构成 Host、产品声音或 perceptual acceptance。

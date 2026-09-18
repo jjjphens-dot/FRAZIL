@@ -18,6 +18,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         // removeAudioCallback waits for any in-flight callback on this non-realtime caller.
         // Source replacement and prepare are safe only after it returns.
         device.removeAudioCallback(this);
+        callbackAttached = false;
         isPlaying.store(false);
         protectMetrics.clear();
     }
@@ -113,6 +114,8 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
     std::atomic<float> outputGain{0.12589254f}, auditionGain{7.94328235f};
     // Sole UI->audio Protect transport: validated normalized target, sampled at block boundary.
     std::atomic<double> protectDepth{};
+    bool callbackAttached{}, prepared{}; // Message-thread lifecycle only.
+    double preparedRate{};
     static_assert(std::atomic<double>::is_always_lock_free);
     static_assert(std::atomic<MonitorMode>::is_always_lock_free);
     static_assert(std::atomic<std::uint64_t>::is_always_lock_free);
@@ -124,6 +127,7 @@ PreviewController::~PreviewController() = default;
 
 juce::String PreviewController::load(const juce::File& wav) {
     stop();
+    impl_->prepared = false;
     juce::WavAudioFormat format;
     auto stream = wav.createInputStream();
     if (!stream)
@@ -203,9 +207,24 @@ juce::String PreviewController::play(const PreviewSettings& settings) {
     stop();
     if (impl_->source.getNumSamples() == 0)
         return "Load a WAV first.";
-    if (!impl_->engine.prepare(impl_->sourceRate, settings))
+    const auto error = prepareStopped(settings);
+    return error.isEmpty() ? startPrepared() : error;
+}
+juce::String PreviewController::prepareStopped(const PreviewSettings& settings) {
+    if (impl_->callbackAttached)
+        return "Stop playback before preparing a research configuration.";
+    impl_->prepared = false;
+    impl_->preparedRate = impl_->sourceRate > 0 ? impl_->sourceRate : 48000;
+    if (!impl_->engine.prepare(impl_->preparedRate, settings))
         return validate(settings);
     impl_->protectDepth.store(settings.protect.depth, std::memory_order_relaxed);
+    impl_->prepared = true;
+    return {};
+}
+juce::String PreviewController::startPrepared() {
+    if (!impl_->prepared || impl_->callbackAttached || impl_->source.getNumSamples() == 0 ||
+        impl_->preparedRate != impl_->sourceRate)
+        return "Load a source and prepare the stopped preview before starting.";
     if (impl_->device.getCurrentAudioDevice() == nullptr) {
         const auto error = impl_->device.initialiseWithDefaultDevices(0, 2);
         if (error.isNotEmpty())
@@ -223,6 +242,7 @@ juce::String PreviewController::play(const PreviewSettings& settings) {
         return "Default output must support stereo at the WAV sample rate; no resampling is used.";
     impl_->isPlaying.store(true);
     impl_->device.addAudioCallback(impl_.get());
+    impl_->callbackAttached = true;
     return {};
 }
 

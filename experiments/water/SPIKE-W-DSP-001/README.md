@@ -431,3 +431,5 @@ A/B/D/C and post-Protect E, plus cumulative events/steals and latest voices/dela
 `PreviewEngine` exposes audio-owner values; controller accumulates energy/counts before audition
 and publishes in the existing Protect 256-entry SPSC queue. No second queue or callback strings.
 UI-only `WaterDiagnosticsText` formats sample-weighted RMS/peaks/activity; overflow is visible.
+
+Sound Lead Auto Audition defaults ON; completed macro gestures use one stopped prepare/apply/start. Engineering is manual. ResearchPresentation shows actual targets and the latest 50 completed operations. See the debugging guide for Reference/Focus, CUSTOM ownership, exact editing and session checkpoint semantics.

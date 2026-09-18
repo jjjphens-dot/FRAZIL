@@ -2,6 +2,7 @@
 
 #include "ExactValueControl.h"
 #include "ResearchOperationHistory.h"
+#include "ResearchPresentation.h"
 #include "ResearchSessionModel.h"
 
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -53,6 +54,12 @@ class WaterMacroView final : public juce::Component {
             knob.onMouseEnd = [this] { operations_.finish(); };
             addAndMakeVisible(knob);
             researchLabel(*this, names_[i], "");
+            addAndMakeVisible(targets_[i]);
+            targets_[i].setJustificationType(juce::Justification::topLeft);
+            targets_[i].setMinimumHorizontalScale(1.0f);
+            targets_[i].setFont(juce::Font(juce::FontOptions(14)));
+            targets_[i].setColour(juce::Label::textColourId, juce::Colour(0xffbed4dc));
+            targets_[i].setTitle(juce::String(macroKey(i)) + " engineering targets");
             addAndMakeVisible(returnMacro_[i]);
             returnMacro_[i].setButtonText(juce::String("Return ") + macroKey(i) + " to Mapped");
             returnMacro_[i].onClick = [this, i] {
@@ -93,6 +100,9 @@ class WaterMacroView final : public juce::Component {
                                        ? " / RESEARCH_MAPPED"
                                        : " / CUSTOM"),
                               juce::dontSendNotification);
+        for (std::size_t i = 0; i < targets_.size(); ++i)
+            targets_[i].setText(macroTargetsText(state, static_cast<MacroId>(i)),
+                                juce::dontSendNotification);
         returnAll_.setButtonText(state.mappingRevision == "legacy-unmapped"
                                      ? "Adopt Research Mapping v0.1"
                                      : "Return All to Mapped");
@@ -108,8 +118,9 @@ class WaterMacroView final : public juce::Component {
         for (std::size_t i = 0; i < knobs_.size(); ++i) {
             const int width = area.getWidth() / static_cast<int>(knobs_.size() - i);
             auto cell = area.removeFromLeft(width).reduced(12, 0);
-            names_[i].setBounds(cell.removeFromTop(24));
+            names_[i].setBounds(cell.removeFromTop(36));
             returnMacro_[i].setBounds(cell.removeFromBottom(30));
+            targets_[i].setBounds(cell.removeFromBottom(66));
             knobs_[i].setBounds(cell);
         }
     }
@@ -124,6 +135,7 @@ class WaterMacroView final : public juce::Component {
     juce::ComboBox model_;
     std::array<ResearchSlider, 3> knobs_;
     std::array<juce::Label, 3> names_;
+    std::array<juce::Label, 3> targets_;
     std::array<juce::TextButton, 3> returnMacro_;
     juce::Label mapping_, notice_;
     juce::TextButton returnMapped_{"Return Model to Mapped"};
@@ -184,7 +196,7 @@ class EngineeringView final : public juce::Component {
         refresh();
     }
     int preferredHeight() const noexcept {
-        int height = 274;
+        int height = 394;
         for (std::size_t i = 0; i < headings_.size(); ++i)
             height += 36 + (expanded_[i] ? rows(i) * 72 : 0);
         return height;
@@ -213,7 +225,15 @@ class EngineeringView final : public juce::Component {
                 spec.displayPolicy == DisplayPolicy::adaptiveTime
                     ? juce::String(formatTimeValue(spec.initial).value_or("invalid"))
                     : juce::String(spec.initial);
-            controls_[i].setHelp(juce::String(spec.stableId()) + " | APPLY | baseline " + baseline +
+            const auto owner = macroOwner(spec.id);
+            const auto ownerText =
+                owner ? (*owner == MacroId::size     ? "Size"
+                         : *owner == MacroId::motion ? "Motion"
+                                                     : "Decay")
+                      : (ResearchListeningCalibration::owns(spec.id) ? "Listening Calibration"
+                                                                     : "Engineering only");
+            controls_[i].setHelp(juce::String("Owner: ") + ownerText + " | " +
+                                 juce::String(spec.stableId()) + " | APPLY | baseline " + baseline +
                                  " | SPIKE-W-DSP-001 | " +
                                  (active ? "ACTIVE" : "INACTIVE / retained") +
                                  " | origin: " + originName(state.ownership[i].origin));
@@ -231,7 +251,7 @@ class EngineeringView final : public juce::Component {
     }
     void resized() override {
         auto area = getLocalBounds().reduced(8);
-        macros_.setBounds(area.removeFromTop(200));
+        macros_.setBounds(area.removeFromTop(320));
         auto commands = area.removeFromTop(30);
         composition_.setBounds(commands.removeFromLeft(240));
         calibration_.setBounds(commands.removeFromLeft(245).reduced(3, 0));
