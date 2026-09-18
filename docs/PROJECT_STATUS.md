@@ -397,7 +397,7 @@ An opt-in research executable connects WAV playback and explicit engineering con
 A/B/D/C. It reuses the developer diagnostic view without changing the FRAZIL plugin, nine Host parameters,
 M1 wet path or plugin state. Draft/apply/restart preserves prepare-time DSP configuration; temporary A/B,
 monitor comparisons and renderer-compatible module export support Sound Lead engineering inspection.
-Production Water integration, Size/Motion/Decay macro mappings and final workflow/perceptual acceptance
+Production Water integration, accepted product macro mappings and final workflow/perceptual acceptance
 remain pending. Actual validation and limits are recorded in
 [WATER_PREVIEW_VALIDATION](evidence/WATER_PREVIEW_VALIDATION.md); usage in the
 [debugging guide](DEV_UI_WATER_DEBUG_GUIDE.md).
@@ -405,7 +405,9 @@ remain pending. Actual validation and limits are recorded in
 The staged [Water UI control bridge](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md) has reconciled
 Preview and Protect on a separate integration branch and added isolated time-value tooling tests.
 Shared session state and Sound Lead/Engineering views are implemented with Model/composition sync,
-unmapped Size/Motion/Decay, edit provenance, retained inactive controls and applied A/B state. Decay
+research Size/Fluid Motion/Decay mappings (legacy imports stay unmapped), edit provenance, retained
+inactive controls and applied A/B state. The listening-ready follow-up is tracked in the
+[new execution record](evidence/WATER_LISTENING_UI_EXECUTION.md). Decay
 uses provisional `0.5` and participates in reset and separate session copy/export/import. Strict exact
 entry, adaptive time units, collapsible module cards and draft details are implemented. Session source/build
 provenance, module import and module-specific validation feedback are implemented and regression-tested.

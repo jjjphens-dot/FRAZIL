@@ -129,12 +129,14 @@ runs with the callback detached; algorithm values are prepare-time only. Monitor
 source/residual crossfade use 10 ms smoothing; no production automation/model transition is claimed.
 
 Sound Lead and Engineering views now share a message-thread `ResearchSessionModel`; Model maps only
-Fluid/ABD and Resonant/C, while Size/Motion remain explicitly UNMAPPED experiment values. Engineering
+Fluid/ABD and Resonant/C. The listening-ready follow-up adds research-only Size/Fluid Motion/Decay
+curves with per-macro ownership; legacy sessions retain CUSTOM/unmapped values until adoption. Engineering
 edits retain inactive values, record origin/revision and require Apply. A/B captures complete applied
 experiment/engineering/monitor values. No reverse mapping is inferred from manual engineering edits.
 The [control-bridge record](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md) identifies staged validation;
-the standalone preview also carries provisional Decay `0.5`, explicitly UNMAPPED, in both views,
-A/B/reset and the separate `frazil.water-research-session` version 1 manifest. Copy/Export Session
+the standalone preview carries provisional Decay `0.5` in both views, A/B/reset and separate
+`frazil.water-research-session` v2 exports with conservative v1 import. See the
+[research mapping](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md) for candidate formulas/limits. Copy/Export Session
 uses applied values; Import Session validates syntax/schema/config before replacing state. The
 original `DeveloperWaterExperimentSnapshot` and `frazil.dev-experiment` export are unchanged.
 Session source metadata is filename/rate/channels/frames only; configure-time Git/build information

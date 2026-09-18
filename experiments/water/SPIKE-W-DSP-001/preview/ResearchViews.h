@@ -37,7 +37,8 @@ class WaterMacroView final : public juce::Component {
             knob.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
             knob.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 22);
             knob.setDoubleClickReturnValue(true, .5);
-            knob.setTooltip("Experiment baseline 0.5; UNMAPPED: does not change DSP targets.");
+            knob.setTooltip("Research mapping v0.1; not product frozen. Legacy sessions require "
+                            "explicit adoption.");
             knob.onValueChange = [this, i] {
                 const auto value = knobs_[i].getValue();
                 operations_.edit(macroKey(i), origin_, true, true);
@@ -51,21 +52,27 @@ class WaterMacroView final : public juce::Component {
             };
             knob.onMouseEnd = [this] { operations_.finish(); };
             addAndMakeVisible(knob);
-            researchLabel(*this, names_[i],
-                          i == 0   ? "Size / UNMAPPED"
-                          : i == 1 ? "Motion / UNMAPPED"
-                                   : "Decay / UNMAPPED");
+            researchLabel(*this, names_[i], "");
+            addAndMakeVisible(returnMacro_[i]);
+            returnMacro_[i].setButtonText(juce::String("Return ") + macroKey(i) + " to Mapped");
+            returnMacro_[i].onClick = [this, i] {
+                operations_.action(
+                    (std::string("Return ") + macroKey(i) + " to Mapped").c_str(), origin_, true,
+                    true, [this, i] { session_.returnMacroToMapped(static_cast<MacroId>(i)); });
+            };
         }
-        knobs_[2].setTooltip("DOC-W-DECAY-001 provisional experiment baseline 0.5. Response "
-                             "persistence; UNMAPPED, not a product default.");
         researchLabel(*this, mapping_, "");
-        researchLabel(
-            *this, notice_,
-            "Experiment state only. No Size / Motion / Decay DSP mapping has been accepted.");
+        researchLabel(*this, notice_,
+                      "RESEARCH MAPPING v0.1 | NOT PRODUCT FROZEN | Protect independent");
         addAndMakeVisible(returnMapped_);
         returnMapped_.onClick = [this] {
             operations_.action("Return Model to Mapped", origin_, true, true,
                                [this] { session_.returnModelToMapped(); });
+        };
+        addAndMakeVisible(returnAll_);
+        returnAll_.onClick = [this] {
+            operations_.action("Return All to Mapped / Adopt", origin_, true, true,
+                               [this] { session_.returnAllToMapped(); });
         };
         refresh();
     }
@@ -80,6 +87,15 @@ class WaterMacroView final : public juce::Component {
                                                                      : "Model: CUSTOM composition",
                          juce::dontSendNotification);
         returnMapped_.setEnabled(state.modelMapping == MappingStatus::custom);
+        for (std::size_t i = 0; i < names_.size(); ++i)
+            names_[i].setText(juce::String(macroKey(i)) +
+                                  (state.macroMappings[i] == MappingStatus::mapped
+                                       ? " / RESEARCH_MAPPED"
+                                       : " / CUSTOM"),
+                              juce::dontSendNotification);
+        returnAll_.setButtonText(state.mappingRevision == "legacy-unmapped"
+                                     ? "Adopt Research Mapping v0.1"
+                                     : "Return All to Mapped");
     }
     void resized() override {
         auto area = getLocalBounds().reduced(8);
@@ -88,10 +104,12 @@ class WaterMacroView final : public juce::Component {
         model_.setBounds(left.removeFromTop(32));
         mapping_.setBounds(left.removeFromTop(32));
         returnMapped_.setBounds(left.removeFromTop(30));
+        returnAll_.setBounds(left.removeFromTop(32));
         for (std::size_t i = 0; i < knobs_.size(); ++i) {
             const int width = area.getWidth() / static_cast<int>(knobs_.size() - i);
             auto cell = area.removeFromLeft(width).reduced(12, 0);
             names_[i].setBounds(cell.removeFromTop(24));
+            returnMacro_[i].setBounds(cell.removeFromBottom(30));
             knobs_[i].setBounds(cell);
         }
     }
@@ -106,8 +124,10 @@ class WaterMacroView final : public juce::Component {
     juce::ComboBox model_;
     std::array<ResearchSlider, 3> knobs_;
     std::array<juce::Label, 3> names_;
+    std::array<juce::TextButton, 3> returnMacro_;
     juce::Label mapping_, notice_;
     juce::TextButton returnMapped_{"Return Model to Mapped"};
+    juce::TextButton returnAll_{"Return All to Mapped"};
 };
 
 class EngineeringView final : public juce::Component {

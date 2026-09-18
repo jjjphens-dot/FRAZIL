@@ -788,7 +788,7 @@ human usability remain pending. Results: [control-bridge execution](evidence/WAT
 The same test executable checks the 21 descriptors against typed research defaults, the original
 UI ranges/steps, module grouping, seconds display metadata, lifecycle and complete JSON field coverage.
 Session regressions cover shared observation, origin/revision, idempotent edits, Model/composition
-mapping, UNMAPPED macros, no reverse mapping, inactive value retention, Draft/Applied isolation and
+mapping, legacy unmapped preservation, per-macro research mapping, no reverse mapping, inactive value retention, Draft/Applied isolation and
 temporary A/B. These model tests do not substitute for Phase 8 Windows GUI interaction evidence.
 Decay/session regressions cover provisional baseline, A/B/reset, complete macro/config/monitor and
 target-provenance roundtrip, duplicate decoded keys, unknown fields, nonfinite/invalid numbers,
@@ -818,3 +818,7 @@ live Protect intermediate targets with no stop, composite import and 51-operatio
 Session v2 tests cover strict revision/status/trim validation and atomic rejection; v1 migration
 preserves all existing engineering values and explicitly remains legacy-unmapped. DSP/context
 dirty tests distinguish live monitor changes and retained Protect state from prepare requirements.
+
+Pure research mapper tests run without JUCE and cover dense monotonic sweeps, 0/.5/1 endpoints,
+finite guards and Flow clearance at 44.1/48/96 kHz. Session tests cover raw ownership, per-macro
+Return isolation, unowned gain/Protect preservation and explicit legacy adoption.

@@ -93,7 +93,10 @@ Output meter 位于 monitor gain 后；Input meter 是 WAV 源，保持原有 ag
 默认 Sound Lead 页显示 Model、Size、Motion、Decay；Engineering 页显示相同宏和 21 个工程控件。
 两页读取同一个会话模型。Fluid 对应 ABD，Resonant 对应 C；选择其他 ablation composition 时
 Model 显示 CUSTOM，可用 **Return Model to Mapped** 返回该模型的完整组合。
-Size/Motion/Decay 显示 **UNMAPPED**：目前只保留实验值，不改变频率、事件率或延迟。
+新会话的 Size/Motion/Decay 使用 **RESEARCH MAPPING v0.1 / NOT PRODUCT FROZEN**。
+每个宏独立显示 RESEARCH_MAPPED/CUSTOM；原始参数编辑只使所属宏 CUSTOM。
+两个视图的 Return Size/Motion/Decay/All 只恢复所属目标；legacy v1 必须显式 Adopt。
+公式、目标归属和限制见 [研究映射说明](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md)。
 工程参数手动修改不会反向改写宏值；inactive 控件变暗但保留值，生效前须启用对应 composition。
 编辑形成 Draft 并停止播放；Apply 校验后方可 Play。Decay 初值 0.5 是 provisional experiment baseline，
 参与 A/B、reset 和 session 保存，不是产品默认值。Protect 已接入；实测状态见 [执行记录](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md)。

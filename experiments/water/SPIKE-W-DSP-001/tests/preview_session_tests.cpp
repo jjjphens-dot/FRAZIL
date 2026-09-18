@@ -26,9 +26,9 @@ int runSessionTests() {
     session.setMacro(MacroId::size, .8, ChangeOrigin::soundLeadUI);
     check(soundSize == .8 && engineeringSize == .8 && notifications == 1 && session.revision() == 1,
           "one edit one publication two observers");
-    check(session.draft().engineering.moduleJson() == baselineConfig &&
-              WaterMacroMapper::targets(MacroId::size) == MappingStatus::unmapped,
-          "unmapped macro cannot invent DSP curve");
+    check(session.draft().engineering.moduleJson() != baselineConfig && session.dspDirty() &&
+              session.draft().macroMappings[0] == MappingStatus::mapped,
+          "research macro updates owned DSP targets");
     session.setMacro(MacroId::size, .8, ChangeOrigin::engineeringUI);
     check(notifications == 1, "identical write cannot feed back");
     session.setMacro(MacroId::size, .2, ChangeOrigin::engineeringUI);
@@ -123,6 +123,46 @@ int runSessionTests() {
     session.reset();
     check(session.dirty() && session.unappliedChanges() >= 2,
           "reset counts retained enable-depth and topology changes");
+    session.reset();
+    session.applyValidated();
+    session.setEngineering(ControlId::bubbleMinFrequency, 1234, ChangeOrigin::engineeringUI);
+    session.setEngineering(ControlId::dropletDecay, .025, ChangeOrigin::engineeringUI);
+    session.setEngineering(ControlId::flowGain, .02, ChangeOrigin::engineeringUI);
+    check(session.draft().macroMappings ==
+              std::array{MappingStatus::custom, MappingStatus::mapped, MappingStatus::custom},
+          "raw target edit marks only owning macro CUSTOM");
+    session.returnMacroToMapped(MacroId::size);
+    check(session.draft().engineering.values[controlIndex(ControlId::bubbleMinFrequency)] == 250 &&
+              session.draft().engineering.values[controlIndex(ControlId::dropletDecay)] == .025 &&
+              session.draft().engineering.values[controlIndex(ControlId::flowGain)] == .02 &&
+              session.draft().macroMappings[2] == MappingStatus::custom,
+          "Return Size preserves other CUSTOM destinations and unowned gain");
+    session.returnAllToMapped();
+    check(session.draft().engineering.values[controlIndex(ControlId::dropletDecay)] == .012 &&
+              session.draft().engineering.values[controlIndex(ControlId::flowGain)] == .02,
+          "Return All owns macro targets only");
+    for (const auto macro : {MacroId::size, MacroId::motion, MacroId::decay}) {
+        const auto before = session.draft().engineering;
+        session.setMacro(macro, .8, ChangeOrigin::soundLeadUI);
+        for (const auto& control : kControls)
+            if (macroOwner(control.id) != macro)
+                check(session.draft().engineering.values[controlIndex(control.id)] ==
+                          before.values[controlIndex(control.id)],
+                      "macro orthogonality preserves every unowned destination");
+        check(sameProtect(before.protect, session.draft().engineering.protect),
+              "macros never alter Protect");
+    }
+    auto legacy = session.draft();
+    legacy.mappingRevision = "legacy-unmapped";
+    legacy.macroMappings.fill(MappingStatus::custom);
+    session.restoreValidated(legacy);
+    session.setMacro(MacroId::size, .1, ChangeOrigin::soundLeadUI);
+    check(session.draft().engineering.values == legacy.engineering.values && !session.dspDirty(),
+          "legacy macro movement cannot change imported sound");
+    session.returnAllToMapped();
+    check(session.dspDirty() &&
+              session.draft().mappingRevision == ResearchWaterMacroMapper::revision.data(),
+          "explicit adoption maps legacy state");
     std::cout << "session tests failures=" << failures << '\n';
     return failures;
 }

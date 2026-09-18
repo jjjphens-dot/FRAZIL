@@ -304,14 +304,15 @@ tests check complete unique IDs, typed DSP defaults, pre-refactor ranges and ser
 Phase 3 adds a single message-thread `ResearchSessionModel` with command-based edits, provenance and
 draft/applied/A/B values. `ResearchViews.h` supplies Sound Lead/Engineering representations; the
 `PreviewPanel` coordinator stops playback for draft edits and validates through `PreviewController`.
-Model/composition mapping is limited to Fluid/ABD and Resonant/C. Size/Motion remain UNMAPPED; manual
-raw edits do not reverse-map them. Inactive controls retain values and show their inactive status.
+Model/composition maps Fluid/ABD and Resonant/C. The listening-ready follow-up maps Size/Motion/Decay
+through [research mapping v0.1](RESEARCH_MAPPING.md); legacy v1 imports remain CUSTOM/unmapped. Manual
+raw edits mark only their owning macro CUSTOM and do not reverse-map them. Inactive controls retain values and show their inactive status.
 No view owns duplicate parameter state or holds DSP objects. Session tests verify both-view observation,
 one notification per change, no-op feedback suppression, composition/active-module truth tables,
 provenance, invalid commands, applied isolation and complete temporary A/B restore.
 
-Phase 4 adds normalized Decay with the DOC-W-DECAY-001 provisional baseline `0.5`; it is UNMAPPED
-and cannot affect Flow or any DSP parameter. Four macros participate in A/B/reset and separate
+Phase 4 added normalized Decay with the DOC-W-DECAY-001 provisional baseline `0.5`; the follow-up
+now maps it to A/B/C persistence only, with no Flow destination. Four macros participate in A/B/reset and separate
 `frazil.water-research-session` manifests (v2 exports, conservative v1 imports). `SessionCodec.h` covers config/composition,
 fixed seed 42, monitor and provenance, including source/build context without audio bytes or absolute paths.
 Module imports reuse renderer defaults and validation, preserve session macros/source/monitor, and

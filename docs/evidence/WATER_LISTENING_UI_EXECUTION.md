@@ -30,15 +30,15 @@ research formula, disclose the gap and do not claim perceptual-contract complian
 
 ## Status and sequence
 
-Running Phase D preparation. Phases A-C implementation and self-review are complete; next checkpoint:
-pure macro mapping and target ownership. No blockers; publish after Phase J.
+Running Phase E preparation. Phases A-D implementation and self-review are complete; next checkpoint:
+deterministic Resonant Motion. No blockers; publish after Phase J.
 
 | Phase | Work | Status |
 |---|---|---|
 | A | Reconcile latest branches and prior P1/P2 findings | Complete; three presets and self-review PASS |
 | B | 50-operation history, drag/debounce and stop-once boundary | Complete; three presets and self-review PASS |
 | C | DSP/session dirty, v2 and conservative v1 migration | Complete; self-review PASS |
-| D | Pure research macro mapper and per-macro ownership | Pending |
+| D | Pure research macro mapper and per-macro ownership | Complete; three presets and self-review PASS |
 | E | Deterministic normalized Modal excitation movement | Pending |
 | F | Independent listening calibration and CUSTOM state | Pending |
 | G | Monitor-only Focus/Reference/E trim | Pending |
@@ -123,3 +123,27 @@ Parameters, Accepted ADRs and production modules retain their existing contracts
 7. Comment/documentation pass: guide, research README and Testing synchronized. Production
    parameter/state contracts and architecture reviewed unchanged. No new audio/listening claim.
 8. Final links, portability, formatting and diff checks PASS. Next: pure mapper and per-macro target ownership.
+
+## Phase D checkpoint
+
+1. Baseline: Phase C `506451f`; bounded research curves and independent target ownership.
+2. New pure ResearchWaterMacroMapper computes Fluid/Resonant numeric targets without JUCE or DSP
+   objects. ResearchMappingAdapter translates owned destinations into existing PreviewSettings.
+   A standalone non-JUCE mapping test target is added; session/codec/UI tests are extended.
+3. New sessions use v0.1; manual engineering edits mark only their owner CUSTOM. Moving a macro
+   reclaims its own destinations; explicit Return actions exist in both views. Legacy sessions
+   keep raw values until explicit adoption. Other CUSTOM targets, gains and Protect survive.
+4. Codec verifies mapped claims against raw targets. Numerical endpoints, dense monotonic sweeps,
+   finite guards, three-rate Flow clearance, orthogonality and legacy adoption are tested.
+5. Debug 21/21 (29.17 s), Release 21/21 (15.56 s), ASAN 21/21 (54.72 s). Initial compile exposed
+   a dynamic action-name argument mismatch, corrected to the synchronous API. An older 96k test
+   changed raw Flow depth while claiming mapped Motion; fixture now accurately marks it CUSTOM.
+   A local documentation helper needed explicit UTF-8; no validation or compatibility rule relaxed.
+6. Quality review: destination ownership is centralized, no reverse mapping, no gain destinations,
+   no shared mutable state, no callback mapping/allocation. Inactive targets retain the same owner.
+7. Guide, README, Module Index, Testing, Developer Sound Tools and Project Status synchronized.
+   Dedicated RESEARCH_MAPPING explains curves, scope and HI-08/Flow limitations. Architecture,
+   Parameters, production state and Accepted ADRs reviewed unchanged; no human acceptance claim.
+8. Resonant temporal targets are computed but connected in Phase E, per the supplied phase order.
+   GUI layout/Auto Audition and source listening evidence remain scheduled for I/J.
+9. Final links, portability, clang-format and diff checks PASS. Self-review complete.

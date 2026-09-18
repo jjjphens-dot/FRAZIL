@@ -17,8 +17,8 @@ int runSessionCodecTests() {
     const auto moduleBaseline = session.draft().engineering.moduleJson();
     session.setMacro(MacroId::decay, .75, ChangeOrigin::soundLeadUI);
     check(session.draft().water.decay == .75 && session.dirty() &&
-              session.draft().engineering.moduleJson() == moduleBaseline,
-          "Decay is shared experiment state without DSP mapping");
+              session.draft().engineering.moduleJson() != moduleBaseline,
+          "Decay maps owned persistence targets");
     session.setModel(WaterModel::resonant, ChangeOrigin::engineeringUI);
     session.setEngineering(ControlId::modalRoot, 500, ChangeOrigin::engineeringUI);
     session.setMonitor(MonitorMode::residual, -20);
@@ -72,9 +72,15 @@ int runSessionCodecTests() {
     check(decodeSession(juce::JSON::toString(invalidMapping).toStdString(), decoded).isNotEmpty(),
           "out of range monitor trim rejected");
     invalidMapping = juce::JSON::parse(text);
-    invalidMapping["perMacroMappingState"].getDynamicObject()->setProperty("motion", 1);
+    invalidMapping.getDynamicObject()->setProperty("mappingRevision", "legacy-unmapped");
     check(decodeSession(juce::JSON::toString(invalidMapping).toStdString(), decoded).isNotEmpty(),
           "legacy revision cannot claim mapped macro");
+    invalidMapping = juce::JSON::parse(text);
+    invalidMapping["configuration"]["droplet"].getDynamicObject()->setProperty("refractorySeconds",
+                                                                               .04);
+    check(decodeSession(juce::JSON::toString(invalidMapping).toStdString(), decoded).isNotEmpty() &&
+              encodeSession(decoded) == original,
+          "mapped raw-target contradiction atomic reject");
     for (const auto& bad : {juce::String("{}"), text + "{}", text + "junk",
                             text.replace("\"decay\": 0.75", "\"decay\": 0.75, \"decay\": 0.5"),
                             text.replace("\"decay\": 0.75", "\"decay\": 1.2"),

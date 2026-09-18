@@ -23,9 +23,9 @@ inline juce::String draftSummary(const ResearchSessionModel& session) {
         text += juce::String("Composition: ") +
                 kModes[static_cast<std::size_t>(a.engineering.mode)] + " -> " +
                 kModes[static_cast<std::size_t>(d.engineering.mode)] + "\n";
-    line("Size (UNMAPPED)", a.water.size, d.water.size);
-    line("Motion (UNMAPPED)", a.water.motion, d.water.motion);
-    line("Decay (UNMAPPED)", a.water.decay, d.water.decay);
+    line("Size", a.water.size, d.water.size);
+    line("Motion", a.water.motion, d.water.motion);
+    line("Decay", a.water.decay, d.water.decay);
     for (std::size_t i = 0; i < kControls.size(); ++i)
         line(kControls[i].stableId(), a.engineering.values[i], d.engineering.values[i],
              kControls[i].displayPolicy == DisplayPolicy::adaptiveTime);

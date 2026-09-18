@@ -301,6 +301,20 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
              candidate.engineering.values[i] != std::floor(candidate.engineering.values[i])))
             return "Session: invalid field " + juce::String(spec.stableId());
     }
+    if (version == 2 && candidate.mappingRevision == ResearchWaterMacroMapper::revision.data()) {
+        const auto mapped = ResearchWaterMacroMapper::map(candidate.water);
+        for (const auto& spec : kControls) {
+            const auto owner = macroOwner(spec.id);
+            if (owner && candidate.macroMappings[static_cast<std::size_t>(*owner)] ==
+                             MappingStatus::mapped) {
+                const double expected = mappedTarget(spec.id, *mapped);
+                if (std::abs(candidate.engineering.values[controlIndex(spec.id)] - expected) >
+                    1e-12 * std::max(1.0, std::abs(expected)))
+                    return "Session: mapped target contradicts macro: " +
+                           juce::String(spec.stableId());
+            }
+        }
+    }
     output = std::move(candidate);
     return {};
 }

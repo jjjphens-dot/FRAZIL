@@ -94,6 +94,7 @@ int runWorkflowTests() {
     // A legal UI config whose delay clearance is valid at 96k but not at 48k.
     candidate.engineering.values[controlIndex(ControlId::flowBaseDelay)] = .001;
     candidate.engineering.values[controlIndex(ControlId::flowDepth)] = .000985;
+    candidate.macroMappings[static_cast<std::size_t>(MacroId::motion)] = MappingStatus::custom;
     candidate.source = {"high-rate.wav", 96000, 2, 96000};
     check(decodeSession(encodeSession(candidate).toStdString(), roundtrip).isEmpty() &&
               controller.validate(roundtrip.engineering, roundtrip.source.sampleRate).isEmpty() &&

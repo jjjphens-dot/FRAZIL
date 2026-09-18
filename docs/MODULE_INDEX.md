@@ -96,3 +96,7 @@ See [reference usage](../experiments/water/REFERENCE_INDEX.md) and
 ## Modification Policy
 
 本索引属于 LEVEL 3 MAINTAINED 文档，但其中的公共接口和依赖事实必须服从 Level 1/2 合同。修改需在相关代码/文档 PR 中同步，不能用索引文字掩盖未实现模块。
+
+`ResearchWaterMacroMapper.h` owns plain, allocation-free research curves;
+`ResearchMappingAdapter.h` owns the engineering destination table used by session commands.
+Neither is a production mapper; see [mapping v0.1](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md).

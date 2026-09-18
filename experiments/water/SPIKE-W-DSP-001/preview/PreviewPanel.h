@@ -108,8 +108,9 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         addAndMakeVisible(diagnostics_);
         refresh();
         source_.setText(controller_.sourceDescription(), juce::dontSendNotification);
-        setStatus("Load WAV -> edit -> Apply config -> Play. Size/Motion/Decay are UNMAPPED "
-                  "experiment state.");
+        setStatus("Load WAV -> edit -> Apply config -> Play. Size/Motion/Decay use research "
+                  "mapping v0.1; "
+                  "not product frozen.");
         if (sourceArgument.isNotEmpty())
             loadSource(
                 juce::File::getCurrentWorkingDirectory().getChildFile(sourceArgument.unquoted()));
@@ -205,7 +206,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             return;
         }
         session_.applyValidated();
-        setStatus("Applied. Play starts a fresh run. Unmapped macros retain values without "
+        setStatus("Applied. Play starts a fresh run. Legacy-unmapped macros retain values without "
                   "modifying DSP.");
     }
     void discardPendingText() {

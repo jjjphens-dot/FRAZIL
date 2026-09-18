@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PreviewSettings.h"
+#include "ResearchMappingAdapter.h"
 #include "SessionMetadata.h"
 
 #include <cmath>
@@ -11,32 +11,12 @@
 
 namespace frazil::water::preview {
 
-enum class WaterModel { fluid, resonant };
-enum class MacroId { size, motion, decay };
 enum class ChangeOrigin { soundLeadUI, engineeringUI, mapper, sessionLoad, reset };
 enum class MappingStatus { unmapped, mapped, custom };
-
-struct WaterExperimentState final {
-    WaterModel model{WaterModel::fluid};
-    double size{.5}, motion{.5};
-    // DOC-W-DECAY-001 Revision C provisional experiment baseline, never a product default.
-    double decay{.5};
-    bool operator==(const WaterExperimentState&) const = default;
-};
 
 struct ControlOwnership final {
     ChangeOrigin origin{ChangeOrigin::reset};
     std::uint64_t revision{};
-};
-
-// This is the entire currently justified mapping interface. No frequency/rate/time curve exists.
-struct WaterMacroMapper final {
-    static int composition(WaterModel model) noexcept {
-        return model == WaterModel::fluid ? 0 : 1;
-    }
-    static constexpr MappingStatus targets(MacroId) noexcept {
-        return MappingStatus::unmapped;
-    }
 };
 
 struct ResearchSessionState final {
@@ -48,9 +28,9 @@ struct ResearchSessionState final {
     MappingStatus modelMapping{MappingStatus::mapped};
     bool customEngineering{};
     // Legacy imports retain raw targets until the user explicitly adopts research mapping.
-    juce::String mappingRevision{"legacy-unmapped"};
-    std::array<MappingStatus, 3> macroMappings{MappingStatus::custom, MappingStatus::custom,
-                                               MappingStatus::custom};
+    juce::String mappingRevision{ResearchWaterMacroMapper::revision.data()};
+    std::array<MappingStatus, 3> macroMappings{MappingStatus::mapped, MappingStatus::mapped,
+                                               MappingStatus::mapped};
     MappingStatus listeningCalibration{MappingStatus::custom};
     double auditionETrimDb{};
     std::array<ControlOwnership, kControls.size()> ownership{};
@@ -58,6 +38,10 @@ struct ResearchSessionState final {
     SourceMetadata source;
     BuildMetadata build;
     std::optional<BuildMetadata> importedBuild;
+    ResearchSessionState() {
+        for (const auto macro : {MacroId::size, MacroId::motion, MacroId::decay})
+            applyResearchMacro(engineering, water, macro);
+    }
 };
 
 inline bool sameResearchContext(const ResearchSessionState& a, const ResearchSessionState& b) {
@@ -178,6 +162,8 @@ class ResearchSessionModel final {
             return true;
         draft_.engineering.values[index] = value;
         draft_.customEngineering = true;
+        if (const auto owner = macroOwner(id))
+            draft_.macroMappings[static_cast<std::size_t>(*owner)] = MappingStatus::custom;
         draft_.ownership[index] = {origin, revision_ + 1};
         changed(origin);
         return true;
@@ -192,7 +178,9 @@ class ResearchSessionModel final {
         if (target == value)
             return true;
         target = value;
-        changed(origin); // No engineering target is modified or reverse-mapped.
+        if (draft_.mappingRevision == ResearchWaterMacroMapper::revision.data())
+            mapMacro(id, origin);
+        changed(origin); // Legacy-unmapped sessions retain raw DSP until explicit adoption.
         return true;
     }
     bool setComposition(int mode, ChangeOrigin origin) {
@@ -215,10 +203,25 @@ class ResearchSessionModel final {
     void setModel(WaterModel model, ChangeOrigin origin) {
         if (model != WaterModel::fluid && model != WaterModel::resonant)
             return;
-        setComposition(WaterMacroMapper::composition(model), origin);
+        setComposition(model == WaterModel::fluid ? 0 : 1, origin);
     }
     void returnModelToMapped() {
         setModel(draft_.water.model, ChangeOrigin::mapper);
+    }
+
+    void returnMacroToMapped(MacroId id) {
+        if (id != MacroId::size && id != MacroId::motion && id != MacroId::decay)
+            return;
+        draft_.mappingRevision = ResearchWaterMacroMapper::revision.data();
+        mapMacro(id, ChangeOrigin::mapper);
+        changed(ChangeOrigin::mapper);
+    }
+    void returnAllToMapped() {
+        draft_.mappingRevision = ResearchWaterMacroMapper::revision.data();
+        for (const auto macro : {MacroId::size, MacroId::motion, MacroId::decay})
+            mapMacro(macro, ChangeOrigin::mapper);
+        // Composition is separately owned. Preserve ablations and unowned engineering controls.
+        changed(ChangeOrigin::mapper);
     }
 
     bool setProtect(ProtectId id, double value, ChangeOrigin origin) {
@@ -325,6 +328,13 @@ class ResearchSessionModel final {
     }
 
   private:
+    void mapMacro(MacroId id, ChangeOrigin origin) {
+        applyResearchMacro(draft_.engineering, draft_.water, id);
+        draft_.macroMappings[static_cast<std::size_t>(id)] = MappingStatus::mapped;
+        for (const auto& control : kControls)
+            if (macroOwner(control.id) == id)
+                draft_.ownership[controlIndex(control.id)] = {origin, revision_ + 1};
+    }
     void changed(ChangeOrigin origin) {
         draft_.lastChange = {origin, ++revision_};
         notify();
