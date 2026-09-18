@@ -785,3 +785,5 @@ time-value helpers in the same CTest. Time coverage includes the 1000 ms boundar
 unitless-ms input, supported/unsupported suffixes, full consumption, finite/range checks and
 preserving the previous value on failure. This is not GUI exact-entry evidence; integration and
 human usability remain pending. Results: [control-bridge execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
+The same test executable checks the 21 descriptors against typed research defaults, the original
+UI ranges/steps, module grouping, seconds display metadata, lifecycle and complete JSON field coverage.

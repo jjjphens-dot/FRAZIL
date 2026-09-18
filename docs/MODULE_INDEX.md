@@ -39,6 +39,9 @@ The control-bridge integration adds isolated `preview/TimeValue.h` UI/tooling he
 ms/s display and strict exact entry. They own no session or DSP state, use only the C++ standard
 library, and are tested by `frazil_water_preview`; widget integration remains pending.
 See [staged execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
+`ControlDescriptor.h` supplies typed IDs, module groups, units/display policy, baseline provenance,
+range and lifecycle metadata for the existing 21 controls. `PreviewSettings` consumes the descriptors
+without changing module JSON; DSP continues to use its existing typed config structs.
 
 ## Proposed Protect research
 

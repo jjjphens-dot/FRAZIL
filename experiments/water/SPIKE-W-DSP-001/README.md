@@ -291,6 +291,11 @@ inclusive in seconds; invalid input returns an error without overwriting the pri
 The formatter rejects negative/nonfinite values. Neither helper is called from the audio path or
 connected to current widgets yet; current GUI instructions remain unchanged.
 
+Phase 2 moves the existing 21-control metadata to `preview/ControlDescriptor.h`, adding typed IDs,
+groups, internal units, display policy, research baseline provenance and prepare-required lifecycle.
+The original values, UI ranges/steps, labels and four-module export schema are retained. Descriptor
+tests check complete unique IDs, typed DSP defaults, pre-refactor ranges and serialization coverage.
+
 LOCAL-WDSP-00..06 cover baseline, features, C, A, D, B and Fluid integration respectively.
 Historical measurements are retained in [EVIDENCE.md](EVIDENCE.md). Current source, three-preset
 regression, isolation/capacity fixes, typical-signal smoke, 80 renders and preliminary timing are

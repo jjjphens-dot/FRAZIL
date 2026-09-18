@@ -9,7 +9,7 @@ algorithm redesign, inferred macro curves or perceptual acceptance.
 
 ## Status
 
-Running, Phase 2 preparation. The user explicitly requested autonomous progression through
+Running, Phase 3 preparation. The user explicitly requested autonomous progression through
 all phases after each self-review, then a single GitHub publication of the completed work. Separate
 local commits/checkpoints remain required; Phases 2–8 are next. Owner: Engineering implementation;
 Sound Lead retains human workflow/perceptual acceptance. No delegated workers.
@@ -60,7 +60,7 @@ Protect work, not newly authored algorithms.
 |---|---|---|
 | 0 | Baseline, contracts, integration, documentation inventory | Implemented; self-review and Debug pass |
 | 1 | Isolated strict time formatter/parser and tests | Implemented; self-review and three presets pass |
-| 2 | Typed descriptors for existing controls | Pending |
+| 2 | Typed descriptors for existing controls | Implemented; self-review and Debug pass |
 | 3 | Shared ResearchSessionModel and dual views | Pending |
 | 4 | Experiment-only Decay state/workflow | Pending |
 | 5 | Existing Protect DSP integration and calibration memory | Pending |
@@ -139,3 +139,23 @@ The six development stages are recorded separately: Contract Review (Phase 0), I
 (parser compatibility and isolated time tooling), Functional Validation (Debug), Code Quality Review
 (above), Comment & Documentation Pass (above), and Final Validation (this table). New Hosted CI,
 independent approval and main merge are not part of this local checkpoint.
+
+## Phase 2 implementation and review
+
+1. Baseline: Phase 1 `b8f085d`; integration branch remains `codex/feat/water-ui-control-bridge`.
+2. Scope: migrate exactly the original 21 controls to typed metadata, without changing applied config.
+3. Files: new `preview/ControlDescriptor.h` and `tests/preview_descriptor_tests.cpp`; updated
+   `preview/PreviewSettings.h`, `tests/preview_tests.cpp`, research CMake/README, Module Index,
+   Testing and this record.
+4. Behavior: metadata only; original module/key/label/range/step/default and export order preserved.
+5. Contracts: DSP structs and renderer schema unchanged; every existing control remains APPLY.
+6. Tests: Debug configure, safe build and CTest; descriptor regressions run inside Preview tests.
+7. Results: Debug 20/20, markdown links, portability and diff checks PASS. The Phase 1 three-preset
+   table is not a Phase 2 Release/ASAN claim; those are repeated at the final integrated checkpoint.
+8. Human/UI evidence: no interactive behavior changed; no GUI/DAW/listening run for this phase.
+9. Realtime: descriptors remain outside processing; standard-library metadata only, no DSP dependency.
+10. Documentation: README/Module Index/Testing synchronized. Architecture, Parameters, ADRs, Developer
+    Sound Tools, Preview guide and production UI README reviewed, no update required for metadata.
+11. Self-review: compile-time ID ordering, runtime unique field/ID coverage, typed defaults, preserved
+    ranges, unit/group/lifecycle checks. No generic reflection framework or changed DSP authority.
+12. Next: shared ResearchSessionModel and two views; no guessed macro mappings.
