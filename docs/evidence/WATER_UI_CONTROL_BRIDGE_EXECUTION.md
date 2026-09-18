@@ -9,7 +9,7 @@ algorithm redesign, inferred macro curves or perceptual acceptance.
 
 ## Status
 
-Running, Phase 6 preparation. The user explicitly requested autonomous progression through
+Running, Phase 7 preparation. The user explicitly requested autonomous progression through
 all phases after each self-review, then a single GitHub publication of the completed work. Separate
 local commits/checkpoints remain required; Phases 2–8 are next. Owner: Engineering implementation;
 Sound Lead retains human workflow/perceptual acceptance. No delegated workers.
@@ -64,7 +64,7 @@ Protect work, not newly authored algorithms.
 | 3 | Shared ResearchSessionModel and dual views | Implemented; self-review, final Debug and docs pass |
 | 4 | Experiment-only Decay state/workflow | Implemented; self-review, Debug and docs pass |
 | 5 | Existing Protect DSP integration and calibration memory | Implemented; self-review, three presets and docs pass |
-| 6 | Bounded Protect numerical diagnostics | Pending |
+| 6 | Bounded Protect numerical diagnostics | Implemented; self-review and Debug pass |
 | 7 | Module/session imports, exports, A/B and reset | Pending |
 | 8 | GUI usability and human handoff | Pending |
 
@@ -255,3 +255,29 @@ independent approval and main merge are not part of this local checkpoint.
     calibration/config roundtrips consistent. Current large layout and original 21-control input
     migration remain Phase 8; module-specific Apply feedback and full provenance remain Phase 7.
 12. Next: bounded numerical Fast/Slow/D0/D1/GR diagnostics; optional trace only if realtime-safe.
+
+## Phase 6 implementation and review
+
+1. Baseline: Phase 5 `3f9ae54`, same integration branch.
+2. Scope: actual Fast/Slow/D0/D1/GR values and consumed-block peaks, bounded transport and loss count.
+3. Files: new `ProtectDiagnostics.h`, `tests/preview_diagnostics_tests.cpp`; engine/controller/Protect
+   view/panel/window/CMake/test entry and related documentation updated.
+4. Behavior: 10 Hz UI shows latest sample and interval peaks, plus block/drop counts. Stop clears
+   after callback detach. Peaks are explicitly not co-timed; no output attenuation equivalence claim.
+5. Contracts: no Protect DSP source change, no mappings/Host/state/production dependency change.
+6. Tests: Debug safe build/CTest; real producer/reader, full/empty/reset/drop/coherence and bounded
+   work tests; integrated readouts compared to original detector/envelope at every tested sample.
+7. Results: Debug 20/20, markdown links, staged-file portability and diff checks PASS.
+   Final integrated Release/ASAN still follow.
+8. Human/UI: graphical interaction/readability remains Phase 8; numerical model evidence only here.
+9. Realtime: 256 preallocated summaries, one producer/one consumer, release/acquire ownership transfer,
+   lock-free integer atomics, no waits/retry growth/formatting/I/O. Callback computes five maxima per
+   sample and copies one summary per block; UI drains at most capacity. Drop rather than overwrite.
+10. Documentation: guide, Developer Sound Tools, Module Index, Testing, research README and this record
+    describe values/units/window/loss. Architecture, Parameters, Accepted ADRs, Coding Plan and
+    production UI README reviewed, no production contract change. No new formal performance claim.
+11. Self-review: non-atomic payload slots are exclusively transferred, consumer publishes tail only
+    after reads, producer never touches unread slots. `clear` requires detached producer and sole
+    UI consumer. Tests exercise actual concurrent observation; ASAN is not claimed as race detection.
+    Optional rolling trace is omitted; numerical diagnostics meet this phase's required scope.
+12. Next: complete module/session workflow, source/build provenance, atomic imports and Apply feedback.

@@ -91,7 +91,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         if (sourceArgument.isNotEmpty())
             loadSource(
                 juce::File::getCurrentWorkingDirectory().getChildFile(sourceArgument.unquoted()));
-        setSize(1180, 1495);
+        setSize(1180, 1595);
         startTimerHz(10);
     }
     ~PreviewPanel() override {
@@ -274,6 +274,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             });
     }
     void timerCallback() override {
+        protect_.updateDiagnostics(controller_.protectDiagnostics());
         diagnostics_.update(controller_.diagnostics(),
                             kModes[static_cast<std::size_t>(session_.applied().engineering.mode)]);
         refreshApplied();

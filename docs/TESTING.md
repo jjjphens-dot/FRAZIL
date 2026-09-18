@@ -798,3 +798,7 @@ Integrated Protect tests compare Preview to the unchanged research implementatio
 for D0/D1, all Fluid topologies and C/Whole, including exact finite OFF recovery and generator/RNG
 continuation. They cover live Depth/Enable state, separate calibration domains, retained Fluid topology,
 session/A/B retention and validation at Depth zero. Original Protect/listening regressions remain registered.
+Protect diagnostic tests check empty/full/drain/reset behavior, explicit overflow loss, bounded
+reader work and a real concurrent producer/reader with coherent payloads. Integrated readouts match
+the existing detector/envelope sample by sample. Runtime allocation instrumentation is not claimed;
+the fixed queue/atomic transport and callback call graph are separately reviewed for bounded work.

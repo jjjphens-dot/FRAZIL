@@ -327,6 +327,14 @@ widget validates before slider snapping/clamping, supports adaptive ms/s and fla
 Protect DSP sources remain identical to their source branch; samplewise integration tests compare
 both detector domains/topologies and exact OFF recovery at all three supported validation rates.
 
+Phase 6 adds `ProtectDiagnostics.h`: a preallocated 256-entry SPSC queue of callback summaries,
+carrying Fast/Slow linear amplitude, D0 amplitude, D1 dB ratio and GR dB attenuation. The callback
+keeps per-block peaks and publishes once; the 10 Hz UI drains at most 256 entries, displays the
+latest sample plus interval peaks and cumulative dropped summaries. Full queues drop new data,
+never wait/overwrite; Stop clears the queue after callback detach. Peaks are not co-timed values
+or output-level reduction. No rolling trace, callback strings or dynamically growing history is
+introduced. Concurrent transport/overflow tests complement samplewise detector-value comparisons.
+
 LOCAL-WDSP-00..06 cover baseline, features, C, A, D, B and Fluid integration respectively.
 Historical measurements are retained in [EVIDENCE.md](EVIDENCE.md). Current source, three-preset
 regression, isolation/capacity fixes, typical-signal smoke, 80 renders and preliminary timing are

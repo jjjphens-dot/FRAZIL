@@ -19,6 +19,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         // Source replacement and prepare are safe only after it returns.
         device.removeAudioCallback(this);
         isPlaying.store(false);
+        protectMetrics.clear();
     }
 
     void audioDeviceAboutToStart(juce::AudioIODevice* audioDevice) override {
@@ -62,6 +63,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         float inputPeak{}, outputPeak{};
         double inputSquares{}, outputSquares{};
         bool finite = true;
+        ProtectBlockReadout protectBlock;
         const auto endFrame = static_cast<std::uint64_t>(source.getNumSamples()) +
                               static_cast<std::uint64_t>(30.0 * sourceRate);
         for (int sample = 0; sample < count; ++sample) {
@@ -76,6 +78,8 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
                         source.getSample(channel, static_cast<int>(frame));
             // DSP always advances during Dry monitoring. Replaying, not toggling Dry, resets seed.
             const auto residual = engine.residual(input);
+            protectBlock.latest = engine.protectReadout();
+            protectBlock.peak.includePeak(protectBlock.latest);
             const auto xWeight = carrier.getNextValue();
             const auto eWeight = effect.getNextValue();
             const auto level = gain.getNextValue();
@@ -95,6 +99,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
             ++frame;
         }
         position.store(frame);
+        protectMetrics.publish(protectBlock);
         const auto denominator = static_cast<double>(std::max(1, channels * count));
         metrics.publish(count, channels, inputPeak, outputPeak,
                         static_cast<float>(std::sqrt(inputSquares / denominator)),
@@ -108,6 +113,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
     juce::String sourceName;
     PreviewEngine engine;
     plugin::DeveloperDiagnostics metrics;
+    ProtectDiagnostics protectMetrics;
     // Audio owner: source cursor in frames, and 10 ms monitor-only crossfade/gain state.
     std::uint64_t frame{};
     LinearSmoother carrier, effect, gain;
@@ -207,6 +213,9 @@ void PreviewController::setMonitor(MonitorMode mode, float outputGainDb) noexcep
 }
 plugin::DeveloperDiagnosticsSnapshot PreviewController::diagnostics() const noexcept {
     return impl_->metrics.snapshot();
+}
+ProtectDiagnosticsSnapshot PreviewController::protectDiagnostics() noexcept {
+    return impl_->protectMetrics.snapshot();
 }
 juce::String PreviewController::sourceDescription() const {
     if (impl_->sourceName.isEmpty())

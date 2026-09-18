@@ -51,6 +51,9 @@ produce candidates and use the controller's existing DSP validation before resto
 `ProtectView.h` owns its research presentation. `ExactValueControl.h` validates text before slider
 clamping and currently serves Protect. `PreviewEngine` reuses `ResidualProtect`/`applyFluidProtect`,
 while `PreviewController` transports only the live Depth target through a lock-free atomic value.
+`ProtectDiagnostics.h` provides a fixed 256-entry SPSC block-summary queue from callback to the
+message thread, with last-sample/peak values and explicit dropped-block accounting. It owns no
+algorithm state; UI formatting stays in `ProtectView` and no production target depends on it.
 
 ## Proposed Protect research
 

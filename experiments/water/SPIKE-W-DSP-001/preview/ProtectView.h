@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ExactValueControl.h"
+#include "ProtectDiagnostics.h"
 #include "ResearchSessionModel.h"
 
 namespace frazil::water::preview {
@@ -58,10 +59,38 @@ class ProtectView final : public juce::Component {
             };
         }
         note_.setColour(juce::Label::textColourId, juce::Colour(0xffbed4dc));
+        for (auto& label : readouts_) {
+            label.setColour(juce::Label::textColourId, juce::Colour(0xffbed4dc));
+            label.setJustificationType(juce::Justification::topLeft);
+            addAndMakeVisible(label);
+        }
+        observation_.setColour(juce::Label::textColourId, juce::Colour(0xffbed4dc));
+        addAndMakeVisible(observation_);
+        updateDiagnostics({});
         refresh();
     }
     int preferredHeight() const noexcept {
-        return advanced_.getToggleState() ? 355 : 190;
+        return advanced_.getToggleState() ? 455 : 290;
+    }
+    void updateDiagnostics(const ProtectDiagnosticsSnapshot& snapshot) {
+        const std::array<const char*, 5> names{"Fast (amplitude)", "Slow (amplitude)",
+                                               "D0 (amplitude)", "D1 (dB ratio)",
+                                               "GR (dB attenuation)"};
+        const std::array<double, 5> current{snapshot.latest.fast, snapshot.latest.slow,
+                                            snapshot.latest.difference, snapshot.latest.logRatioDb,
+                                            snapshot.latest.reductionDb};
+        const std::array<double, 5> peak{snapshot.peak.fast, snapshot.peak.slow,
+                                         snapshot.peak.difference, snapshot.peak.logRatioDb,
+                                         snapshot.peak.reductionDb};
+        for (std::size_t i = 0; i < readouts_.size(); ++i)
+            readouts_[i].setText(juce::String(names[i]) + "\nlast " + juce::String(current[i], 6) +
+                                     "\npeak " + juce::String(peak[i], 6),
+                                 juce::dontSendNotification);
+        observation_.setText("UI interval: " + juce::String(static_cast<int>(snapshot.blocks)) +
+                                 " blocks | dropped since Play: " +
+                                 juce::String(static_cast<juce::int64>(snapshot.droppedBlocks)) +
+                                 " | peaks are not co-timed samples",
+                             juce::dontSendNotification);
     }
     void refresh() {
         const auto& settings = session_.draft().engineering.protect;
@@ -126,6 +155,11 @@ class ProtectView final : public juce::Component {
                 }
             }
         }
+        auto readings = area.removeFromTop(70);
+        const int readingWidth = readings.getWidth() / 5;
+        for (auto& readout : readouts_)
+            readout.setBounds(readings.removeFromLeft(readingWidth));
+        observation_.setBounds(area.removeFromTop(28));
         note_.setBounds(area.removeFromTop(35));
     }
 
@@ -133,6 +167,8 @@ class ProtectView final : public juce::Component {
     ResearchSessionModel& session_;
     std::function<void()> beforePrepareEdit_;
     juce::Label title_, note_;
+    std::array<juce::Label, 5> readouts_;
+    juce::Label observation_;
     juce::ToggleButton enabled_{"Enable"}, advanced_{"Advanced"};
     juce::ComboBox detector_, topology_;
     std::array<ExactValueControl, kProtectControls.size()> controls_;

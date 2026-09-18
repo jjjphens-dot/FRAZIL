@@ -105,6 +105,13 @@ int runPreviewProtectTests() {
                                 : research::applyFluidProtect(fluid.processComponents(input), gain,
                                                               settings.protect.topology);
                         const auto actual = engine.residual(input), baseline = off.residual(input);
+                        const auto observed = engine.protectReadout();
+                        const auto detected = reference.detection();
+                        check(observed.fast == detected.fast && observed.slow == detected.slow &&
+                                  observed.difference == detected.difference &&
+                                  observed.logRatioDb == detected.logRatioDb &&
+                                  observed.reductionDb == reference.reductionDb(),
+                              "diagnostic values match actual detector/envelope");
                         check(actual == expected, "output equals unchanged research DSP");
                         check(std::isfinite(actual[0]) && actual[1] == 0, "finite and isolated");
                         attenuated |= actual != baseline;

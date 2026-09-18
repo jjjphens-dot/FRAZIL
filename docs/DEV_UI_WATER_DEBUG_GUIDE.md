@@ -143,6 +143,13 @@ Protect 时间输入支持 `70`、`70ms`、`0.07s`；无单位按 ms 解释。�
 当前只使用 Whole；回到 Fluid 后恢复此前选择。F2/F3 可能改变分量相消，所以 GR 不等于输出
 电平下降；当前默认值只是 research baseline，不构成自然度、听感排名或产品推荐。
 
+Protect 诊断显示 Fast、Slow（linear amplitude）、D0（amplitude）、D1（dB ratio）和 GR（dB attenuation）。
+`last` 是最新已读取 block 的末样本；`peak` 是本次 UI 读取的 block 区间峰值，五个峰值不一定
+来自同一个样本。UI 每秒约刷新 10 次；`blocks` 表示本次读到的摘要数，`dropped since Play`
+表示有界队列满时丢弃的摘要数，不能在 dropped>0 时宣称完整观测。Stop 后清零。未提供 rolling trace。
+强起音后弱起音响应很小可能来自 detector，也可能来自 envelope；对照 D0/D1 与 GR 查看，
+并用现有 offline renderer/listening analysis 做精确验证，不能仅凭 GUI 数值判断听感优劣。
+
 ## 6. 原 FRAZIL Debug UI 的 11 个 workflow 按钮
 
 | 按钮 | 实际行为 |

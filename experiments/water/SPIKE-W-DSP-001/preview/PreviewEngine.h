@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PreviewSettings.h"
+#include "ProtectDiagnostics.h"
 #include "render/ReadConfig.h"
 
 namespace frazil::water::preview {
@@ -60,6 +61,11 @@ class PreviewEngine final {
     // Audio-owner command, called only at callback/sample boundaries by PreviewController.
     bool setProtectDepth(double depth) noexcept {
         return ready_ && protect_.setDepth(depth);
+    }
+    ProtectReadout protectReadout() const noexcept {
+        const auto detection = protect_.detection();
+        return {detection.fast, detection.slow, detection.difference, detection.logRatioDb,
+                protect_.reductionDb()};
     }
 
     static constexpr std::uint32_t kSeed = 42;

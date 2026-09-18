@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PreviewSettings.h"
+#include "ProtectDiagnostics.h"
 #include "plugin/DeveloperDiagnostics.h"
 
 #include <juce_audio_utils/juce_audio_utils.h>
@@ -21,6 +22,7 @@ class PreviewController final {
     void setMonitor(MonitorMode, float outputGainDb) noexcept;
     void setProtectDepth(double depth) noexcept;
     plugin::DeveloperDiagnosticsSnapshot diagnostics() const noexcept;
+    ProtectDiagnosticsSnapshot protectDiagnostics() noexcept;
     juce::String sourceDescription() const;
     double positionSeconds() const noexcept;
     bool playing() const noexcept;
