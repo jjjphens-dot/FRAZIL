@@ -54,7 +54,7 @@ if(FRAZIL_BUILD_WATER_PREVIEW)
     target_sources(frazil_water_preview_tests PRIVATE tests/preview_tests.cpp tests/preview_time_tests.cpp
         tests/preview_descriptor_tests.cpp tests/preview_session_tests.cpp tests/preview_session_codec_tests.cpp
         tests/preview_protect_tests.cpp tests/preview_diagnostics_tests.cpp tests/preview_workflow_tests.cpp
-        tests/preview_operation_tests.cpp
+        tests/preview_operation_tests.cpp tests/preview_audition_tests.cpp
         preview/PreviewController.cpp
         ../../../src/dsp/primitives/LinearSmoother.cpp)
     target_compile_definitions(frazil_water_preview_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0

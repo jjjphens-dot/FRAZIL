@@ -1,7 +1,7 @@
 #include "PreviewController.h"
 
+#include "AuditionMonitor.h"
 #include "PreviewEngine.h"
-#include "dsp/primitives/LinearSmoother.h"
 
 #include <algorithm>
 #include <atomic>
@@ -29,13 +29,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         frame = 0;
         position.store(0);
         ended.store(false);
-        carrier.prepare(rate, .01);
-        effect.prepare(rate, .01);
-        gain.prepare(rate, .01);
-        const auto mode = monitor.load();
-        carrier.reset(mode == MonitorMode::residual ? 0.0f : 1.0f);
-        effect.reset(mode == MonitorMode::dry ? 0.0f : 1.0f);
-        gain.reset(0.0f); // Monitoring fade-in; does not alter the research residual/state.
+        audition.prepare(rate, monitor.load(), auditionGain.load());
         metrics.setPrepared(static_cast<float>(rate), audioDevice->getCurrentBufferSizeSamples(),
                             source.getNumChannels());
     }
@@ -55,10 +49,8 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         if (mismatch.load() || ended.load() || source.getNumSamples() == 0)
             return;
         const auto mode = monitor.load();
-        carrier.setTarget(mode == MonitorMode::residual ? 0.0f : 1.0f);
+        audition.setTargets(mode, outputGain.load(), auditionGain.load());
         engine.setProtectDepth(protectDepth.load(std::memory_order_relaxed));
-        effect.setTarget(mode == MonitorMode::dry ? 0.0f : 1.0f);
-        gain.setTarget(outputGain.load());
         const int channels = source.getNumChannels();
         float inputPeak{}, outputPeak{};
         double inputSquares{}, outputSquares{};
@@ -80,13 +72,9 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
             const auto residual = engine.residual(input);
             protectBlock.latest = engine.protectReadout();
             protectBlock.peak.includePeak(protectBlock.latest);
-            const auto xWeight = carrier.getNextValue();
-            const auto eWeight = effect.getNextValue();
-            const auto level = gain.getNextValue();
-            research::StereoFrame output{};
+            const auto output = audition.process(input, residual);
             for (int channel = 0; channel < channels; ++channel) {
                 const auto i = static_cast<std::size_t>(channel);
-                output[i] = (xWeight * input[i] + eWeight * residual[i]) * level;
                 finite = finite && std::isfinite(output[i]);
                 inputPeak = std::max(inputPeak, std::abs(input[i]));
                 outputPeak = std::max(outputPeak, std::abs(output[i]));
@@ -116,11 +104,11 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
     ProtectDiagnostics protectMetrics;
     // Audio owner: source cursor in frames, and 10 ms monitor-only crossfade/gain state.
     std::uint64_t frame{};
-    LinearSmoother carrier, effect, gain;
+    AuditionMonitor audition;
     std::atomic<std::uint64_t> position{};
     std::atomic<bool> isPlaying{}, ended{}, mismatch{};
     std::atomic<MonitorMode> monitor{MonitorMode::processed};
-    std::atomic<float> outputGain{0.25118864f};
+    std::atomic<float> outputGain{0.12589254f}, auditionGain{7.94328235f};
     // Sole UI->audio Protect transport: validated normalized target, sampled at block boundary.
     std::atomic<double> protectDepth{};
     static_assert(std::atomic<double>::is_always_lock_free);
@@ -239,6 +227,12 @@ juce::String PreviewController::play(const PreviewSettings& settings) {
 void PreviewController::stop() {
     impl_->stop();
 }
+void PreviewController::setAuditionTrim(double decibels) noexcept {
+    if (std::isfinite(decibels) && decibels >= 0 && decibels <= 36)
+        impl_->auditionGain.store(static_cast<float>(std::pow(10.0, decibels / 20.0)),
+                                  std::memory_order_relaxed);
+}
+
 void PreviewController::setProtectDepth(double depth) noexcept {
     if (std::isfinite(depth) && depth >= 0 && depth <= 1)
         impl_->protectDepth.store(depth, std::memory_order_relaxed);
@@ -247,7 +241,7 @@ void PreviewController::setMonitor(MonitorMode mode, float outputGainDb) noexcep
     if (mode != MonitorMode::dry && mode != MonitorMode::processed && mode != MonitorMode::residual)
         mode = MonitorMode::processed;
     if (!std::isfinite(outputGainDb))
-        outputGainDb = -12.0f;
+        outputGainDb = -18.0f;
     impl_->monitor.store(mode);
     impl_->outputGain.store(
         juce::Decibels::decibelsToGain(juce::jlimit(-60.0f, 0.0f, outputGainDb)));

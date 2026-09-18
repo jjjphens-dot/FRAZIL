@@ -30,8 +30,8 @@ research formula, disclose the gap and do not claim perceptual-contract complian
 
 ## Status and sequence
 
-Running Phase G preparation. Phases A-F implementation and self-review are complete; next checkpoint:
-monitor-only audition trim. No blockers; publish after Phase J.
+Running Phase H preparation. Phases A-G implementation and self-review are complete; next checkpoint:
+bounded Water component diagnostics. No blockers; publish after Phase J.
 
 | Phase | Work | Status |
 |---|---|---|
@@ -41,7 +41,7 @@ monitor-only audition trim. No blockers; publish after Phase J.
 | D | Pure research macro mapper and per-macro ownership | Complete; three presets and self-review PASS |
 | E | Deterministic normalized Modal excitation movement | Complete; three presets and self-review PASS |
 | F | Independent listening calibration and CUSTOM state | Complete; Debug and self-review PASS |
-| G | Monitor-only Focus/Reference/E trim | Pending |
+| G | Monitor-only Focus/Reference/E trim | Complete; three presets and self-review PASS |
 | H | Bounded component and pre/post Protect diagnostics | Pending |
 | I | Auto Audition, target/history views and native Windows tests | Pending |
 | J | Supplied-input renders, measurements and listening handoff | Pending |
@@ -184,3 +184,22 @@ Parameters, Accepted ADRs and production modules retain their existing contracts
 5. Comment/documentation pass: guide, research mapping/README, Module Index and Testing updated.
    No production/Host/parameter change; no listening or product-balance acceptance claimed.
 6. Next: monitor-only audition trim and Focus/Reference, then component diagnostics.
+
+## Phase G checkpoint
+
+1. Baseline: Phase F `0de9674`; monitor-only Focus/Reference/E trim.
+2. New AuditionMonitor extracts the existing carrier/E/output ramps and applies E trim after
+   Protect. Controller uses a validated lock-free linear trim target sampled once per block;
+   source/generator/detector settings never see it. Default session trim/output are +18/-18 dB.
+3. Source=x, Full=x+G*E, WaterOnly=G*E, then final monitor gain. All transitions remain 10 ms.
+   UI labels declare AUDITION BOOST / MONITOR ONLY / NOT DSP / NOT WATER AMOUNT. Reference sets
+   trim 0, Focus sets 18, exact entry permits 0..36. Trim is live session/A-B state, not module JSON.
+4. Debug 21/21 (32.04 s), Release 21/21 (16.44 s); ASAN 21/21 (58.45 s). New tests cover all equations
+   at three rates/trim settings, ramp completion, channel isolation, DSP/context dirty and A/B.
+5. Quality review: one audio-owner mixer, fixed smoother state, no callback allocation/locks/I/O;
+   linear conversion occurs in the message-thread setter. No hidden limiter/makeup is introduced.
+   Final full-scale observation remains in output diagnostics; E trim cannot feed back into Protect.
+6. Guide, README, Module Index and Testing synchronized. Production architecture/parameters/Host
+   state unchanged; no listening acceptance. Next: bounded Water component diagnostics.
+
+7. Final staged links/portability/format/diff checks PASS. Self-review complete.

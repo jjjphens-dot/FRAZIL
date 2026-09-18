@@ -23,6 +23,7 @@ class PreviewController final {
     // Candidate imports/recalls use their recorded rate, independent of the loaded device/source.
     juce::String validate(const PreviewSettings&, double sampleRate) const;
     void setMonitor(MonitorMode, float outputGainDb) noexcept;
+    void setAuditionTrim(double decibels) noexcept;
     void setProtectDepth(double depth) noexcept;
     plugin::DeveloperDiagnosticsSnapshot diagnostics() const noexcept;
     ProtectDiagnosticsSnapshot protectDiagnostics() noexcept;

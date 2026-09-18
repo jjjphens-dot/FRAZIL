@@ -25,7 +25,7 @@ struct ResearchSessionState final {
     ProtectMemory protectMemory;
     WaterExperimentState water;
     MonitorMode monitor{MonitorMode::processed};
-    double monitorGainDb{-12.0};
+    double monitorGainDb{-18.0};
     MappingStatus modelMapping{MappingStatus::mapped};
     bool customEngineering{};
     // Legacy imports retain raw targets until the user explicitly adopts research mapping.
@@ -33,7 +33,7 @@ struct ResearchSessionState final {
     std::array<MappingStatus, 3> macroMappings{MappingStatus::mapped, MappingStatus::mapped,
                                                MappingStatus::mapped};
     MappingStatus listeningCalibration{MappingStatus::mapped};
-    double auditionETrimDb{};
+    double auditionETrimDb{18.0};
     std::array<ControlOwnership, kControls.size()> ownership{};
     ControlOwnership lastChange;
     SourceMetadata source;
@@ -299,6 +299,14 @@ class ResearchSessionModel final {
             return;
         draft_.monitor = applied_.monitor = mode;
         draft_.monitorGainDb = applied_.monitorGainDb = gainDb;
+        applied_.lastChange = {ChangeOrigin::soundLeadUI, revision_ + 1};
+        changed(ChangeOrigin::soundLeadUI);
+    }
+    void setAuditionTrim(double decibels) {
+        if (!std::isfinite(decibels) || decibels < 0 || decibels > 36 ||
+            draft_.auditionETrimDb == decibels)
+            return;
+        draft_.auditionETrimDb = applied_.auditionETrimDb = decibels;
         applied_.lastChange = {ChangeOrigin::soundLeadUI, revision_ + 1};
         changed(ChangeOrigin::soundLeadUI);
     }

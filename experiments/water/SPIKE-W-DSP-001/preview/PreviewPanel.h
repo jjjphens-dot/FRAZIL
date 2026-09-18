@@ -48,7 +48,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             button->setColour(juce::TextButton::textColourOffId, juce::Colours::white);
         }
         gain_.setRange(-60, 0, .1);
-        gain_.setValue(-12, juce::dontSendNotification);
+        gain_.setValue(-18, juce::dontSendNotification);
         gain_.setSliderStyle(juce::Slider::LinearHorizontal);
         gain_.setTextBoxStyle(juce::Slider::TextBoxRight, false, 72, 24);
         gain_.setTooltip("Monitor gain only; no auto makeup and no module-config field.");
@@ -62,6 +62,24 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             operations_.edit("Monitor gain", ChangeOrigin::soundLeadUI, false, false, true);
         };
         gain_.onMouseEnd = [this] { operations_.finish(); };
+        trim_.configure("AUDITION E TRIM (dB)", 0, 36, 18, false, false, .1);
+        trim_.setHelp("MONITOR ONLY | NOT DSP / NOT WATER AMOUNT | after Protect | 10 ms ramp");
+        trim_.onGestureBegin = [this] {
+            operations_.edit("Audition E Trim", ChangeOrigin::soundLeadUI, false, false, true);
+        };
+        trim_.onGestureEnd = [this] { operations_.finish(); };
+        trim_.onEdit = [this](double value) {
+            operations_.edit("Audition E Trim", ChangeOrigin::soundLeadUI, false);
+            session_.setAuditionTrim(value);
+            return true;
+        };
+        addAndMakeVisible(trim_);
+        for (auto* button : {&reference_, &focus_})
+            addAndMakeVisible(*button);
+        reference_.onClick = [this] { auditionPreset(0); };
+        focus_.onClick = [this] { auditionPreset(18); };
+        researchLabel(*this, auditionLabel_,
+                      "AUDITION BOOST | MONITOR ONLY | NOT DSP / NOT WATER AMOUNT");
         load_.onClick = [this] { chooseSource(); };
         play_.onClick = [this] {
             operations_.finish(false);
@@ -126,7 +144,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         g.fillAll(juce::Colour(0xff0d181f));
     }
     int preferredHeight() const noexcept {
-        return 420 + tabHeight() + protect_.preferredHeight() +
+        return 518 + tabHeight() + protect_.preferredHeight() +
                (showDraft_.getToggleState() ? 110 : 0) +
                (showDiagnostics_.getToggleState() ? 230 : 0);
     }
@@ -152,6 +170,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             button->setBounds(monitor.removeFromLeft(145).reduced(3));
         gainLabel_.setBounds(monitor.removeFromLeft(145));
         gain_.setBounds(monitor);
+        auto audition = area.removeFromTop(72);
+        reference_.setBounds(audition.removeFromLeft(170).reduced(3, 18));
+        focus_.setBounds(audition.removeFromLeft(170).reduced(3, 18));
+        trim_.setBounds(audition.reduced(8, 0));
+        auditionLabel_.setBounds(area.removeFromTop(26));
         auto workflow = area.removeFromTop(38);
         const int width = workflow.getWidth() / 7;
         for (auto* button : {&captureA_, &applyA_, &captureB_, &applyB_, &reset_, &copy_, &export_})
@@ -165,6 +188,10 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     }
 
   private:
+    void auditionPreset(double decibels) {
+        operations_.action(decibels == 0 ? "Reference" : "Focus +18 dB", ChangeOrigin::soundLeadUI,
+                           false, false, [this, decibels] { session_.setAuditionTrim(decibels); });
+    }
     void setMonitorMode(MonitorMode mode) {
         operations_.action("Monitor mode", ChangeOrigin::soundLeadUI, false, false, [this, mode] {
             session_.setMonitor(mode, session_.draft().monitorGainDb);
@@ -212,6 +239,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     void discardPendingText() {
         engineering_.discardPendingText();
         protect_.discardPendingText();
+        trim_.discardPendingText();
     }
     void capture(std::size_t slot) {
         operations_.finish();
@@ -245,6 +273,13 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         const auto& state = session_.draft();
         gain_.setValue(state.monitorGainDb, juce::dontSendNotification);
         controller_.setMonitor(state.monitor, static_cast<float>(state.monitorGainDb));
+        controller_.setAuditionTrim(state.auditionETrimDb);
+        trim_.refreshValue(state.auditionETrimDb);
+        auditionLabel_.setText(
+            juce::String(state.auditionETrimDb == 0 ? "REFERENCE" : "AUDITION BOOST") + " | E +" +
+                juce::String(state.auditionETrimDb, 1) +
+                " dB | MONITOR ONLY | NOT DSP / NOT WATER AMOUNT",
+            juce::dontSendNotification);
         controller_.setProtectDepth(session_.applied().engineering.protect.depth);
         dry_.setToggleState(state.monitor == MonitorMode::dry, juce::dontSendNotification);
         processed_.setToggleState(state.monitor == MonitorMode::processed,
@@ -395,9 +430,12 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     juce::TooltipWindow tooltips_{this, 500};
     juce::Label title_, note_, source_, status_, appliedLabel_, gainLabel_;
     ResearchSlider gain_;
+    ExactValueControl trim_;
+    juce::Label auditionLabel_;
+    juce::TextButton reference_{"REFERENCE / E 0 dB"}, focus_{"FOCUS / E +18 dB"};
     juce::TextButton load_{"Load WAV"}, play_{"Play / Restart"}, stop_{"Stop"},
         apply_{"Apply config"};
-    juce::TextButton dry_{"Source / x"}, processed_{"Full / x+E"}, residual_{"Water only / E"};
+    juce::TextButton dry_{"Source / x"}, processed_{"Full / x+G*E"}, residual_{"Water only / G*E"};
     juce::TextButton captureA_{"Capture A"}, applyA_{"Apply A"}, captureB_{"Capture B"},
         applyB_{"Apply B"};
     juce::TextButton reset_{"Reset baseline"}, copy_{"Copy config"}, export_{"Export config"};

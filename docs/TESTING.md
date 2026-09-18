@@ -829,3 +829,6 @@ float extrema and channel isolation at 44.1/48/96 kHz. Performance harness repor
 
 Listening calibration tests verify raw gain CUSTOM ownership, preservation through macro movement
 and Return All, and isolated restoration of the four calibration gains.
+
+Preview audition tests check Source/Full/Water Only at 0/18/36 dB E trim across 44.1/48/96 kHz,
+10 ms monotonic ramp, channel isolation, session-only dirty, A/B retention and unchanged DSP JSON.

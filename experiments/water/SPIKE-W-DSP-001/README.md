@@ -419,3 +419,9 @@ seeds/reset/block partitions/rates/finite extrema/channel isolation. No perceptu
 
 `ResearchListeningCalibration.h` supplies the independent preview-session gain starting point,
 .26/.24/.06/.30 for A/B/D/C. The mapper never owns those gains; see [research mapping](RESEARCH_MAPPING.md).
+
+
+`AuditionMonitor` applies 10 ms Source/Full/Water Only and gain transitions after Protect. E Trim
+0..36 dB (new-session +18) multiplies only E; Reference=0, Focus=18; final monitor defaults -18 dB.
+This gain never feeds a detector/generator and is excluded from module JSON. It is session/A-B
+state, with v1 importing 0 dB. Tests exercise all equations/rates and live ramp/context isolation.

@@ -107,3 +107,6 @@ Motion fields with zero-depth legacy behavior. No production DSP dependency is i
 
 `ResearchListeningCalibration.h` owns four research-session starting gains independently of macro
 mapping and typed renderer defaults. Session commands/codec track MAPPED/CUSTOM status; no DSP path added.
+
+`AuditionMonitor.h` owns preview-only 10 ms carrier/E/output ramps after Protect. Controller
+transfers validated linear trim atomically; model/session own dB context, excluded from DSP JSON.

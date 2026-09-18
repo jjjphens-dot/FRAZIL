@@ -9,7 +9,7 @@ Implementation DRI 为 Engineering Lead；Sound & Host Lead 评审操作和观�
 | 入口 | 实际音频路径 | 用途 |
 |---|---|---|
 | FRAZIL Debug/ASAN 插件、Standalone | input gain -> M1 直通 wet path -> global mix -> output gain | Host 参数、临时 override、UI 与状态边界调试 |
-| **FRAZIL Water Research Preview** | WAV -> 已选 A/B/D/C residual E -> Protect -> x、x+E 或 E -> monitor gain -> 系统默认输出 | Water 工程参数与真实音频联调 |
+| **FRAZIL Water Research Preview** | WAV -> 已选 A/B/D/C residual E -> Protect -> x、x+G*E 或 G*E -> monitor gain -> 系统默认输出 | Water 工程参数与真实音频联调 |
 | Water offline renderer | 固定 WAV/config/seed -> 确定性离线文件 | 可重复 render 与分析 |
 
 原插件的 Water Model / Size / Motion 是 UI 临时值，**尚未影响 Water DSP**。
@@ -47,7 +47,7 @@ Release、ASAN 可使用对应 preset 串行构建这个独立工具；FRAZIL Re
    可用 `testdata/input/zero_state_response__impulse.wav` 做连线检查。
 2. 使用系统默认立体声输出设备。设备必须支持 WAV 的采样率；工具不重采样、不打开麦克风。
    不匹配时明确拒绝播放，选择合适采样率的 WAV 或系统输出设备后重试。
-3. 保持 monitor gain 初始 **-12 dB**。在 Sound Lead 页选择 `Resonant`（对应 Engineering 页的 `c`），点击 **Apply config**，再 **Play / Restart**。
+3. 保持 monitor gain 初始 **-18 dB**。在 Sound Lead 页选择 `Resonant`（对应 Engineering 页的 `c`），点击 **Apply config**，再 **Play / Restart**。
 4. 观察 INPUT / OUTPUT meter 和 FINITE 状态；在 **Source / x**、**Full / x+E**、**Water only / E** 间切换。
    Residual 用于单独定位响应。默认 C 的 E 可能很轻，不能把“很轻”误判成未连接。
 5. 点击 **Capture A**；改变 C 的 `Root frequency (Hz)` 或 `Decay (s)`。
@@ -237,3 +237,18 @@ Copy/Export continue to identify their APPLIED snapshot explicitly.
 这四个增益不属于 Size/Motion/Decay；手改后只有 Listening Calibration 显示 CUSTOM。
 Engineering 页 **Restore Listening Calibration** 一次恢复四个增益，不改宏目标或 Protect。
 旧 v1/module import 保留原始增益；renderer 的缺省配置不变。
+
+
+### Focus / Reference 与 E Trim
+
+试听初值：Protect OFF、E Trim +18 dB、Monitor Output -18 dB。**FOCUS** 设置 E Trim +18 dB；
+**REFERENCE** 设置 0 dB。E Trim 可精确输入 0–36 dB，只在 Protect 之后放大 Water residual。
+
+- Source：`x`；不受 E Trim 影响。
+- Full：`x + G*E`；Reference 时 `G=1`。
+- Water Only：`G*E`；用于辨认弱的 Water 层。
+
+三者最后都乘 Monitor Output。切换/增益使用 10 ms ramp；E Trim 是 **MONITOR ONLY / NOT DSP /
+NOT WATER AMOUNT**，不会影响源检测、事件触发、Protect GR 或 renderer module JSON。
+它随 v2 会话和 A/B 保存；旧 v1 导入为 0 dB。输出无隐式 limiter，超过满幅由输出诊断显示。
+初次听测先用 Water Only/Focus 辨认层，再切 Reference/Full 评价源辨识、节奏及遮蔽。
