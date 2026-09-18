@@ -30,14 +30,14 @@ research formula, disclose the gap and do not claim perceptual-contract complian
 
 ## Status and sequence
 
-Running Phase C preparation. Phases A and B implementation and self-review are complete; next checkpoint:
-v2 sessions and conservative migration. No blockers; publish after Phase J.
+Running Phase D preparation. Phases A-C implementation and self-review are complete; next checkpoint:
+pure macro mapping and target ownership. No blockers; publish after Phase J.
 
 | Phase | Work | Status |
 |---|---|---|
 | A | Reconcile latest branches and prior P1/P2 findings | Complete; three presets and self-review PASS |
 | B | 50-operation history, drag/debounce and stop-once boundary | Complete; three presets and self-review PASS |
-| C | DSP/session dirty, v2 and conservative v1 migration | Pending |
+| C | DSP/session dirty, v2 and conservative v1 migration | Complete; self-review PASS |
 | D | Pure research macro mapper and per-macro ownership | Pending |
 | E | Deterministic normalized Modal excitation movement | Pending |
 | F | Independent listening calibration and CUSTOM state | Pending |
@@ -102,3 +102,24 @@ Parameters, Accepted ADRs and production modules retain their existing contracts
     refresh overwriting the user's new input. Explicit transport actions suppress future auto-audition
     hooks while flushing, preventing duplicate restart. Phase I will wire/verify actual Auto Audition.
 11. Final checks: staged-file portability, links, formatting and diff checks PASS. Next: v2 session correctness and conservative migration.
+
+## Phase C checkpoint
+
+1. Baseline: Phase B `c5ff3ab`; scope is research session persistence and dirty semantics.
+2. Changed model/context comparison, codec, coordinator playback gating, session tests and guide.
+   New schema fields are reserved for the following mapping/calibration/audition phases.
+3. Behavior: v2 strict known-revision/status/trim fields; v1 retains exact engineering values,
+   CUSTOM legacy macros and 0 dB trim. Module import clears mapping/calibration claims. Both
+   formats exclude history. Candidate sample rate and retained Protect validation remain intact.
+4. DSP dirty compares prepare-required settings; session dirty compares context with the last
+   Apply/Import/Recall checkpoint. Live monitor changes do not block Play. Existing unapplied
+   comparisons still count retained future behavior, including Fluid topology and Enable depth.
+5. Functional validation: Debug 20/20 (30.53 s), Release 20/20 (15.91 s), ASAN 20/20 (55.67 s).
+   Final explicit legacy initialization/module-import metadata cleanup covered by Debug and ASAN.
+6. Quality review: decoding is atomic; migration explicitly initializes legacy fields so future
+   new-session defaults cannot silently affect old sessions. No reverse mapping or RT changes.
+   Added tests cover v1 preservation, unknown revisions, invalid trim, contradictory legacy
+   mapping claims, monitor-only dirty, and retained topology without prepare-required changes.
+7. Comment/documentation pass: guide, research README and Testing synchronized. Production
+   parameter/state contracts and architecture reviewed unchanged. No new audio/listening claim.
+8. Final links, portability, formatting and diff checks PASS. Next: pure mapper and per-macro target ownership.

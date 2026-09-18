@@ -13,14 +13,7 @@ namespace frazil::water::preview {
 inline bool sameOperationValues(const ResearchSessionState& a, const ResearchSessionState& b) {
     return a.engineering.mode == b.engineering.mode &&
            a.engineering.values == b.engineering.values &&
-           sameProtect(a.engineering.protect, b.engineering.protect) && a.water == b.water &&
-           a.monitor == b.monitor && a.monitorGainDb == b.monitorGainDb && a.source == b.source &&
-           a.protectMemory.fluidTopology == b.protectMemory.fluidTopology &&
-           a.protectMemory.lastNonzeroDepth == b.protectMemory.lastNonzeroDepth &&
-           a.protectMemory.difference.low == b.protectMemory.difference.low &&
-           a.protectMemory.difference.high == b.protectMemory.difference.high &&
-           a.protectMemory.logRatio.low == b.protectMemory.logRatio.low &&
-           a.protectMemory.logRatio.high == b.protectMemory.logRatio.high;
+           sameProtect(a.engineering.protect, b.engineering.protect) && sameResearchContext(a, b);
 }
 
 struct ResearchOperation final {

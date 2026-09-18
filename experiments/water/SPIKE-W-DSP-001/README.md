@@ -312,7 +312,7 @@ provenance, invalid commands, applied isolation and complete temporary A/B resto
 
 Phase 4 adds normalized Decay with the DOC-W-DECAY-001 provisional baseline `0.5`; it is UNMAPPED
 and cannot affect Flow or any DSP parameter. Four macros participate in A/B/reset and separate
-`frazil.water-research-session` version 1 manifests. `SessionCodec.h` covers config/composition,
+`frazil.water-research-session` manifests (v2 exports, conservative v1 imports). `SessionCodec.h` covers config/composition,
 fixed seed 42, monitor and provenance, including source/build context without audio bytes or absolute paths.
 Module imports reuse renderer defaults and validation, preserve session macros/source/monitor, and
 mark engineering values CUSTOM. Configure-time Git/build provenance requires reconfigure to refresh.
@@ -391,3 +391,7 @@ Mirror hosting is not the primary authority. Citation correction changes no algo
 
 References were reviewed on 2026-09-16. FRAZIL's residual composition, Fluid/Resonant names, gains,
 frequency families and scheduling are engineering hypotheses, not formulas endorsed by these papers.
+
+The listening-ready follow-up exports research session v2 and accepts v1 without changing raw
+engineering values. Legacy macro states are CUSTOM / legacy-unmapped. Runtime operation history
+never enters either schema; see the debug guide for DSP/context dirty and checkpoint semantics.

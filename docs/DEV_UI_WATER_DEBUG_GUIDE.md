@@ -105,7 +105,7 @@ clean/dirty 状态、build variant 和 compiler。导入后保留导入 build �
 会更新当前会话元数据。A/B 同样保留源元数据；音频需单独保存。
 Session 导入和 A/B 恢复按各自记录的源采样率验证；当前 WAV 不得覆盖这个验证上下文。
 没有源元数据的会话以 48 kHz 验证，普通 Apply 则使用当前加载源的采样率。
-该新研究格式尚未发布，不承诺兼容开发过程中的旧 manifest；正式插件 schema 不变。
+研究会话现导出 v2，并保守兼容 v1（工程值不变、宏 CUSTOM / legacy-unmapped）；正式插件 schema 不变。
 
 ## 5. 工程参数对应的 DSP 作用
 
@@ -212,3 +212,17 @@ Review 记录至少包含：Git commit + dirty 状态、源素材名称/授权�
 - 峰值超过 0 dBFS：x+E 未自动限幅；降低 monitor gain。meter 是 sample peak，不是 True Peak/LUFS。
 
 验收边界与最新实测结果见 [研究预览验证记录](evidence/WATER_PREVIEW_VALIDATION.md)。
+
+### Listening-ready session v2 follow-up
+
+Research session exports now use v2. The separate renderer module JSON and production Host state
+are unchanged. v1 imports retain engineering values exactly, use `legacy-unmapped` with three
+CUSTOM macro states and 0 dB audition trim; adopting mapping requires an explicit action. v2
+validates mapping revision, per-macro/calibration states, trim and all existing typed/retained data
+before mutation. Operation history is runtime-only and is excluded from both formats.
+
+`DSP DIRTY` means prepare-required configuration differs from applied DSP. `SESSION DIRTY` means
+research context differs from the last Apply/Import/Recall checkpoint (not a disk-save indicator).
+Live monitor changes therefore never block playback. Retained Protect topology, recall depth and
+both detector calibrations participate in context comparison. Apply commits the complete context;
+Copy/Export continue to identify their APPLIED snapshot explicitly.

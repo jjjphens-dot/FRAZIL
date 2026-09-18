@@ -78,6 +78,9 @@ int runSessionTests() {
     session.setMonitor(MonitorMode::residual, -18);
     check(!session.dirty() && session.applied().monitor == MonitorMode::residual,
           "monitor live outside draft");
+    check(session.sessionDirty() && !session.dspDirty(), "monitor changes session only");
+    session.applyValidated();
+    check(!session.sessionDirty(), "apply checkpoints session context");
     session.capture(0);
     const auto captured = *session.slot(0);
     session.reset();
@@ -113,6 +116,7 @@ int runSessionTests() {
     check(session.draft().engineering.moduleJson() == session.applied().engineering.moduleJson() &&
               session.unappliedChanges() == 1 && session.dirty(),
           "retained Fluid topology is dirty even when active C config is unchanged");
+    check(session.sessionDirty() && !session.dspDirty(), "retained topology is context only");
     session.applyValidated();
     session.setProtect(ProtectId::depth, .8, ChangeOrigin::soundLeadUI);
     session.setProtect(ProtectId::depth, 0, ChangeOrigin::soundLeadUI);

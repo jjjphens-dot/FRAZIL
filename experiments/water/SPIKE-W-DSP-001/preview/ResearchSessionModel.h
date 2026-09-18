@@ -47,12 +47,31 @@ struct ResearchSessionState final {
     double monitorGainDb{-12.0};
     MappingStatus modelMapping{MappingStatus::mapped};
     bool customEngineering{};
+    // Legacy imports retain raw targets until the user explicitly adopts research mapping.
+    juce::String mappingRevision{"legacy-unmapped"};
+    std::array<MappingStatus, 3> macroMappings{MappingStatus::custom, MappingStatus::custom,
+                                               MappingStatus::custom};
+    MappingStatus listeningCalibration{MappingStatus::custom};
+    double auditionETrimDb{};
     std::array<ControlOwnership, kControls.size()> ownership{};
     ControlOwnership lastChange;
     SourceMetadata source;
     BuildMetadata build;
     std::optional<BuildMetadata> importedBuild;
 };
+
+inline bool sameResearchContext(const ResearchSessionState& a, const ResearchSessionState& b) {
+    return a.water == b.water && a.monitor == b.monitor && a.monitorGainDb == b.monitorGainDb &&
+           a.auditionETrimDb == b.auditionETrimDb && a.source == b.source &&
+           a.mappingRevision == b.mappingRevision && a.macroMappings == b.macroMappings &&
+           a.listeningCalibration == b.listeningCalibration && a.modelMapping == b.modelMapping &&
+           a.protectMemory.fluidTopology == b.protectMemory.fluidTopology &&
+           a.protectMemory.lastNonzeroDepth == b.protectMemory.lastNonzeroDepth &&
+           a.protectMemory.difference.low == b.protectMemory.difference.low &&
+           a.protectMemory.difference.high == b.protectMemory.difference.high &&
+           a.protectMemory.logRatio.low == b.protectMemory.logRatio.low &&
+           a.protectMemory.logRatio.high == b.protectMemory.logRatio.high;
+}
 
 constexpr const char* originName(ChangeOrigin origin) noexcept {
     switch (origin) {
@@ -109,6 +128,9 @@ class ResearchSessionModel final {
         count += draft_.water.size != applied_.water.size;
         count += draft_.water.motion != applied_.water.motion;
         count += draft_.water.decay != applied_.water.decay;
+        count += draft_.mappingRevision != applied_.mappingRevision;
+        count += draft_.macroMappings != applied_.macroMappings;
+        count += draft_.listeningCalibration != applied_.listeningCalibration;
         for (const auto& spec : kProtectControls)
             count += protectValue(draft_.engineering.protect, spec.id) !=
                      protectValue(applied_.engineering.protect, spec.id);
@@ -130,6 +152,18 @@ class ResearchSessionModel final {
     }
     bool dirty() const noexcept {
         return unappliedChanges() != 0;
+    }
+    bool dspDirty() const noexcept {
+        auto pending = draft_.engineering.protect;
+        pending.depth = applied_.engineering.protect.depth; // Live target, never requires prepare.
+        return draft_.engineering.mode != applied_.engineering.mode ||
+               draft_.engineering.values != applied_.engineering.values ||
+               !sameProtect(pending, applied_.engineering.protect);
+    }
+    // Context checkpoint is the last Apply/Import/Recall, not a claim about saving to disk.
+    // Monitor and trim are live in applied state, yet still change the session context.
+    bool sessionDirty() const {
+        return !sameResearchContext(draft_, contextCheckpoint_);
     }
 
     bool setEngineering(ControlId id, double value, ChangeOrigin origin) {
@@ -262,6 +296,7 @@ class ResearchSessionModel final {
     // Coordinator must validate draft engineering config with the existing DSP authority first.
     void applyValidated() {
         applied_ = draft_;
+        contextCheckpoint_ = draft_;
         notify();
     }
     void reset() {
@@ -285,6 +320,7 @@ class ResearchSessionModel final {
             ownership = {ChangeOrigin::sessionLoad, revision_ + 1};
         draft_.lastChange = {ChangeOrigin::sessionLoad, ++revision_};
         applied_ = draft_;
+        contextCheckpoint_ = draft_;
         notify();
     }
 
@@ -297,7 +333,7 @@ class ResearchSessionModel final {
         if (onChange)
             onChange();
     }
-    ResearchSessionState draft_, applied_;
+    ResearchSessionState draft_, applied_, contextCheckpoint_;
     std::array<std::optional<ResearchSessionState>, 2> slots_;
     std::uint64_t revision_{};
 };

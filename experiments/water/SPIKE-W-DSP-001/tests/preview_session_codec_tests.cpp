@@ -47,13 +47,41 @@ int runSessionCodecTests() {
               session.draft().lastChange.origin == ChangeOrigin::sessionLoad,
           "import includes Decay and new origin");
     const auto original = encodeSession(decoded);
+    auto legacy = juce::JSON::parse(text);
+    auto* legacyObject = legacy.getDynamicObject();
+    legacyObject->setProperty("version", 1);
+    for (const auto* field : {"mappingRevision", "perMacroMappingState",
+                              "listeningCalibrationState", "auditionETrimDb"})
+        legacyObject->removeProperty(field);
+    ResearchSessionState migrated;
+    check(
+        decodeSession(juce::JSON::toString(legacy, false, 17).toStdString(), migrated).isEmpty() &&
+            migrated.engineering.moduleJson() == decoded.engineering.moduleJson() &&
+            migrated.water == decoded.water && migrated.monitorGainDb == decoded.monitorGainDb &&
+            migrated.mappingRevision == "legacy-unmapped" && migrated.auditionETrimDb == 0 &&
+            migrated.macroMappings ==
+                std::array{MappingStatus::custom, MappingStatus::custom, MappingStatus::custom},
+        "v1 preserves all engineering values and never adopts research mapping");
+    auto invalidMapping = juce::JSON::parse(text);
+    invalidMapping.getDynamicObject()->setProperty("mappingRevision", "unknown-revision");
+    check(decodeSession(juce::JSON::toString(invalidMapping).toStdString(), decoded).isNotEmpty() &&
+              encodeSession(decoded) == original,
+          "unknown mapping revision atomic reject");
+    invalidMapping = juce::JSON::parse(text);
+    invalidMapping.getDynamicObject()->setProperty("auditionETrimDb", 36.1);
+    check(decodeSession(juce::JSON::toString(invalidMapping).toStdString(), decoded).isNotEmpty(),
+          "out of range monitor trim rejected");
+    invalidMapping = juce::JSON::parse(text);
+    invalidMapping["perMacroMappingState"].getDynamicObject()->setProperty("motion", 1);
+    check(decodeSession(juce::JSON::toString(invalidMapping).toStdString(), decoded).isNotEmpty(),
+          "legacy revision cannot claim mapped macro");
     for (const auto& bad : {juce::String("{}"), text + "{}", text + "junk",
                             text.replace("\"decay\": 0.75", "\"decay\": 0.75, \"decay\": 0.5"),
                             text.replace("\"decay\": 0.75", "\"decay\": 1.2"),
                             text.replace("\"decay\": 0.75", "\"decay\": NaN"),
                             text.replace("\"decay\": 0.75", "\"decay\": true"),
                             text.replace("\"decay\": 0.75", "\"decay\": 01"),
-                            text.replace("\"version\": 1", "\"version\": 2"),
+                            text.replace("\"version\": 2", "\"version\": 3"),
                             text.replace("\"seed\": 42", "\"seed\": 41")}) {
         check(bad != text, "invalid fixture actually mutates manifest");
         check(decodeSession(bad.toStdString(), decoded).isNotEmpty() &&

@@ -253,7 +253,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         const auto actualSource = controller_.sourceMetadata();
         const auto& requiredSource = session_.applied().source;
         const bool sourceMatches = requiredSource.name.isEmpty() || actualSource == requiredSource;
-        play_.setEnabled(!session_.dirty() && actualSource.name.isNotEmpty() && sourceMatches);
+        play_.setEnabled(!session_.dspDirty() && actualSource.name.isNotEmpty() && sourceMatches);
         source_.setText(controller_.sourceDescription() +
                             (sourceMatches ? "" : " | Session requires: " + requiredSource.name),
                         juce::dontSendNotification);
@@ -267,7 +267,8 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     }
     void refreshApplied() {
         appliedLabel_.setText(
-            juce::String(session_.dirty() ? "DRAFT | " : "APPLIED | ") +
+            juce::String(session_.dspDirty() ? "DSP DIRTY | " : "DSP APPLIED | ") +
+                (session_.sessionDirty() ? "SESSION DIRTY | " : "SESSION APPLIED | ") +
                 juce::String(static_cast<int>(session_.unappliedChanges())) +
                 " unapplied changes | applied " +
                 kModes[static_cast<std::size_t>(session_.applied().engineering.mode)] + " | rev " +

@@ -88,7 +88,15 @@ inline juce::String encodeSession(const ResearchSessionState& state) {
     using namespace sessionDetail;
     auto root = object();
     put(root, "format", "frazil.water-research-session");
-    put(root, "version", 1);
+    put(root, "version", 2);
+    put(root, "mappingRevision", state.mappingRevision);
+    auto mappings = object();
+    put(mappings, "size", static_cast<int>(state.macroMappings[0]));
+    put(mappings, "motion", static_cast<int>(state.macroMappings[1]));
+    put(mappings, "decay", static_cast<int>(state.macroMappings[2]));
+    put(root, "perMacroMappingState", mappings);
+    put(root, "listeningCalibrationState", static_cast<int>(state.listeningCalibration));
+    put(root, "auditionETrimDb", state.auditionETrimDb);
     auto water = object();
     put(water, "model", static_cast<int>(state.water.model));
     put(water, "size", state.water.size);
@@ -146,14 +154,46 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
         SessionJsonSyntax::decodedProperties(root) != syntax.properties())
         return "Session: duplicate or invalid fields.";
     int version{}, seed{};
-    if (!fields(root,
-                {"format", "version", "water", "configuration", "composition", "seed", "monitor",
-                 "ownership", "protectMemory", "source", "build", "importedBuild"}) ||
-        !root["format"].isString() ||
+    if (!integer(root["version"], 1, 2, version))
+        return "Session: unsupported version.";
+    const bool knownFields =
+        version == 1
+            ? fields(root,
+                     {"format", "version", "water", "configuration", "composition", "seed",
+                      "monitor", "ownership", "protectMemory", "source", "build", "importedBuild"})
+            : fields(root, {"format", "version", "water", "configuration", "composition", "seed",
+                            "monitor", "ownership", "protectMemory", "source", "build",
+                            "importedBuild", "mappingRevision", "perMacroMappingState",
+                            "listeningCalibrationState", "auditionETrimDb"});
+    if (!knownFields || !root["format"].isString() ||
         root["format"].toString() != "frazil.water-research-session" ||
-        !integer(root["version"], 1, 1, version) || !integer(root["seed"], 42, 42, seed))
+        !integer(root["seed"], 42, 42, seed))
         return "Session: unsupported format/version/seed.";
     ResearchSessionState candidate;
+    candidate.mappingRevision = "legacy-unmapped";
+    candidate.macroMappings.fill(MappingStatus::custom);
+    candidate.listeningCalibration = MappingStatus::custom;
+    candidate.auditionETrimDb = 0;
+    if (version == 2) {
+        const auto& mappings = root["perMacroMappingState"];
+        int calibration{};
+        if (!textValue(root["mappingRevision"], candidate.mappingRevision, 64) ||
+            (candidate.mappingRevision != "legacy-unmapped" &&
+             candidate.mappingRevision != "research-water-mapping-v0.1") ||
+            !fields(mappings, {"size", "motion", "decay"}) ||
+            !integer(root["listeningCalibrationState"], 1, 2, calibration) ||
+            !number(root["auditionETrimDb"], 0, 36, candidate.auditionETrimDb))
+            return "Session: invalid research mapping/calibration/trim.";
+        candidate.listeningCalibration = static_cast<MappingStatus>(calibration);
+        constexpr std::array names{"size", "motion", "decay"};
+        for (std::size_t i = 0; i < names.size(); ++i) {
+            int status{};
+            if (!integer(mappings[names[i]], 1, 2, status) ||
+                (candidate.mappingRevision == "legacy-unmapped" && status != 2))
+                return "Session: invalid per-macro mapping state.";
+            candidate.macroMappings[i] = static_cast<MappingStatus>(status);
+        }
+    }
     const auto& source = root["source"];
     int channels{}, frames{};
     if (!fields(source, {"name", "sampleRate", "channels", "frames"}) ||
@@ -304,6 +344,8 @@ inline juce::String decodeModuleConfig(std::string_view text, const ResearchSess
     if (!validProtectMemory(candidate.protectMemory))
         return "Protect: Low must be less than High in each retained detector domain.";
     candidate.customEngineering = true;
+    candidate.macroMappings.fill(MappingStatus::custom);
+    candidate.listeningCalibration = MappingStatus::custom;
     output = std::move(candidate);
     return {};
 }

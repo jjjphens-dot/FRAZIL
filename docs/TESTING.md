@@ -814,3 +814,7 @@ normal descriptor-step gestures versus finer Shift movement and exact legal text
 Operation tests use an injected monotonic clock: 100 callbacks within one drag, return-to-start,
 50 ms wheel bursts and 250 ms expiry (including delayed timer delivery), control switching,
 live Protect intermediate targets with no stop, composite import and 51-operation ring eviction.
+
+Session v2 tests cover strict revision/status/trim validation and atomic rejection; v1 migration
+preserves all existing engineering values and explicitly remains legacy-unmapped. DSP/context
+dirty tests distinguish live monitor changes and retained Protect state from prepare requirements.
