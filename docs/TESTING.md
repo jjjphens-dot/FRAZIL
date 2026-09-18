@@ -796,6 +796,8 @@ unsupported versions/seeds and failure atomicity. Session candidates are still v
 existing prepare-time DSP authority before UI restore; session JSON is not renderer module JSON.
 Workflow regressions cover source/build roundtrips, source validation, live edit provenance,
 partial module defaults, module-specific coupled constraints and atomic rejection before state commit.
+Actual JUCE widget callbacks are exercised for valid/invalid text, Escape, external restore, integer
+rejection, precision and Shift-drag normalized fine adjustment. Draft differences use adaptive time units.
 Integrated Protect tests compare Preview to the unchanged research implementation at 44.1/48/96 kHz
 for D0/D1, all Fluid topologies and C/Whole, including exact finite OFF recovery and generator/RNG
 continuation. They cover live Depth/Enable state, separate calibration domains, retained Fluid topology,

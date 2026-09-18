@@ -308,16 +308,18 @@ provenance, invalid commands, applied isolation and complete temporary A/B resto
 Phase 4 adds normalized Decay with the DOC-W-DECAY-001 provisional baseline `0.5`; it is UNMAPPED
 and cannot affect Flow or any DSP parameter. Four macros participate in A/B/reset and separate
 `frazil.water-research-session` version 1 manifests. `SessionCodec.h` covers config/composition,
-fixed seed 42, monitor and provenance. `SessionJsonSyntax.h` is required because the renderer gate
-also excludes source/build context, which the session retains without audio bytes or absolute paths.
+fixed seed 42, monitor and provenance, including source/build context without audio bytes or absolute paths.
 Module imports reuse renderer defaults and validation, preserve session macros/source/monitor, and
 mark engineering values CUSTOM. Configure-time Git/build provenance requires reconfigure to refresh.
+All engineering/Protect exact-entry widgets use adaptive ms/s display, strict parsing, baseline reset
+and Shift fine drag. Engineering module cards retain inactive settings; draft details and audio
+diagnostics are optional expansions. The viewport follows the current tab and expansion heights.
 `SessionJsonSyntax.h` remains necessary because the renderer gate
 only supports two numeric object levels; the bounded session syntax additionally supports strings,
 booleans and nested provenance, rejects duplicate keys/full-input violations, and never runs in
 the callback. Import decodes a candidate, then validates existing DSP config before replacement.
-Source/build provenance and Protect state are added in later phases; the format is a research
-work-in-progress, not a public preset compatibility promise. Renderer module JSON remains unchanged.
+Source/build provenance and Protect state are included in the completed workflow; this research
+format has no public preset compatibility promise. Renderer module JSON remains unchanged.
 
 Phase 5 wires the existing `ResidualProtect` and `applyFluidProtect` into `PreviewEngine`, preserving
 exact Depth-zero baseline and generator progression. `PreviewController` transfers one lock-free

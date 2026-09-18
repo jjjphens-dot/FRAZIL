@@ -10,9 +10,11 @@ namespace frazil::water::preview {
 class ProtectView final : public juce::Component {
   public:
     std::function<void()> onLayoutChange;
-    ProtectView(ResearchSessionModel& session, std::function<void()> beforePrepareEdit)
-        : session_(session), beforePrepareEdit_(std::move(beforePrepareEdit)) {
-        title_.setText("PROTECT / RESEARCH — residual only", juce::dontSendNotification);
+    ProtectView(ResearchSessionModel& session, std::function<void()> beforePrepareEdit,
+                std::function<ChangeOrigin()> editOrigin)
+        : session_(session), beforePrepareEdit_(std::move(beforePrepareEdit)),
+          editOrigin_(std::move(editOrigin)) {
+        title_.setText("PROTECT / RESEARCH | residual only", juce::dontSendNotification);
         title_.setColour(juce::Label::textColourId, juce::Colour(0xff5ed0ba));
         addAndMakeVisible(title_);
         addAndMakeVisible(enabled_);
@@ -23,7 +25,7 @@ class ProtectView final : public juce::Component {
         enabled_.setTooltip(
             "LIVE: OFF targets Depth 0; ON restores last nonzero Depth (initial convenience 0.5).");
         enabled_.onClick = [this] {
-            session_.setProtectEnabled(enabled_.getToggleState(), ChangeOrigin::soundLeadUI);
+            session_.setProtectEnabled(enabled_.getToggleState(), editOrigin_());
         };
         detector_.addItem("D0 / Difference", 1);
         detector_.addItem("D1 / Log Ratio", 2);
@@ -33,7 +35,7 @@ class ProtectView final : public juce::Component {
             beforePrepareEdit_();
             session_.setDetector(detector_.getSelectedId() == 1 ? research::ProtectScore::difference
                                                                 : research::ProtectScore::logRatio,
-                                 ChangeOrigin::engineeringUI);
+                                 editOrigin_());
         };
         topology_.addItem("Whole / F1", 1);
         topology_.addItem("Droplet Exempt / F2", 2);
@@ -42,7 +44,7 @@ class ProtectView final : public juce::Component {
             beforePrepareEdit_();
             session_.setTopology(
                 static_cast<research::FluidProtectTopology>(topology_.getSelectedId()),
-                ChangeOrigin::engineeringUI);
+                editOrigin_());
         };
         advanced_.onClick = [this] {
             refresh();
@@ -54,8 +56,7 @@ class ProtectView final : public juce::Component {
             controls_[i].onEdit = [this, i](double value) {
                 if (kProtectControls[i].lifecycle == ControlLifecycle::prepareRequired)
                     beforePrepareEdit_();
-                return session_.setProtect(kProtectControls[i].id, value,
-                                           ChangeOrigin::engineeringUI);
+                return session_.setProtect(kProtectControls[i].id, value, editOrigin_());
             };
         }
         note_.setColour(juce::Label::textColourId, juce::Colour(0xffbed4dc));
@@ -70,7 +71,11 @@ class ProtectView final : public juce::Component {
         refresh();
     }
     int preferredHeight() const noexcept {
-        return advanced_.getToggleState() ? 455 : 290;
+        return advanced_.getToggleState() ? 524 : 290;
+    }
+    void discardPendingText() {
+        for (auto& control : controls_)
+            control.discardPendingText();
     }
     void updateDiagnostics(const ProtectDiagnosticsSnapshot& snapshot) {
         const std::array<const char*, 5> names{"Fast (amplitude)", "Slow (amplitude)",
@@ -146,12 +151,13 @@ class ProtectView final : public juce::Component {
         for (std::size_t i = 0; i < 4; ++i)
             controls_[i].setBounds(primary.removeFromLeft(width).reduced(4));
         if (advanced_.getToggleState()) {
-            for (std::size_t row = 0; row < 2; ++row) {
+            const int advancedWidth = area.getWidth() / 3;
+            for (std::size_t row = 0; row < 3; ++row) {
                 auto line = area.removeFromTop(78);
-                for (std::size_t column = 0; column < 4; ++column) {
-                    const auto index = 4 + row * 4 + column;
+                for (std::size_t column = 0; column < 3; ++column) {
+                    const auto index = 4 + row * 3 + column;
                     if (index < controls_.size())
-                        controls_[index].setBounds(line.removeFromLeft(width).reduced(4));
+                        controls_[index].setBounds(line.removeFromLeft(advancedWidth).reduced(4));
                 }
             }
         }
@@ -166,6 +172,7 @@ class ProtectView final : public juce::Component {
   private:
     ResearchSessionModel& session_;
     std::function<void()> beforePrepareEdit_;
+    std::function<ChangeOrigin()> editOrigin_;
     juce::Label title_, note_;
     std::array<juce::Label, 5> readouts_;
     juce::Label observation_;

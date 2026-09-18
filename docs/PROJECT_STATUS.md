@@ -406,8 +406,8 @@ The staged [Water UI control bridge](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.
 Preview and Protect on a separate integration branch and added isolated time-value tooling tests.
 Shared session state and Sound Lead/Engineering views are implemented with Model/composition sync,
 unmapped Size/Motion/Decay, edit provenance, retained inactive controls and applied A/B state. Decay
-uses provisional `0.5` and participates in reset and separate session copy/export/import. Widget unit
-conversion for the original 21 controls and GUI usability validation remain pending. Session source/build
+uses provisional `0.5` and participates in reset and separate session copy/export/import. Strict exact
+entry, adaptive time units, collapsible module cards and draft details are implemented. Session source/build
 provenance, module import and module-specific validation feedback are implemented and regression-tested.
 Protect is connected only in the research preview: Depth/Enable are live, configuration edits require
 Apply, D0/D1 retain separate calibration, and C permits only Whole. Existing Protect DSP is reused;

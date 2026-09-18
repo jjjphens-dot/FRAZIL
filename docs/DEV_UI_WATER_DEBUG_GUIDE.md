@@ -34,7 +34,8 @@ $preview = 'build/windows-debug/experiments/water/SPIKE-W-DSP-001/frazil_water_p
 & $preview
 ```
 
-窗口可缩放；小屏幕可向下滚动查看完整诊断读数和状态，控件不因窗口缩小而挤压。
+窗口可缩放；小屏幕可向下滚动。页签、模块与 Advanced 的展开状态决定内容高度。
+Audio diagnostics 默认收起，展开后可滚动查看完整音频诊断；Protect 数值诊断始终显示。
 也可将一个 WAV 路径作为唯一启动参数；只加载，不自动播放。
 Release、ASAN 可使用对应 preset 串行构建这个独立工具；FRAZIL Release 插件仍只显示原有占位 UI。
 两个 opt-in option 默认关闭。安装依赖、路径和构建资源规则见 [ENVIRONMENT](ENVIRONMENT.md)。
@@ -80,6 +81,8 @@ WAV 播完后输入自动为零，再处理 **30 秒 tail** 后停止；没有�
 | Import Module Config | 按 renderer schema 导入；缺省字段恢复研究默认值，再校验当前 composition | 保留宏、源、monitor；工程值标记 CUSTOM；无效文件不改变状态 |
 | Copy Session / Export Session | 保存已应用四宏、工程值、composition、监听及来源 revision | 独立研究 manifest，不是 renderer config 或 Host state；不包含音频 |
 | Import Session | 严格解析并校验，再停止播放并恢复会话值 | 无效文件不替换当前状态；保留当前 WAV，需手动匹配源素材 |
+| Draft details | 展开 applied → draft 逐项差异 | 时间按 ms/s 显示；不会应用参数 |
+| Audio diagnostics | 展开原有输入/输出 meter、运行信息与 finite 状态 | 只控制可见性，不影响处理 |
 
 界面显示 Applied composition、未应用变更数、revision、最后修改来源及播放时间；监听按钮显示当前模式。
 Dry/Processed/Residual 切换采用 monitor-only 10 ms 线性交叉变化；除 Protect Depth/Enable 外，算法配置仍须停止后 Apply；这不是 Host automation。
@@ -145,8 +148,12 @@ OFF transition 回到精确 unity，generator、RNG 和 tail 仍继续推进。
 | Depth / Score exponent | APPLY；研究 attenuation curve 的指数，不是已接受的产品宏映射 |
 | OFF transition | APPLY；回到精确 unity 的有限时间，研究基线 10 ms，与 Release 独立 |
 
-Protect 时间输入支持 `70`、`70ms`、`0.07s`；无单位按 ms 解释。非法后缀、非有限值或超范围
-输入会显示错误并保留旧值。当前原有 21 个 Water 工程控件尚待同一精确输入控件迁移。
+所有工程时间输入支持 `70`、`70ms`、`0.07s`；无单位按 ms 解释，具体数值须在该控件范围内。
+`<=1 s` 显示 ms（恰好 1 s 显示 1000 ms），更大值显示 s；内部和导出仍为秒。
+非法后缀、非有限值或超范围输入显示错误并保留旧值。Enter/失焦提交，Escape 恢复；
+双击 slider 恢复研究基线；按住 Shift 后开始拖动可微调，宽时间范围采用非线性拖动。
+整数 Voices 拒绝小数；精确输入不经过 slider step 截断。切换 A/B 或导入有效配置会刷新旧编辑文本。
+Engineering 的 A/B/D/C 卡片可折叠，标题显示 ACTIVE/INACTIVE；inactive 值仍可编辑并保留。
 切换 D0/D1 会恢复对应阈值，不会将 dB 数字当作 amplitude。切换到 C 会保留 Fluid topology，
 当前只使用 Whole；回到 Fluid 后恢复此前选择。F2/F3 可能改变分量相消，所以 GR 不等于输出
 电平下降；当前默认值只是 research baseline，不构成自然度、听感排名或产品推荐。

@@ -22,13 +22,16 @@ class PreviewApplication final : public juce::JUCEApplication {
       public:
         explicit ScrollablePanel(const juce::String& source) {
             setScrollBarsShown(true, false);
-            setViewedComponent(new PreviewPanel(source), true);
+            auto* panel = new PreviewPanel(source);
+            setViewedComponent(panel, true);
+            panel->onLayoutChange = [this] { resized(); };
             setSize(1180, 840);
         }
         void resized() override {
             juce::Viewport::resized();
-            if (auto* panel = getViewedComponent())
-                panel->setSize(getWidth() - getScrollBarThickness(), std::max(1595, getHeight()));
+            if (auto* panel = dynamic_cast<PreviewPanel*>(getViewedComponent()))
+                panel->setSize(getWidth() - getScrollBarThickness(),
+                               std::max(panel->preferredHeight(), getHeight()));
         }
     };
     class Window final : public juce::DocumentWindow {

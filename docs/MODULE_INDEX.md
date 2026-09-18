@@ -39,7 +39,7 @@ do not depend on the preview. Tests and limitations: [validation](evidence/WATER
 
 The control-bridge integration adds isolated `preview/TimeValue.h` UI/tooling helpers for adaptive
 ms/s display and strict exact entry. They own no session or DSP state, use only the C++ standard
-library, and are tested by `frazil_water_preview`; widget integration remains pending.
+library, and are tested by `frazil_water_preview`; all research time widgets consume these helpers.
 See [staged execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
 `ControlDescriptor.h` supplies typed IDs, module groups, units/display policy, baseline provenance,
 range and lifecycle metadata for the existing 21 controls. `PreviewSettings` consumes the descriptors
@@ -52,7 +52,9 @@ produce candidates and use the controller's existing DSP validation before resto
 Module imports reuse renderer parsing/defaults and the existing prepare validators.
 `ProtectControls.h` adapts typed research config and separate calibration/enable memory;
 `ProtectView.h` owns its research presentation. `ExactValueControl.h` validates text before slider
-clamping and currently serves Protect. `PreviewEngine` reuses `ResidualProtect`/`applyFluidProtect`,
+clamping and serves all engineering/Protect values, with fine gestures and baseline reset.
+`DraftSummary.h` formats applied-to-draft differences without owning parameter state.
+`PreviewEngine` reuses `ResidualProtect`/`applyFluidProtect`,
 while `PreviewController` transports only the live Depth target through a lock-free atomic value.
 `ProtectDiagnostics.h` provides a fixed 256-entry SPSC block-summary queue from callback to the
 message thread, with last-sample/peak values and explicit dropped-block accounting. It owns no

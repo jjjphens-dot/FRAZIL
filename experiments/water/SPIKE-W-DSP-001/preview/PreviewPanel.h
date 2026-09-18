@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DraftSummary.h"
 #include "PreviewController.h"
 #include "ProtectView.h"
 #include "ResearchViews.h"
@@ -12,10 +13,16 @@ namespace frazil::water::preview {
 // and renders both views from the session. Widgets do not own draft/applied/A/B state.
 class PreviewPanel final : public juce::Component, private juce::Timer {
   public:
+    std::function<void()> onLayoutChange;
     explicit PreviewPanel(const juce::String& sourceArgument)
         : sound_(session_, ChangeOrigin::soundLeadUI, [this] { controller_.stop(); }),
           engineering_(session_, [this] { controller_.stop(); }),
-          protect_(session_, [this] { controller_.stop(); }) {
+          protect_(
+              session_, [this] { controller_.stop(); },
+              [this] {
+                  return tabs_.getCurrentTabIndex() == 0 ? ChangeOrigin::soundLeadUI
+                                                         : ChangeOrigin::engineeringUI;
+              }) {
         researchLabel(*this, title_, "FRAZIL / WATER RESEARCH PREVIEW");
         title_.setFont(juce::FontOptions(22));
         researchLabel(*this, note_,
@@ -27,7 +34,16 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         tabs_.addTab("Engineering", juce::Colour(0xff182b36), &engineering_, false);
         addAndMakeVisible(tabs_);
         addAndMakeVisible(protect_);
-        protect_.onLayoutChange = [this] { resized(); };
+        protect_.onLayoutChange = engineering_.onLayoutChange =
+            tabs_.onChange = [this] { updateLayout(); };
+        for (auto* toggle : {&showDraft_, &showDiagnostics_}) {
+            addAndMakeVisible(toggle);
+            toggle->onClick = [this] { updateLayout(); };
+        }
+        draftDetails_.setMultiLine(true);
+        draftDetails_.setReadOnly(true);
+        draftDetails_.setTitle("Unapplied changes: applied to draft");
+        addChildComponent(draftDetails_);
         for (auto* button : buttons()) {
             addAndMakeVisible(*button);
             button->setColour(juce::TextButton::buttonColourId, juce::Colour(0xff304d5a));
@@ -69,6 +85,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         reset_.onClick = [this] {
             controller_.stop();
             session_.reset();
+            discardPendingText();
             applyDraft();
         };
         copy_.onClick = [this] {
@@ -92,7 +109,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         if (sourceArgument.isNotEmpty())
             loadSource(
                 juce::File::getCurrentWorkingDirectory().getChildFile(sourceArgument.unquoted()));
-        setSize(1180, 1595);
+        setSize(1180, preferredHeight());
         startTimerHz(10);
     }
     ~PreviewPanel() override {
@@ -103,6 +120,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     void paint(juce::Graphics& g) override {
         g.fillAll(juce::Colour(0xff0d181f));
     }
+    int preferredHeight() const noexcept {
+        return 420 + tabHeight() + protect_.preferredHeight() +
+               (showDraft_.getToggleState() ? 110 : 0) +
+               (showDiagnostics_.getToggleState() ? 230 : 0);
+    }
     void resized() override {
         auto area = getLocalBounds().reduced(20);
         title_.setBounds(area.removeFromTop(32));
@@ -111,8 +133,14 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         auto transport = area.removeFromTop(38);
         for (auto* button : {&load_, &play_, &stop_, &apply_})
             button->setBounds(transport.removeFromLeft(140).reduced(3));
+        showDraft_.setBounds(transport.removeFromLeft(160));
+        showDiagnostics_.setBounds(transport.removeFromLeft(160));
+        status_.setBounds(area.removeFromTop(44));
         appliedLabel_.setBounds(area.removeFromTop(30));
-        tabs_.setBounds(area.removeFromTop(645));
+        draftDetails_.setVisible(showDraft_.getToggleState());
+        if (showDraft_.getToggleState())
+            draftDetails_.setBounds(area.removeFromTop(110).reduced(3));
+        tabs_.setBounds(area.removeFromTop(tabHeight()));
         protect_.setBounds(area.removeFromTop(protect_.preferredHeight()));
         auto monitor = area.removeFromTop(38);
         for (auto* button : {&dry_, &processed_, &residual_})
@@ -126,11 +154,29 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         auto sessions = area.removeFromTop(38);
         for (auto* button : {&importModule_, &importSession_, &exportSession_, &copySession_})
             button->setBounds(sessions.removeFromLeft(170).reduced(3));
-        status_.setBounds(area.removeFromBottom(52));
-        diagnostics_.setBounds(area.reduced(4));
+        diagnostics_.setVisible(showDiagnostics_.getToggleState());
+        if (showDiagnostics_.getToggleState())
+            diagnostics_.setBounds(area.removeFromTop(230).reduced(4));
     }
 
   private:
+    class ViewTabs final : public juce::TabbedComponent {
+      public:
+        ViewTabs() : juce::TabbedComponent(juce::TabbedButtonBar::TabsAtTop) {}
+        std::function<void()> onChange;
+        void currentTabChanged(int, const juce::String&) override {
+            if (onChange)
+                onChange();
+        }
+    };
+    int tabHeight() const noexcept {
+        return 32 + (tabs_.getCurrentTabIndex() == 0 ? 205 : engineering_.preferredHeight());
+    }
+    void updateLayout() {
+        resized();
+        if (onLayoutChange)
+            onLayoutChange();
+    }
     std::array<juce::TextButton*, 18> buttons() {
         return {&load_,          &play_,        &stop_,        &apply_,  &dry_,
                 &processed_,     &residual_,    &captureA_,    &applyA_, &captureB_,
@@ -153,6 +199,10 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         setStatus("Applied. Play starts a fresh run. Unmapped macros retain values without "
                   "modifying DSP.");
     }
+    void discardPendingText() {
+        engineering_.discardPendingText();
+        protect_.discardPendingText();
+    }
     void capture(std::size_t slot) {
         session_.capture(slot);
         refresh();
@@ -170,6 +220,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             return;
         }
         session_.restoreValidated(candidate);
+        discardPendingText();
         setStatus("Recalled snapshot. Play restarts; source position is not restored.");
     }
     void refresh() {
@@ -198,10 +249,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         applyA_.setEnabled(session_.slot(0).has_value());
         applyB_.setEnabled(session_.slot(1).has_value());
         refreshApplied();
+        draftDetails_.setText(draftSummary(session_), false);
     }
     void refreshApplied() {
         appliedLabel_.setText(
-            juce::String(session_.dirty() ? "DRAFT — " : "APPLIED — ") +
+            juce::String(session_.dirty() ? "DRAFT | " : "APPLIED | ") +
                 juce::String(static_cast<int>(session_.unappliedChanges())) +
                 " unapplied changes | applied " +
                 kModes[static_cast<std::size_t>(session_.applied().engineering.mode)] + " | rev " +
@@ -262,6 +314,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                 }
                 safe->controller_.stop();
                 safe->session_.restoreValidated(candidate);
+                safe->discardPendingText();
                 safe->setStatus(session
                                     ? "Imported session. If source metadata differs, load the "
                                       "matching WAV before Play; audio is not embedded."
@@ -309,7 +362,10 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     WaterMacroView sound_;
     EngineeringView engineering_;
     ProtectView protect_;
-    juce::TabbedComponent tabs_{juce::TabbedButtonBar::TabsAtTop};
+    ViewTabs tabs_;
+    juce::ToggleButton showDraft_{"Draft details"}, showDiagnostics_{"Audio diagnostics"};
+    juce::TextEditor draftDetails_;
+    juce::TooltipWindow tooltips_{this, 500};
     juce::Label title_, note_, source_, status_, appliedLabel_, gainLabel_;
     juce::Slider gain_;
     juce::TextButton load_{"Load WAV"}, play_{"Play / Restart"}, stop_{"Stop"},

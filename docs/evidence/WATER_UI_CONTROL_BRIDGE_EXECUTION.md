@@ -9,10 +9,10 @@ algorithm redesign, inferred macro curves or perceptual acceptance.
 
 ## Status
 
-Running, Phase 8 preparation. The user explicitly requested autonomous progression through
-all phases after each self-review, then a single GitHub publication of the completed work. Separate
-local commits/checkpoints remain required; Phases 0–7 are complete locally. Owner: Engineering implementation;
-Sound Lead retains human workflow/perceptual acceptance. No delegated workers.
+Phases 0–8 implemented and self-reviewed locally, ready for GitHub review. The user explicitly
+requested autonomous progression after each self-review, then a single GitHub publication.
+Owner: Engineering implementation; Sound Lead retains human workflow/perceptual acceptance.
+Independent review and acceptance remain pending. No delegated workers.
 
 ## Live baseline
 
@@ -65,8 +65,8 @@ Protect work, not newly authored algorithms.
 | 4 | Experiment-only Decay state/workflow | Implemented; self-review, Debug and docs pass |
 | 5 | Existing Protect DSP integration and calibration memory | Implemented; self-review, three presets and docs pass |
 | 6 | Bounded Protect numerical diagnostics | Implemented; self-review and Debug pass |
-| 7 | Module/session imports, exports, A/B and reset | Pending |
-| 8 | GUI usability and human handoff | Pending |
+| 7 | Module/session imports, exports, A/B and reset | Implemented at `045826e`; self-review, Debug and docs pass |
+| 8 | GUI usability and human handoff | Implemented; self-review, three presets and Windows GUI checks pass within limits below; human acceptance pending |
 
 ## Constraints and unresolved items
 
@@ -76,7 +76,8 @@ Fluid↔ABD and Resonant↔C; Size/Motion/Decay remain unmapped pending evidence
 destination. Protect is residual-only research, depth zero is OFF, D0/D1 calibration domains differ,
 and F2/F3 do not promise summed-energy contraction. Nine Host parameters and state schema stay intact.
 
-No human/UI acceptance has been performed for this integration.
+Windows automated GUI checks are recorded below. They do not establish formal human workflow,
+perceptual, Host or production acceptance.
 
 ## Phase 1 implementation and review
 
@@ -308,3 +309,72 @@ independent approval and main merge are not part of this local checkpoint.
     or automatically loaded. Invalid imports preserve both applied and draft values. Build provenance
     is configure-time, clearly documented; module fields never receive macro values or new mappings.
 12. Next: strict inputs for all controls, collapsible modules, responsive layout and Windows GUI checks.
+
+## Phase 8 implementation and review
+
+1. Baseline: Phase 7 `045826e83929a2cfaa4e6b6f746debccf573d393`, plus this phase's working changes.
+   A final fetch reconfirmed main `fc20370`, Preview `234056e` and Protect `a883097`.
+2. Scope: all 21 engineering controls use strict exact entry; larger macro controls, collapsible
+   A/B/D/C cards, Advanced Protect, responsive scroll layout, draft detail and optional audio diagnostics.
+3. Files: ExactValueControl, ResearchViews, ProtectView, PreviewPanel, PreviewMain and workflow tests;
+   new `DraftSummary.h` formats applied-to-draft differences without adding state ownership.
+4. Behavior: exact entry retains precision and rejects invalid input before model mutation; Escape
+   restores the applied widget value. Shift-drag provides fine adjustment. Explicit reset/import/A/B
+   discards pending invalid text even when the recalled numeric value is identical. Inactive modules
+   retain their values; monitor labels distinguish Source, Full and Water-only residual.
+5. Contracts: production `src/plugin`, `src/app` and `src/dsp` have no diff against main. Protect DSP,
+   renderer main and analysis have no diff against `a883097`. No macro mapping or Host/schema change.
+6. Functional Validation and Final Validation: serial
+   `cmd /c build\control-bridge\validate.cmd windows-debug`, `windows-release` and `windows-asan`.
+   The ignored helper runs the MSVC environment setup, explicit Python configure binding,
+   `python tools/build_safe.py --preset <preset>` and `ctest --preset <preset> --output-on-failure`.
+   Both research options are ON. CMake/Python/CTest interpreter identity was checked.
+7. Results: safe builds PASS; Debug 20/20 (37.95 s), Release 20/20 (22.57 s), ASAN 20/20 (67.90 s).
+   Final `python tools/check_markdown_links.py`, `python tools/check_portability.py` (including staged
+   new files) and `git diff --cached --check` PASS. No generated evidence or personal paths staged.
+   Widget callback tests exercise strict time/integer entry, invalid suffix/NaN/range rejection,
+   Escape/external restore, same-value pending-text discard and synthesized Shift-drag fine movement.
+   Draft delta formatting is covered. These tests complement the earlier session/DSP/transport suites.
+8. Windows GUI evidence: native automation exercised default, minimum and maximized windows at the
+   reference machine's 150% DPI profile; scrolling, Advanced folding, inactive module readability,
+   invalid time feedback/Escape, draft/apply, A/B recall, Copy Session and live Protect diagnostics.
+   Exact-entry width increased to 190 px and font 13 after inspection; source-string separators use
+   ASCII to avoid the observed MSVC encoding artifact. Source/Full/Water-only labels are readable.
+   Task-only screenshots are in ignored `build/control-bridge/gui/`, including
+   `minimum-advanced.png`, `large-advanced.png`, `minimum-engineering.png`, `large-engineering.png`
+   and `48000-protect-diagnostics.png`. They are local evidence, not attached human acceptance.
+9. Audio/realtime evidence: native playback at 48 kHz, stereo, 480-frame blocks reported finite
+   nonzero input/output and actual Protect values with zero observed diagnostic drops. Stop clears
+   diagnostics. 44.1/96 kHz sources loaded but the default device rejected those rates with the
+   documented no-resampling error; automated DSP/reference tests cover all three rates. GUI fixtures
+   reuse canonical impulse, gated sine and transient-pitch generators with silence; no subjective
+   quality or formal callback performance conclusion is inferred.
+10. Comment & Documentation Pass: debug guide, Developer Sound Tools, Testing, Module Index,
+    Project Status, research README and this record synchronized. Architecture, Parameters, Coding
+    Plan, Accepted ADRs, Environment and production UI README reviewed without further changes:
+    this phase changes research workflow only. ADR 0006 stays Proposed. Units, lifecycle, source/build
+    provenance and bounded diagnostic ownership are documented; personal paths remain ignored.
+11. Code Quality Review: one message-thread model owns state; views issue typed commands. Strict
+    parsing precedes mutation, draft formatting is stateless, and no algorithm logic moved into UI.
+    Callback review confirms prepared DSP, one live target load and bounded preallocated SPSC
+    diagnostics; no UI/JSON/file/lock/allocation added there. Ownership, naming, includes, dead code,
+    constants and dependency direction reviewed. No independent approval is claimed.
+12. Known limits / handoff: other DPI factors, multi-monitor transitions, pluginval/DAW and formal
+    human listening acceptance were not executed. Production is untouched. Sound Lead receives the
+    guide/session workflow for acceptance; independent GitHub review remains required. All requested
+    implementation phases are complete; publication follows final documentation checks.
+
+### Corrections retained in the evidence trail
+
+- The first draft-summary test selected Bubble decay's existing 70 ms baseline, so its expected
+  delta was invalid. The fixture now selects 81 ms; the final three presets pass.
+- A Debug link attempt failed with LNK1168 while the user was interacting with the running preview.
+  The user's revision 563 session was saved in ignored `gui/manual-session-before-rebuild.json`
+  before closing the app; the normal safe build then passed. No build guard was bypassed.
+  Native Import Session restored that saved session in the final Debug binary with the matching
+  48 kHz fixture; the UI reported APPLIED, zero pending changes and Session Load provenance.
+- GUI checks exposed narrow exact-entry text and a garbled separator; both were corrected and
+  visually rechecked. Final pending-text discard also has direct widget regression coverage.
+- Contract Review preceded implementation; Functional Validation, separate Code Quality Review,
+  Comment & Documentation Pass and Final Validation are recorded above, completing the required
+  engineering sequence without promoting research results to production or perceptual acceptance.

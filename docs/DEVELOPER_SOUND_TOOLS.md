@@ -141,8 +141,10 @@ lock-free target consumed at a callback boundary; detector/topology/timing chang
 D0/D1 calibration memory and Fluid topology are retained separately, with C restricted to Whole.
 Protect time fields use strict ms/s exact entry. Fast/Slow/D0/D1/GR now show last-sample values and
 peaks over blocks consumed by each UI poll. A fixed SPSC queue drops/counts new summaries when full;
-peaks are not co-timed and GR does not imply output-level reduction. GUI usability and the original
-21-control exact-entry migration have later checkpoints; no rolling waveform trace is implemented.
+peaks are not co-timed and GR does not imply output-level reduction. The original 21 controls also
+use exact entry, adaptive time display and fine gestures; engineering modules are collapsible and
+retain inactive values. Draft details and optional audio diagnostics share the scrollable layout.
+Actual Windows evidence and limits are recorded in the control-bridge record; no rolling trace is implemented.
 
 The original Debug UI still stores Water Model/Size/Motion locally without DSP mapping; its wet
 path remains M1 pass-through. The standalone preview uses engineering quantities, not inferred

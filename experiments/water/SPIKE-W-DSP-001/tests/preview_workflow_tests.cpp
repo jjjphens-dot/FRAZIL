@@ -1,3 +1,5 @@
+#include "preview/DraftSummary.h"
+#include "preview/ExactValueControl.h"
 #include "preview/PreviewController.h"
 #include "preview/SessionCodec.h"
 
@@ -85,5 +87,67 @@ int runWorkflowTests() {
     settings = {};
     settings.protect.gain.epsilon = .01;
     check(controller.validate(settings).contains("PROTECT"), "Protect error identifies module");
+    ExactValueControl widget;
+    widget.configure("Test decay", .001, 2, .1, true);
+    double edited = .1;
+    widget.onEdit = [&](double value) {
+        edited = value;
+        return true;
+    };
+    widget.refreshValue(edited);
+    juce::TextEditor* entry{};
+    juce::Slider* slider{};
+    for (auto* child : widget.getChildren()) {
+        if (auto* text = dynamic_cast<juce::TextEditor*>(child))
+            entry = text;
+        if (auto* control = dynamic_cast<juce::Slider*>(child))
+            slider = control;
+    }
+    check(entry && slider, "exact-entry composition");
+    if (entry && slider) {
+        const auto type = [&](const juce::String& value) {
+            entry->setText(value, false);
+            entry->onTextChange();
+            entry->onReturnKey();
+        };
+        type("70ms");
+        check(edited == .07 && entry->getText() == "70 ms", "text commits in seconds");
+        for (const auto* invalid : {"0.07seconds", "NaN", "3s", "70ms junk"}) {
+            type(invalid);
+            check(edited == .07 && slider->getValue() == .07,
+                  "invalid exact text preserves model and slider");
+        }
+        entry->onEscapeKey();
+        check(entry->getText() == "70 ms", "Escape restores formatted value");
+        type("bad");
+        widget.refreshValue(.08);
+        check(entry->getText() == "80 ms", "external recall replaces stale text");
+        type("bad");
+        widget.discardPendingText();
+        check(entry->getText() == "80 ms",
+              "explicit recall also clears stale text for unchanged values");
+        type("1.001s");
+        check(edited == 1.001 && entry->getText() == "1.001 s", "precision across time boundary");
+        widget.configure("Depth", 0, 1, .5, false);
+        widget.refreshValue(.5);
+        const auto event = [&](float x) {
+            return juce::MouseEvent(juce::Desktop::getInstance().getMainMouseSource(), {x, 10},
+                                    juce::ModifierKeys(juce::ModifierKeys::shiftModifier |
+                                                       juce::ModifierKeys::leftButtonModifier),
+                                    1, 0, 0, 0, 0, slider, slider, juce::Time::getCurrentTime(),
+                                    {100, 10}, juce::Time::getCurrentTime(), 1, x != 100);
+        };
+        slider->mouseDown(event(100));
+        slider->mouseDrag(event(135));
+        slider->mouseUp(event(135));
+        check(std::abs(edited - .51) < 1e-12, "Shift drag fine adjustment in normalized space");
+        widget.configure("Voices", 1, 16, 8, false, true);
+        widget.refreshValue(8);
+        edited = 8;
+        type("2.5");
+        check(edited == 8, "integer entry rejects fractional value");
+    }
+    session.setEngineering(ControlId::bubbleDecay, .081, ChangeOrigin::engineeringUI);
+    check(draftSummary(session).contains("81 ms"), "draft differences use display units");
     return failures;
 }

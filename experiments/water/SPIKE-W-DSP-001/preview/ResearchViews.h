@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ExactValueControl.h"
 #include "ResearchSessionModel.h"
 
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -80,7 +81,8 @@ class WaterMacroView final : public juce::Component {
         mapping_.setBounds(left.removeFromTop(32));
         returnMapped_.setBounds(left.removeFromTop(30));
         for (std::size_t i = 0; i < knobs_.size(); ++i) {
-            auto cell = area.removeFromLeft(180).reduced(8, 0);
+            const int width = area.getWidth() / static_cast<int>(knobs_.size() - i);
+            auto cell = area.removeFromLeft(width).reduced(12, 0);
             names_[i].setBounds(cell.removeFromTop(24));
             knobs_[i].setBounds(cell);
         }
@@ -99,88 +101,123 @@ class WaterMacroView final : public juce::Component {
 
 class EngineeringView final : public juce::Component {
   public:
+    std::function<void()> onLayoutChange;
     EngineeringView(ResearchSessionModel& session, std::function<void()> beforeEdit)
         : session_(session), beforeEdit_(std::move(beforeEdit)),
           macros_(session, ChangeOrigin::engineeringUI, beforeEdit_) {
         addAndMakeVisible(macros_);
         for (std::size_t i = 0; i < kModes.size(); ++i)
             composition_.addItem(kModes[i], static_cast<int>(i) + 1);
+        composition_.setTitle("Engineering composition");
         addAndMakeVisible(composition_);
         composition_.onChange = [this] {
             beforeEdit_();
             session_.setComposition(composition_.getSelectedId() - 1, ChangeOrigin::engineeringUI);
         };
         researchLabel(*this, provenance_,
-                      "Engineering baseline: SPIKE-W-DSP-001 | all controls APPLY | inactive "
+                      "All raw controls APPLY | SPIKE-W-DSP-001 research baseline | inactive "
                       "values retained");
         for (std::size_t i = 0; i < kControls.size(); ++i) {
             const auto& spec = kControls[i];
-            researchLabel(*this, labels_[i], spec.label);
-            sliders_[i].setRange(spec.minimum, spec.maximum, spec.step);
-            sliders_[i].setSliderStyle(juce::Slider::LinearHorizontal);
-            sliders_[i].setTextBoxStyle(juce::Slider::TextBoxRight, false, 84, 24);
-            sliders_[i].setDoubleClickReturnValue(true, spec.initial);
-            sliders_[i].onValueChange = [this, i] {
+            controls_[i].configure(juce::String(spec.label).replace("(s)", "(ms / s)"),
+                                   spec.minimum, spec.maximum, spec.initial,
+                                   spec.displayPolicy == DisplayPolicy::adaptiveTime,
+                                   spec.valueType == ControlValueType::integer);
+            controls_[i].onEdit = [this, i](double value) {
                 beforeEdit_();
-                session_.setEngineering(kControls[i].id, sliders_[i].getValue(),
-                                        ChangeOrigin::engineeringUI);
+                return session_.setEngineering(kControls[i].id, value, ChangeOrigin::engineeringUI);
             };
-            addAndMakeVisible(sliders_[i]);
+            addAndMakeVisible(controls_[i]);
         }
-        for (auto& heading : headings_)
-            researchLabel(*this, heading, "");
+        for (std::size_t i = 0; i < headings_.size(); ++i) {
+            addAndMakeVisible(headings_[i]);
+            headings_[i].onClick = [this, i] {
+                expanded_[i] = !expanded_[i];
+                refresh();
+                if (onLayoutChange)
+                    onLayoutChange();
+            };
+        }
         refresh();
+    }
+    int preferredHeight() const noexcept {
+        int height = 274;
+        for (std::size_t i = 0; i < headings_.size(); ++i)
+            height += 36 + (expanded_[i] ? rows(i) * 72 : 0);
+        return height;
+    }
+    void discardPendingText() {
+        for (auto& control : controls_)
+            control.discardPendingText();
     }
     void refresh() {
         macros_.refresh();
         const auto& state = session_.draft();
         composition_.setSelectedId(state.engineering.mode + 1, juce::dontSendNotification);
+        provenance_.setText(
+            juce::String(state.customEngineering ? "CUSTOM engineering" : "Research baseline") +
+                " | APPLY | SPIKE-W-DSP-001 | inactive values retained",
+            juce::dontSendNotification);
         for (std::size_t i = 0; i < kControls.size(); ++i) {
             const auto& spec = kControls[i];
+            const auto group = static_cast<std::size_t>(spec.group);
             const bool active = moduleActive(spec.group, state.engineering.mode);
-            sliders_[i].setValue(state.engineering.values[i], juce::dontSendNotification);
-            sliders_[i].setAlpha(active ? 1.0f : .5f);
-            labels_[i].setAlpha(active ? 1.0f : .5f);
-            sliders_[i].setTooltip(
-                juce::String(spec.stableId()) + " | APPLY | baseline " +
-                juce::String(spec.initial) + " | SPIKE-W-DSP-001 | " +
-                (active ? "ACTIVE" : "INACTIVE / retained; only affects enabled compositions") +
-                " | origin: " + originName(state.ownership[i].origin));
+            controls_[i].refreshValue(state.engineering.values[i]);
+            controls_[i].setAlpha(active ? 1.0f : .55f);
+            controls_[i].setVisible(expanded_[group]);
+            const auto baseline =
+                spec.displayPolicy == DisplayPolicy::adaptiveTime
+                    ? juce::String(formatTimeValue(spec.initial).value_or("invalid"))
+                    : juce::String(spec.initial);
+            controls_[i].setHelp(juce::String(spec.stableId()) + " | APPLY | baseline " + baseline +
+                                 " | SPIKE-W-DSP-001 | " +
+                                 (active ? "ACTIVE" : "INACTIVE / retained") +
+                                 " | origin: " + originName(state.ownership[i].origin));
         }
-        for (std::size_t i = 0; i < headings_.size(); ++i) {
-            const auto group = static_cast<ControlGroup>(i);
-            headings_[i].setText(
-                juce::String(moduleName(group)).toUpperCase() +
-                    (moduleActive(group, state.engineering.mode) ? " / ACTIVE" : " / INACTIVE"),
-                juce::dontSendNotification);
-        }
+        constexpr std::array<const char*, 4> names{"A / BUBBLE", "B / DROPLET", "D / FLOW",
+                                                   "C / MODAL"};
+        for (std::size_t i = 0; i < headings_.size(); ++i)
+            headings_[i].setButtonText(
+                juce::String(expanded_[i] ? "[-] " : "[+] ") + names[i] +
+                (moduleActive(static_cast<ControlGroup>(i), state.engineering.mode)
+                     ? " / ACTIVE"
+                     : " / INACTIVE - retained") +
+                " / APPLY");
+        resized();
     }
     void resized() override {
         auto area = getLocalBounds().reduced(8);
         macros_.setBounds(area.removeFromTop(200));
         composition_.setBounds(area.removeFromTop(30).removeFromLeft(240));
         provenance_.setBounds(area.removeFromTop(28));
-        const int width = area.getWidth() / 4;
-        constexpr std::array<std::size_t, 5> offsets{0, 7, 14, 18, 21};
-        for (std::size_t group = 0; group < 4; ++group) {
-            auto column = area.removeFromLeft(width).reduced(5, 0);
-            headings_[group].setBounds(column.removeFromTop(26));
-            for (auto i = offsets[group]; i < offsets[group + 1]; ++i) {
-                labels_[i].setBounds(column.removeFromTop(21));
-                sliders_[i].setBounds(column.removeFromTop(26));
+        for (std::size_t group = 0; group < headings_.size(); ++group) {
+            headings_[group].setBounds(area.removeFromTop(36).reduced(2));
+            if (!expanded_[group])
+                continue;
+            for (int row = 0; row < rows(group); ++row) {
+                auto line = area.removeFromTop(72);
+                const int width = line.getWidth() / 2;
+                for (int column = 0; column < 2; ++column) {
+                    const auto index = offsets_[group] + static_cast<std::size_t>(row * 2 + column);
+                    if (index < offsets_[group + 1])
+                        controls_[index].setBounds(line.removeFromLeft(width).reduced(8, 2));
+                }
             }
         }
     }
 
   private:
+    static constexpr std::array<std::size_t, 5> offsets_{0, 7, 14, 18, 21};
+    static int rows(std::size_t group) noexcept {
+        return static_cast<int>((offsets_[group + 1] - offsets_[group] + 1) / 2);
+    }
     ResearchSessionModel& session_;
     std::function<void()> beforeEdit_;
     WaterMacroView macros_;
     juce::ComboBox composition_;
     juce::Label provenance_;
-    std::array<juce::Label, 4> headings_;
-    std::array<juce::Label, kControls.size()> labels_;
-    std::array<juce::Slider, kControls.size()> sliders_;
+    std::array<juce::TextButton, 4> headings_;
+    std::array<bool, 4> expanded_{true, false, false, false};
+    std::array<ExactValueControl, kControls.size()> controls_;
 };
-
 } // namespace frazil::water::preview
