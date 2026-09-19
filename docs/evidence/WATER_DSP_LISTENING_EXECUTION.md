@@ -410,3 +410,38 @@ module API/index require no change. Relevant links/portability/scanner/task/whit
 No pluginval/DAW/physical loopback or new CPU measure in this phase. Prior rare failures retained.
 13. No safety failure or automatic selection. Focus36 remains diagnostic maximum, never increased.
 14. Prepare Phase11 independent review records, then document conditional Protect revalidation.
+
+### Phase 11 engineering handoff report — human decisions pending
+
+1. Baseline `290624d`. 2. Prepare independent review records, not perform or simulate human review.
+3. Existing pack generator now writes two120-row CSVs; new WATER_CANDIDATE_LISTENING_REVIEW.md
+serves the actual reviewer workflow. 4. Accepted brief and TESTING rubric, plan stagesA/B/C.
+5. Forms retain source/profile/macro/settings/files and separate matched-support rows; all decisions
+NOT ASSESSED and all scores blank. Exclusive creation refuses overwrite of reviewer work.
+6. No changed perceptual/production/Host/state contract or automatic acceptance criterion.
+7. Generated four forms (two per profile), validated120rows each, all360 audio references per form,
+blank identity/scores,30matched rows and overwrite refusal. Python syntax and repository scans PASS.
+8. Engineering handoff ready; Sound Lead and collaborator listening NOT RUN. 9. Local pack CSVs
+and tracked protocol link actual renders; generated audio/forms are not committed to Git.
+10. Self-review checked independent records, no aggregate winner, correct monitor context and
+source-preservation boundary. Realtime N/A; no C++/callback change.
+11. Current handoff and new protocol link accepted brief/testing; no canonical contract edits needed.
+12. Missing musical pad and both human reviews retained. 13. No fabricated Gate/ACCEPT.
+14. Phase12 trigger assessment follows; no human listening result is inferred from engineering PASS.
+
+### Phase 12 conditional report — Protect listening not triggered
+
+1. Baseline `290624d` plus Phase11 handoff. 2. Assess current Protect revalidation prerequisites.
+3. Protocol and ledger only. 4. User plan sections101-104: both new Water baselines must have
+human acceptance/revision records before Protect listening resumes. 5. Keep Protect OFF in all
+current packs; existing preview Protect controls and numerical tests unchanged.
+6. No detector/topology/gain semantics, production state or public interface change.
+7. Phase9 Protect regression remains PASS; no new musical Protect test is claimed.
+8. Trigger absent: new baseline decisions are NOT ASSESSED. 9. Historical Protect evidence remains
+historical; no current audio acceptance or transferred conclusion.
+10. Self-review distinguishes conditional listening from existing numerical regression. Realtime N/A.
+11. Protocol records D0/D1, F1/F2/F3, Depth/Attack/Release and component-cancellation follow-up;
+C remains supported only on Whole/F1. Existing Protect contracts need no modification.
+12. Human baseline and musical material pending; Phase12 listening NOT RUN.
+13. Conditional boundary preserved, no scope expansion. 14. Final diff/document review, then the
+user-authorized push of completed engineering work to existing PR40; no merge or human Gate claim.

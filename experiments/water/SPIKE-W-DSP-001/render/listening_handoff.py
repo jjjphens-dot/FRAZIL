@@ -8,6 +8,7 @@ No content hashes, resampling or source modification.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 from pathlib import Path
 import subprocess
@@ -31,6 +32,44 @@ def spectral_distribution(audio, rate):
     total = max(float(energy.sum()), 1e-30)
     return [float(energy[(frequency >= low) & (frequency < high)].sum() / total)
             for low, high in ((0, 250), (250, 1000), (1000, 4000), (4000, rate / 2 + 1))]
+
+
+def write_review_forms(report, output):
+    """Independent blank decisions, never inferred from render metrics."""
+    rows = []
+    for comparison in report["extreme_comparisons"]:
+        examples = [r for r in report["renders"] if r["input"] == comparison["input"]
+                    and r["mode"] == comparison["mode"] and r["macro"] == comparison["macro"]]
+        folder = Path(examples[0]["file"]).parent
+        prefix = f"{comparison['mode']}-{comparison['macro']}"
+        for stage, evidence, suffix, monitor, trim in (
+                ("A audibility", "fixed source", "E.wav", "Water Only", "18"),
+                ("B semantics", "fixed source", "E.wav", "Water Only", "18"),
+                ("B semantics", "RMS matched support", "RMSmatched-WaterOnly.wav", "Water Only", "18 before matching"),
+                ("C context", "fixed source", "Full-Reference-output-18.wav", "Full x+E", "0")):
+            rows.append({"reviewer": "", "date": "", "profile": report["resonant_profile"],
+                         "droplet_policy": report["droplet_activity"],
+                         "input": comparison["input"], "input_role": examples[0]["input_role"],
+                         "model": "Fluid" if comparison["mode"] == "abd" else "Resonant",
+                         "macro": comparison["macro"], "values": "0 / 0.5 / 1; others 0.5",
+                         "stage": stage, "evidence": evidence, "monitor": monitor,
+                         "e_trim_db": trim, "output_db": "-18", "protect": "OFF", "seed": "42",
+                         "files_0_half_1": " | ".join((folder / f"{prefix}-{v:g}-{suffix}").as_posix()
+                                                        for v in (0, .5, 1)),
+                         "matched_gains": " | ".join(map(str, comparison["matched_linear_gains_0_half_1"]))
+                                          if evidence == "RMS matched support" else "N/A",
+                         "playback_device_and_level": "", "audibility": "", "direction": "",
+                         "water_identity_1_5": "", "input_recognizability_1_5": "",
+                         "motion_fluidity_1_5": "", "musical_usefulness_1_5": "",
+                         "artifact_severity_1_5_lower_better": "", "failure_tags": "",
+                         "decision": "NOT ASSESSED", "reason_and_timestamps": ""})
+    for reviewer in (1, 2):
+        destination = output / f"reviewer-{reviewer}.csv"
+        # Never erase a collaborator's completed form during later generation/review.
+        with destination.open("x", newline="", encoding="utf-8-sig") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+            writer.writeheader()
+            writer.writerows(rows)
 
 
 def inspect(path, maximum=120):
@@ -242,6 +281,7 @@ def main():
               "human_decision": "NOT ASSESSED", "renders": results,
               "extreme_comparisons": comparisons, "first_input_isolated_components": component_results}
     (output / "report.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
+    write_review_forms(report, output)
     print(f"PASS: {len(results)} cases; human listening decision remains NOT ASSESSED", flush=True)
 
 

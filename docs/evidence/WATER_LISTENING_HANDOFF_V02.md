@@ -232,3 +232,7 @@ These low levels and driven-source Decay level losses remain unresolved listenin
 numerical difference nor longer tails establishes macro acceptance. Maximum Focus36 output peak
 across either pack is+0.765 dBFS (Fluid case), retained as float over-range, without limiting.
 No human audibility, musical usefulness, source preservation or Joint Gate readiness is claimed.
+
+
+The [independent review guide](WATER_CANDIDATE_LISTENING_REVIEW.md) explains the two blank CSV
+forms now generated per pack, rubric anchors, decision vocabulary and conditional Protect handoff.
