@@ -482,3 +482,8 @@ omission remains C0. The six-mode bank's prepare-time energy target uses a commo
 and a separate induced-response cap; Motion and the gain knob do not change that target. The
 actual coefficients and bound are reported by the renderer. `bounded_normalization_study.py`
 measures source/impulse/partition results for 27 triples without selecting a preview default.
+
+Optional Modal renderer suffix: `[c0|c3] [independent|structured]` after conditioner and optional
+excitation output. R-M1 requires explicit `structured`; omitted behavior stays independent.
+[EXP-W-RM-001](../EXP-W-RM-001.md) contains proof, scripts and review limits. Module JSON,
+research session and GUI defaults are unchanged by this offline comparison.

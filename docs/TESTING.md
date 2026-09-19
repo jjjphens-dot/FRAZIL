@@ -864,3 +864,7 @@ C3 normalization adds `frazil_water_normalization`: actual impulse energy/persis
 parameter corners, stereo and partition/reset invariants. Renderer tests reject raw+C3 and
 unknown normalization selectors before output creation. The measured grid, positive-form energy
 identity, Cauchy-Schwarz L1 bound and timing are in [EXP-W-RN-001](../experiments/water/EXP-W-RN-001.md).
+
+Research-only `frazil_water_motion` checks optional R-M1 coherent normalized weights, C3 bound,
+static/seed/partition behavior and finite extremes. The old default remains independently covered.
+See [EXP-W-RM-001](../experiments/water/EXP-W-RM-001.md) for listening and timing limits.

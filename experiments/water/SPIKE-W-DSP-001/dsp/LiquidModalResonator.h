@@ -10,6 +10,8 @@
 
 namespace frazil::water::research {
 
+enum class ModalMotionModel { independent, structured };
+
 struct ModalConfig final {
     double rootFrequencyHz{260.0};
     double decaySeconds{0.12};
@@ -25,12 +27,14 @@ class LiquidModalResonator final {
   public:
     bool prepare(double rate, const ModalConfig& config = {},
                  ModalExcitation excitation = ModalExcitation::raw,
-                 ModalNormalization normalization = ModalNormalization::c0) noexcept {
-        return prepare(ResearchConfig{rate, 42u}, config, excitation, normalization);
+                 ModalNormalization normalization = ModalNormalization::c0,
+                 ModalMotionModel motionModel = ModalMotionModel::independent) noexcept {
+        return prepare(ResearchConfig{rate, 42u}, config, excitation, normalization, motionModel);
     }
     bool prepare(const ResearchConfig& research, const ModalConfig& config = {},
                  ModalExcitation excitation = ModalExcitation::raw,
-                 ModalNormalization normalization = ModalNormalization::c0) noexcept {
+                 ModalNormalization normalization = ModalNormalization::c0,
+                 ModalMotionModel motionModel = ModalMotionModel::independent) noexcept {
         const double rate = research.sampleRateHz;
         ready_ = false;
         normalization_ = {};
@@ -46,7 +50,9 @@ class LiquidModalResonator final {
             config.motionIntervalSeconds < .02 || config.motionIntervalSeconds > 10 ||
             !conditioner_.prepare(rate, excitation) ||
             (normalization != ModalNormalization::c0 && normalization != ModalNormalization::c3) ||
-            (normalization == ModalNormalization::c3 && excitation == ModalExcitation::raw))
+            (normalization == ModalNormalization::c3 && excitation == ModalExcitation::raw) ||
+            (motionModel != ModalMotionModel::independent &&
+             motionModel != ModalMotionModel::structured))
             return false;
         for (std::size_t i = 0; i < kRatios.size(); ++i)
             coefficients_[i] = detail::makeResonator(rate, config.rootFrequencyHz * kRatios[i],
@@ -58,6 +64,7 @@ class LiquidModalResonator final {
             detail::normalizeModal(coefficients_, anchor, normalization, config.residualGain);
         gainPerMode_ = config.residualGain / static_cast<double>(kRatios.size());
         motionDepth_ = config.motionDepth;
+        motionModel_ = motionModel;
         intervalSamples_ = static_cast<std::size_t>(std::ceil(rate * config.motionIntervalSeconds));
         seed_ = research.seedFor(RandomDomain::modalMotion);
         reset();
@@ -73,6 +80,7 @@ class LiquidModalResonator final {
                 mode.reset();
         random_.reseed(seed_);
         phase_ = 0;
+        latentFrom_ = latentTo_ = 0;
         from_.fill(1);
         weights_.fill(1);
         nextTarget();
@@ -111,6 +119,10 @@ class LiquidModalResonator final {
 
   private:
     void nextTarget() noexcept {
+        if (motionModel_ == ModalMotionModel::structured) {
+            latentTo_ = 2 * random_.nextUnipolar() - 1;
+            return;
+        }
         double sum{};
         for (auto& weight : to_) {
             weight = 1 + motionDepth_ * (2 * random_.nextUnipolar() - 1);
@@ -122,11 +134,27 @@ class LiquidModalResonator final {
     void advanceWeights() noexcept {
         const double phase = static_cast<double>(phase_) / intervalSamples_;
         const double blend = phase * phase * (3 - 2 * phase);
-        for (std::size_t i = 0; i < weights_.size(); ++i)
-            weights_[i] = from_[i] + blend * (to_[i] - from_[i]);
+        if (motionModel_ == ModalMotionModel::structured) {
+            // One smooth stochastic latent tilts the modal spectrum. Positive weights sum to six.
+            // For depth<=.35 and position/q in [-1,1], each weight<=exp(.7)<1.35/.65;
+            // the existing C3 bound therefore covers this time-varying family without revision.
+            const double q = latentFrom_ + blend * (latentTo_ - latentFrom_);
+            double sum{};
+            for (std::size_t i = 0; i < weights_.size(); ++i) {
+                const double position = 2.0 * i / (weights_.size() - 1) - 1;
+                weights_[i] = std::exp(motionDepth_ * q * position);
+                sum += weights_[i];
+            }
+            for (auto& weight : weights_)
+                weight *= weights_.size() / sum;
+        } else {
+            for (std::size_t i = 0; i < weights_.size(); ++i)
+                weights_[i] = from_[i] + blend * (to_[i] - from_[i]);
+        }
         if (++phase_ == intervalSamples_) {
             phase_ = 0;
             from_ = to_;
+            latentFrom_ = latentTo_;
             nextTarget();
         }
     }
@@ -137,6 +165,8 @@ class LiquidModalResonator final {
     std::array<std::array<detail::DampedResonator, kRatios.size()>, 2> modes_{};
     double gainPerMode_{};
     double motionDepth_{};
+    ModalMotionModel motionModel_{ModalMotionModel::independent};
+    double latentFrom_{}, latentTo_{};
     std::array<double, 6> from_{}, to_{}, weights_{};
     RandomSource random_;
     RandomSource::Seed seed_{RandomSource::kDefaultSeed};

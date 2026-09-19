@@ -17,10 +17,10 @@ template <typename Integer> bool parse(std::string_view text, Integer& value) {
 }
 
 int render(int argc, char** argv) {
-    if (argc < 6 || argc > 12) {
+    if (argc < 6 || argc > 13) {
         std::cerr << "Usage: renderer input.wav NEW-output.wav mode block seed [config.json|-] "
                      "[tail-seconds] [NEW-protect-trace.csv|-] [raw|hard|softsign|tanh|feature] "
-                     "[NEW-excitation.wav|-] [c0|c3]\n"
+                     "[NEW-excitation.wav|-] [c0|c3] [independent|structured]\n"
                      "Modes: baseline, residual (zero), a, b, d, ab, ad, bd, abd, c; append "
                      "-residual for E only.\n";
         return 2;
@@ -39,12 +39,20 @@ int render(int argc, char** argv) {
     if (argc >= 10 && (mode != "c" || !parseModalExcitation(argv[9], excitationMode)))
         return 2;
     ModalNormalization normalization{ModalNormalization::c0};
-    if (argc == 12) {
+    if (argc >= 12) {
         if (mode != "c" ||
             (std::string_view(argv[11]) != "c0" && std::string_view(argv[11]) != "c3"))
             return 2;
         normalization =
             std::string_view(argv[11]) == "c3" ? ModalNormalization::c3 : ModalNormalization::c0;
+    }
+    ModalMotionModel motionModel{ModalMotionModel::independent};
+    if (argc == 13) {
+        if (mode != "c" || (std::string_view(argv[12]) != "independent" &&
+                            std::string_view(argv[12]) != "structured"))
+            return 2;
+        motionModel = std::string_view(argv[12]) == "structured" ? ModalMotionModel::structured
+                                                                 : ModalMotionModel::independent;
     }
     const bool captureExcitation = argc >= 11 && std::string_view(argv[10]) != "-";
     int blockSize{}, tailSeconds{};
@@ -93,10 +101,10 @@ int render(int argc, char** argv) {
     ResidualProtect protect;
     if (!protect.prepare(config.sampleRateHz, protectConfig.gain, protectConfig.depth))
         return 2;
-    const bool prepared = baselineMode ? baseline.prepare(config)
-                          : mode == "c"
-                              ? modal.prepare(config, modalConfig, excitationMode, normalization)
-                              : fluid.prepare(config, fluidConfig);
+    const bool prepared = baselineMode  ? baseline.prepare(config)
+                          : mode == "c" ? modal.prepare(config, modalConfig, excitationMode,
+                                                        normalization, motionModel)
+                                        : fluid.prepare(config, fluidConfig);
     if (!prepared)
         return 2;
     // Optional diagnostic trace is offline-only, outside DSP and timing; refuse any overwrite.
@@ -256,7 +264,8 @@ int render(int argc, char** argv) {
     if (mode == "c") {
         const auto& readout = modal.normalizationReadout();
         std::cout << "modal_normalization="
-                  << (normalization == ModalNormalization::c3 ? "c3" : "c0")
+                  << (normalization == ModalNormalization::c3 ? "c3" : "c0") << " modal_motion="
+                  << (motionModel == ModalMotionModel::structured ? "structured" : "independent")
                   << " modal_bound=" << readout.residualBound
                   << " modal_energy_scale=" << readout.energyScale
                   << " modal_safety_scale=" << readout.safetyScale << " modal_excitation=";

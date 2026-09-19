@@ -133,3 +133,7 @@ module. `PreviewEngine` exposes the actual common modal driver only to the audio
 bound during prepare. It requires the bounded excitation path; raw/C0 remains default. No new
 production dependency, callback allocation or module/session target is added by this experiment.
 See [C3 proof and evidence](../experiments/water/EXP-W-RN-001.md).
+
+The opt-in Water research Modal bank additionally offers typed/CLI R-M1 structured excitation
+redistribution. It has no preview/default/Host adoption; [experiment evidence](../experiments/water/EXP-W-RM-001.md)
+tracks its bounded weight proof, tests and pending independent listening.

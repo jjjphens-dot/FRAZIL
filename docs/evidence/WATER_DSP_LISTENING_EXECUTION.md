@@ -114,8 +114,8 @@ branches remain evidence gates; numerical tests cannot supply those decisions.
 | 1 EXP-W-RX-001 excitation | COMPLETE; carrier-v2 tests, render, timing, GUI and self-review passed; no candidate adoption |
 | 2 BIBO-capped C3 normalization | ENGINEERING COMPLETE; bounded proof, 54 renders and serial suites passed |
 | 3 Resonant Decay | ENGINEERING PREPARATION COMPLETE; listening unresolved, unexplained one-off Debug fault retained |
-| 4 Structured Resonant Motion | IN PROGRESS; R-M1 first; optional drift only after human evidence that R-M1 is insufficient |
-| 5 Fluid calibration | Compare LCF0/1/2; no default selection without listening |
+| 4 Structured Resonant Motion | ENGINEERING COMPARISON PREPARED; human review pending; optional drift only after human evidence that R-M1 is insufficient |
+| 5 Fluid calibration | NEXT: compare LCF0/1/2; no default selection without listening |
 | 6 Droplet activity | Independent bounded scheduling refinement; zero events at zero |
 | 7 Continuous Flow | D0 review first; D1/D2 conditional on chorus/flanging REVISE |
 | 8 Droplet B2 | Conditional on existing Droplet review showing insufficiency |
@@ -239,3 +239,30 @@ All five repository quality commands and staged whitespace check PASS. No C++ ch
 Engineering preparation is complete, with the single unexplained Debug access violation explicitly
 retained as a review limitation. Human Decay semantics/audibility remain NOT ASSESSED; there is no
 normalization/default adoption. Continue to the independently testable R-M1 comparison candidate.
+
+### Phase 4 report
+
+1. Baseline `64ebf4d`; origin/main and PR branch fetched, no upstream drift.
+2. Optional research R-M1 coherent spectral redistribution; legacy path remains default.
+3. Extended Modal typed prepare/renderer/timing; added motion property test and actual-render
+   comparison script. No production or preview/session state change.
+4. User plan's normalized exponential family, with explicit conservative weight proof.
+5. One smooth seeded latent, weights positive/sum6, maximum exp(.7) below C3's existing bound.
+6. No pitch/Decay/gain mapping changes, no frequency drift, no Host/state/production adoption.
+7. Debug 24/24 (45.82 s), Release 24/24 (24.10 s), final ASAN 24/24 (74.77 s) PASS;
+   tests include finite extremes, reset, rate/block grids and zero-Motion legacy equality.
+8. 60 render rows PASS; 38 timing rows, maxima mean9.43807/P9512.7/P9916.9/worst425.6 us.
+   One prior old-AD ASAN renderer exit1 was not reproduced in the diagnostic-enabled renderer
+   suite or 100 exact AD repetitions. No root cause/fix is claimed; original failure retained.
+9. Local `build/listening-ui/motion-rm1-v1` and `crash-investigation` preserve results and failures.
+10. Independent review checked legacy arithmetic, policy validation, RNG/reset ownership,
+    normalized weight proof and fixed callback cost/storage. No callback I/O, lock or allocation.
+11. Experiment record, README, MODULE_INDEX, TESTING and ledger updated. Architecture, Parameters,
+    brief, ADR, production state, GUI/session behavior and formal performance contract unchanged.
+12. Human Stable/Active judgment, audibility and adoption NOT ASSESSED; no optional drift authorized
+    by human evidence. Existing quiet outputs and occasional renderer failures remain review risks.
+13. No finite-bound failure; numerical difference is not substituted for Motion perceptual acceptance.
+14. Continue independently to Fluid balance comparison, retaining default LC0 and human gates.
+
+Phase 4 final Markdown/portability scans, scanner regression tests, VS Code task check,
+clang-format dry-run and staged whitespace check PASS. All heavy pipelines ran serially.

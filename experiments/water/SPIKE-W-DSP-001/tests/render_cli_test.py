@@ -89,6 +89,16 @@ def main():
                     assert actual == renders["c"]
                     assert driver[:2*len(values):2] == tuple(v / 32768 for v in values)
                 assert subprocess.run(command, capture_output=True).returncode != 0
+            moving_config = root / "motion.json"
+            moving_config.write_text(json.dumps({"modal": {"motionDepth": .35, "motionIntervalSeconds": .02}}))
+            motion_audio = []
+            for model in ("independent", "structured"):
+                output = root / f"motion-{rate}-{model}.wav"
+                result = subprocess.run([str(renderer), str(source), str(output), "c-residual", "257", "42",
+                    str(moving_config), "2", "-", "hard", "-", "c3", model], check=True, capture_output=True, text=True)
+                assert f"modal_motion={model}" in result.stdout
+                motion_audio.append(read_float(output))
+            assert motion_audio[0] != motion_audio[1]
             c3_file = root / f"c3-{rate}.wav"
             c3_command = [str(renderer), str(source), str(c3_file), "c-residual", "128", "42",
                           "-", "2", "-", "hard", "-", "c3"]
@@ -289,4 +299,11 @@ def check_frames(path, expected_frames):
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except subprocess.CalledProcessError as error:
+        # Preserve sanitizer/native diagnostics that capture_output otherwise hides on failure.
+        for stream in (error.stdout, error.stderr):
+            if stream:
+                print(stream.decode("utf-8", errors="replace") if isinstance(stream, bytes) else stream)
+        raise
