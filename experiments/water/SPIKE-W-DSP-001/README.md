@@ -394,7 +394,7 @@ Mirror hosting is not the primary authority. Citation correction changes no algo
 References were reviewed on 2026-09-16. FRAZIL's residual composition, Fluid/Resonant names, gains,
 frequency families and scheduling are engineering hypotheses, not formulas endorsed by these papers.
 
-The listening-ready follow-up exports research session v3 and accepts v1/v2 without changing raw
+The listening-ready follow-up exports research session v5 and accepts v1-v4 without changing raw
 engineering values. Legacy v1 macro states are CUSTOM / legacy-unmapped; v2/v0.1 uses CUSTOM / legacy-research-v0.1. Runtime operation history
 never enters either schema; see the debug guide for DSP/context dirty and checkpoint semantics.
 
@@ -404,7 +404,7 @@ never enters either schema; see the debug guide for DSP/context dirty and checkp
 Optional `modal.motionDepth` defaults to 0 (range 0..0.35), preserving exact historical sample
 arithmetic when omitted. `modal.motionIntervalSeconds` defaults to .7 s (range .02..10 s).
 The research macro maps depth=.35m and interval=.7*2.8^(1-2m). A/B/D and existing three Modal
-fields retain their defaults/ranges. Together with the Droplet scheduling gate, preview raw controls now total 24.
+fields retain their defaults/ranges. Together with the Droplet scheduling/probability gates and C policy options, preview raw controls now total 28.
 
 Six positive random targets are normalized to sum six, then interpolated with smoothstep between
 normalized endpoints. Only excitation distribution changes: poles, decay and output gain are
@@ -452,7 +452,7 @@ and source-preservation decisions remain pending. No audio, generated pack or pe
 `droplet.eventsEnabled` accepts exactly numeric 0 or 1 (default 1 for legacy module JSON).
 The v0.2 Motion mapper selects 0 at Motion=0; Bubble rate is `480*m*m`. This gate only disables
 new scheduling; the audio owner can close it without clearing active voices. Current macro
-editing still uses stopped prepare/restart transactions. Session v3 records all 24 targets;
+editing still uses stopped prepare/restart transactions. Session v5 records all 28 targets;
 v2/v0.1 becomes legacy-research-v0.1 / CUSTOM and requires explicit adoption of v0.2.
 
 `render/modal_normalization_study.py --output <new-local-directory>` compares C0/C1/C2 formulas

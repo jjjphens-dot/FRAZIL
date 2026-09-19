@@ -223,7 +223,7 @@ Review 记录至少包含：Git commit + dirty 状态、源素材名称/授权�
 
 验收边界与最新实测结果见 [研究预览验证记录](evidence/WATER_PREVIEW_VALIDATION.md)。
 
-### Listening-ready session v3 follow-up
+### Listening-ready session compatibility
 
 Research session exports now use v5, with the explicit Droplet scheduling target. The renderer
 accepts the new optional field; omitted fields retain historical defaults. Production Host state

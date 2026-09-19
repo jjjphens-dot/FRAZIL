@@ -43,7 +43,7 @@ library, and are tested by `frazil_water_preview`; all research time widgets con
 See [staged execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
 `ControlDescriptor.h` supplies typed IDs, module groups, units/display policy, baseline provenance,
 range and lifecycle metadata for the 28 research controls (21 original, two Modal Motion fields, the Droplet scheduling gate and onset probability, and three explicit C comparison options). `PreviewSettings` consumes the descriptors
-without changing module JSON; DSP continues to use its existing typed config structs.
+to export module JSON; DSP consumes typed config structs rather than UI descriptors.
 `SessionCodec.h` owns the separate versioned research manifest including provisional Decay;
 `SessionJsonSyntax.h` bounds and validates its richer JSON syntax before schema decoding. Imports
 produce candidates and use the controller's existing DSP validation before restoring the model.

@@ -428,3 +428,22 @@ The next-stage [EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md) compares bou
 excitation separately from the raw preview default and C0 normalization. An actual-driver
 Engineering audition is implemented; validation and candidate selection remain in the phase
 record. No human acceptance, C3 adoption or completed Water listening readiness is implied.
+
+
+### Next-stage candidate engineering handoff (PR #40 branch)
+
+The [phase ledger](evidence/WATER_DSP_LISTENING_EXECUTION.md) records bounded-carrier comparison,
+C3 induced-response-capped normalization, structured Modal Motion, Fluid balance comparison,
+separate continuous Droplet activity and monitor-only actual component/driver diagnostics.
+These are explicit research candidates; raw/C0/independent and the v0.2 macro defaults remain.
+Session v5 stores28 engineering targets with conservative v1-v4 import. Two90-case packs
+(Hard/C3 and Feature/C3) passed finite/repeat/partition/isolation, with separate RMS support and
+[blank independent review forms](evidence/WATER_CANDIDATE_LISTENING_REVIEW.md). The fifth input
+is a generated engineering pad; representative musical testing is deferred by the user.
+
+Latest local Debug/Release/ASAN each pass25/25; native GUI covers candidate Apply, diagnostics
+and descriptor-group visibility. Two earlier intermittent renderer failures remain unresolved
+observations, despite later passing suites; no root-cause fix is claimed. Human audibility,
+macro semantics, baseline acceptance/revision and subsequent Protect listening are NOT ASSESSED /
+NOT RUN. Conditional Flow D1/D2 and Droplet B2 were not triggered. This is unmerged PR-branch
+engineering evidence, not current-main adoption, formal Host validation or Water readiness.

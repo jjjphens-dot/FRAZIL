@@ -6,6 +6,14 @@ after all work completes. That instruction supersedes the per-phase pause, while
 separate implementation, validation, review and documentation gates and required human decisions.
 This record begins with Phase 0, before any DSP experiment implementation.
 
+## Current execution state
+
+Engineering implementation, functional validation, self-review and documentation phases0-6/9-10
+are complete; Phase7/8 conditional mechanisms were not triggered. Phase11 forms/protocol are ready,
+but both independent human reviews are NOT ASSESSED. Phase12 Protect listening is NOT RUN pending
+those baseline records. User authorized final push for collaborator review, not merge/adoption.
+All phases below preserve historical failures and their contemporaneous baselines/results.
+
 ## Phase 0 — Contract Review and documentation reconciliation
 
 1. **Exact baseline HEAD:** `64f082c84041c9de588b6840ce4e797f23660680`; main
@@ -445,3 +453,35 @@ C remains supported only on Whole/F1. Existing Protect contracts need no modific
 12. Human baseline and musical material pending; Phase12 listening NOT RUN.
 13. Conditional boundary preserved, no scope expansion. 14. Final diff/document review, then the
 user-authorized push of completed engineering work to existing PR40; no merge or human Gate claim.
+
+## Final Code Quality Review / Documentation Synchronization
+
+Reviewed final candidate DSP, voice trigger capture, renderer CLI/config precedence, session
+migration, monitor equations and descriptor layout separately from test execution. C3 uses the
+actual rounded poles and conservative varying-weight bound; no internal clipping was added.
+Activity RNG is separate; probability1 legacy B/ABD samples match the pre-change pack. Preview
+choices use existing typed DSP preparation; diagnostic-only atomics and fixed arrays stay off
+history/config. New files are limited to real experiment records, bounded numerical helpers,
+property tests, pack drivers and reviewer handoff. No production target dependency was added.
+No additional actionable code defect was found after the descriptor-group repair; the two rare
+renderer failures remain explicit unresolved risks for independent review, not declared fixed.
+
+Documentation synchronization covers affected UI/session/realtime/status rows: debug guide,
+sound tools, module index, experiment README/mapping, TESTING, PROJECT_STATUS and current handoff
+agree on v5/28 targets, legacy/default behavior, opt-in candidates and incomplete human gates.
+Corrected stale current-v3/24 wording found during final review; historical phase facts remain.
+Reviewed unchanged: Architecture, Coding Plan, Parameters, Code Standards, Document Governance,
+Perceptual Contract, accepted EXP-W-001 brief, relevant ADRs and production app/plugin docs;
+production boundaries/interfaces, ownership, milestone/Host support and formal budgets did not change.
+Git diff confirms no production src or CI workflow change in this continuation. Original checkout
+and its unrelated modifications remain untouched. No generated audio, binaries or personal paths
+are tracked. Markdown/portability/scanner regressions/task references/format/whitespace gates PASS.
+
+Final executable evidence is Phase9's serial Debug50.55s/Release21.14s/ASAN89.49s (25/25 each).
+Later edits are Python handoff/forms and docs: both90-case generators, independent decoded audio
+checks and form/overwrite verification PASS. No redundant executable rebuild is claimed for them.
+The external review-checklist helper initially failed on Windows GBK decoding; rerunning with
+`python -X utf8` succeeded without repository or global environment changes. Self-review is not
+formal APPROVE. Human listening, musical-pad acceptance, new Protect listening, pluginval/DAW,
+physical loopback and merge remain NOT RUN. Existing-PR identity check confirmed creator and
+current authenticated push account both Aspartameqwq before authorized push.
