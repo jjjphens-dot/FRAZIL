@@ -24,7 +24,7 @@ raw CUSTOM changes to these unowned controls remain subject to the existing coup
 
 v1 sessions remain `legacy-unmapped`: moving macros changes research context only. The explicit
 Adopt Research Mapping v0.2 button maps all three macros, or a per-macro Return explicitly adopts
-that family. Other CUSTOM families remain unchanged. v3 checks mapped target consistency as well
+that family. Other CUSTOM families remain unchanged. v4 checks mapped target consistency as well
 as known revision, typed values, source rate and retained Protect state. No history enters JSON.
 
 v2 / v0.1 imports preserve raw values, append the legacy Droplet gate default ON, and become
@@ -48,7 +48,7 @@ it is not product balance or a loudness claim. Typed renderer defaults remain un
 Gains have calibration ownership, outside Size/Motion/Decay. Raw gain edits mark calibration
 CUSTOM without changing macro states; macro movement and Return All leave those gains intact.
 Engineering's Restore Listening Calibration changes only these four gains in one operation.
-Session v3 stores calibration status and rejects a mapped claim whose gains disagree; legacy v2
+Session v4 stores calibration status and rejects a mapped claim whose gains disagree; legacy v2
 also carries calibration provenance. v1/module
 imports preserve their raw gains and mark calibration CUSTOM.
 
@@ -58,3 +58,11 @@ C0 modal normalization (`b = 1-r`) remains unchanged. Unmodified C1/C2 failed th
 boundary study and were not adopted. Resonant is **not fully listening-ready**; current Motion
 and Decay measurements do not establish clearly audible macro semantics. The next bounded
 excitation experiment is tracked separately in the [phase record](../../../docs/evidence/WATER_DSP_LISTENING_EXECUTION.md).
+
+## Separate continuous Droplet activity candidate
+
+Session v4 adds unowned `droplet.eventActivity` (default 1), preserving v0.2 macro destinations.
+v1/v2/v3 import fills the legacy probability 1. The pure mapper's explicit candidate helper
+returns clamp(4*m*m,0,1); the cases exporter applies it only with `--continuous-droplet` and labels
+that candidate in its manifest. The normal preview mapper does not adopt it. Probability affects
+otherwise-valid event scheduling only; frequency/Decay/gain and threshold eligibility are retained.

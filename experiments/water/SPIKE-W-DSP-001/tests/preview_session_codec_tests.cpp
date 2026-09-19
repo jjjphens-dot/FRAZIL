@@ -60,6 +60,8 @@ int runSessionCodecTests() {
     }
     legacy["configuration"]["droplet"].getDynamicObject()->removeProperty("eventsEnabled");
     legacy["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventsEnabled");
+    legacy["configuration"]["droplet"].getDynamicObject()->removeProperty("eventActivity");
+    legacy["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventActivity");
     auto legacyExpected = decoded.engineering;
     legacyExpected.values[controlIndex(ControlId::modalMotionDepth)] = 0;
     legacyExpected.values[controlIndex(ControlId::modalMotionInterval)] = .7;
@@ -77,6 +79,8 @@ int runSessionCodecTests() {
     v2.getDynamicObject()->setProperty("mappingRevision", "research-water-mapping-v0.1");
     v2["configuration"]["droplet"].getDynamicObject()->removeProperty("eventsEnabled");
     v2["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventsEnabled");
+    v2["configuration"]["droplet"].getDynamicObject()->removeProperty("eventActivity");
+    v2["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventActivity");
     check(decodeSession(juce::JSON::toString(v2, false, 17).toStdString(), migrated).isEmpty() &&
               migrated.engineering.moduleJson() == decoded.engineering.moduleJson() &&
               migrated.mappingRevision == "legacy-research-v0.1" &&
@@ -86,6 +90,18 @@ int runSessionCodecTests() {
     check(decodeSession(encodeSession(migrated).toStdString(), migrated).isEmpty() &&
               migrated.mappingRevision == "legacy-research-v0.1",
           "migrated legacy v3 can be exported and imported without adoption");
+    auto v3 = juce::JSON::parse(text);
+    v3.getDynamicObject()->setProperty("version", 3);
+    v3["configuration"]["droplet"].getDynamicObject()->removeProperty("eventActivity");
+    v3["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventActivity");
+    check(decodeSession(juce::JSON::toString(v3, false, 17).toStdString(), migrated).isEmpty() &&
+              migrated.engineering.values[controlIndex(ControlId::dropletEventActivity)] == 1,
+          "v3 defaults activity to legacy one without changing mapping");
+    auto probability = decoded;
+    probability.engineering.values[controlIndex(ControlId::dropletEventActivity)] = .25;
+    check(decodeSession(encodeSession(probability).toStdString(), migrated).isEmpty() &&
+              migrated.engineering.moduleJson() == probability.engineering.moduleJson(),
+          "v4 retains explicit activity without macro adoption");
     auto invalidMapping = juce::JSON::parse(text);
     invalidMapping.getDynamicObject()->setProperty("mappingRevision", "unknown-revision");
     check(decodeSession(juce::JSON::toString(invalidMapping).toStdString(), decoded).isNotEmpty() &&
@@ -111,7 +127,7 @@ int runSessionCodecTests() {
                             text.replace("\"decay\": 0.75", "\"decay\": NaN"),
                             text.replace("\"decay\": 0.75", "\"decay\": true"),
                             text.replace("\"decay\": 0.75", "\"decay\": 01"),
-                            text.replace("\"version\": 3", "\"version\": 4"),
+                            text.replace("\"version\": 4", "\"version\": 5"),
                             text.replace("\"seed\": 42", "\"seed\": 41")}) {
         check(bad != text, "invalid fixture actually mutates manifest");
         check(decodeSession(bad.toStdString(), decoded).isNotEmpty() &&

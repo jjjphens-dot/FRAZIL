@@ -868,3 +868,7 @@ identity, Cauchy-Schwarz L1 bound and timing are in [EXP-W-RN-001](../experiment
 Research-only `frazil_water_motion` checks optional R-M1 coherent normalized weights, C3 bound,
 static/seed/partition behavior and finite extremes. The old default remains independently covered.
 See [EXP-W-RM-001](../experiments/water/EXP-W-RM-001.md) for listening and timing limits.
+
+`frazil_water_activity` validates probability endpoints, eligible-onset/family preservation,
+channel/reset/partition behavior and extreme inputs. Preview tests cover research session v4
+probability roundtrip plus v1/v2/v3 legacy defaults; see [EXP-W-DA-001](../experiments/water/EXP-W-DA-001.md).

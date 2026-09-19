@@ -17,7 +17,7 @@ Reconciled on 2026-09-19 before documentation changes:
 | Protect PR #37 | `1a1fb410238c274488bdd2ca0709c6831cc15859`, OPEN |
 | Implementation CI | [35422887316](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35422887316), SUCCESS; historical evidence for the implementation commit, not subsequent documentation commits |
 | Current mapping | `research-water-mapping-v0.2` |
-| Research session export | v3, 24 explicit engineering targets |
+| Research session export | v4, 25 explicit engineering targets |
 | Production contract | Nine Host parameters, `schemaVersion=1`, unchanged |
 
 The [mapping specification](../../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md)
@@ -135,3 +135,7 @@ Further engineering comparison packs (no adopted defaults):
 
 Neither pack supplies human approval. Quiet Resonant outputs, driven-source Decay level loss,
 possible Fluid masking and the unreproduced renderer failures remain review limitations.
+
+Session v4 adds the independent Engineering Onset probability control (default 1); older sessions
+fill 1 without remapping. v0.2 Motion does not automatically adopt the separate continuous-activity
+curve. See the current debug guide for explicit probability and exporter candidate use.

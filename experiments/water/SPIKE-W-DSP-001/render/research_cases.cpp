@@ -5,7 +5,10 @@
 
 // Offline config export only: reuse the UI mapper and calibration, never duplicate curves in
 // the listening harness or create another processing path. stdout contains no machine paths.
-int main() {
+int main(int argc, char** argv) {
+    const bool continuous = argc == 2 && std::string_view(argv[1]) == "--continuous-droplet";
+    if (argc > 1 && !continuous)
+        return 2;
     using namespace frazil::water::preview;
     juce::Array<juce::var> cases;
     for (int model = 0; model < 2; ++model)
@@ -19,6 +22,9 @@ int main() {
                 for (const auto id : {MacroId::size, MacroId::motion, MacroId::decay})
                     applyResearchMacro(settings, state, id);
                 ResearchListeningCalibration::apply(settings);
+                if (continuous)
+                    settings.values[controlIndex(ControlId::dropletEventActivity)] =
+                        *ResearchWaterMacroMapper::continuousDropletActivity(state.motion);
                 juce::var entry(new juce::DynamicObject());
                 auto* object = entry.getDynamicObject();
                 object->setProperty("mode", model == 0 ? "abd" : "c");
@@ -32,6 +38,8 @@ int main() {
                                          ResearchWaterMacroMapper::revision.data());
     root.getDynamicObject()->setProperty("calibration", ResearchListeningCalibration::revision);
     root.getDynamicObject()->setProperty("seed", 42);
+    root.getDynamicObject()->setProperty("dropletActivity",
+                                         continuous ? "candidate-4m2-v1" : "legacy-one");
     root.getDynamicObject()->setProperty("cases", cases);
     std::cout << juce::JSON::toString(root, false, 17) << '\n';
 }

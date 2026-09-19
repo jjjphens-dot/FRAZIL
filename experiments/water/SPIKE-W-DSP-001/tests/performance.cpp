@@ -3,6 +3,7 @@
 #include "dsp/FluidCandidate.h"
 #include "dsp/FluidProtect.h"
 #include "dsp/LiquidModalResonator.h"
+#include "preview/ResearchWaterMacroMapper.h"
 
 #include <algorithm>
 #include <chrono>
@@ -58,10 +59,11 @@ template <typename Effect> double measure(const char* name, Effect effect, doubl
 } // namespace
 
 int main(int argc, char** argv) {
+    const bool activityStudy = argc == 2 && std::string_view(argv[1]) == "--activity-study";
     const bool motionStudy = argc == 2 && std::string_view(argv[1]) == "--motion-study";
     const bool normalized = argc == 2 && std::string_view(argv[1]) == "--normalization-study";
     const bool excitationStudy = argc == 2 && std::string_view(argv[1]) == "--excitation-study";
-    if (argc > 1 && !excitationStudy && !normalized && !motionStudy)
+    if (argc > 1 && !excitationStudy && !normalized && !motionStudy && !activityStudy)
         return 2;
     std::cout
         << "research_only rate=48000 block=128 stereo warmup=2000 measured=20000; "
@@ -82,6 +84,39 @@ int main(int argc, char** argv) {
             }
         },
         baseline);
+    if (activityStudy) {
+        using namespace frazil::water::preview;
+        for (double motion : {0., .25, .5, 1.})
+            for (double decay : {0., .5, 1.}) {
+                WaterExperimentState state;
+                state.motion = motion;
+                state.decay = decay;
+                const auto targets = ResearchWaterMacroMapper::map(state)->fluid;
+                DropletConfig config;
+                config.decaySeconds = targets.dropletDecaySeconds;
+                config.transientThreshold = targets.dropletThreshold;
+                config.refractorySeconds = targets.dropletRefractorySeconds;
+                config.eventsEnabled = targets.dropletEventsEnabled;
+                config.eventActivity = *ResearchWaterMacroMapper::continuousDropletActivity(motion);
+                DropletImpactExciter droplet;
+                if (!droplet.prepare({kRate, 42}, config))
+                    return 1;
+                const auto label = "B_activity_motion_" + std::to_string(motion) + "_decay_" +
+                                   std::to_string(decay);
+                measure(
+                    label.c_str(),
+                    [&](auto& buffer) {
+                        for (int i = 0; i < kBlock; ++i) {
+                            const auto y =
+                                droplet.process({buffer.getSample(0, i), buffer.getSample(1, i)});
+                            for (int channel = 0; channel < 2; ++channel)
+                                buffer.addSample(channel, i, y[channel]);
+                        }
+                    },
+                    baseline);
+            }
+        return 0;
+    }
     if (excitationStudy || normalized || motionStudy) {
         for (const auto name : {"raw", "hard", "softsign", "tanh", "feature"}) {
             ModalExcitation excitation;

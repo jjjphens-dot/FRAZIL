@@ -116,7 +116,7 @@ branches remain evidence gates; numerical tests cannot supply those decisions.
 | 3 Resonant Decay | ENGINEERING PREPARATION COMPLETE; listening unresolved, unexplained one-off Debug fault retained |
 | 4 Structured Resonant Motion | ENGINEERING COMPARISON PREPARED; human review pending; optional drift only after human evidence that R-M1 is insufficient |
 | 5 Fluid calibration | ENGINEERING PACK COMPLETE; 45 rows, no default selection without listening |
-| 6 Droplet activity | NEXT: independent bounded scheduling refinement; zero events at zero |
+| 6 Droplet activity | ENGINEERING COMPLETE; probability control/session v4, old output preserved at one |
 | 7 Continuous Flow | D0 review first; D1/D2 conditional on chorus/flanging REVISE |
 | 8 Droplet B2 | Conditional on existing Droplet review showing insufficiency |
 | 9 Component diagnostics | Actual monitor-only signals or documented existing offline ablations |
@@ -291,3 +291,32 @@ clang-format dry-run and staged whitespace check PASS. All heavy pipelines ran s
 
 Phase 5 quality scans/regressions/task check/staged whitespace PASS; C++ formatting and new CPU
 measurement N/A because no C++/callback implementation changed. Prior crash observations retained.
+
+### Phase 6 report
+
+1. Baseline `04b6639`; existing research worktree and source pack.
+2. Continuous probability filter for otherwise-valid Droplet onsets; no new B2 mechanism.
+3. Added activity property/render study, separate seed domain, Engineering probability descriptor,
+   research session v4 migration and optional exporter candidate. No parallel state or DSP path.
+4. User candidate clamp(4*m*m,0,1) is an explicit pure helper, not silently adopted by v0.2.
+5. Probability0 prohibits new events, probability1 preserves old output. Family draws occur on
+   every eligible onset; separate activity RNG decides whether to emit. Existing tails survive.
+6. Research session v4/25 targets; v1/v2/v3 fill probability1 without remapping. No production
+   nine-Host-parameter/schema1, routing, random persistence, Protect or formal budget change.
+7. Final serial Debug25/25 (45.30 s), Release25/25 (19.35 s), ASAN25/25 (80.55 s) PASS.
+   Initial new-test failures were fixture assumptions: insufficient hysteresis release spacing
+   and assuming the 96 kHz attack triggers in one sample. Tests corrected without DSP workaround.
+8. 20 actual B/ABD rows finite and partition-identical. Probability1 exactly equals saved pre-change
+   B/ABD samples for all five sources; probability0 has zero events. 14 timing rows retain maxima
+   mean3.29191/P953.9/P995.4/worst173.2 us. No perceptual or formal performance acceptance.
+9. Local `build/listening-ui/droplet-activity-v1`; sources/renders/logs remain ignored.
+10. Independent review checked validation, endpoints, no per-sample retry of rejected onsets,
+    family/RNG ownership, session migration, fixed callback state and no allocation/I/O/locks.
+11. Updated guide, mapping, sound tools, module index, testing, README, handoff and experiment
+    record. Architecture, Parameters, accepted brief, ADR, production state, formal Host/CPU
+    contract and Protect reviewed without changes. Relevant documentation synchronization PASS.
+12. Human continuous-motion judgment NOT ASSESSED. Native GUI verification follows in Phase9;
+    existing descriptor/session tests cover the new control but are not claimed as native GUI proof.
+13. No changed eligibility/frequency/Decay/gain or implicit mapping adoption. Prior rare renderer
+    failures remain unresolved observations; none recurred in the final Phase6 suites.
+14. Review conditional Phase7/8 scope, then implement monitor-only diagnostics in Phase9.

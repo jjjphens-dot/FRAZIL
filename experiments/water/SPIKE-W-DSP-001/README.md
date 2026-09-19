@@ -487,3 +487,9 @@ Optional Modal renderer suffix: `[c0|c3] [independent|structured]` after conditi
 excitation output. R-M1 requires explicit `structured`; omitted behavior stays independent.
 [EXP-W-RM-001](../EXP-W-RM-001.md) contains proof, scripts and review limits. Module JSON,
 research session and GUI defaults are unchanged by this offline comparison.
+
+Droplet optional `eventActivity` is a finite [0,1] onset probability, default1, separate from the
+binary `eventsEnabled` gate. Research session v4 stores it as a 25th descriptor target; legacy
+imports fill1. The default v0.2 mapper is unchanged. `frazil_water_research_cases --continuous-droplet`
+explicitly exports the separate candidate curve; [EXP-W-DA-001](../EXP-W-DA-001.md) records the
+actual probability/legacy comparison and pending human review. No production parameter is added.

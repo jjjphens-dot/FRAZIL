@@ -31,6 +31,13 @@ struct ResearchWaterTargets final {
 // The prescribed curves are listening hypotheses, not a frozen product/perceptual contract.
 struct ResearchWaterMacroMapper final {
     static constexpr std::string_view revision{"research-water-mapping-v0.2"};
+    // Separate candidate, not adopted by v0.2 mapping. Exporter/engineering comparisons opt in.
+    static std::optional<double> continuousDropletActivity(double motion) noexcept {
+        if (!std::isfinite(motion))
+            return std::nullopt;
+        const double m = std::clamp(motion, 0.0, 1.0);
+        return std::min(1.0, 4 * m * m);
+    }
     static std::optional<ResearchWaterTargets> map(const WaterExperimentState& state) noexcept {
         if (!std::isfinite(state.size) || !std::isfinite(state.motion) ||
             !std::isfinite(state.decay))

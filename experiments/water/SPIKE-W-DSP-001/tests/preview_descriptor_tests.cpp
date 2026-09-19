@@ -40,14 +40,15 @@ int runDescriptorTests() {
                                    modal.residualGain,
                                    modal.motionDepth,
                                    modal.motionIntervalSeconds,
-                                   fluid.droplet.eventsEnabled};
+                                   fluid.droplet.eventsEnabled,
+                                   fluid.droplet.eventActivity};
     // Independent pre-refactor UI range/step contract; DSP may additionally impose coupled bounds.
     const auto ranges = std::to_array<std::array<double, 3>>(
         {{40, 19000, 1},    {40, 19000, 1},  {.002, .5, .001}, {0, 2000, 1},   {0, 1, .0001},
          {0, .3, .001},     {1, 16, 1},      {40, 19000, 1},   {40, 19000, 1}, {.002, .1, .001},
          {.0001, 1, .0001}, {.001, 1, .001}, {0, .3, .001},    {1, 16, 1},     {.0001, .02, .0001},
          {0, .01, .0001},   {.02, 10, .01},  {0, .15, .001},   {40, 4700, 1},  {.002, 1, .001},
-         {0, .3, .001},     {0, .35, .001},  {.02, 10, .01},   {0, 1, 1}});
+         {0, .3, .001},     {0, .35, .001},  {.02, 10, .01},   {0, 1, 1},      {0, 1, .001}});
     static_assert(typedDefaults.size() == kControls.size());
     static_assert(ranges.size() == kControls.size());
     const std::set<ControlId> timeIds{ControlId::bubbleDecay,       ControlId::dropletDecay,
@@ -61,7 +62,7 @@ int runDescriptorTests() {
     int fields{};
     for (const auto& property : root.getDynamicObject()->getProperties())
         fields += property.value.getDynamicObject()->getProperties().size();
-    check(fields == 37 && root.getDynamicObject()->getProperties().size() == 5,
+    check(fields == 38 && root.getDynamicObject()->getProperties().size() == 5,
           "all renderer fields covered without adding session metadata");
     for (std::size_t i = 0; i < kControls.size(); ++i) {
         const auto& spec = kControls[i];
@@ -91,7 +92,7 @@ int runDescriptorTests() {
               "lifecycle and provenance");
         ++groups[static_cast<std::size_t>(spec.group)];
     }
-    check(groups == std::array{7, 8, 4, 5}, "module groups preserved");
+    check(groups == std::array{7, 9, 4, 5}, "module groups preserved");
     research::FluidConfig decodedFluid;
     research::ModalConfig decodedModal;
     research::ProtectRenderConfig decodedProtect;

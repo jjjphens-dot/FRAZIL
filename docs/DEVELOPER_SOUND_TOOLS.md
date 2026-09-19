@@ -135,7 +135,8 @@ edits retain inactive values, record origin/revision and require Apply. A/B capt
 experiment/engineering/monitor values. No reverse mapping is inferred from manual engineering edits.
 The [control-bridge record](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md) identifies staged validation;
 the standalone preview carries provisional Decay `0.5` in both views, A/B/reset and separate
-`frazil.water-research-session` v2 exports with conservative v1 import. See the
+`frazil.water-research-session` v4 exports with conservative v1/v2/v3 import; v4 adds the
+independent Droplet event probability while preserving legacy probability 1 on import. See the
 [research mapping](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md) for candidate formulas/limits. Copy/Export Session
 uses applied values; Import Session validates syntax/schema/config before replacing state. The
 original `DeveloperWaterExperimentSnapshot` and `frazil.dev-experiment` export are unchanged.
