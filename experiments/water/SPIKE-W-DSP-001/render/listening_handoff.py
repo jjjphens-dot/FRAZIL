@@ -1,7 +1,8 @@
 """Bounded offline listening pack; invokes the existing mapper exporter and renderer.
 
 All audio stays in a new local output directory. Metrics are objective proxies, never a
-perceptual decision. No normalization, content hashes, resampling or source modification.
+perceptual decision. Matched support is explicitly post-render, attenuation-only RMS matching.
+No content hashes, resampling or source modification.
 """
 
 from __future__ import annotations
@@ -21,6 +22,15 @@ def db(value):
 
 def rms(audio):
     return float(np.sqrt(np.mean(np.square(audio, dtype=np.float64))))
+
+
+def spectral_distribution(audio, rate):
+    """Normalized spectral energy fractions, not a perceived material or pitch judgment."""
+    energy = np.sum(np.abs(np.fft.rfft(audio, axis=0)) ** 2, axis=1)
+    frequency = np.fft.rfftfreq(len(audio), 1 / rate)
+    total = max(float(energy.sum()), 1e-30)
+    return [float(energy[(frequency >= low) & (frequency < high)].sum() / total)
+            for low, high in ((0, 250), (250, 1000), (1000, 4000), (4000, rate / 2 + 1))]
 
 
 def inspect(path, maximum=120):
@@ -60,6 +70,11 @@ def main():
     parser.add_argument("--renderer", type=Path, required=True)
     parser.add_argument("--input", type=Path, action="append", required=True)
     parser.add_argument("--reference", type=Path, action="append", default=[])
+    parser.add_argument("--resonant-profile", choices=("legacy", "hard-c3", "feature-c3"),
+                        default="legacy")
+    parser.add_argument("--continuous-droplet", action="store_true")
+    parser.add_argument("--engineering-input", type=Path, action="append", default=[],
+                        help="Label already-listed inputs as generated engineering fixtures")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if not 1 <= len(args.input) <= 6 or len(args.reference) > 3:
@@ -67,13 +82,24 @@ def main():
     if args.output.exists():
         parser.error("Output directory must be new; no overwrite")
     inputs = [(p.resolve(), *inspect(p)) for p in args.input]
+    engineering_inputs = {p.resolve() for p in args.engineering_input}
+    if not engineering_inputs.issubset({p for p, _, _ in inputs}):
+        parser.error("Every engineering input must also be an explicit --input")
     if sum(len(audio) * audio.shape[1] for _, audio, _ in inputs) > 8_000_000:
         parser.error("Bounded batch exceeded: split inputs into smaller runs")
-    exporter = subprocess.run([str(args.cases_executable.resolve())], check=True,
+    exporter = subprocess.run([str(args.cases_executable.resolve())] +
+                             (["--continuous-droplet"] if args.continuous_droplet else []), check=True,
                               capture_output=True, text=True)
     manifest = json.loads(exporter.stdout)
     if len(manifest["cases"]) != 18 or manifest["seed"] != 42:
         raise ValueError("Unexpected case exporter contract")
+    # Select typed existing DSP policies; macro curves still come only from the C++ exporter.
+    manifest["resonantProfile"] = args.resonant_profile
+    if args.resonant_profile != "legacy":
+        for case in manifest["cases"]:
+            case["config"]["modal"].update(
+                excitation=1 if args.resonant_profile == "hard-c3" else 4,
+                normalization=1, motionModel=1)
     references = []
     for path in args.reference:
         info = sf.info(path)
@@ -92,9 +118,13 @@ def main():
     results = []
     comparisons = []
 
-    def render(source, destination, mode, config, block=128):
+    def render(source, destination, mode, config, block=128, driver=None):
+        suffix = []
+        if driver is not None:
+            excitation = {"legacy": "raw", "hard-c3": "hard", "feature-c3": "feature"}
+            suffix = ["-", excitation[args.resonant_profile], str(driver)]
         completed = subprocess.run([str(args.renderer.resolve()), str(source), str(destination),
-                                    mode + "-residual", str(block), "42", str(config), "3"],
+                                    mode + "-residual", str(block), "42", str(config), "3", *suffix],
                                    check=True, capture_output=True, text=True)
         data, rate = sf.read(destination, dtype="float32", always_2d=True)
         if not np.isfinite(data).all():
@@ -114,12 +144,25 @@ def main():
         left_path = folder / "left-only.wav"
         sf.write(left_path, left, rate, subtype="FLOAT")
         center_outputs = {}
+        sf.write(folder / "Source-output-18.wav", source * 10 ** (-18 / 20), rate, subtype="FLOAT")
         for case in manifest["cases"]:
             key = f"{case['mode']}-{case['macro']}-{case['value']:g}"
             config = folder / (key + ".json")
             config.write_text(json.dumps(case["config"], indent=2) + "\n")
             destination = folder / (key + "-E.wav")
-            data, rendered_rate, activity = render(path, destination, case["mode"], config)
+            driver_path = folder / (key + "-excitation.wav") if case["mode"] == "c" else None
+            data, rendered_rate, activity = render(path, destination, case["mode"], config,
+                                                   driver=driver_path)
+            driver_metrics = {}
+            if driver_path is not None:
+                driver, driver_rate = sf.read(driver_path, dtype="float32", always_2d=True)
+                if driver_rate != rate or driver.shape != data.shape or not np.isfinite(driver).all():
+                    raise ValueError("Invalid actual driver capture")
+                if np.any(driver[len(source):] != 0):
+                    raise ValueError("Source-silent tail emitted excitation")
+                driver_metrics = {"excitation_rms_dbfs": db(rms(driver[:len(source)])),
+                                  "excitation_peak_dbfs": db(np.max(np.abs(driver))),
+                                  "early_c_100ms_rms_dbfs": db(rms(data[:round(.1 * rate)]))}
             if case["mode"] == "abd" and case["macro"] == "motion" and case["value"] == 0:
                 if int(activity["bubble_events"]) != 0 or int(activity["droplet_events"]) != 0:
                     raise ValueError("Motion=0 scheduled new Bubble/Droplet events")
@@ -142,24 +185,44 @@ def main():
             carrier = np.pad(source, ((0, rate * 3), (0, 0)))
             sf.write(folder / (key + "-Full-Focus18-output-18.wav"),
                      carrier * 10 ** (-18 / 20) + data, rate, subtype="FLOAT")
+            sf.write(folder / (key + "-Full-Reference-output-18.wav"),
+                     (carrier + data) * 10 ** (-18 / 20), rate, subtype="FLOAT")
             sf.write(folder / (key + "-WaterOnly-Focus36-output-18.wav"),
                      data * 10 ** (18 / 20), rate, subtype="FLOAT")
             results.append({"input": path.name, "rate": rate, "source_frames": len(source),
                             "source_rms_dbfs": db(rms(source)), "case": key,
+                            "input_role": "generated engineering fixture" if path in engineering_inputs
+                                          else "supplied original sampling-pack input",
                             "mode": case["mode"], "macro": case["macro"], "value": case["value"],
                             "file": destination.relative_to(output).as_posix(),
                             "finite": True, "deterministic": True, "partition_exact": True,
                             "isolated_right_zero": True, "activity": activity,
-                            **measures(data, rate, len(source), rms(source))})
+                            **driver_metrics, **measures(data, rate, len(source), rms(source))})
         print(f"Completed {path.name}: 18 cases, repeat/partition/isolation PASS", flush=True)
         for mode in ("abd", "c"):
             for macro in ("size", "motion", "decay"):
+                # Match within one source/mode/macro triplet only, keeping raw files unchanged.
+                triplet = [sf.read(folder / f"{mode}-{macro}-{value:g}-E.wav", always_2d=True)[0]
+                           for value in (0, .5, 1)]
+                levels = [rms(audio[:len(source)]) for audio in triplet]
+                target = min(levels)
+                gains = [target / value if value > 0 else 1.0 for value in levels]
+                for value, audio, gain in zip((0, .5, 1), triplet, gains):
+                    sf.write(folder / f"{mode}-{macro}-{value:g}-RMSmatched-WaterOnly.wav",
+                             audio * gain, rate, subtype="FLOAT")
                 low, _ = sf.read(folder / f"{mode}-{macro}-0-E.wav", always_2d=True)
                 high, _ = sf.read(folder / f"{mode}-{macro}-1-E.wav", always_2d=True)
                 comparisons.append({"input": path.name, "mode": mode, "macro": macro,
                                     "extremes_differ": not np.array_equal(low, high),
                                     "difference_rms_dbfs": db(rms(high - low)),
-                                    "human_audibility": "PENDING"})
+                                    "spectral_bands_hz": [0, 250, 1000, 4000, rate / 2],
+                                    "low_spectral_fractions": spectral_distribution(low, rate),
+                                    "high_spectral_fractions": spectral_distribution(high, rate),
+                                    "matched_source_window_target_dbfs": db(target),
+                                    "matched_linear_gains_0_half_1": gains,
+                                    "matched_interpretability": "zero target; do not assess" if target == 0
+                                                               else "RMS only; not LUFS/perceptual equality",
+                                    "human_audibility": "NOT ASSESSED"})
     # Isolated A/B observations expose a weak component that the combined Fluid E can mask.
     component_results = []
     path, source, rate = inputs[0]
@@ -173,12 +236,19 @@ def main():
             component_results.append({"input": path.name, "case": key, "activity": activity,
                                       **measures(data, rate, len(source), rms(source))})
     report = {"mapping_revision": manifest["mappingRevision"], "seed": 42,
+              "resonant_profile": args.resonant_profile,
+              "droplet_activity": manifest["dropletActivity"],
               "tail_seconds": 3, "protect": "OFF", "references": references,
-              "human_decision": "PENDING; no automatic ACCEPT", "renders": results,
+              "human_decision": "NOT ASSESSED", "renders": results,
               "extreme_comparisons": comparisons, "first_input_isolated_components": component_results}
     (output / "report.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
-    print(f"PASS: {len(results)} cases; human listening decision remains pending", flush=True)
+    print(f"PASS: {len(results)} cases; human listening decision remains NOT ASSESSED", flush=True)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except subprocess.CalledProcessError as error:
+        print(error.stdout or "", flush=True)
+        print(error.stderr or "", flush=True)
+        raise

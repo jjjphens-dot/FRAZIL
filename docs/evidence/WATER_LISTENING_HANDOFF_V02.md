@@ -80,7 +80,8 @@ python experiments/water/SPIKE-W-DSP-001/render/listening_handoff.py `
 
 The existing driver requires numpy/soundfile and emits mapped case JSON, `*-E.wav`,
 `*-Full-Focus18-output-18.wav`, `*-WaterOnly-Focus36-output-18.wav`, repeat/partition/isolation
-renders and `report.json`. These are fixed-source comparisons, **not RMS-matched evidence**.
+renders and `report.json`. Those baseline files are fixed-source comparisons. The current generator also emits separately
+labelled attenuation-only RMS support; never pool the two interpretations.
 Generated WAVs, source audio, reports and screenshots remain ignored locally.
 
 ## Listening and reference boundaries
@@ -91,8 +92,7 @@ both reviewers is **NOT ASSESSED** for the next-stage candidates; historical rev
 relabelled as acceptance of an unimplemented candidate.
 
 1. Audibility: use Water Only / Focus18 first; Focus36 is an extreme diagnostic comparison.
-2. Semantics: compare 0/.5/1 at fixed source level. Separate RMS-matched comparisons, when
-   generated, support character/preference judgments and cannot prove source preservation.
+2. Semantics: compare 0/.5/1 at fixed source level. Separate RMS-matched comparisons support character/preference judgments and cannot prove source preservation.
 3. Preservation: compare Reference and Full `x+E` for recognizable source, rhythm, bass and
    masking. Assess Water identity, input recognizability, Motion fluidity, musical usefulness
    and artifact severity separately; do not replace human judgment with an aggregate score.
@@ -102,7 +102,7 @@ Reference recordings and collaborator feedback remain in the
 no reference render entries. Historical reference-file observations do not establish acceptance
 of processing musical inputs. Protect remains OFF for the next baseline comparisons.
 
-Missing: a representative sustained pad and the requested five-input/90-case pack, bounded-C
+Missing: a representative musical sustained pad (deferred by the user), bounded-C
 adoption and human review, reliable Resonant macro audibility, Fluid balance review, two independent
 human decisions and subsequent Protect re-evaluation. None is implied by the 72-case regression.
 
@@ -139,3 +139,96 @@ possible Fluid masking and the unreproduced renderer failures remain review limi
 Session v4 adds the independent Engineering Onset probability control (default 1); older sessions
 fill 1 without remapping. v0.2 Motion does not automatically adopt the separate continuous-activity
 curve. See the current debug guide for explicit probability and exporter candidate use.
+
+## Phase10 current staged comparison packs
+
+Two separately labelled packs use five inputs x eighteen cases each. Both retain original source
+samples, v0.2 macro targets, LC-F0 calibration, fixed seed42, Protect OFF and three seconds of tail.
+The first four inputs are the supplied sampling pack. The fifth is the six-second generated
+engineering pad from EXP-W-RX-001, explicitly labelled in every relevant report row. The user
+approved use of the current sampling pack and will supply representative musical listening later.
+Neither pack selects a winner or changes the preview default.
+
+| Local directory | Explicit Resonant policy | Droplet policy |
+| --- | --- | --- |
+| `build/listening-ui/handoff-hard-c3-v1` | hard / C3 / structured | exporter candidate `clamp(4*m*m,0,1)` |
+| `build/listening-ui/handoff-feature-c3-v1` | feature / C3 / structured | same explicit candidate |
+
+The continuous Droplet policy is an **offline candidate**, not silently applied by the UI macro.
+To reproduce an exact case in the GUI, Import Module Config from the case JSON, then Apply/Play;
+the imported engineering values remain explicit/CUSTOM. Subsequent UI macro motion does not
+recalculate probability. For manual isolation, edit Onset probability explicitly. Hard/Feature C
+comparison can instead be selected in Engineering, followed by Apply/Play. Component Solo is
+for diagnosis, not evidence of full-ABD macro semantics.
+
+### File interpretation and listening stages
+
+| File suffix | Equation after static monitor settling | Use |
+| --- | --- | --- |
+| `Source-output-18.wav` | source x at -18 dB | source reference |
+| `*-E.wav` | E | Stage A Water Only / Focus18 / output -18 |
+| `*-WaterOnly-Focus36-output-18.wav` | E at +18 dB | extreme Stage A diagnostic only |
+| `*-Full-Focus18-output-18.wav` | x at -18 dB + E | boosted diagnostic context |
+| `*-Full-Reference-output-18.wav` | (x+E) at -18 dB | Stage C preservation/context |
+| `*-RMSmatched-WaterOnly.wav` | E times recorded attenuation | separate Stage B support only |
+| `c-*-excitation.wav` | actual common Modal driver | engineering inspection; no implied monitor attenuation |
+
+Stage A asks clearly/barely/inaudible only. Do not judge naturalness or quality. If low/high cannot
+be distinguished at Focus36, record REVISE MECHANISM; do not increase boost. Stage B compares
+0/.5/1 with the other macros fixed at .5: Size Fine/Bright to Large/Deep; Fluid Motion Calm to
+Active/Flowing, Resonant Stable to subtly more active; Decay Tight to Lingering. Stage C restores
+Reference/Full and compares the source, rhythm, major transient timing, bass weight and masking.
+
+Matched support uses minimum source-window residual RMS within each input/model/macro triplet;
+only post-render attenuation is applied. Gains and target are in `extreme_comparisons`. This is
+RMS matching, **not LUFS or perceptual loudness equality**. A zero target is flagged unassessable.
+It can support character/direction/preference, never source or transient preservation. Keep
+fixed-source and matched-support decisions separate. No hidden limiter/normalizer modifies DSP.
+
+Reports include actual C excitation peak/RMS, first100ms C RMS, source-window C RMS, tail energy/
+centroid, low/high Motion difference RMS, and spectral-energy fractions in0-250/250-1000/
+1000-4000/4000-Nyquist Hz. Early100ms is relative to file start, not a detected onset; these are
+engineering proxies. All output audio remains local/ignored; do not commit the sampling pack.
+
+### Portable regeneration
+
+After the documented Release configure/safe build, use Python with numpy/soundfile. Set
+`FRAZIL_SAMPLE_ROOT` to this machine's library root and `FRAZIL_ENGINEERING_PAD` to the local
+engineering fixture (or replace it with a real pad and omit the engineering label). From repo root:
+
+```powershell
+$research = 'build/windows-release/experiments/water/SPIKE-W-DSP-001'
+$inputArgs = @()
+Get-ChildItem "$env:FRAZIL_SAMPLE_ROOT/Sample_Input" -Filter *.wav -Recurse |
+  Sort-Object FullName | ForEach-Object { $inputArgs += @('--input', $_.FullName) }
+$inputArgs += @('--input', $env:FRAZIL_ENGINEERING_PAD, '--engineering-input', $env:FRAZIL_ENGINEERING_PAD)
+python experiments/water/SPIKE-W-DSP-001/render/listening_handoff.py `
+  --cases-executable "$research/frazil_water_research_cases_artefacts/Release/frazil_water_research_cases.exe" `
+  --renderer "$research/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe" `
+  @inputArgs --continuous-droplet --resonant-profile hard-c3 `
+  --output build/listening-ui/handoff-hard-c3-new
+```
+
+Repeat serially with `feature-c3` and another new output directory. Omit both candidate flags
+for the legacy policy. The generator refuses an existing output directory and bounds the batch.
+Input1..5 order is recorded by source name in each report; use the report rather than assuming
+which instrument is in a numbered folder. The current record is SubBass, Fill, Partisan, Axusr, pad.
+
+### Phase10 engineering observations (not listening decisions)
+
+Both packs passed90/90 finite/repeat/128-vs-257/channel-isolation cases; all five Fluid Motion0
+cases scheduled zero new A/B events. Decoded matched and Full-Reference equations were separately
+checked for every case. Maximum float-rounding error in the latter was1.95e-8. Attenuation gains
+were0..1; source-window RMS spread within every matched triplet was below1e-8 amplitude.
+
+| Observation | Hard/C3 | Feature/C3 |
+| --- | --- | --- |
+| C source-window RMS across45 cases | -76.65 to -49.76 dBFS | -67.58 to -43.70 dBFS |
+| C low/high Motion difference RMS across5 inputs | -97.90 to -79.35 dBFS | -86.83 to -76.20 dBFS |
+| SubBass C long-minus-short source-window RMS | -11.25 dB | -10.37 dB |
+| Engineering pad C long-minus-short source-window RMS | -12.03 dB | -11.83 dB |
+
+These low levels and driven-source Decay level losses remain unresolved listening risks; neither
+numerical difference nor longer tails establishes macro acceptance. Maximum Focus36 output peak
+across either pack is+0.765 dBFS (Fluid case), retained as float over-range, without limiting.
+No human audibility, musical usefulness, source preservation or Joint Gate readiness is claimed.

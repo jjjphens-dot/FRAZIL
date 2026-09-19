@@ -383,3 +383,30 @@ monitor diagnostics so reviewers can inspect actual components and excitation.
 13. No new safety/adoption exception. UI controls expose candidates, not a selected product mapping.
 14. Continue Phase10 staged packs, then prepare two independent review forms and conditional
     Protect handoff. User authorizes existing sampling pack; real musical material follows later.
+
+### Phase 10 report
+
+1. Baseline `e30d5fb`. 2. Staged90-case packs with current C comparison profiles, no adoption.
+3. Extended existing listening_handoff.py and current handoff; no parallel renderer or DSP changes.
+4. C++ actual macro exporter, existing renderer and explicit static monitor equations reused.
+5. Hard/C3/structured and Feature/C3/structured each generate90cases; explicit continuous Droplet
+candidate flag, LC-F0 unchanged. Actual C driver, early100ms, RMS, tail and spectral fractions added.
+6. All candidate flags opt-in; legacy invocation remains raw/C0 and legacy probability. Session,
+production Host/state/routing/latency and mapping contracts unchanged. Inputs stay unmodified.
+7. Python syntax validation and both full generators PASS. Each retains repeat identity, block128/
+257 equality, left-only isolation and finite checks. Independent decoded verification covers all
+180 matched files and180 Full-Reference equations, not merely manifest flags. Phase9 executable
+Debug/Release/ASAN25/25 remains applicable; no redundant C++ rebuild for this Python/docs phase.
+8. Both90/90PASS. C levels remain low and driven-source long Decay loses10-12dB on bass/pad.
+9. Local handoff-hard-c3-v1/handoff-feature-c3-v1; four supplied inputs plus explicitly generated
+engineering pad. Objective table in current handoff; actual musical-pad testing deferred by user.
+10. Self-review checked explicit config selectors, actual driver capture, source-window matching,
+zero target handling, finite/shape checks, no overwrite, bounded batch and surfaced renderer errors.
+Realtime review N/A: no callback changes. Matching is offline only, not hidden DSP compensation.
+11. Current handoff documents files, commands, profiles, fixed vs matched stages and numeric risks.
+README links current handoff already; canonical Architecture/Parameters/brief/TESTING contracts and
+module API/index require no change. Relevant links/portability/scanner/task/whitespace checks PASS.
+12. Human StageA/B/C and two-reviewer decisions remain NOT ASSESSED; no audibility/readiness claim.
+No pluginval/DAW/physical loopback or new CPU measure in this phase. Prior rare failures retained.
+13. No safety failure or automatic selection. Focus36 remains diagnostic maximum, never increased.
+14. Prepare Phase11 independent review records, then document conditional Protect revalidation.
