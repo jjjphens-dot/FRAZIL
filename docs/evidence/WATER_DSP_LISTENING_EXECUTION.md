@@ -113,8 +113,8 @@ branches remain evidence gates; numerical tests cannot supply those decisions.
 | 0 Current documentation handoff | COMPLETE, local commit `a6828f1` |
 | 1 EXP-W-RX-001 excitation | COMPLETE; carrier-v2 tests, render, timing, GUI and self-review passed; no candidate adoption |
 | 2 BIBO-capped C3 normalization | ENGINEERING COMPLETE; bounded proof, 54 renders and serial suites passed |
-| 3 Resonant Decay | Requires C3 comparison; retain .03/.12/.48 targets |
-| 4 Structured Resonant Motion | R-M1 first; optional drift only after human evidence that R-M1 is insufficient |
+| 3 Resonant Decay | ENGINEERING PREPARATION COMPLETE; listening unresolved, unexplained one-off Debug fault retained |
+| 4 Structured Resonant Motion | IN PROGRESS; R-M1 first; optional drift only after human evidence that R-M1 is insufficient |
 | 5 Fluid calibration | Compare LCF0/1/2; no default selection without listening |
 | 6 Droplet activity | Independent bounded scheduling refinement; zero events at zero |
 | 7 Continuous Flow | D0 review first; D1/D2 conditional on chorus/flanging REVISE |
@@ -175,3 +175,67 @@ VS Code task check, clang-format dry-run on changed C++, and staged whitespace c
 12. Human Decay/audibility and normalization selection NOT ASSESSED; preview remains raw/C0.
 13. Stop A not triggered for bounded C3; old C1/C2 failures retained. No contract relaxation.
 14. Continue directly to Phase 3 fixed-source and separately RMS-matched Decay comparisons.
+
+### Phase 3 report / recovery checkpoint
+
+1. Baseline `537ec4a`; Phase 2 committed locally after self-review and all quality scans passed.
+2. Prepare Decay support comparisons using reviewed bounded C3; retain 30/120/480 ms mapping.
+3. Added `render/decay_listening_study.py`; no C++/preview/default change in this phase.
+4. Reuses the actual C++ mapper exporter and renderer. Hard conditioner is a comparison reference
+   because it preserves these within-full-scale source samples exactly; no candidate adoption.
+5. Generates actual C3 excitation/residual, fixed Full Reference output and separate post-render
+   RMS-matched Water Only support. Matching attenuates to the quietest source-window RMS per
+   input triplet; it is not LUFS matching and cannot prove source preservation.
+6. Protect OFF, seed 42, Size/Motion fixed. All non-Decay destinations in exported configs agree.
+   The initial overly broad assertion also compared inactive Fluid Decay fields; corrected to
+   exclude the three existing Decay-owned targets, without changing mapper behavior.
+7. Actual 15-row render run PASS on four supplied inputs and one generated engineering pad;
+   finite outputs, actual-driver identity/silent tail, mapped destination isolation and matched
+   RMS equality checked. Pad is not a representative musical-listening acceptance source.
+8. Important unresolved finding: increasing Decay lowers source-window C RMS on Sub Bass
+   (-63.37/-69.05/-74.63 dBFS) and engineering pad (-62.05/-68.05/-74.07 dBFS).
+   Tail centroid generally grows near .015/.060/.240 s. The bank impulse-energy property does
+   not imply musical audibility or stable driven-source energy. No perceptual PASS is assigned.
+9. Outputs and report remain local in `build/listening-ui/decay-c3-v1`; source files unchanged.
+10. Script review checked bounded inputs, new-output-only policy, finite actual renders, common
+    comparison conditions, matching applied only after DSP, and no duplicated mapping formulas.
+11. Updated current handoff and this ledger. No new production/Host/session/contract behavior;
+    Architecture, Parameters, ADR, accepted brief and module ownership remain unchanged.
+12. Phase 3 Debug configure succeeded, but safe build REFUSED: available physical memory
+    2.17 GiB < 3 GiB required for 6 jobs. No Phase 3 CTest, Release or ASAN execution; previous
+    phase results must not be presented as Phase 3 results. No new GUI/human/Host evidence.
+13. Resource refusal stops progression under AGENTS section 0.1. No bypass, lower safety
+    threshold, forced process termination or subsequent heavy pipeline was attempted.
+14. Resume only when memory meets wrapper preflight: run serial Phase 3 Debug/Release/ASAN,
+    finish final review, then investigate driven-source Decay audibility and proceed to Phase 4
+    R-M1 as a separate candidate. Human judgments remain pending. No GitHub push yet.
+
+#### Phase 3 resumed validation (2026-09-19)
+
+The user confirmed memory was freed. The next safe wrapper preflight passed; the prior refusal
+remains historical evidence. The user also explicitly authorized using the existing sample pack
+now and deferring representative musical input/listening work. The generated fifth pad remains
+an engineering stimulus, not musical acceptance evidence.
+
+The resumed Debug suite failed 1/23: renderer `bd-residual`, 44.1 kHz, block7 exited with access
+violation 0xc0000005. Windows fault RVA 0x3affc resolves using that binary's PDB to the envelope
+follower coefficient read in WaterExcitationFeatures. No DSP source changed during Phase 3.
+Ten isolated repetitions of the exact waveform/mode/rate/block succeeded; this does not prove
+resolution. Original failure log and reproduction outputs are preserved locally under
+`build/listening-ui/crash-investigation`. ASAN then passed 23/23 in 80.02 s without a sanitizer
+finding. The full Debug suite then passed three repetitions per test (139.56 s total). The one access violation remains unexplained, not repaired or dismissed; recurrence requires renewed crash capture before acceptance.
+
+Phase 3 review: the new script only orchestrates the existing exporter/renderer and computes
+post-render monitoring copies. It changes no callback, lifecycle, Host or session behavior.
+Output refuses existing directories; source batch bounds and finite/rate/channel checks reuse
+the existing listening harness. Config assertions follow existing ownership across both models.
+Documentation synchronization covers this ledger and current operator handoff. TESTING and module
+index require no new executable-test/API entry for a one-off offline comparison orchestrator;
+Architecture, Parameters, accepted brief, production state and ADR remain unchanged.
+
+Phase 3 final validation: Release 23/23 PASS (19.94 s), Debug three repetitions per test PASS
+(139.56 s), ASAN 23/23 PASS (80.02 s), run serially through safe preparation/build and CTest.
+All five repository quality commands and staged whitespace check PASS. No C++ changed in Phase 3.
+Engineering preparation is complete, with the single unexplained Debug access violation explicitly
+retained as a review limitation. Human Decay semantics/audibility remain NOT ASSESSED; there is no
+normalization/default adoption. Continue to the independently testable R-M1 comparison candidate.

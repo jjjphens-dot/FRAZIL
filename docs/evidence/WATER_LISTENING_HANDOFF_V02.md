@@ -113,3 +113,15 @@ including the former 30/s minimum and earlier measured levels; they are not curr
 C3 now has [separate bounded engineering evidence](../../experiments/water/EXP-W-RN-001.md)
 and an explicit offline renderer option. This does not change the raw/C0 preview default or count
 as listening acceptance. See the [phase ledger](WATER_DSP_LISTENING_EXECUTION.md) for continuation.
+
+Phase 3 support files are locally available in `build/listening-ui/decay-c3-v1`: five input folders,
+three Decay values each, `fixed-Full-Reference-output-18`,
+`fixed-WaterOnly-Focus18-output-18`, actual excitation and separate `RMS-matched-support-WaterOnly`.
+They use explicit hard/C3, seed 42 and Protect OFF; the preview default remains raw/C0.
+Matching is source-window RMS attenuation after rendering, not LUFS or an adopted normalizer.
+Sub Bass and the generated engineering pad lose about 11.3/12.0 dB of source-window C level
+from short to long. Tail extension alone therefore does not establish Decay audibility.
+Both human reviews are NOT ASSESSED. The initial resource refusal was cleared. One subsequent
+Debug access violation was not reproduced in ten isolated runs or three full-suite repetitions;
+ASAN passed. This is an unresolved observation, not a claimed fix; see the execution ledger.
+The user authorized the current sample pack and deferred representative musical-input testing.
