@@ -89,6 +89,19 @@ def main():
                     assert actual == renders["c"]
                     assert driver[:2*len(values):2] == tuple(v / 32768 for v in values)
                 assert subprocess.run(command, capture_output=True).returncode != 0
+            c3_file = root / f"c3-{rate}.wav"
+            c3_command = [str(renderer), str(source), str(c3_file), "c-residual", "128", "42",
+                          "-", "2", "-", "hard", "-", "c3"]
+            result = subprocess.run(c3_command, check=True, capture_output=True, text=True)
+            c3 = read_float(c3_file)
+            assert c3 != renders["c"] and all(math.isfinite(v) and abs(v) <= 4 for v in c3)
+            assert "modal_normalization=c3" in result.stdout
+            for carrier, normalization in (("raw", "c3"), ("hard", "invalid")):
+                rejected = root / f"c3-reject-{rate}-{carrier}.wav"
+                command = [str(renderer), str(source), str(rejected), "c-residual", "128", "42",
+                           "-", "2", "-", carrier, "-", normalization]
+                assert subprocess.run(command, capture_output=True).returncode != 0
+                assert not rejected.exists()
             # New Modal motion is optional. Explicit zero must decode exactly like legacy omission;
             # active motion is fixed-seed and block-partition invariant, with isolated right channel.
             moving_reference = None

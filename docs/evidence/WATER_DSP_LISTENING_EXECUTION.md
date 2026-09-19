@@ -112,7 +112,7 @@ branches remain evidence gates; numerical tests cannot supply those decisions.
 | --- | --- |
 | 0 Current documentation handoff | COMPLETE, local commit `a6828f1` |
 | 1 EXP-W-RX-001 excitation | COMPLETE; carrier-v2 tests, render, timing, GUI and self-review passed; no candidate adoption |
-| 2 BIBO-capped C3 normalization | NEXT, after Phase 1 proof/validation |
+| 2 BIBO-capped C3 normalization | ENGINEERING COMPLETE; bounded proof, 54 renders and serial suites passed |
 | 3 Resonant Decay | Requires C3 comparison; retain .03/.12/.48 targets |
 | 4 Structured Resonant Motion | R-M1 first; optional drift only after human evidence that R-M1 is insufficient |
 | 5 Fluid calibration | Compare LCF0/1/2; no default selection without listening |
@@ -151,3 +151,27 @@ branches remain evidence gates; numerical tests cannot supply those decisions.
 
 Phase 1 final quality commands: Markdown-link and portability scans, both scanner regressions,
 VS Code task check, clang-format dry-run on changed C++, and staged whitespace check: all PASS on the staged Phase 1 changes. No GitHub upload yet; continuation is authorized.
+
+### Phase 2 report
+
+1. Baseline `24247c6`; same research branch and repository.
+2. Bounded C3 normalization only, preserving raw/C0 default and old failed C1/C2 evidence.
+3. Added preparation-only bound helper, normalization property test, actual-render grid driver
+   and [EXP-W-RN-001](../../experiments/water/EXP-W-RN-001.md); extended existing renderer/timing.
+4. Actual Cartesian recurrence supplies the energy identity and conservative induced-response
+   bound. No new external algorithm or perceptual claim.
+5. Bounded conditioner is mandatory for C3; energy coefficients are capped by a whole-bank
+   residual budget of 4 with 1% margin. No internal saturation or finite-input exception.
+6. No Host/state/mapping change; research preparation API and CLI are explicitly optional.
+7. Serial Debug 23/23 (40.82 s), Release 23/23 (19.89 s), ASAN 23/23 (74.15 s) PASS;
+   updated Debug CLI rerun 1/1 (31.15 s) PASS. Safe wrapper at 6 jobs throughout.
+8. 54 C0/C3 render rows, partition identity, adversarial finite-float tests and 38 timing rows
+   passed. Analytical C3 bound <=3.96; maximum sampled impulse L1 .62808.
+9. Local evidence: `build/listening-ui/normalization-c3-v1`; generated audio/logs not tracked.
+10. Independent quality review checked proof, coefficient ownership, legal corners, C0 preservation,
+    no callback allocation/I/O/locks, CLI failures before output creation and retained timing outlier.
+11. Updated experiment, module README/index, TESTING and current handoff. Architecture, Parameters,
+    brief, ADR, production state and Protect contracts reviewed without changes. Consistency PASS.
+12. Human Decay/audibility and normalization selection NOT ASSESSED; preview remains raw/C0.
+13. Stop A not triggered for bounded C3; old C1/C2 failures retained. No contract relaxation.
+14. Continue directly to Phase 3 fixed-source and separately RMS-matched Decay comparisons.

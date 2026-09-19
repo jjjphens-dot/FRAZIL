@@ -858,3 +858,9 @@ C0 unchanged. `frazil_water_performance --excitation-study` reports all candidat
 corners using the existing timing harness. These checks do not establish human audibility or
 acceptance; failures, measured results and UI validation are recorded in
 [EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md).
+
+C3 normalization adds `frazil_water_normalization`: actual impulse energy/persistence at all
+27 mapped triples, reversed-impulse-sign FLT_MAX adversaries through bounded excitation, raw
+parameter corners, stereo and partition/reset invariants. Renderer tests reject raw+C3 and
+unknown normalization selectors before output creation. The measured grid, positive-form energy
+identity, Cauchy-Schwarz L1 bound and timing are in [EXP-W-RN-001](../experiments/water/EXP-W-RN-001.md).

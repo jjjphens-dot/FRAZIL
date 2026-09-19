@@ -103,9 +103,13 @@ no reference render entries. Historical reference-file observations do not estab
 of processing musical inputs. Protect remains OFF for the next baseline comparisons.
 
 Missing: a representative sustained pad and the requested five-input/90-case pack, bounded-C
-proof and measurements, reliable Resonant macro audibility, Fluid balance review, two independent
+adoption and human review, reliable Resonant macro audibility, Fluid balance review, two independent
 human decisions and subsequent Protect re-evaluation. None is implied by the 72-case regression.
 
 The [old handoff](WATER_LISTENING_HANDOFF.md) and
 [old UI execution record](WATER_LISTENING_UI_EXECUTION.md) preserve v0.1/session-v2 history,
 including the former 30/s minimum and earlier measured levels; they are not current instructions.
+
+C3 now has [separate bounded engineering evidence](../../experiments/water/EXP-W-RN-001.md)
+and an explicit offline renderer option. This does not change the raw/C0 preview default or count
+as listening acceptance. See the [phase ledger](WATER_DSP_LISTENING_EXECUTION.md) for continuation.

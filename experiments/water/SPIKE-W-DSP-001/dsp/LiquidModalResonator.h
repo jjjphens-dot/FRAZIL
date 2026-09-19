@@ -4,6 +4,7 @@
 #include "WaterDspConfig.h"
 #include "WaterExcitationFeatures.h"
 #include "detail/DampedResonator.h"
+#include "detail/ModalNormalization.h"
 
 #include <array>
 
@@ -23,13 +24,16 @@ struct ModalConfig final {
 class LiquidModalResonator final {
   public:
     bool prepare(double rate, const ModalConfig& config = {},
-                 ModalExcitation excitation = ModalExcitation::raw) noexcept {
-        return prepare(ResearchConfig{rate, 42u}, config, excitation);
+                 ModalExcitation excitation = ModalExcitation::raw,
+                 ModalNormalization normalization = ModalNormalization::c0) noexcept {
+        return prepare(ResearchConfig{rate, 42u}, config, excitation, normalization);
     }
     bool prepare(const ResearchConfig& research, const ModalConfig& config = {},
-                 ModalExcitation excitation = ModalExcitation::raw) noexcept {
+                 ModalExcitation excitation = ModalExcitation::raw,
+                 ModalNormalization normalization = ModalNormalization::c0) noexcept {
         const double rate = research.sampleRateHz;
         ready_ = false;
+        normalization_ = {};
         reset();
         if (!std::isfinite(rate) || rate < 44100.0 || rate > 96000.0 ||
             !std::isfinite(config.rootFrequencyHz) || config.rootFrequencyHz < 40.0 ||
@@ -40,11 +44,18 @@ class LiquidModalResonator final {
             !std::isfinite(config.motionDepth) || config.motionDepth < 0 ||
             config.motionDepth > .35 || !std::isfinite(config.motionIntervalSeconds) ||
             config.motionIntervalSeconds < .02 || config.motionIntervalSeconds > 10 ||
-            !conditioner_.prepare(rate, excitation))
+            !conditioner_.prepare(rate, excitation) ||
+            (normalization != ModalNormalization::c0 && normalization != ModalNormalization::c3) ||
+            (normalization == ModalNormalization::c3 && excitation == ModalExcitation::raw))
             return false;
         for (std::size_t i = 0; i < kRatios.size(); ++i)
             coefficients_[i] = detail::makeResonator(rate, config.rootFrequencyHz * kRatios[i],
                                                      config.decaySeconds);
+        std::array<detail::ResonatorCoefficients, 6> anchor;
+        for (std::size_t i = 0; i < kRatios.size(); ++i)
+            anchor[i] = detail::makeResonator(rate, config.rootFrequencyHz * kRatios[i], .48);
+        normalization_ =
+            detail::normalizeModal(coefficients_, anchor, normalization, config.residualGain);
         gainPerMode_ = config.residualGain / static_cast<double>(kRatios.size());
         motionDepth_ = config.motionDepth;
         intervalSamples_ = static_cast<std::size_t>(std::ceil(rate * config.motionIntervalSeconds));
@@ -84,6 +95,10 @@ class LiquidModalResonator final {
             }
         return output;
     }
+    const detail::ModalNormalizationReadout& normalizationReadout() const noexcept {
+        return normalization_;
+    }
+
     // Actual common bank driver before per-mode weight redistribution; never recomputed by UI.
     const StereoFrame& excitationFrame() const noexcept {
         return excitation_;
@@ -117,8 +132,8 @@ class LiquidModalResonator final {
     }
     static constexpr std::array kRatios{1.0, 1.41, 1.93, 2.57, 3.31, 4.17};
     std::array<detail::ResonatorCoefficients, kRatios.size()> coefficients_{};
-    // Each mode has l1 impulse bound <=1 via (1-r). Motion weights sum to six; each is bounded
-    // by 1.35/.65. Thus .3 * 1.35/.65 < 1 retains headroom even for finite float extrema.
+    // C0 retains the historical finite-float bound .3 * 1.35/.65 < 1. C3 requires Emax=1
+    // conditioning and separately caps the whole-bank induced response; no state/sample clipping.
     std::array<std::array<detail::DampedResonator, kRatios.size()>, 2> modes_{};
     double gainPerMode_{};
     double motionDepth_{};
@@ -126,6 +141,7 @@ class LiquidModalResonator final {
     RandomSource random_;
     RandomSource::Seed seed_{RandomSource::kDefaultSeed};
     std::size_t phase_{}, intervalSamples_{1};
+    detail::ModalNormalizationReadout normalization_;
     ModalExcitationConditioner conditioner_;
     StereoFrame excitation_{};
     bool ready_{};

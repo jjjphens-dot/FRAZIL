@@ -473,3 +473,12 @@ with a 10 ms crossfade and Monitor Output only. No E Trim, Protect, history or s
 including a generated sustained engineering pad. See [experiment record](../EXP-W-RX-001.md)
 for equations, rejection of the first feature-carrier construction, finite/stereo proof,
 reproduction commands and validation. No new production path or implicit candidate selection.
+
+### C3 bounded normalization experiment
+
+A final renderer argument `c0|c3` selects the [C3 study](../EXP-W-RN-001.md), after the conditioner
+and optional excitation WAV (`-` omits capture). C3 requires a bounded conditioner and rejects raw;
+omission remains C0. The six-mode bank's prepare-time energy target uses a common 480 ms anchor
+and a separate induced-response cap; Motion and the gain knob do not change that target. The
+actual coefficients and bound are reported by the renderer. `bounded_normalization_study.py`
+measures source/impulse/partition results for 27 triples without selecting a preview default.

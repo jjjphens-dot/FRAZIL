@@ -128,3 +128,8 @@ is an offline C0/C1/C2 mathematical study, not a new DSP path or accepted normal
 module. `PreviewEngine` exposes the actual common modal driver only to the audio owner;
 `AuditionMonitor` crossfades its temporary audition after processing. Offline comparison is in
 [EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md); no new Host or session target is registered.
+
+`detail/ModalNormalization.h` computes research C3 coefficients and a whole-bank induced-response
+bound during prepare. It requires the bounded excitation path; raw/C0 remains default. No new
+production dependency, callback allocation or module/session target is added by this experiment.
+See [C3 proof and evidence](../experiments/water/EXP-W-RN-001.md).

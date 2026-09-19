@@ -58,8 +58,9 @@ template <typename Effect> double measure(const char* name, Effect effect, doubl
 } // namespace
 
 int main(int argc, char** argv) {
+    const bool normalized = argc == 2 && std::string_view(argv[1]) == "--normalization-study";
     const bool excitationStudy = argc == 2 && std::string_view(argv[1]) == "--excitation-study";
-    if (argc > 1 && !excitationStudy)
+    if (argc > 1 && !excitationStudy && !normalized)
         return 2;
     std::cout
         << "research_only rate=48000 block=128 stereo warmup=2000 measured=20000; "
@@ -80,20 +81,24 @@ int main(int argc, char** argv) {
             }
         },
         baseline);
-    if (excitationStudy) {
+    if (excitationStudy || normalized) {
         for (const auto name : {"raw", "hard", "softsign", "tanh", "feature"}) {
             ModalExcitation excitation;
             if (!parseModalExcitation(name, excitation))
                 return 2;
+            if (normalized && excitation == ModalExcitation::raw)
+                continue;
             for (double motion : {0., .5, 1.})
                 for (double decay : {.03, .12, .48}) {
                     const ModalConfig config{260, decay, .3, .35 * motion,
                                              .7 * std::pow(2.8, 1 - 2 * motion)};
                     LiquidModalResonator candidate;
-                    if (!candidate.prepare(kRate, config, excitation))
+                    if (!candidate.prepare(kRate, config, excitation,
+                                           normalized ? ModalNormalization::c3
+                                                      : ModalNormalization::c0))
                         return 1;
-                    const auto label = std::string(name) + "_motion_" + std::to_string(motion) +
-                                       "_decay_" + std::to_string(decay);
+                    const auto label = std::string(normalized ? "C3_" : "C0_") + name + "_motion_" +
+                                       std::to_string(motion) + "_decay_" + std::to_string(decay);
                     measure(
                         label.c_str(),
                         [&](auto& buffer) {

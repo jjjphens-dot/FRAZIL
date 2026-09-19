@@ -2,6 +2,7 @@
 #include "dsp/ResearchBaseline.h"
 
 #include <charconv>
+#include <iomanip>
 #include <iostream>
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <memory>
@@ -16,10 +17,10 @@ template <typename Integer> bool parse(std::string_view text, Integer& value) {
 }
 
 int render(int argc, char** argv) {
-    if (argc < 6 || argc > 11) {
+    if (argc < 6 || argc > 12) {
         std::cerr << "Usage: renderer input.wav NEW-output.wav mode block seed [config.json|-] "
                      "[tail-seconds] [NEW-protect-trace.csv|-] [raw|hard|softsign|tanh|feature] "
-                     "[NEW-excitation.wav]\n"
+                     "[NEW-excitation.wav|-] [c0|c3]\n"
                      "Modes: baseline, residual (zero), a, b, d, ab, ad, bd, abd, c; append "
                      "-residual for E only.\n";
         return 2;
@@ -37,6 +38,15 @@ int render(int argc, char** argv) {
     ModalExcitation excitationMode{ModalExcitation::raw};
     if (argc >= 10 && (mode != "c" || !parseModalExcitation(argv[9], excitationMode)))
         return 2;
+    ModalNormalization normalization{ModalNormalization::c0};
+    if (argc == 12) {
+        if (mode != "c" ||
+            (std::string_view(argv[11]) != "c0" && std::string_view(argv[11]) != "c3"))
+            return 2;
+        normalization =
+            std::string_view(argv[11]) == "c3" ? ModalNormalization::c3 : ModalNormalization::c0;
+    }
+    const bool captureExcitation = argc >= 11 && std::string_view(argv[10]) != "-";
     int blockSize{}, tailSeconds{};
     ResearchConfig config;
     if (!parse(argv[4], blockSize) || blockSize < 1 || blockSize > 8192 ||
@@ -50,7 +60,7 @@ int render(int argc, char** argv) {
         std::cerr << "Output must be a new file, distinct from input.\n";
         return 2;
     }
-    if (argc == 11) {
+    if (captureExcitation) {
         const auto excitationFile = cwd.getChildFile(argv[10]);
         if (excitationFile == input || excitationFile == output || excitationFile.exists() ||
             (std::string_view(argv[8]) != "-" && excitationFile == cwd.getChildFile(argv[8])))
@@ -83,9 +93,10 @@ int render(int argc, char** argv) {
     ResidualProtect protect;
     if (!protect.prepare(config.sampleRateHz, protectConfig.gain, protectConfig.depth))
         return 2;
-    const bool prepared = baselineMode  ? baseline.prepare(config)
-                          : mode == "c" ? modal.prepare(config, modalConfig, excitationMode)
-                                        : fluid.prepare(config, fluidConfig);
+    const bool prepared = baselineMode ? baseline.prepare(config)
+                          : mode == "c"
+                              ? modal.prepare(config, modalConfig, excitationMode, normalization)
+                              : fluid.prepare(config, fluidConfig);
     if (!prepared)
         return 2;
     // Optional diagnostic trace is offline-only, outside DSP and timing; refuse any overwrite.
@@ -93,7 +104,7 @@ int render(int argc, char** argv) {
     if (argc >= 9 && std::string_view(argv[8]) != "-") {
         const auto traceFile = cwd.getChildFile(argv[8]);
         if (traceFile == output || traceFile == input || traceFile.exists() ||
-            (argc == 11 && traceFile == cwd.getChildFile(argv[10])))
+            (captureExcitation && traceFile == cwd.getChildFile(argv[10])))
             return 2;
         trace = traceFile.createOutputStream();
         if (!trace || !trace->writeText("frame,d0,d1_db,gr_db\n", false, false, "\n"))
@@ -119,7 +130,7 @@ int render(int argc, char** argv) {
     // Research-only diagnostic: the actual common modal-bank driver, before weight distribution.
     // This never changes the residual, dry carrier, module JSON or Host/session state.
     std::unique_ptr<juce::AudioFormatWriter> excitationWriter;
-    if (argc == 11) {
+    if (captureExcitation) {
         const auto excitationFile = cwd.getChildFile(argv[10]);
         if (excitationFile == input || excitationFile == output || excitationFile.exists())
             return 2;
@@ -225,6 +236,7 @@ int render(int argc, char** argv) {
             return 1;
     }
     const double samples = static_cast<double>(totalFrames) * channels;
+    std::cout << std::setprecision(17);
     std::cout << "research mode=" << argv[3] << " seed=" << config.baseSeed
               << " frames=" << totalFrames << " rate=" << config.sampleRateHz
               << " block=" << blockSize << " excitation=" << (argc >= 10 ? argv[9] : "raw")
@@ -241,6 +253,17 @@ int render(int argc, char** argv) {
               << " droplet_silent_events=" << dropletSilentEvents
               << " bubble_first_frame=" << bubbleFirstFrame
               << " droplet_first_frame=" << dropletFirstFrame << '\n';
+    if (mode == "c") {
+        const auto& readout = modal.normalizationReadout();
+        std::cout << "modal_normalization="
+                  << (normalization == ModalNormalization::c3 ? "c3" : "c0")
+                  << " modal_bound=" << readout.residualBound
+                  << " modal_energy_scale=" << readout.energyScale
+                  << " modal_safety_scale=" << readout.safetyScale << " modal_excitation=";
+        for (std::size_t i = 0; i < readout.excitation.size(); ++i)
+            std::cout << (i ? "," : "") << readout.excitation[i];
+        std::cout << '\n';
+    }
     return 0;
 }
 } // namespace
