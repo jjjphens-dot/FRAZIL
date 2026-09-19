@@ -1,5 +1,11 @@
 # Water listening research UI execution
 
+> **SUPERSEDED FOR CURRENT v0.2 LISTENING WORK**
+> Historical v0.1 mapping / session v2 evidence; measurements, failures and original
+> reproduction instructions below belong to their recorded revisions. They do not describe
+> the current v0.2 Motion endpoint or session export format. Use the
+> [current v0.2 handoff](WATER_LISTENING_HANDOFF_V02.md) for current work.
+
 ## Scope and authority
 
 User-authorized follow-up to PR #40: research-water-mapping-v0.1, operation transactions,

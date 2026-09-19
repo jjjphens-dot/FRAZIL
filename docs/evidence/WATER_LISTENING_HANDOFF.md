@@ -1,5 +1,11 @@
 # Water research mapping: Sound Lead handoff
 
+> **SUPERSEDED FOR CURRENT v0.2 LISTENING WORK**
+> Historical v0.1 mapping / session v2 evidence; measurements, failures and original
+> reproduction instructions below belong to their recorded revisions. They do not describe
+> the current v0.2 Motion endpoint or session export format. Use the
+> [current v0.2 handoff](WATER_LISTENING_HANDOFF_V02.md) for current work.
+
 Status: engineering comparison pack generated; **human mapping/audibility decision PENDING**.
 This is research tooling, not product Water adoption, EXP-W-002 acceptance, Host validation or a
 claim that every macro is clearly audible. Implementation: Engineering Lead; acceptance: Sound Lead.

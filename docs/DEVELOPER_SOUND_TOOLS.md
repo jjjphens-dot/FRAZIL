@@ -286,7 +286,7 @@ success cannot be cited as Host evidence; interactive success cannot be cited as
 
 Sound Lead Auto Audition defaults ON: one completed macro gesture prepares/applies/restarts once. Engineering remains manual. Actual mapped targets and a bounded 50-operation history are visible. Monitor controls are above Protect; Reference/Focus and live Protect changes never restart DSP.
 
-A [supplied-input handoff](evidence/WATER_LISTENING_HANDOFF.md) now provides reproducible fixed-source macro comparisons and a human review sheet. Numerically different low/high renders do not establish clear audibility; low-level Resonant Motion remains explicitly unresolved.
+A [current v0.2 supplied-input handoff](evidence/WATER_LISTENING_HANDOFF_V02.md) now provides reproducible fixed-source macro comparisons and a human review sheet. Numerically different low/high renders do not establish clear audibility; low-level Resonant Motion remains explicitly unresolved.
 
 PR #40 research-preview remediation defers Stop until an actual value mutation; untouched clicks
 do not prepare/restart or enter history. Its separate monitor-over-range latch retains short

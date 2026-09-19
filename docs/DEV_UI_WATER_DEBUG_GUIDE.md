@@ -70,7 +70,7 @@ WAV 播完后输入自动为零，再处理 **30 秒 tail** 后停止；没有�
 | AUTO AUDITION | Sound Lead 默认 ON；一次宏手势结束后停止后的 prepare/apply/restart 各一次 | Engineering 固定 OFF；无有效匹配源则只应用；无中间点重播 |
 | Operation history | 最近 50 个完成操作，含来源和 before/after | 拖动只记一条；250 ms 合并滚轮/键盘；不写入会话 |
 | Return Size/Motion/Decay to Mapped | 只恢复该宏拥有的工程目标 | 保留其他宏、校准增益与 Protect |
-| Return All to Mapped / Adopt | 恢复三组宏映射；v1 显式采用新映射 | 不改变独立 Model/composition；不是 undo |
+| Return All to Mapped / Adopt | 恢复三组宏映射；legacy v1 或 v2/v0.1 显式采用新映射 | 不改变独立 Model/composition；不是 undo |
 | Composition 下拉框 | ABD、C、A、B、D、AB、AD、BD、baseline | 改动是草稿；不是 Host Routing Mode |
 | Apply config | 停止并校验草稿，将其设为已应用配置 | 不自动播放；准备工作不在音频 callback 内执行 |
 | Source / x | 监听源 | DSP 仍继续推进；不重置 RNG/tail |
@@ -99,7 +99,7 @@ Output meter 位于 monitor gain 后；Input meter 是 WAV 源，保持原有 ag
 Model 显示 CUSTOM，可用 **Return Model to Mapped** 返回该模型的完整组合。
 新会话的 Size/Motion/Decay 使用 **RESEARCH MAPPING v0.2 / NOT PRODUCT FROZEN**。
 每个宏独立显示 RESEARCH_MAPPED/CUSTOM；原始参数编辑只使所属宏 CUSTOM。
-两个视图的 Return Size/Motion/Decay/All 只恢复所属目标；legacy v1 必须显式 Adopt。
+两个视图的 Return Size/Motion/Decay/All 只恢复所属目标；legacy v1 或 v2/v0.1 必须显式 Adopt/Return。
 公式、目标归属和限制见 [研究映射说明](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md)。
 工程参数手动修改不会反向改写宏值；inactive 控件变暗但保留值，生效前须启用对应 composition。
 工程编辑形成 Draft 并停止播放；Apply 校验后方可 Play。Sound Lead Auto Audition 在完成宏手势后自动执行这一步并从头播放。Decay 初值 0.5 是 provisional experiment baseline，
@@ -112,7 +112,8 @@ clean/dirty 状态、build variant 和 compiler。导入后保留导入 build �
 会更新当前会话元数据。A/B 同样保留源元数据；音频需单独保存。
 Session 导入和 A/B 恢复按各自记录的源采样率验证；当前 WAV 不得覆盖这个验证上下文。
 没有源元数据的会话以 48 kHz 验证，普通 Apply 则使用当前加载源的采样率。
-研究会话现导出 v2，并保守兼容 v1（工程值不变、宏 CUSTOM / legacy-unmapped）；正式插件 schema 不变。
+研究会话现导出 v3（24 个显式目标）；兼容 v1（工程值保留、CUSTOM / legacy-unmapped）和
+v2/v0.1（原始值保留、CUSTOM / legacy-research-v0.1）。只有显式 Adopt/Return 才采用 v0.2；正式插件 schema 不变。
 
 ## 5. 工程参数对应的 DSP 作用
 
@@ -255,7 +256,7 @@ Engineering 页 **Restore Listening Calibration** 一次恢复四个增益，不
 
 三者最后都乘 Monitor Output。切换/增益使用 10 ms ramp；E Trim 是 **MONITOR ONLY / NOT DSP /
 NOT WATER AMOUNT**，不会影响源检测、事件触发、Protect GR 或 renderer module JSON。
-它随 v2 会话和 A/B 保存；旧 v1 导入为 0 dB。输出无隐式 limiter，超过满幅由输出诊断显示。
+它随当前 v3 会话和 A/B 保存（也兼容 v2）；旧 v1 导入为 0 dB。输出无隐式 limiter，超过满幅由输出诊断显示。
 初次听测先用 Water Only/Focus 辨认层，再切 Reference/Full 评价源辨识、节奏及遮蔽。
 
 ### Water 分量诊断
@@ -288,7 +289,7 @@ DSP DIRTY 表示处理配置待应用；SESSION DIRTY 表示相对最后应用/�
 Audio diagnostics 默认收起。该工作流不构成 Host、产品声音或 perceptual acceptance。
 
 离线对比包、复现命令、参考素材范围、客观测量与人工 ACCEPT/REVISE/REJECT 表见
-[Listening handoff](evidence/WATER_LISTENING_HANDOFF.md)。当前 Resonant Motion 的低电平差异是明确待评审风险，
+[当前 v0.2 Listening handoff](evidence/WATER_LISTENING_HANDOFF_V02.md)。当前 Resonant Motion 的低电平差异是明确待评审风险，
 不能以“非零”替代“可清晰听辨”。
 
 ### PR #40 listening remediation

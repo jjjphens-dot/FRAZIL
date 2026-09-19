@@ -2,7 +2,8 @@
 
 Status: research listening candidate; NOT PRODUCT FROZEN. No production parameter, Host state,
 algorithm adoption or perceptual acceptance is implied. Implementation lives only in the opt-in
-research target. See [execution evidence](../../../docs/evidence/WATER_LISTENING_UI_EXECUTION.md).
+research target. See the [current handoff](../../../docs/evidence/WATER_LISTENING_HANDOFF_V02.md) and
+[v0.2 remediation evidence](../../../docs/evidence/WATER_LISTENING_REMEDIATION.md).
 
 `ResearchWaterMacroMapper` takes a plain `WaterExperimentState` and returns numeric Fluid/Resonant
 targets without JUCE, allocation, UI or DSP objects. `ResearchMappingAdapter` owns the explicit
@@ -47,5 +48,13 @@ it is not product balance or a loudness claim. Typed renderer defaults remain un
 Gains have calibration ownership, outside Size/Motion/Decay. Raw gain edits mark calibration
 CUSTOM without changing macro states; macro movement and Return All leave those gains intact.
 Engineering's Restore Listening Calibration changes only these four gains in one operation.
-Session v2 stores calibration status and rejects a mapped claim whose gains disagree. v1/module
+Session v3 stores calibration status and rejects a mapped claim whose gains disagree; legacy v2
+also carries calibration provenance. v1/module
 imports preserve their raw gains and mark calibration CUSTOM.
+
+## Current readiness boundary
+
+C0 modal normalization (`b = 1-r`) remains unchanged. Unmodified C1/C2 failed the finite-float
+boundary study and were not adopted. Resonant is **not fully listening-ready**; current Motion
+and Decay measurements do not establish clearly audible macro semantics. The next bounded
+excitation experiment is tracked separately in the [phase record](../../../docs/evidence/WATER_DSP_LISTENING_EXECUTION.md).

@@ -4,6 +4,10 @@ Status: BOUNDED REMEDIATION READY FOR COLLABORATOR REVIEW. The user chose to sub
 validated fixes and normalization study while preserving existing numerical boundaries.
 The full listening-ready mission remains incomplete; no product mapping or perceptual acceptance.
 
+Current continuation: [v0.2 handoff](WATER_LISTENING_HANDOFF_V02.md) and
+[next-stage phase record](WATER_DSP_LISTENING_EXECUTION.md). The evidence below retains the
+remediation baseline and its historical failures; it is not a completed normalization experiment.
+
 ## Baseline and boundaries
 
 Reviewed head: `46b7a8d36ba593a1f992bae8b54feb0ad14bc2d8`.
