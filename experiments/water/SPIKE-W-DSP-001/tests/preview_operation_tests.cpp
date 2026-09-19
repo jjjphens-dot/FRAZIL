@@ -34,7 +34,9 @@ int runOperationTests() {
               operations.history().at(0).after.water.size == .8,
           "one physical drag records its endpoints");
     operations.begin("Size", origin, true, true, true, 2000);
+    operations.begin("Size", origin, true, true, false, 2001);
     model.setMacro(MacroId::size, .3, origin);
+    operations.begin("Size", origin, true, true, false, 2002);
     model.setMacro(MacroId::size, .8, origin);
     operations.finish();
     check(operations.history().size() == 1, "drag returning to start records nothing");

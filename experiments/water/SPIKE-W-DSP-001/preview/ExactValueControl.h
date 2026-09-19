@@ -138,7 +138,7 @@ class ExactValueControl final : public juce::Component {
             onGestureEnd();
     }
     void submit(double candidate) {
-        if (onEdit && !onEdit(candidate)) {
+        if (candidate != value_ && onEdit && !onEdit(candidate)) {
             error_.setText("Value rejected", juce::dontSendNotification);
             return;
         }

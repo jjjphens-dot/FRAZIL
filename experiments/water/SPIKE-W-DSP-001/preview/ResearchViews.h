@@ -42,6 +42,10 @@ class WaterMacroView final : public juce::Component {
                             "explicit adoption.");
             knob.onValueChange = [this, i] {
                 const auto value = knobs_[i].getValue();
+                const auto& water = session_.draft().water;
+                const double previous = i == 0 ? water.size : i == 1 ? water.motion : water.decay;
+                if (value == previous)
+                    return;
                 operations_.edit(macroKey(i), origin_, true, true);
                 session_.setMacro(i == 0   ? MacroId::size
                                   : i == 1 ? MacroId::motion

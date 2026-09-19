@@ -81,7 +81,13 @@ class ResearchOperations final {
             pending_ = ResearchOperation{
                 0, origin, std::move(type), std::move(control), session_.draft(), {}};
             macro_ = macro && origin == ChangeOrigin::soundLeadUI;
-            if (prepare && onPrepareBegin)
+            prepareStarted_ = false;
+        }
+        // Mouse-down only opens a transaction. Value callbacks call begin with mouse=false
+        // before mutating the draft, so the first actual edit stops playback exactly once.
+        if (prepare && !mouse && !prepareStarted_) {
+            prepareStarted_ = true;
+            if (onPrepareBegin)
                 onPrepareBegin();
         }
         mouse_ = mouse_ || mouse;
@@ -95,9 +101,9 @@ class ResearchOperations final {
         mouse_ = false;
         operation.after = session_.draft();
         if (sameOperationValues(operation.before, operation.after)) {
-            // Closing a no-op gesture still resumes Auto Audition, without fabricating history.
+            // A changed-then-restored gesture must resume, but an untouched click does nothing.
             if (onCompleted)
-                onCompleted(macro_ && allowAutoAudition);
+                onCompleted(prepareStarted_ && macro_ && allowAutoAudition);
             return;
         }
         const bool macro = macro_;
@@ -122,6 +128,6 @@ class ResearchOperations final {
     ResearchOperationHistory history_;
     std::optional<ResearchOperation> pending_;
     std::uint64_t lastEvent_{};
-    bool mouse_{}, macro_{};
+    bool mouse_{}, macro_{}, prepareStarted_{};
 };
 } // namespace frazil::water::preview

@@ -43,12 +43,18 @@ int runAuditionWorkflowTests() {
               operations.history().size() == 1,
           "100 callbacks become one stop/prepare/apply/restart and one operation");
     operations.begin("Motion", sound, true, true, true, 1000);
+    operations.finish();
+    check(stop == 1 && prepare == 1 && start == 1 && operations.history().size() == 1,
+          "untouched mouse down/up neither stops, prepares, restarts nor records");
+    operations.begin("Motion", sound, true, true, true, 1100);
     const double original = model.draft().water.motion;
+    operations.begin("Motion", sound, true, true, false, 1101);
     model.setMacro(MacroId::motion, .2, sound);
+    operations.begin("Motion", sound, true, true, false, 1102);
     model.setMacro(MacroId::motion, original, sound);
     operations.finish();
     check(stop == 2 && prepare == 2 && start == 2 && operations.history().size() == 1,
-          "no-op gesture resumes audition without history");
+          "changed then restored gesture resumes audition without history");
     operations.action("Engineering", ChangeOrigin::engineeringUI, true, true,
                       [&] { model.setMacro(MacroId::size, .8, ChangeOrigin::engineeringUI); });
     check(stop == 3 && prepare == 2 && start == 2 && model.dspDirty(),
