@@ -38,7 +38,7 @@ class WaterMacroView final : public juce::Component {
             knob.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
             knob.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 22);
             knob.setDoubleClickReturnValue(true, .5);
-            knob.setTooltip("Research mapping v0.1; not product frozen. Legacy sessions require "
+            knob.setTooltip("Research mapping v0.2; not product frozen. Legacy sessions require "
                             "explicit adoption.");
             knob.onValueChange = [this, i] {
                 const auto value = knobs_[i].getValue();
@@ -74,7 +74,7 @@ class WaterMacroView final : public juce::Component {
         }
         researchLabel(*this, mapping_, "");
         researchLabel(*this, notice_,
-                      "RESEARCH MAPPING v0.1 | NOT PRODUCT FROZEN | Protect independent");
+                      "RESEARCH MAPPING v0.2 | NOT PRODUCT FROZEN | Protect independent");
         addAndMakeVisible(returnMapped_);
         returnMapped_.onClick = [this] {
             operations_.action("Return Model to Mapped", origin_, true, true,
@@ -107,8 +107,8 @@ class WaterMacroView final : public juce::Component {
         for (std::size_t i = 0; i < targets_.size(); ++i)
             targets_[i].setText(macroTargetsText(state, static_cast<MacroId>(i)),
                                 juce::dontSendNotification);
-        returnAll_.setButtonText(state.mappingRevision == "legacy-unmapped"
-                                     ? "Adopt Research Mapping v0.1"
+        returnAll_.setButtonText(state.mappingRevision != ResearchWaterMacroMapper::revision.data()
+                                     ? "Adopt Research Mapping v0.2"
                                      : "Return All to Mapped");
     }
     void resized() override {

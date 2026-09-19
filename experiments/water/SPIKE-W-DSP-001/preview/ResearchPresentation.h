@@ -37,8 +37,9 @@ inline juce::String macroTargetsText(const ResearchSessionState& state, MacroId 
     if (macro == MacroId::decay)
         return "A: " + time(ControlId::bubbleDecay) + "\nB: " + time(ControlId::dropletDecay) +
                "\nD: no Decay destination";
-    return "A: " + number(ControlId::bubbleRate) +
-           "/s | B thr: " + number(ControlId::dropletThreshold) +
+    return "A: " + number(ControlId::bubbleRate) + "/s | B " +
+           (value(ControlId::dropletEventsEnabled) == 0 ? "OFF" : "ON") +
+           " thr: " + number(ControlId::dropletThreshold) +
            "\nB gap: " + time(ControlId::dropletRefractory) +
            "\nD: " + time(ControlId::flowTargetInterval) + " / depth " + time(ControlId::flowDepth);
 }

@@ -17,36 +17,39 @@ int runDescriptorTests() {
     };
     const research::FluidConfig fluid;
     const research::ModalConfig modal;
-    const std::array<double, 23> typedDefaults{fluid.bubble.minimumFrequencyHz,
-                                               fluid.bubble.maximumFrequencyHz,
-                                               fluid.bubble.decaySeconds,
-                                               fluid.bubble.maximumEventRateHz,
-                                               fluid.bubble.excitationThreshold,
-                                               fluid.bubble.residualGain,
-                                               static_cast<double>(fluid.bubble.voices),
-                                               fluid.droplet.minimumFrequencyHz,
-                                               fluid.droplet.maximumFrequencyHz,
-                                               fluid.droplet.decaySeconds,
-                                               fluid.droplet.transientThreshold,
-                                               fluid.droplet.refractorySeconds,
-                                               fluid.droplet.residualGain,
-                                               static_cast<double>(fluid.droplet.voices),
-                                               fluid.flow.baseDelaySeconds,
-                                               fluid.flow.depthSeconds,
-                                               fluid.flow.targetIntervalSeconds,
-                                               fluid.flow.residualGain,
-                                               modal.rootFrequencyHz,
-                                               modal.decaySeconds,
-                                               modal.residualGain,
-                                               modal.motionDepth,
-                                               modal.motionIntervalSeconds};
+    const std::array typedDefaults{fluid.bubble.minimumFrequencyHz,
+                                   fluid.bubble.maximumFrequencyHz,
+                                   fluid.bubble.decaySeconds,
+                                   fluid.bubble.maximumEventRateHz,
+                                   fluid.bubble.excitationThreshold,
+                                   fluid.bubble.residualGain,
+                                   static_cast<double>(fluid.bubble.voices),
+                                   fluid.droplet.minimumFrequencyHz,
+                                   fluid.droplet.maximumFrequencyHz,
+                                   fluid.droplet.decaySeconds,
+                                   fluid.droplet.transientThreshold,
+                                   fluid.droplet.refractorySeconds,
+                                   fluid.droplet.residualGain,
+                                   static_cast<double>(fluid.droplet.voices),
+                                   fluid.flow.baseDelaySeconds,
+                                   fluid.flow.depthSeconds,
+                                   fluid.flow.targetIntervalSeconds,
+                                   fluid.flow.residualGain,
+                                   modal.rootFrequencyHz,
+                                   modal.decaySeconds,
+                                   modal.residualGain,
+                                   modal.motionDepth,
+                                   modal.motionIntervalSeconds,
+                                   fluid.droplet.eventsEnabled};
     // Independent pre-refactor UI range/step contract; DSP may additionally impose coupled bounds.
-    const std::array<std::array<double, 3>, 23> ranges{
+    const auto ranges = std::to_array<std::array<double, 3>>(
         {{40, 19000, 1},    {40, 19000, 1},  {.002, .5, .001}, {0, 2000, 1},   {0, 1, .0001},
          {0, .3, .001},     {1, 16, 1},      {40, 19000, 1},   {40, 19000, 1}, {.002, .1, .001},
          {.0001, 1, .0001}, {.001, 1, .001}, {0, .3, .001},    {1, 16, 1},     {.0001, .02, .0001},
          {0, .01, .0001},   {.02, 10, .01},  {0, .15, .001},   {40, 4700, 1},  {.002, 1, .001},
-         {0, .3, .001},     {0, .35, .001},  {.02, 10, .01}}};
+         {0, .3, .001},     {0, .35, .001},  {.02, 10, .01},   {0, 1, 1}});
+    static_assert(typedDefaults.size() == kControls.size());
+    static_assert(ranges.size() == kControls.size());
     const std::set<ControlId> timeIds{ControlId::bubbleDecay,       ControlId::dropletDecay,
                                       ControlId::dropletRefractory, ControlId::flowBaseDelay,
                                       ControlId::flowDepth,         ControlId::flowTargetInterval,
@@ -58,7 +61,7 @@ int runDescriptorTests() {
     int fields{};
     for (const auto& property : root.getDynamicObject()->getProperties())
         fields += property.value.getDynamicObject()->getProperties().size();
-    check(fields == 36 && root.getDynamicObject()->getProperties().size() == 5,
+    check(fields == 37 && root.getDynamicObject()->getProperties().size() == 5,
           "all renderer fields covered without adding session metadata");
     for (std::size_t i = 0; i < kControls.size(); ++i) {
         const auto& spec = kControls[i];
@@ -78,7 +81,8 @@ int runDescriptorTests() {
                   (spec.displayPolicy == DisplayPolicy::adaptiveTime) == time,
               "all time controls use seconds");
         check((spec.valueType == ControlValueType::integer) ==
-                  (std::string_view(spec.key) == "voices"),
+                  (std::string_view(spec.key) == "voices" ||
+                   spec.id == ControlId::dropletEventsEnabled),
               "integer controls");
         check(spec.lifecycle == ControlLifecycle::prepareRequired &&
                   spec.visibility == ControlVisibility::primary &&
@@ -87,7 +91,7 @@ int runDescriptorTests() {
               "lifecycle and provenance");
         ++groups[static_cast<std::size_t>(spec.group)];
     }
-    check(groups == std::array{7, 7, 4, 5}, "module groups preserved");
+    check(groups == std::array{7, 8, 4, 5}, "module groups preserved");
     research::FluidConfig decodedFluid;
     research::ModalConfig decodedModal;
     research::ProtectRenderConfig decodedProtect;

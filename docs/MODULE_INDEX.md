@@ -42,7 +42,7 @@ ms/s display and strict exact entry. They own no session or DSP state, use only 
 library, and are tested by `frazil_water_preview`; all research time widgets consume these helpers.
 See [staged execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
 `ControlDescriptor.h` supplies typed IDs, module groups, units/display policy, baseline provenance,
-range and lifecycle metadata for the 23 research controls (21 original plus two Modal Motion fields). `PreviewSettings` consumes the descriptors
+range and lifecycle metadata for the 24 research controls (21 original, two Modal Motion fields and the Droplet scheduling gate). `PreviewSettings` consumes the descriptors
 without changing module JSON; DSP continues to use its existing typed config structs.
 `SessionCodec.h` owns the separate versioned research manifest including provisional Decay;
 `SessionJsonSyntax.h` bounds and validates its richer JSON syntax before schema decoding. Imports
@@ -99,7 +99,7 @@ See [reference usage](../experiments/water/REFERENCE_INDEX.md) and
 
 `ResearchWaterMacroMapper.h` owns plain, allocation-free research curves;
 `ResearchMappingAdapter.h` owns the engineering destination table used by session commands.
-Neither is a production mapper; see [mapping v0.1](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md).
+Neither is a production mapper; see [mapping v0.2](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md).
 
 Research `LiquidModalResonator` additionally owns six normalized excitation weights and an instance
 RNG in seed domain 4. Fixed coefficients remain prepare-only; preview/renderer share the optional
@@ -118,3 +118,7 @@ formats them in `WaterDiagnosticsText.h`. DSP only exposes scalar activity gette
 ResearchAuditionWorkflow coordinates message-thread stop/prepare/start once per completed Sound Lead gesture. ResearchPresentation formats actual targets and bounded operation history; neither owns DSP. PreviewController exposes detached prepare/start with explicit source-rate and callback-state guards.
 
 Research config exporter `render/research_cases.cpp` reuses the UI mapper/adapter/calibration; `render/listening_handoff.py` orchestrates the existing renderer and decoded checks. Both are offline, opt-in research tools with no production dependency.
+
+`MonitorOverRange.h` latches actual output peaks above full scale across UI polling gaps;
+its atomic boolean is diagnostic only, outside session/history. `modal_normalization_study.py`
+is an offline C0/C1/C2 mathematical study, not a new DSP path or accepted normalization.

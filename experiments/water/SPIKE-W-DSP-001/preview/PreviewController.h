@@ -31,6 +31,8 @@ class PreviewController final {
     void setProtectDepth(double depth) noexcept;
     plugin::DeveloperDiagnosticsSnapshot diagnostics() const noexcept;
     ProtectDiagnosticsSnapshot protectDiagnostics() noexcept;
+    // Consumes a latched actual-output over-range event; never changes the monitor gain.
+    bool consumeMonitorOverRange() noexcept;
     juce::String sourceDescription() const;
     SourceMetadata sourceMetadata() const;
     double positionSeconds() const noexcept;

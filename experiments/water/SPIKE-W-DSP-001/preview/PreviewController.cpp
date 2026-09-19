@@ -1,6 +1,7 @@
 #include "PreviewController.h"
 
 #include "AuditionMonitor.h"
+#include "MonitorOverRange.h"
 #include "PreviewEngine.h"
 
 #include <algorithm>
@@ -92,6 +93,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         protectBlock.water.latest = engine.waterActivity();
         protectMetrics.publish(protectBlock);
         const auto denominator = static_cast<double>(std::max(1, channels * count));
+        overRange.observe(outputPeak);
         metrics.publish(count, channels, inputPeak, outputPeak,
                         static_cast<float>(std::sqrt(inputSquares / denominator)),
                         static_cast<float>(std::sqrt(outputSquares / denominator)), finite);
@@ -108,6 +110,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
     // Audio owner: source cursor in frames, and 10 ms monitor-only crossfade/gain state.
     std::uint64_t frame{};
     AuditionMonitor audition;
+    MonitorOverRange overRange;
     std::atomic<std::uint64_t> position{};
     std::atomic<bool> isPlaying{}, ended{}, mismatch{};
     std::atomic<MonitorMode> monitor{MonitorMode::processed};
@@ -267,6 +270,9 @@ void PreviewController::setMonitor(MonitorMode mode, float outputGainDb) noexcep
     impl_->monitor.store(mode);
     impl_->outputGain.store(
         juce::Decibels::decibelsToGain(juce::jlimit(-60.0f, 0.0f, outputGainDb)));
+}
+bool PreviewController::consumeMonitorOverRange() noexcept {
+    return impl_->overRange.consume();
 }
 plugin::DeveloperDiagnosticsSnapshot PreviewController::diagnostics() const noexcept {
     return impl_->metrics.snapshot();

@@ -306,7 +306,7 @@ Phase 3 adds a single message-thread `ResearchSessionModel` with command-based e
 draft/applied/A/B values. `ResearchViews.h` supplies Sound Lead/Engineering representations; the
 `PreviewPanel` coordinator stops playback for draft edits and validates through `PreviewController`.
 Model/composition maps Fluid/ABD and Resonant/C. The listening-ready follow-up maps Size/Motion/Decay
-through [research mapping v0.1](RESEARCH_MAPPING.md); legacy v1 imports remain CUSTOM/unmapped. Manual
+through [research mapping v0.2](RESEARCH_MAPPING.md); legacy v1 imports remain CUSTOM/unmapped. Manual
 raw edits mark only their owning macro CUSTOM and do not reverse-map them. Inactive controls retain values and show their inactive status.
 No view owns duplicate parameter state or holds DSP objects. Session tests verify both-view observation,
 one notification per change, no-op feedback suppression, composition/active-module truth tables,
@@ -394,7 +394,7 @@ Mirror hosting is not the primary authority. Citation correction changes no algo
 References were reviewed on 2026-09-16. FRAZIL's residual composition, Fluid/Resonant names, gains,
 frequency families and scheduling are engineering hypotheses, not formulas endorsed by these papers.
 
-The listening-ready follow-up exports research session v2 and accepts v1 without changing raw
+The listening-ready follow-up exports research session v3 and accepts v1/v2 without changing raw
 engineering values. Legacy macro states are CUSTOM / legacy-unmapped. Runtime operation history
 never enters either schema; see the debug guide for DSP/context dirty and checkpoint semantics.
 
@@ -404,7 +404,7 @@ never enters either schema; see the debug guide for DSP/context dirty and checkp
 Optional `modal.motionDepth` defaults to 0 (range 0..0.35), preserving exact historical sample
 arithmetic when omitted. `modal.motionIntervalSeconds` defaults to .7 s (range .02..10 s).
 The research macro maps depth=.35m and interval=.7*2.8^(1-2m). A/B/D and existing three Modal
-fields retain their defaults/ranges. These two new fields bring preview raw controls to 23.
+fields retain their defaults/ranges. Together with the Droplet scheduling gate, preview raw controls now total 24.
 
 Six positive random targets are normalized to sum six, then interpolated with smoothstep between
 normalized endpoints. Only excitation distribution changes: poles, decay and output gain are
@@ -446,3 +446,16 @@ Protect OFF and fixed seed, with no automatic normalization or acceptance.
 See [handoff evidence and commands](../../../docs/evidence/WATER_LISTENING_HANDOFF.md): 72 cases
 pass objective checks, but Resonant residual/Motion can be very low-level. Human mapping/audibility
 and source-preservation decisions remain pending. No audio, generated pack or personal path is tracked.
+
+### Listening remediation boundaries
+
+`droplet.eventsEnabled` accepts exactly numeric 0 or 1 (default 1 for legacy module JSON).
+The v0.2 Motion mapper selects 0 at Motion=0; Bubble rate is `480*m*m`. This gate only disables
+new scheduling; the audio owner can close it without clearing active voices. Current macro
+editing still uses stopped prepare/restart transactions. Session v3 records all 24 targets;
+v2/v0.1 becomes legacy-research-v0.1 / CUSTOM and requires explicit adoption of v0.2.
+
+`render/modal_normalization_study.py --output <new-local-directory>` compares C0/C1/C2 formulas
+for the actual imaginary-output recurrence. Its candidate results do not replace Modal DSP;
+see [remediation status](../../../docs/evidence/WATER_LISTENING_REMEDIATION.md) for the Stop A
+finite-float counterexamples and remaining human listening gates.

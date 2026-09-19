@@ -815,8 +815,9 @@ Operation tests use an injected monotonic clock: 100 callbacks within one drag, 
 50 ms wheel bursts and 250 ms expiry (including delayed timer delivery), control switching,
 live Protect intermediate targets with no stop, composite import and 51-operation ring eviction.
 
-Session v2 tests cover strict revision/status/trim validation and atomic rejection; v1 migration
-preserves all existing engineering values and explicitly remains legacy-unmapped. DSP/context
+Session v3 tests cover strict revision/status/trim validation and atomic rejection; v1 migration
+preserves all existing engineering values and explicitly remains legacy-unmapped. v2/v0.1 imports
+preserve raw targets and become legacy-research-v0.1 / CUSTOM; the omitted scheduling gate remains ON. DSP/context
 dirty tests distinguish live monitor changes and retained Protect state from prepare requirements.
 
 Pure research mapper tests run without JUCE and cover dense monotonic sweeps, 0/.5/1 endpoints,
@@ -840,3 +841,9 @@ counts, ablation/inactive zeros, reset, and sample-weighted (unequal block size)
 Phase I preview tests inject lifecycle commands to assert 100 drag updates yield one stop/prepare/start, and cover no-op, invalid, source-less, Engineering/OFF and live Protect paths. Native GUI observations and validation limits are in the Water listening UI execution record.
 
 [Supplied-input listening handoff](evidence/WATER_LISTENING_HANDOFF.md) records 72 research endpoint/center cases, exact decoded repeats and block partitions, channel isolation and component/activity/tail proxies. Human audibility and quality acceptance remain pending, particularly Resonant Motion.
+
+The [PR #40 remediation record](evidence/WATER_LISTENING_REMEDIATION.md) retains the failed
+intermediate descriptor fixture run, its compile-time length guard repair, successful serial
+preset results and native GUI checks. Motion=0 tests exercise actual A/B schedulers; Droplet gate
+closure preserves an already active response. Monitor over-range tests cover the strict >1
+boundary and short-event retention through quiet blocks, without changing monitor samples.

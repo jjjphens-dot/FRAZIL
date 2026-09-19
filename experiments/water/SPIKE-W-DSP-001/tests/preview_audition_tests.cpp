@@ -1,4 +1,5 @@
 #include "preview/AuditionMonitor.h"
+#include "preview/MonitorOverRange.h"
 #include "preview/ResearchSessionModel.h"
 
 #include <iostream>
@@ -12,6 +13,13 @@ int runAuditionTests() {
             std::cerr << "FAIL audition: " << message << '\n';
         }
     };
+    MonitorOverRange warning;
+    warning.observe(1.f);
+    check(!warning.consume(), "exact full scale is not over-range");
+    warning.observe(std::nextafter(1.f, 2.f));
+    warning.observe(.1f);
+    check(warning.consume() && !warning.consume(),
+          "brief over-range survives quiet blocks and consumes once");
     for (double rate : {44100., 48000., 96000.}) {
         AuditionMonitor monitor;
         monitor.prepare(rate, MonitorMode::processed, 1);

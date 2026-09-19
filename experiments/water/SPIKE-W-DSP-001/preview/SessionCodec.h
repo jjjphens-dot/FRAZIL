@@ -88,7 +88,7 @@ inline juce::String encodeSession(const ResearchSessionState& state) {
     using namespace sessionDetail;
     auto root = object();
     put(root, "format", "frazil.water-research-session");
-    put(root, "version", 2);
+    put(root, "version", 3);
     put(root, "mappingRevision", state.mappingRevision);
     auto mappings = object();
     put(mappings, "size", static_cast<int>(state.macroMappings[0]));
@@ -154,7 +154,7 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
         SessionJsonSyntax::decodedProperties(root) != syntax.properties())
         return "Session: duplicate or invalid fields.";
     int version{}, seed{};
-    if (!integer(root["version"], 1, 2, version))
+    if (!integer(root["version"], 1, 3, version))
         return "Session: unsupported version.";
     const bool knownFields =
         version == 1
@@ -174,12 +174,14 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
     candidate.macroMappings.fill(MappingStatus::custom);
     candidate.listeningCalibration = MappingStatus::custom;
     candidate.auditionETrimDb = 0;
-    if (version == 2) {
+    if (version >= 2) {
         const auto& mappings = root["perMacroMappingState"];
         int calibration{};
         if (!textValue(root["mappingRevision"], candidate.mappingRevision, 64) ||
             (candidate.mappingRevision != "legacy-unmapped" &&
-             candidate.mappingRevision != "research-water-mapping-v0.1") ||
+             candidate.mappingRevision != "research-water-mapping-v0.1" &&
+             candidate.mappingRevision != "legacy-research-v0.1" &&
+             candidate.mappingRevision != ResearchWaterMacroMapper::revision.data()) ||
             !fields(mappings, {"size", "motion", "decay"}) ||
             !integer(root["listeningCalibrationState"], 1, 2, calibration) ||
             !number(root["auditionETrimDb"], 0, 36, candidate.auditionETrimDb))
@@ -189,7 +191,9 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
         for (std::size_t i = 0; i < names.size(); ++i) {
             int status{};
             if (!integer(mappings[names[i]], 1, 2, status) ||
-                (candidate.mappingRevision == "legacy-unmapped" && status != 2))
+                ((candidate.mappingRevision == "legacy-unmapped" ||
+                  candidate.mappingRevision == "legacy-research-v0.1") &&
+                 status != 2))
                 return "Session: invalid per-macro mapping state.";
             candidate.macroMappings[i] = static_cast<MappingStatus>(status);
         }
@@ -246,7 +250,9 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
         return "Session: Model/composition mapping is inconsistent.";
     const auto& targets = control["targets"];
     if (!targets.isObject() || targets.getDynamicObject()->getProperties().size() !=
-                                   (version == 1 ? 21 : static_cast<int>(kControls.size())))
+                                   (version == 1   ? 21
+                                    : version == 2 ? 23
+                                                   : static_cast<int>(kControls.size())))
         return "Session: incomplete target provenance.";
     const auto& config = root["configuration"];
     research::FluidConfig fluid;
@@ -292,12 +298,12 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
         return "Session: Protect config and retained state disagree.";
     for (std::size_t i = 0; i < kControls.size(); ++i) {
         const auto& spec = kControls[i];
-        if (version == 1 && i >= 21) {
-            // v1 predates Modal motion. Fill typed legacy defaults, never mapped defaults.
+        if ((version == 1 && i >= 21) || (version == 2 && i >= 23)) {
+            // Older schemas predate these targets. Fill typed legacy defaults, never remap.
             candidate.engineering.values[i] = spec.initial;
             candidate.ownership[i] = {ChangeOrigin::sessionLoad, 0};
             if (config[spec.module].hasProperty(spec.key))
-                return "Session: v1 cannot contain v2 Modal motion fields.";
+                return "Session: field is newer than the declared session version.";
             continue;
         }
         if (!readOwnership(targets[juce::Identifier(juce::String(spec.stableId()))],
@@ -309,10 +315,10 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
              candidate.engineering.values[i] != std::floor(candidate.engineering.values[i])))
             return "Session: invalid field " + juce::String(spec.stableId());
     }
-    if (version == 2 && candidate.listeningCalibration == MappingStatus::mapped &&
+    if (version >= 2 && candidate.listeningCalibration == MappingStatus::mapped &&
         !ResearchListeningCalibration::matches(candidate.engineering))
         return "Session: listening calibration claim contradicts gains.";
-    if (version == 2 && candidate.mappingRevision == ResearchWaterMacroMapper::revision.data()) {
+    if (version >= 2 && candidate.mappingRevision == ResearchWaterMacroMapper::revision.data()) {
         const auto mapped = ResearchWaterMacroMapper::map(candidate.water);
         for (const auto& spec : kControls) {
             const auto owner = macroOwner(spec.id);
@@ -325,6 +331,12 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
                            juce::String(spec.stableId());
             }
         }
+    }
+    if (version < 3 && candidate.mappingRevision == ResearchWaterMacroMapper::revision.data())
+        return "Session: v0.2 requires session v3.";
+    if (candidate.mappingRevision == "research-water-mapping-v0.1") {
+        candidate.mappingRevision = "legacy-research-v0.1";
+        candidate.macroMappings.fill(MappingStatus::custom);
     }
     output = std::move(candidate);
     return {};

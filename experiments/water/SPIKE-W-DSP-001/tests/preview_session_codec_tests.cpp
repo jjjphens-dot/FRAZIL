@@ -58,6 +58,8 @@ int runSessionCodecTests() {
         legacy["ownership"]["targets"].getDynamicObject()->removeProperty(
             juce::Identifier(juce::String("modal.") + field));
     }
+    legacy["configuration"]["droplet"].getDynamicObject()->removeProperty("eventsEnabled");
+    legacy["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventsEnabled");
     auto legacyExpected = decoded.engineering;
     legacyExpected.values[controlIndex(ControlId::modalMotionDepth)] = 0;
     legacyExpected.values[controlIndex(ControlId::modalMotionInterval)] = .7;
@@ -70,6 +72,20 @@ int runSessionCodecTests() {
             migrated.macroMappings ==
                 std::array{MappingStatus::custom, MappingStatus::custom, MappingStatus::custom},
         "v1 preserves all engineering values and never adopts research mapping");
+    auto v2 = juce::JSON::parse(text);
+    v2.getDynamicObject()->setProperty("version", 2);
+    v2.getDynamicObject()->setProperty("mappingRevision", "research-water-mapping-v0.1");
+    v2["configuration"]["droplet"].getDynamicObject()->removeProperty("eventsEnabled");
+    v2["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventsEnabled");
+    check(decodeSession(juce::JSON::toString(v2, false, 17).toStdString(), migrated).isEmpty() &&
+              migrated.engineering.moduleJson() == decoded.engineering.moduleJson() &&
+              migrated.mappingRevision == "legacy-research-v0.1" &&
+              migrated.macroMappings ==
+                  std::array{MappingStatus::custom, MappingStatus::custom, MappingStatus::custom},
+          "v0.1 raw targets survive exactly and macros become CUSTOM");
+    check(decodeSession(encodeSession(migrated).toStdString(), migrated).isEmpty() &&
+              migrated.mappingRevision == "legacy-research-v0.1",
+          "migrated legacy v3 can be exported and imported without adoption");
     auto invalidMapping = juce::JSON::parse(text);
     invalidMapping.getDynamicObject()->setProperty("mappingRevision", "unknown-revision");
     check(decodeSession(juce::JSON::toString(invalidMapping).toStdString(), decoded).isNotEmpty() &&
@@ -95,7 +111,7 @@ int runSessionCodecTests() {
                             text.replace("\"decay\": 0.75", "\"decay\": NaN"),
                             text.replace("\"decay\": 0.75", "\"decay\": true"),
                             text.replace("\"decay\": 0.75", "\"decay\": 01"),
-                            text.replace("\"version\": 2", "\"version\": 3"),
+                            text.replace("\"version\": 3", "\"version\": 4"),
                             text.replace("\"seed\": 42", "\"seed\": 41")}) {
         check(bad != text, "invalid fixture actually mutates manifest");
         check(decodeSession(bad.toStdString(), decoded).isNotEmpty() &&

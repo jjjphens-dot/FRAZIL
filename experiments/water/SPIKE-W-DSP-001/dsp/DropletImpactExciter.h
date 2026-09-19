@@ -14,6 +14,7 @@ struct DropletConfig final {
     double refractorySeconds{0.02};
     double residualGain{0.15};
     std::size_t voices{8};
+    double eventsEnabled{1}; // Exactly 0/1; omitted raw configs retain legacy scheduling.
 };
 
 // B: hysteretic transient threshold with refractory interval, not a free-running event clock.
@@ -36,7 +37,8 @@ class DropletImpactExciter final {
             config.refractorySeconds < .001 || config.refractorySeconds > 1.0 ||
             !std::isfinite(config.residualGain) || config.residualGain < 0.0 ||
             config.residualGain > .3 || config.voices < 1 ||
-            config.voices > detail::EventVoicePool::kCapacity)
+            config.voices > detail::EventVoicePool::kCapacity ||
+            (config.eventsEnabled != 0 && config.eventsEnabled != 1))
             return false;
         refractorySamples_ = static_cast<std::uint32_t>(std::ceil(config.refractorySeconds * rate));
         if (!pool_.prepare(rate, config.minimumFrequencyHz, config.maximumFrequencyHz,
@@ -64,13 +66,18 @@ class DropletImpactExciter final {
             armed_ = true;
         const double magnitude = std::max(std::abs(static_cast<double>(input[0])),
                                           std::abs(static_cast<double>(input[1])));
-        if (armed_ && remaining_ == 0 && feature.transient > config_.transientThreshold &&
-            magnitude > 0.0) {
+        if (config_.eventsEnabled != 0 && armed_ && remaining_ == 0 &&
+            feature.transient > config_.transientThreshold && magnitude > 0.0) {
             pool_.trigger(input, random_.nextUInt() % detail::EventVoicePool::kFamilies);
             remaining_ = refractorySamples_;
             armed_ = false;
         }
         return pool_.process(config_.residualGain);
+    }
+
+    // Audio-owner-only scheduling gate. Existing voices and detector state are preserved.
+    void setEventsEnabled(bool enabled) noexcept {
+        config_.eventsEnabled = enabled ? 1 : 0;
     }
 
     std::uint64_t events() const noexcept {

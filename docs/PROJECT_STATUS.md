@@ -416,3 +416,10 @@ Apply, D0/D1 retain separate calibration, and C permits only Whole. Existing Pro
 no new production or human acceptance is claimed. Sound Lead Auto Audition and bounded operation history are implemented; supplied-input handoff and human mapping/audibility decisions are tracked separately in the listening UI execution record.
 
 The research listening follow-up completed phases A-I and generated the Phase J fixed-source pack: 72 cases across four supplied inputs pass finite/repeat/partition/isolation checks. [Handoff](evidence/WATER_LISTENING_HANDOFF.md) explicitly retains low-level Resonant Motion as a candidate risk; human ACCEPT/REVISE/REJECT, independent code review and production adoption are not complete.
+
+### PR #40 listening remediation in progress
+
+The [remediation record](evidence/WATER_LISTENING_REMEDIATION.md) tracks the no-op interaction fix,
+Motion v0.2 endpoint / legacy-session migration, monitor over-range warning and normalization
+study. C1/C2 are not adopted: the supplied Stop A requires numerical/design review. This work
+must not be read as completed Resonant audibility, accepted mapping or product DSP adoption.

@@ -115,6 +115,11 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         focus_.onClick = [this] { auditionPreset(18); };
         researchLabel(*this, auditionLabel_,
                       "AUDITION BOOST | MONITOR ONLY | NOT DSP / NOT WATER AMOUNT");
+        researchLabel(*this, overRangeWarning_, "");
+        overRangeWarning_.setColour(juce::Label::textColourId, juce::Colour(0xffffcb6b));
+        overRangeWarning_.setColour(juce::Label::backgroundColourId, juce::Colour(0xff512222));
+        overRangeWarning_.setMinimumHorizontalScale(1.f);
+        overRangeWarning_.setVisible(false);
         load_.onClick = [this] { chooseSource(); };
         play_.onClick = [this] {
             operations_.finish(false);
@@ -167,7 +172,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         refreshHistory();
         source_.setText(controller_.sourceDescription(), juce::dontSendNotification);
         setStatus("Load WAV -> edit -> Apply config -> Play. Size/Motion/Decay use research "
-                  "mapping v0.1; "
+                  "mapping v0.2; "
                   "not product frozen.");
         if (sourceArgument.isNotEmpty())
             loadSource(
@@ -184,7 +189,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         g.fillAll(juce::Colour(0xff0d181f));
     }
     int preferredHeight() const noexcept {
-        return 552 + tabHeight() + protect_.preferredHeight() +
+        return 608 + tabHeight() + protect_.preferredHeight() +
                (showDraft_.getToggleState() ? 110 : 0) + (showHistory_.getToggleState() ? 180 : 0) +
                (showDiagnostics_.getToggleState() ? 445 : 0);
     }
@@ -221,6 +226,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         focus_.setBounds(audition.removeFromLeft(170).reduced(3, 18));
         trim_.setBounds(audition.reduced(8, 0));
         auditionLabel_.setBounds(area.removeFromTop(26));
+        overRangeWarning_.setBounds(area.removeFromTop(56));
         protect_.setBounds(area.removeFromTop(protect_.preferredHeight()));
         auto workflow = area.removeFromTop(38);
         const int width = workflow.getWidth() / 7;
@@ -454,7 +460,17 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             });
     }
     void timerCallback() override {
-        operations_.tick(ResearchOperations::clockNow());
+        const auto now = ResearchOperations::clockNow();
+        operations_.tick(now);
+        if (controller_.consumeMonitorOverRange()) {
+            overRangeUntil_ = now + 3000;
+            overRangeWarning_.setText(
+                "OVER 0 dBFS / MONITOR OVER-RANGE\n"
+                "Diagnostic monitoring exceeded full scale. Lower E Trim or Monitor Output. "
+                "No limiter is active.",
+                juce::dontSendNotification);
+        }
+        overRangeWarning_.setVisible(now < overRangeUntil_);
         const auto summary = controller_.protectDiagnostics();
         protect_.updateDiagnostics(summary);
         waterDiagnostics_.setText(waterDiagnosticsText(summary), false);
@@ -486,7 +502,8 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     juce::Label title_, note_, source_, status_, appliedLabel_, gainLabel_;
     ResearchSlider gain_;
     ExactValueControl trim_;
-    juce::Label auditionLabel_;
+    juce::Label auditionLabel_, overRangeWarning_;
+    std::uint64_t overRangeUntil_{};
     juce::TextButton reference_{"REFERENCE / E 0 dB"}, focus_{"FOCUS / E +18 dB"};
     juce::TextButton load_{"Load WAV"}, play_{"Play / Restart"}, stop_{"Stop"},
         apply_{"Apply config"};

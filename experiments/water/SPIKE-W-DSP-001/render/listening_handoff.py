@@ -120,6 +120,9 @@ def main():
             config.write_text(json.dumps(case["config"], indent=2) + "\n")
             destination = folder / (key + "-E.wav")
             data, rendered_rate, activity = render(path, destination, case["mode"], config)
+            if case["mode"] == "abd" and case["macro"] == "motion" and case["value"] == 0:
+                if int(activity["bubble_events"]) != 0 or int(activity["droplet_events"]) != 0:
+                    raise ValueError("Motion=0 scheduled new Bubble/Droplet events")
             expected = len(source) + rate * 3
             if rendered_rate != rate or data.shape != (expected, source.shape[1]):
                 raise ValueError("Render shape/rate mismatch")

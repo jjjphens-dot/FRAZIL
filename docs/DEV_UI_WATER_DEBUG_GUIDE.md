@@ -94,10 +94,10 @@ Output meter 位于 monitor gain 后；Input meter 是 WAV 源，保持原有 ag
 
 ### 双视图与共享实验状态
 
-默认 Sound Lead 页显示 Model、Size、Motion、Decay；Engineering 页显示相同宏和 23 个工程控件。
+默认 Sound Lead 页显示 Model、Size、Motion、Decay；Engineering 页显示相同宏和 24 个工程控件。
 两页读取同一个会话模型。Fluid 对应 ABD，Resonant 对应 C；选择其他 ablation composition 时
 Model 显示 CUSTOM，可用 **Return Model to Mapped** 返回该模型的完整组合。
-新会话的 Size/Motion/Decay 使用 **RESEARCH MAPPING v0.1 / NOT PRODUCT FROZEN**。
+新会话的 Size/Motion/Decay 使用 **RESEARCH MAPPING v0.2 / NOT PRODUCT FROZEN**。
 每个宏独立显示 RESEARCH_MAPPED/CUSTOM；原始参数编辑只使所属宏 CUSTOM。
 两个视图的 Return Size/Motion/Decay/All 只恢复所属目标；legacy v1 必须显式 Adopt。
 公式、目标归属和限制见 [研究映射说明](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md)。
@@ -221,11 +221,12 @@ Review 记录至少包含：Git commit + dirty 状态、源素材名称/授权�
 
 验收边界与最新实测结果见 [研究预览验证记录](evidence/WATER_PREVIEW_VALIDATION.md)。
 
-### Listening-ready session v2 follow-up
+### Listening-ready session v3 follow-up
 
-Research session exports now use v2. The separate renderer module JSON and production Host state
-are unchanged. v1 imports retain engineering values exactly, use `legacy-unmapped` with three
-CUSTOM macro states and 0 dB audition trim; adopting mapping requires an explicit action. v2
+Research session exports now use v3, with the explicit Droplet scheduling target. The renderer
+accepts the new optional field; omitted fields retain historical defaults. Production Host state
+is unchanged. v1 imports retain engineering values exactly, use `legacy-unmapped` with three
+CUSTOM macro states and 0 dB audition trim; adopting mapping requires an explicit action. v2/v0.1 imports remain raw/CUSTOM; v3
 validates mapping revision, per-macro/calibration states, trim and all existing typed/retained data
 before mutation. Operation history is runtime-only and is excluded from both formats.
 
@@ -289,3 +290,19 @@ Audio diagnostics 默认收起。该工作流不构成 Host、产品声音或 pe
 离线对比包、复现命令、参考素材范围、客观测量与人工 ACCEPT/REVISE/REJECT 表见
 [Listening handoff](evidence/WATER_LISTENING_HANDOFF.md)。当前 Resonant Motion 的低电平差异是明确待评审风险，
 不能以“非零”替代“可清晰听辨”。
+
+### PR #40 listening remediation
+
+未改值的鼠标按下/松开不会停止、Prepare、重播或写入 history。第一次实际改值才停止；
+一次有效手势完成后自动 Prepare/Apply/Restart 一次。改动后又回到原值会恢复试听，但不写 history。
+
+Motion=0 时 Bubble 新事件速率为 0，Droplet 的 `eventsEnabled=0` 禁止新事件；已有 response
+仍可自然衰减。Engineering 显示独立的 New events (0 off / 1 on) 控件；手动改动会使 Motion CUSTOM。
+新 session 导出 v3；v1 保持 legacy-unmapped，v2/v0.1 保留全部原始值并标记 legacy-research-v0.1。
+只有显式 Adopt Research Mapping v0.2 / Return 操作才采用新曲线。
+
+实际监听输出任一 block 的 sample peak >1 时，界面显示 **OVER 0 dBFS / MONITOR OVER-RANGE**，
+持续至少 3 秒。短瞬态会保留到 UI 读取，安静 block 不会吞掉提示。降低 E Trim 或 Monitor Output；
+没有 limiter、normalizer 或自动补偿。告警不写入操作历史，也不修改音频。
+
+归一化实验和本轮未完成门槛见 [remediation record](evidence/WATER_LISTENING_REMEDIATION.md)。

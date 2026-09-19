@@ -46,7 +46,8 @@ struct PreviewSettings final {
                   modal.decaySeconds,
                   modal.residualGain,
                   modal.motionDepth,
-                  modal.motionIntervalSeconds};
+                  modal.motionIntervalSeconds,
+                  fluid.droplet.eventsEnabled};
         protect = protection;
     }
 

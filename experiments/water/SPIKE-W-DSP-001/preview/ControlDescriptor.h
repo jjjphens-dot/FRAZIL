@@ -37,6 +37,7 @@ enum class ControlId {
     modalGain,
     modalMotionDepth,
     modalMotionInterval,
+    dropletEventsEnabled,
     count
 };
 
@@ -136,6 +137,8 @@ inline constexpr std::array<ControlDescriptor, static_cast<std::size_t>(ControlI
          0, .35, .001, 0, InternalUnit::linearAmplitude},
         {ControlId::modalMotionInterval, ControlGroup::modal, "motionIntervalSeconds",
          "Motion interval (s)", .02, 10, .01, .7, InternalUnit::seconds},
+        {ControlId::dropletEventsEnabled, ControlGroup::droplet, "eventsEnabled",
+         "New events (0 off / 1 on)", 0, 1, 1, 1, InternalUnit::count},
     }};
 
 constexpr std::size_t controlIndex(ControlId id) noexcept {

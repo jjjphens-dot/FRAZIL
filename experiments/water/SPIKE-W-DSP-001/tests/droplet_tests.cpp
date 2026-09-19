@@ -47,6 +47,23 @@ int main() {
                         check(std::isfinite(y[0]) && std::abs(y[0]) <= .300001 && y[1] == 0.0f);
                     }
                 }
+        DropletConfig disabled;
+        disabled.eventsEnabled = 0;
+        check(droplet.prepare(config, disabled));
+        for (int i = 0; i < static_cast<int>(rate); ++i)
+            (void)droplet.process({i % 1000 < 100 ? .9f : 0.f, .8f});
+        check(droplet.events() == 0 && droplet.activeVoices() == 0);
+        check(droplet.prepare(config));
+        for (int i = 0; i < 1000 && droplet.events() == 0; ++i)
+            (void)droplet.process({1.f, 0.f});
+        check(droplet.events() == 1 && droplet.activeVoices() == 1);
+        droplet.setEventsEnabled(false);
+        bool survivingTail{};
+        for (int i = 0; i < static_cast<int>(rate); ++i) {
+            const auto y = droplet.process({i % 1000 < 100 ? .9f : 0.f, 0.f});
+            survivingTail = survivingTail || y[0] != 0;
+        }
+        check(survivingTail && droplet.events() == 1 && droplet.activeVoices() == 0);
         DropletConfig invalid;
         invalid.voices = 17;
         check(!droplet.prepare(config, invalid));

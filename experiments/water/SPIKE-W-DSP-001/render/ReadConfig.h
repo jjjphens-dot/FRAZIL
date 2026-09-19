@@ -238,10 +238,13 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
                                               {"maximumFrequencyHz", &c.maximumFrequencyHz},
                                               {"decaySeconds", &c.decaySeconds},
                                               {"transientThreshold", &c.transientThreshold},
+                                              {"eventsEnabled", &c.eventsEnabled},
                                               {"refractorySeconds", &c.refractorySeconds},
                                               {"residualGain", &c.residualGain},
                                               {"voices", &voices}}) ||
                 !validVoiceRepresentation(voices))
+                return false;
+            if (c.eventsEnabled != 0 && c.eventsEnabled != 1)
                 return false;
             c.voices = static_cast<std::size_t>(voices);
         } else if (name == "flow") {
