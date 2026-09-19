@@ -31,7 +31,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         frame = 0;
         position.store(0);
         ended.store(false);
-        audition.prepare(rate, monitor.load(), auditionGain.load());
+        audition.prepare(rate, monitor.load(), auditionGain.load(), excitationAudition.load());
         metrics.setPrepared(static_cast<float>(rate), audioDevice->getCurrentBufferSizeSamples(),
                             source.getNumChannels());
     }
@@ -51,7 +51,8 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         if (mismatch.load() || ended.load() || source.getNumSamples() == 0)
             return;
         const auto mode = monitor.load();
-        audition.setTargets(mode, outputGain.load(), auditionGain.load());
+        audition.setTargets(mode, outputGain.load(), auditionGain.load(),
+                            excitationAudition.load());
         engine.setProtectDepth(protectDepth.load(std::memory_order_relaxed));
         const int channels = source.getNumChannels();
         float inputPeak{}, outputPeak{};
@@ -75,7 +76,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
             protectBlock.water.include(engine.waterReadout(), channels);
             protectBlock.latest = engine.protectReadout();
             protectBlock.peak.includePeak(protectBlock.latest);
-            const auto output = audition.process(input, residual);
+            const auto output = audition.process(input, residual, engine.excitationFrame());
             for (int channel = 0; channel < channels; ++channel) {
                 const auto i = static_cast<std::size_t>(channel);
                 finite = finite && std::isfinite(output[i]);
@@ -112,13 +113,14 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
     AuditionMonitor audition;
     MonitorOverRange overRange;
     std::atomic<std::uint64_t> position{};
-    std::atomic<bool> isPlaying{}, ended{}, mismatch{};
+    std::atomic<bool> isPlaying{}, ended{}, mismatch{}, excitationAudition{};
     std::atomic<MonitorMode> monitor{MonitorMode::processed};
     std::atomic<float> outputGain{0.12589254f}, auditionGain{7.94328235f};
     // Sole UI->audio Protect transport: validated normalized target, sampled at block boundary.
     std::atomic<double> protectDepth{};
     bool callbackAttached{}, prepared{}; // Message-thread lifecycle only.
     double preparedRate{};
+    static_assert(std::atomic<bool>::is_always_lock_free);
     static_assert(std::atomic<double>::is_always_lock_free);
     static_assert(std::atomic<MonitorMode>::is_always_lock_free);
     static_assert(std::atomic<std::uint64_t>::is_always_lock_free);
@@ -262,6 +264,10 @@ void PreviewController::setProtectDepth(double depth) noexcept {
     if (std::isfinite(depth) && depth >= 0 && depth <= 1)
         impl_->protectDepth.store(depth, std::memory_order_relaxed);
 }
+void PreviewController::setExcitationAudition(bool enabled) noexcept {
+    impl_->excitationAudition.store(enabled, std::memory_order_relaxed);
+}
+
 void PreviewController::setMonitor(MonitorMode mode, float outputGainDb) noexcept {
     if (mode != MonitorMode::dry && mode != MonitorMode::processed && mode != MonitorMode::residual)
         mode = MonitorMode::processed;

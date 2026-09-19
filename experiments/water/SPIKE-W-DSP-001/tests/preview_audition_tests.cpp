@@ -50,6 +50,19 @@ int runAuditionTests() {
         }
         check(std::abs(previous - .08f) < 1e-6, "trim reaches target in 10 ms");
     }
+    // The actual driver replaces source/E, without E Trim or a DSP reset; ramp both directions.
+    AuditionMonitor driverMonitor;
+    driverMonitor.prepare(48000, MonitorMode::processed, 64);
+    driverMonitor.setTargets(MonitorMode::processed, .125f, 64, true);
+    frazil::water::research::StereoFrame driverOutput{};
+    for (int i = 0; i < 600; ++i)
+        driverOutput = driverMonitor.process({.2f, 0}, {.01f, 0}, {.4f, 0});
+    check(std::abs(driverOutput[0] - .05f) < 1e-6f && driverOutput[1] == 0,
+          "actual driver only, excludes E trim");
+    driverMonitor.setTargets(MonitorMode::dry, .125f, 64, false);
+    for (int i = 0; i < 600; ++i)
+        driverOutput = driverMonitor.process({.2f, 0}, {.01f, 0}, {.4f, 0});
+    check(std::abs(driverOutput[0] - .025f) < 1e-6f, "return to normal monitor");
     ResearchSessionModel session;
     const auto config = session.draft().engineering.moduleJson();
     check(session.draft().auditionETrimDb == 18 && session.draft().monitorGainDb == -18 &&

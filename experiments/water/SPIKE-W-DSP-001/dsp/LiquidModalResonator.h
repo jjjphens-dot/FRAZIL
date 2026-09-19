@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ModalExcitationConditioner.h"
 #include "WaterDspConfig.h"
 #include "WaterExcitationFeatures.h"
 #include "detail/DampedResonator.h"
@@ -21,10 +22,12 @@ struct ModalConfig final {
 // measured water modes. Coefficients are shared, channel state is isolated. Output is residual.
 class LiquidModalResonator final {
   public:
-    bool prepare(double rate, const ModalConfig& config = {}) noexcept {
-        return prepare(ResearchConfig{rate, 42u}, config);
+    bool prepare(double rate, const ModalConfig& config = {},
+                 ModalExcitation excitation = ModalExcitation::raw) noexcept {
+        return prepare(ResearchConfig{rate, 42u}, config, excitation);
     }
-    bool prepare(const ResearchConfig& research, const ModalConfig& config = {}) noexcept {
+    bool prepare(const ResearchConfig& research, const ModalConfig& config = {},
+                 ModalExcitation excitation = ModalExcitation::raw) noexcept {
         const double rate = research.sampleRateHz;
         ready_ = false;
         reset();
@@ -36,7 +39,8 @@ class LiquidModalResonator final {
             config.residualGain < 0.0 || config.residualGain > 0.3 ||
             !std::isfinite(config.motionDepth) || config.motionDepth < 0 ||
             config.motionDepth > .35 || !std::isfinite(config.motionIntervalSeconds) ||
-            config.motionIntervalSeconds < .02 || config.motionIntervalSeconds > 10)
+            config.motionIntervalSeconds < .02 || config.motionIntervalSeconds > 10 ||
+            !conditioner_.prepare(rate, excitation))
             return false;
         for (std::size_t i = 0; i < kRatios.size(); ++i)
             coefficients_[i] = detail::makeResonator(rate, config.rootFrequencyHz * kRatios[i],
@@ -51,6 +55,8 @@ class LiquidModalResonator final {
     }
 
     void reset() noexcept {
+        conditioner_.reset();
+        excitation_ = {};
         for (auto& channel : modes_)
             for (auto& mode : channel)
                 mode.reset();
@@ -63,6 +69,7 @@ class LiquidModalResonator final {
 
     StereoFrame process(const StereoFrame& input) noexcept {
         StereoFrame output{};
+        excitation_ = ready_ ? conditioner_.process(input) : StereoFrame{};
         if (ready_ && motionDepth_ > 0)
             advanceWeights();
         if (ready_)
@@ -70,13 +77,18 @@ class LiquidModalResonator final {
                 double sum{};
                 for (std::size_t i = 0; i < kRatios.size(); ++i)
                     sum += modes_[channel][i].process(
-                        motionDepth_ == 0 ? static_cast<double>(input[channel])
-                                          : static_cast<double>(input[channel]) * weights_[i],
+                        motionDepth_ == 0 ? static_cast<double>(excitation_[channel])
+                                          : static_cast<double>(excitation_[channel]) * weights_[i],
                         coefficients_[i]);
                 output[channel] = static_cast<float>(gainPerMode_ * sum);
             }
         return output;
     }
+    // Actual common bank driver before per-mode weight redistribution; never recomputed by UI.
+    const StereoFrame& excitationFrame() const noexcept {
+        return excitation_;
+    }
+
     // Audio-owner numerical inspection only; readers must use the preview's bounded transport.
     const std::array<double, 6>& excitationWeights() const noexcept {
         return weights_;
@@ -114,6 +126,8 @@ class LiquidModalResonator final {
     RandomSource random_;
     RandomSource::Seed seed_{RandomSource::kDefaultSeed};
     std::size_t phase_{}, intervalSamples_{1};
+    ModalExcitationConditioner conditioner_;
+    StereoFrame excitation_{};
     bool ready_{};
 };
 } // namespace frazil::water::research

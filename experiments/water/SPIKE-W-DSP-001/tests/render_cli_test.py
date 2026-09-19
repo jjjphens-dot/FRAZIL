@@ -73,6 +73,22 @@ def main():
                     if reference is not None: assert actual == reference
                     reference = actual
                 renders[mode] = reference
+            # EXP-W-RX-001: actual captured driver and raw control use the same bank path.
+            for candidate in ("raw", "hard", "softsign", "tanh", "feature"):
+                output = root / f"excitation-{rate}-{candidate}-C.wav"
+                excitation = root / f"excitation-{rate}-{candidate}-driver.wav"
+                command = [str(renderer), str(source), str(output), "c-residual", "257", "42",
+                           "-", "2", "-", candidate, str(excitation)]
+                subprocess.run(command, check=True, capture_output=True)
+                actual, driver = read_float(output), read_float(excitation)
+                assert len(driver) == len(actual) == len(renders["c"])
+                assert all(math.isfinite(v) and abs(v) <= 1 for v in driver)
+                assert all(v == 0 for v in driver[1::2])
+                assert all(v == 0 for v in driver[2*len(values):])
+                if candidate in ("raw", "hard"):
+                    assert actual == renders["c"]
+                    assert driver[:2*len(values):2] == tuple(v / 32768 for v in values)
+                assert subprocess.run(command, capture_output=True).returncode != 0
             # New Modal motion is optional. Explicit zero must decode exactly like legacy omission;
             # active motion is fixed-seed and block-partition invariant, with isolated right channel.
             moving_reference = None

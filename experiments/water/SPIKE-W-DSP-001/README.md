@@ -395,7 +395,7 @@ References were reviewed on 2026-09-16. FRAZIL's residual composition, Fluid/Res
 frequency families and scheduling are engineering hypotheses, not formulas endorsed by these papers.
 
 The listening-ready follow-up exports research session v3 and accepts v1/v2 without changing raw
-engineering values. Legacy macro states are CUSTOM / legacy-unmapped. Runtime operation history
+engineering values. Legacy v1 macro states are CUSTOM / legacy-unmapped; v2/v0.1 uses CUSTOM / legacy-research-v0.1. Runtime operation history
 never enters either schema; see the debug guide for DSP/context dirty and checkpoint semantics.
 
 
@@ -443,7 +443,7 @@ excerpts remain read-only. Renderer stdout now includes input-window Flow min/ma
 these are offline proxies outside the processing/timing harness. The handoff uses original sources,
 Protect OFF and fixed seed, with no automatic normalization or acceptance.
 
-See [handoff evidence and commands](../../../docs/evidence/WATER_LISTENING_HANDOFF.md): 72 cases
+See [current handoff evidence and commands](../../../docs/evidence/WATER_LISTENING_HANDOFF_V02.md): 72 cases
 pass objective checks, but Resonant residual/Motion can be very low-level. Human mapping/audibility
 and source-preservation decisions remain pending. No audio, generated pack or personal path is tracked.
 
@@ -459,3 +459,17 @@ v2/v0.1 becomes legacy-research-v0.1 / CUSTOM and requires explicit adoption of 
 for the actual imaginary-output recurrence. Its candidate results do not replace Modal DSP;
 see [remediation status](../../../docs/evidence/WATER_LISTENING_REMEDIATION.md) for the Stop A
 finite-float counterexamples and remaining human listening gates.
+
+### EXP-W-RX-001 excitation comparison
+
+The optional `ModalExcitation` prepare argument selects raw/hard/softsign/tanh/feature carriers;
+raw remains the exact preview and omitted-renderer default. Only the modal residual path is
+conditioned. Candidate choice is an explicit offline renderer argument, not a module/session
+JSON field or adopted macro. `excitationFrame()` exposes the actual common driver before
+per-mode redistribution; the preview's temporary Engineering audition uses this value directly,
+with a 10 ms crossfade and Monitor Output only. No E Trim, Protect, history or serialization.
+
+`render/excitation_study.py` captures that driver and actual C0 output using the existing renderer,
+including a generated sustained engineering pad. See [experiment record](../EXP-W-RX-001.md)
+for equations, rejection of the first feature-carrier construction, finite/stereo proof,
+reproduction commands and validation. No new production path or implicit candidate selection.

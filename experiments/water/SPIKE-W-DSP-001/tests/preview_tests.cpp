@@ -84,6 +84,8 @@ int main() {
                 const float sample = i % 1500 < 800 ? .4f * std::sin(i * .1f) : 0.0f;
                 const research::StereoFrame input{sample, 0.0f};
                 const auto e = actual.residual(input);
+                check(actual.excitationFrame() == (mode == 1 ? input : research::StereoFrame{}),
+                      "actual modal driver transport / non-modal silence");
                 const auto expected =
                     mode == 1 ? referenceModal.process(input) : referenceFluid.process(input);
                 check(e == expected, "UI composition matches unchanged research DSP");

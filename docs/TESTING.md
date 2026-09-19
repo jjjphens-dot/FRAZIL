@@ -847,3 +847,14 @@ intermediate descriptor fixture run, its compile-time length guard repair, succe
 preset results and native GUI checks. Motion=0 tests exercise actual A/B schedulers; Droplet gate
 closure preserves an already active response. Monitor over-range tests cover the strict >1
 boundary and short-event retention through quiet blocks, without changing monitor samples.
+
+EXP-W-RX-001 adds `frazil_water_excitation`: bounded-carrier finite extremes, linked L/R ratio,
+left/right-only symmetry, silent feature release, failed prepare, settled-sine shape regression
+and exact reset/partition checks at 44.1/48/96 kHz. Existing modal historical-recurrence tests
+continue to verify raw identity. Renderer tests capture actual driver WAVs and reject overwrites;
+preview tests verify the driver transport and monitor-only routing without E Trim. The separate
+`excitation_study.py` pack compares nine engineering fixtures and explicit original inputs with
+C0 unchanged. `frazil_water_performance --excitation-study` reports all candidate Motion/Decay
+corners using the existing timing harness. These checks do not establish human audibility or
+acceptance; failures, measured results and UI validation are recorded in
+[EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md).

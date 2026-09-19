@@ -307,3 +307,14 @@ Motion=0 时 Bubble 新事件速率为 0，Droplet 的 `eventsEnabled=0` 禁止�
 没有 limiter、normalizer 或自动补偿。告警不写入操作历史，也不修改音频。
 
 归一化实验和本轮未完成门槛见 [remediation record](evidence/WATER_LISTENING_REMEDIATION.md)。
+
+### Resonant excitation research diagnostic
+
+Engineering 页在已应用的 composition=C 时提供 **AUDITION EXCITATION**。它监听实际送入
+Modal bank、尚未进行逐 mode 权重分配的公共载波；当前预览仍使用 R-E0 原始激励。
+此时仅 Monitor Output 生效，E Trim、Protect 和普通 Source/Full/Water Only 监听被旁路。
+切换使用 10 ms ramp，不停止/Prepare/重播，不修改 DSP 或 history。切回 Sound Lead、应用非 C
+或选择普通监听按钮会退出；该临时诊断开关不进入 session/module JSON、A/B 或 Host state。
+
+离线 R-E0/R-E1/R-E2 对比、实际 excitation WAV 和波形反例见
+[EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md)。候选尚未成为预览默认值或产品映射。

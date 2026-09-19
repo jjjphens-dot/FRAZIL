@@ -28,6 +28,8 @@ class PreviewController final {
     juce::String validate(const PreviewSettings&, double sampleRate) const;
     void setMonitor(MonitorMode, float outputGainDb) noexcept;
     void setAuditionTrim(double decibels) noexcept;
+    // Temporary monitor-only override; not part of module/session JSON or operation history.
+    void setExcitationAudition(bool enabled) noexcept;
     void setProtectDepth(double depth) noexcept;
     plugin::DeveloperDiagnosticsSnapshot diagnostics() const noexcept;
     ProtectDiagnosticsSnapshot protectDiagnostics() noexcept;

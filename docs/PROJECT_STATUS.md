@@ -423,3 +423,8 @@ The [remediation record](evidence/WATER_LISTENING_REMEDIATION.md) tracks the no-
 Motion v0.2 endpoint / legacy-session migration, monitor over-range warning and normalization
 study. C1/C2 are not adopted: the supplied Stop A requires numerical/design review. This work
 must not be read as completed Resonant audibility, accepted mapping or product DSP adoption.
+
+The next-stage [EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md) compares bounded modal
+excitation separately from the raw preview default and C0 normalization. An actual-driver
+Engineering audition is implemented; validation and candidate selection remain in the phase
+record. No human acceptance, C3 adoption or completed Water listening readiness is implied.

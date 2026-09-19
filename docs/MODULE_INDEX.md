@@ -122,3 +122,9 @@ Research config exporter `render/research_cases.cpp` reuses the UI mapper/adapte
 `MonitorOverRange.h` latches actual output peaks above full scale across UI polling gaps;
 its atomic boolean is diagnostic only, outside session/history. `modal_normalization_study.py`
 is an offline C0/C1/C2 mathematical study, not a new DSP path or accepted normalization.
+
+`ModalExcitationConditioner.h` owns the opt-in EXP-W-RX-001 raw/bounded/feature carrier comparison;
+`LiquidModalResonator` consumes it with raw as the unchanged default. It is not a production DSP
+module. `PreviewEngine` exposes the actual common modal driver only to the audio owner;
+`AuditionMonitor` crossfades its temporary audition after processing. Offline comparison is in
+[EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md); no new Host or session target is registered.

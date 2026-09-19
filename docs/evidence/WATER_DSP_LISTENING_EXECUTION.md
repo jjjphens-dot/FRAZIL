@@ -100,3 +100,54 @@ Phase 0 is COMPLETE through Contract Review, Implementation, Functional Validati
 Code Quality Review, Comment & Documentation Pass and Final Validation. No new audio rendering,
 native GUI, listening, pluginval/DAW or CPU evidence is claimed. Phase 1 has not started;
 no push or merge was performed for this phase.
+
+
+## Continuing phase ledger
+
+The latest direct user instruction authorizes automatic continuation after each reviewed phase,
+with one GitHub upload after the work is ready. Human acceptance and explicitly conditional
+branches remain evidence gates; numerical tests cannot supply those decisions.
+
+| Phase | State / dependency |
+| --- | --- |
+| 0 Current documentation handoff | COMPLETE, local commit `a6828f1` |
+| 1 EXP-W-RX-001 excitation | COMPLETE; carrier-v2 tests, render, timing, GUI and self-review passed; no candidate adoption |
+| 2 BIBO-capped C3 normalization | NEXT, after Phase 1 proof/validation |
+| 3 Resonant Decay | Requires C3 comparison; retain .03/.12/.48 targets |
+| 4 Structured Resonant Motion | R-M1 first; optional drift only after human evidence that R-M1 is insufficient |
+| 5 Fluid calibration | Compare LCF0/1/2; no default selection without listening |
+| 6 Droplet activity | Independent bounded scheduling refinement; zero events at zero |
+| 7 Continuous Flow | D0 review first; D1/D2 conditional on chorus/flanging REVISE |
+| 8 Droplet B2 | Conditional on existing Droplet review showing insufficiency |
+| 9 Component diagnostics | Actual monitor-only signals or documented existing offline ablations |
+| 10 Staged listening pack | Five inputs including pad; fixed-source and matched results separate |
+| 11 Two-reviewer decisions | NOT ASSESSED; cannot be supplied by objective proxies |
+| 12 Protect re-evaluation | After baseline review, no reused D0/D1 musical conclusion |
+
+### Phase 1 report
+
+1. Baseline `a6828f1`, same origin/main and Protect identities as Phase 0.
+2. Research-only conditioner comparison and actual-driver monitor; no production implementation.
+3. New conditioner, excitation tests, comparison driver and EXP-W-RX-001 record; bounded edits to
+   existing Modal, renderer, preview controller/monitor/panel, tests and relevant docs.
+4. Primary-source observations and explicit transfer limits are in [EXP-W-RX-001](../../experiments/water/EXP-W-RX-001.md).
+5. Raw remains default; all carriers use a linked gain; actual common driver can be auditioned.
+6. Host/schema/mapping/session contracts unchanged. Research UI diagnostic documented behavior
+   changes, so the relevant UI/DSP/testing rows of the full Documentation Synchronization Gate apply.
+7. Serial Debug/Release/ASAN, actual-driver render tests, 65-case source/candidate comparison,
+   45-case Motion/Decay performance grid and native GUI validation. Final suites: Debug 22/22
+   (35.44 s), Release 22/22 (18.94 s), ASAN 22/22 (62.73 s); detailed GUI limits in the experiment record.
+8. Initial R-E2 passed numerical tests but failed engineering waveform review (43.30% sine shape
+   error); revised Fast-scaled R-E2 reduces this to 2.63%. Neither result is human acceptance.
+9. Revised fixture and original-source outputs remain local in `build/listening-ui/excitation-study-v2`.
+10. Fixed arrays/scalars, common carrier scaling and reused bounded feature tracker; no callback
+    allocation, I/O, lock or UI access. Monitor switching happens after DSP via a lock-free target.
+11. Updated guide, sound-tool contract note, module index, testing guide, status, module README,
+    current handoff and experiment record. Architecture, Parameters, accepted brief, ADR and
+    production code remain unchanged; relevant UI/DSP/testing/status synchronization review PASS.
+12. Raw C0 is still the preview default; no selected conditioner, new normalization or human review.
+13. Preserve prior unmodified C1/C2 Stop A and rejected R-E2 trial. No safety-contract relaxation.
+14. After this phase's final checks, proceed directly to bounded C3 derivation/comparison.
+
+Phase 1 final quality commands: Markdown-link and portability scans, both scanner regressions,
+VS Code task check, clang-format dry-run on changed C++, and staged whitespace check: all PASS on the staged Phase 1 changes. No GitHub upload yet; continuation is authorized.

@@ -27,8 +27,10 @@ requires explicit Adopt/Return. Session version and mapping revision are separat
 
 Motion=0 schedules no new Bubble or Droplet events; active tails may decay and Flow continues.
 It is **event-silent, not an all-output mute**. C0 modal normalization (`b=1-r`) is unchanged.
-Resonant Motion audibility and Decay level/persistence tradeoffs remain unresolved. No bounded
-excitation conditioner, C3 normalization or new temporal-motion candidate is implemented here.
+Resonant Motion audibility and Decay level/persistence tradeoffs remain unresolved. The preview default has no bounded
+excitation conditioner, C3 normalization or new temporal-motion candidate. Separate offline
+carrier comparisons and an actual-driver monitor are tracked in
+[EXP-W-RX-001](../../experiments/water/EXP-W-RX-001.md); they do not replace this mapping baseline.
 
 ## Existing v0.2 objective evidence
 

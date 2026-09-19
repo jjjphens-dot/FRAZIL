@@ -74,6 +74,10 @@ class PreviewEngine final {
         }
         return frames.at(WaterSignal::postProtect);
     }
+    // Actual common modal driver, pre-weight and pre-Protect; zero for non-C compositions.
+    research::StereoFrame excitationFrame() const noexcept {
+        return ready_ && modalMode_ ? modal_.excitationFrame() : research::StereoFrame{};
+    }
     const WaterFrameReadout& waterReadout() const noexcept {
         return readout_;
     }

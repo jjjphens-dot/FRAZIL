@@ -293,3 +293,8 @@ do not prepare/restart or enter history. Its separate monitor-over-range latch r
 output peaks across UI polls and displays a 3 s warning without modifying samples. This does not
 change the plugin diagnostics behavior described above. See the
 [scoped remediation and normalization review](evidence/WATER_LISTENING_REMEDIATION.md).
+
+The research-only Engineering excitation audition exposes the actual common modal-bank driver,
+with Monitor Output but no E Trim or Protect. It is temporary, not serialized or recorded in
+history, and cannot alter DSP composition. Offline bounded-carrier candidates remain separate
+from preview defaults; see [EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md).

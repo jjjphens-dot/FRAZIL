@@ -16,9 +16,10 @@ template <typename Integer> bool parse(std::string_view text, Integer& value) {
 }
 
 int render(int argc, char** argv) {
-    if (argc < 6 || argc > 9) {
+    if (argc < 6 || argc > 11) {
         std::cerr << "Usage: renderer input.wav NEW-output.wav mode block seed [config.json|-] "
-                     "[tail-seconds] [NEW-protect-trace.csv]\n"
+                     "[tail-seconds] [NEW-protect-trace.csv|-] [raw|hard|softsign|tanh|feature] "
+                     "[NEW-excitation.wav]\n"
                      "Modes: baseline, residual (zero), a, b, d, ab, ad, bd, abd, c; append "
                      "-residual for E only.\n";
         return 2;
@@ -33,6 +34,9 @@ int render(int argc, char** argv) {
     if (!baselineMode && mode != "a" && mode != "b" && mode != "d" && mode != "ab" &&
         mode != "ad" && mode != "bd" && mode != "abd" && mode != "c")
         return 2;
+    ModalExcitation excitationMode{ModalExcitation::raw};
+    if (argc >= 10 && (mode != "c" || !parseModalExcitation(argv[9], excitationMode)))
+        return 2;
     int blockSize{}, tailSeconds{};
     ResearchConfig config;
     if (!parse(argv[4], blockSize) || blockSize < 1 || blockSize > 8192 ||
@@ -45,6 +49,12 @@ int render(int argc, char** argv) {
     if (input == output || output.exists()) {
         std::cerr << "Output must be a new file, distinct from input.\n";
         return 2;
+    }
+    if (argc == 11) {
+        const auto excitationFile = cwd.getChildFile(argv[10]);
+        if (excitationFile == input || excitationFile == output || excitationFile.exists() ||
+            (std::string_view(argv[8]) != "-" && excitationFile == cwd.getChildFile(argv[8])))
+            return 2;
     }
     FluidConfig fluidConfig;
     ModalConfig modalConfig;
@@ -74,15 +84,16 @@ int render(int argc, char** argv) {
     if (!protect.prepare(config.sampleRateHz, protectConfig.gain, protectConfig.depth))
         return 2;
     const bool prepared = baselineMode  ? baseline.prepare(config)
-                          : mode == "c" ? modal.prepare(config, modalConfig)
+                          : mode == "c" ? modal.prepare(config, modalConfig, excitationMode)
                                         : fluid.prepare(config, fluidConfig);
     if (!prepared)
         return 2;
     // Optional diagnostic trace is offline-only, outside DSP and timing; refuse any overwrite.
     std::unique_ptr<juce::FileOutputStream> trace;
-    if (argc == 9) {
+    if (argc >= 9 && std::string_view(argv[8]) != "-") {
         const auto traceFile = cwd.getChildFile(argv[8]);
-        if (traceFile == output || traceFile == input || traceFile.exists())
+        if (traceFile == output || traceFile == input || traceFile.exists() ||
+            (argc == 11 && traceFile == cwd.getChildFile(argv[10])))
             return 2;
         trace = traceFile.createOutputStream();
         if (!trace || !trace->writeText("frame,d0,d1_db,gr_db\n", false, false, "\n"))
@@ -91,7 +102,7 @@ int render(int argc, char** argv) {
     const auto channels = static_cast<int>(reader->numChannels);
     const auto totalFrames =
         reader->lengthInSamples + static_cast<juce::int64>(tailSeconds * config.sampleRateHz);
-    juce::AudioBuffer<float> buffer(channels, blockSize);
+    juce::AudioBuffer<float> buffer(channels, blockSize), excitationBuffer(channels, blockSize);
     std::unique_ptr<juce::OutputStream> stream = output.createOutputStream();
     if (!stream)
         return 1;
@@ -105,6 +116,20 @@ int render(int argc, char** argv) {
     auto writer = format.createWriterFor(stream, options);
     if (!writer)
         return 1;
+    // Research-only diagnostic: the actual common modal-bank driver, before weight distribution.
+    // This never changes the residual, dry carrier, module JSON or Host/session state.
+    std::unique_ptr<juce::AudioFormatWriter> excitationWriter;
+    if (argc == 11) {
+        const auto excitationFile = cwd.getChildFile(argv[10]);
+        if (excitationFile == input || excitationFile == output || excitationFile.exists())
+            return 2;
+        std::unique_ptr<juce::OutputStream> excitationStream = excitationFile.createOutputStream();
+        if (!excitationStream)
+            return 1;
+        excitationWriter = format.createWriterFor(excitationStream, options);
+        if (!excitationWriter)
+            return 1;
+    }
     double peak{}, squareSum{}, dcSum{}, residualSquareSum{};
     double flowMinimum{}, flowMaximum{}, flowTravel{}, previousFlowDelay{};
     bool observedFlow{};
@@ -135,6 +160,9 @@ int render(int argc, char** argv) {
                     applyFluidProtect(fluid.processComponents(frame), gain, protectConfig.topology);
             else if (!baseline.processResidual(frame, effect))
                 return 1;
+            if (excitationWriter)
+                for (int channel = 0; channel < channels; ++channel)
+                    excitationBuffer.setSample(channel, sample, modal.excitationFrame()[channel]);
             // Input-window trajectory observation only; a final tail value returns to base delay
             // and cannot describe Motion. This work is outside the realtime/timing harness.
             if (!baselineMode && mode != "c" && fluidConfig.flowEnabled &&
@@ -181,9 +209,14 @@ int render(int argc, char** argv) {
                 residualSquareSum += static_cast<double>(effect[channel]) * effect[channel];
             }
         }
+        if (excitationWriter &&
+            !excitationWriter->writeFromAudioSampleBuffer(excitationBuffer, 0, count))
+            return 1;
         if (!writer->writeFromAudioSampleBuffer(buffer, 0, count))
             return 1;
     }
+    if (excitationWriter && !excitationWriter->flush())
+        return 1;
     if (!writer->flush())
         return 1;
     if (trace) {
@@ -194,8 +227,9 @@ int render(int argc, char** argv) {
     const double samples = static_cast<double>(totalFrames) * channels;
     std::cout << "research mode=" << argv[3] << " seed=" << config.baseSeed
               << " frames=" << totalFrames << " rate=" << config.sampleRateHz
-              << " block=" << blockSize << " peak=" << peak
-              << " rms=" << std::sqrt(squareSum / samples) << " dc=" << dcSum / samples
+              << " block=" << blockSize << " excitation=" << (argc >= 10 ? argv[9] : "raw")
+              << " peak=" << peak << " rms=" << std::sqrt(squareSum / samples)
+              << " dc=" << dcSum / samples
               << " residual_rms=" << std::sqrt(residualSquareSum / samples)
               << " bubble_events=" << fluid.bubbleEvents()
               << " droplet_events=" << fluid.dropletEvents()

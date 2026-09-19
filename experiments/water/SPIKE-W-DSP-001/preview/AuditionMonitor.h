@@ -9,27 +9,34 @@ namespace frazil::water::preview {
 // gain. Set targets once per block; all three transitions use the existing 10 ms ramp primitive.
 class AuditionMonitor final {
   public:
-    void prepare(double rate, MonitorMode mode, float trimGain) noexcept {
+    void prepare(double rate, MonitorMode mode, float trimGain, bool excitation = false) noexcept {
+        driver_.prepare(rate, .01);
+        driver_.reset(excitation ? 1.f : 0.f);
         carrier_.prepare(rate, .01);
         effect_.prepare(rate, .01);
         output_.prepare(rate, .01);
-        carrier_.reset(mode == MonitorMode::residual ? 0.f : 1.f);
-        effect_.reset(mode == MonitorMode::dry ? 0.f : trimGain);
+        carrier_.reset(excitation || mode == MonitorMode::residual ? 0.f : 1.f);
+        effect_.reset(excitation || mode == MonitorMode::dry ? 0.f : trimGain);
         output_.reset(0); // Fade in at device start.
     }
-    void setTargets(MonitorMode mode, float outputGain, float trimGain) noexcept {
-        carrier_.setTarget(mode == MonitorMode::residual ? 0.f : 1.f);
-        effect_.setTarget(mode == MonitorMode::dry ? 0.f : trimGain);
+    void setTargets(MonitorMode mode, float outputGain, float trimGain,
+                    bool excitation = false) noexcept {
+        driver_.setTarget(excitation ? 1.f : 0.f);
+        carrier_.setTarget(excitation || mode == MonitorMode::residual ? 0.f : 1.f);
+        effect_.setTarget(excitation || mode == MonitorMode::dry ? 0.f : trimGain);
         output_.setTarget(outputGain);
     }
     research::StereoFrame process(const research::StereoFrame& source,
-                                  const research::StereoFrame& protectedE) noexcept {
+                                  const research::StereoFrame& protectedE,
+                                  const research::StereoFrame& excitation = {}) noexcept {
         const float x = carrier_.getNextValue(), e = effect_.getNextValue(),
-                    g = output_.getNextValue();
-        return {(x * source[0] + e * protectedE[0]) * g, (x * source[1] + e * protectedE[1]) * g};
+                    g = output_.getNextValue(), driver = driver_.getNextValue();
+        return {(x * source[0] + e * protectedE[0] + driver * excitation[0]) * g,
+                (x * source[1] + e * protectedE[1] + driver * excitation[1]) * g};
     }
 
   private:
-    LinearSmoother carrier_, effect_, output_;
+    // Excitation bypasses E Trim; only Monitor Output affects its listening level.
+    LinearSmoother carrier_, effect_, output_, driver_;
 };
 } // namespace frazil::water::preview

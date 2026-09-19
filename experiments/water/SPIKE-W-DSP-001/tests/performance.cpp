@@ -57,7 +57,10 @@ template <typename Effect> double measure(const char* name, Effect effect, doubl
 }
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
+    const bool excitationStudy = argc == 2 && std::string_view(argv[1]) == "--excitation-study";
+    if (argc > 1 && !excitationStudy)
+        return 2;
     std::cout
         << "research_only rate=48000 block=128 stereo warmup=2000 measured=20000; "
            "gated stereo workload; nearest-rank percentiles; wall time, not process CPU percent\n";
@@ -77,6 +80,35 @@ int main() {
             }
         },
         baseline);
+    if (excitationStudy) {
+        for (const auto name : {"raw", "hard", "softsign", "tanh", "feature"}) {
+            ModalExcitation excitation;
+            if (!parseModalExcitation(name, excitation))
+                return 2;
+            for (double motion : {0., .5, 1.})
+                for (double decay : {.03, .12, .48}) {
+                    const ModalConfig config{260, decay, .3, .35 * motion,
+                                             .7 * std::pow(2.8, 1 - 2 * motion)};
+                    LiquidModalResonator candidate;
+                    if (!candidate.prepare(kRate, config, excitation))
+                        return 1;
+                    const auto label = std::string(name) + "_motion_" + std::to_string(motion) +
+                                       "_decay_" + std::to_string(decay);
+                    measure(
+                        label.c_str(),
+                        [&](auto& buffer) {
+                            for (int i = 0; i < kBlock; ++i) {
+                                const auto y = candidate.process(
+                                    {buffer.getSample(0, i), buffer.getSample(1, i)});
+                                for (int channel = 0; channel < 2; ++channel)
+                                    buffer.addSample(channel, i, y[channel]);
+                            }
+                        },
+                        baseline);
+                }
+        }
+        return 0;
+    }
     FlowModulator flow;
     if (!flow.prepare({}))
         return 1;

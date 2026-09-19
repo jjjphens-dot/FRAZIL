@@ -56,7 +56,15 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             workflow_.autoAudition = tabs_.getCurrentTabIndex() == 0 && soundAuto_;
             autoAudition_.setToggleState(workflow_.autoAudition, juce::dontSendNotification);
             autoAudition_.setEnabled(tabs_.getCurrentTabIndex() == 0);
+            updateExcitationAudition();
             updateLayout();
+        };
+        addAndMakeVisible(excitationAudition_);
+        excitationAudition_.setTooltip(
+            "Actual common Modal bank driver before weight distribution and Protect. "
+            "Monitor Output only; no E Trim; not saved in session/config.");
+        excitationAudition_.onClick = [this] {
+            controller_.setExcitationAudition(excitationAudition_.getToggleState());
         };
         addAndMakeVisible(autoAudition_);
         autoAudition_.setToggleState(true, juce::dontSendNotification);
@@ -189,8 +197,9 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         g.fillAll(juce::Colour(0xff0d181f));
     }
     int preferredHeight() const noexcept {
-        return 608 + tabHeight() + protect_.preferredHeight() +
-               (showDraft_.getToggleState() ? 110 : 0) + (showHistory_.getToggleState() ? 180 : 0) +
+        return 608 + (tabs_.getCurrentTabIndex() == 1 ? 32 : 0) + tabHeight() +
+               protect_.preferredHeight() + (showDraft_.getToggleState() ? 110 : 0) +
+               (showHistory_.getToggleState() ? 180 : 0) +
                (showDiagnostics_.getToggleState() ? 445 : 0);
     }
     void resized() override {
@@ -216,6 +225,9 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         if (showHistory_.getToggleState())
             historyText_.setBounds(area.removeFromTop(180).reduced(3));
         tabs_.setBounds(area.removeFromTop(tabHeight()));
+        excitationAudition_.setVisible(tabs_.getCurrentTabIndex() == 1);
+        if (tabs_.getCurrentTabIndex() == 1)
+            excitationAudition_.setBounds(area.removeFromTop(32));
         auto monitor = area.removeFromTop(38);
         for (auto* button : {&dry_, &processed_, &residual_})
             button->setBounds(monitor.removeFromLeft(145).reduced(3));
@@ -244,11 +256,22 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     }
 
   private:
+    void updateExcitationAudition() {
+        const bool enabled =
+            tabs_.getCurrentTabIndex() == 1 && session_.applied().engineering.mode == 1;
+        excitationAudition_.setEnabled(enabled);
+        if (!enabled) {
+            excitationAudition_.setToggleState(false, juce::dontSendNotification);
+            controller_.setExcitationAudition(false);
+        }
+    }
     void auditionPreset(double decibels) {
         operations_.action(decibels == 0 ? "Reference" : "Focus +18 dB", ChangeOrigin::soundLeadUI,
                            false, false, [this, decibels] { session_.setAuditionTrim(decibels); });
     }
     void setMonitorMode(MonitorMode mode) {
+        excitationAudition_.setToggleState(false, juce::dontSendNotification);
+        controller_.setExcitationAudition(false);
         operations_.action("Monitor mode", ChangeOrigin::soundLeadUI, false, false, [this, mode] {
             session_.setMonitor(mode, session_.draft().monitorGainDb);
         });
@@ -323,6 +346,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     void refresh() {
         sound_.refresh();
         engineering_.refresh();
+        updateExcitationAudition();
         protect_.refresh();
         const auto& state = session_.draft();
         gain_.setValue(state.monitorGainDb, juce::dontSendNotification);
@@ -492,6 +516,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     EngineeringView engineering_;
     ProtectView protect_;
     ViewTabs tabs_;
+    juce::ToggleButton excitationAudition_{"AUDITION EXCITATION / C only / Monitor Output only"};
     juce::ToggleButton showDraft_{"Draft details"}, showDiagnostics_{"Audio diagnostics"};
     juce::TextEditor draftDetails_, waterDiagnostics_, historyText_;
     juce::ToggleButton autoAudition_{"AUTO AUDITION (Sound Lead)"},
