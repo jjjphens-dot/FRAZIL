@@ -19,20 +19,29 @@ struct ModalConfig final {
     // Omitted legacy config retains the exact historical excitation path.
     double motionDepth{0.0};           // Research range [0,.35], not a product range.
     double motionIntervalSeconds{0.7}; // Research range [.02,10] seconds.
+    ModalExcitation excitation{ModalExcitation::raw};
+    ModalNormalization normalization{ModalNormalization::c0};
+    ModalMotionModel motionModel{ModalMotionModel::independent};
 };
 
 // Research Resonant C: fixed, mildly irregular family. Ratios are experiment choices, not
 // measured water modes. Coefficients are shared, channel state is isolated. Output is residual.
 class LiquidModalResonator final {
   public:
-    bool prepare(double rate, const ModalConfig& config = {},
-                 ModalExcitation excitation = ModalExcitation::raw,
+    bool prepare(double rate, const ModalConfig& config = {}) noexcept {
+        return prepare(ResearchConfig{rate, 42u}, config);
+    }
+    bool prepare(const ResearchConfig& research, const ModalConfig& config = {}) noexcept {
+        return prepare(research, config, config.excitation, config.normalization,
+                       config.motionModel);
+    }
+    bool prepare(double rate, const ModalConfig& config, ModalExcitation excitation,
                  ModalNormalization normalization = ModalNormalization::c0,
                  ModalMotionModel motionModel = ModalMotionModel::independent) noexcept {
         return prepare(ResearchConfig{rate, 42u}, config, excitation, normalization, motionModel);
     }
-    bool prepare(const ResearchConfig& research, const ModalConfig& config = {},
-                 ModalExcitation excitation = ModalExcitation::raw,
+    bool prepare(const ResearchConfig& research, const ModalConfig& config,
+                 ModalExcitation excitation,
                  ModalNormalization normalization = ModalNormalization::c0,
                  ModalMotionModel motionModel = ModalMotionModel::independent) noexcept {
         const double rate = research.sampleRateHz;

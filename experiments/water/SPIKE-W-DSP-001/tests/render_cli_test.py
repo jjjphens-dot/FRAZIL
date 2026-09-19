@@ -99,6 +99,15 @@ def main():
                 assert f"modal_motion={model}" in result.stdout
                 motion_audio.append(read_float(output))
             assert motion_audio[0] != motion_audio[1]
+            options_config = root / "options.json"
+            options_config.write_text(json.dumps({"modal":{"excitation":4,"normalization":1,"motionModel":1,"motionDepth":.35}}))
+            option_outputs=[]
+            for index,suffix in enumerate(([],["-","feature","-","c3","structured"])):
+                output=root/f"options-{rate}-{index}.wav"
+                result=subprocess.run([str(renderer),str(source),str(output),"c-residual","128","42",str(options_config),"2",*suffix],check=True,capture_output=True,text=True)
+                assert "excitation=feature" in result.stdout and "modal_normalization=c3" in result.stdout
+                option_outputs.append(read_float(output))
+            assert option_outputs[0]==option_outputs[1]
             c3_file = root / f"c3-{rate}.wav"
             c3_command = [str(renderer), str(source), str(c3_file), "c-residual", "128", "42",
                           "-", "2", "-", "hard", "-", "c3"]

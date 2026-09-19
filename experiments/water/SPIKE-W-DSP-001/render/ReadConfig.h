@@ -257,13 +257,25 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
                                               {"residualGain", &c.residualGain}}))
                 return false;
         } else if (name == "modal") {
+            double excitation = static_cast<double>(modal.excitation);
+            double normalization = static_cast<double>(modal.normalization);
+            double motionModel = static_cast<double>(modal.motionModel);
             if (!readNumbers(property.value,
                              {{"rootFrequencyHz", &modal.rootFrequencyHz},
                               {"decaySeconds", &modal.decaySeconds},
                               {"motionDepth", &modal.motionDepth},
                               {"motionIntervalSeconds", &modal.motionIntervalSeconds},
-                              {"residualGain", &modal.residualGain}}))
+                              {"excitation", &excitation},
+                              {"normalization", &normalization},
+                              {"motionModel", &motionModel},
+                              {"residualGain", &modal.residualGain}}) ||
+                excitation < 0 || excitation > 4 || excitation != std::floor(excitation) ||
+                (normalization != 0 && normalization != 1) ||
+                (motionModel != 0 && motionModel != 1))
                 return false;
+            modal.excitation = static_cast<ModalExcitation>(static_cast<int>(excitation));
+            modal.normalization = static_cast<ModalNormalization>(static_cast<int>(normalization));
+            modal.motionModel = static_cast<ModalMotionModel>(static_cast<int>(motionModel));
         } else if (name == "protect") {
             if (protect == nullptr)
                 return false;

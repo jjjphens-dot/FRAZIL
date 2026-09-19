@@ -53,6 +53,7 @@ class DropletImpactExciter final {
     }
 
     void reset() noexcept {
+        driver_ = {};
         features_.reset();
         pool_.reset();
         random_.reseed(seed_);
@@ -62,6 +63,7 @@ class DropletImpactExciter final {
     }
 
     StereoFrame process(const StereoFrame& input) noexcept {
+        driver_ = {};
         if (!ready_)
             return {};
         const auto feature = features_.process(input);
@@ -79,7 +81,7 @@ class DropletImpactExciter final {
             const auto family = random_.nextUInt() % detail::EventVoicePool::kFamilies;
             if (config_.eventActivity >= 1 ||
                 activityRandom_.nextUnipolar() < config_.eventActivity)
-                pool_.trigger(input, family);
+                driver_ = pool_.trigger(input, family);
             remaining_ = refractorySamples_;
             armed_ = false;
         }
@@ -99,6 +101,10 @@ class DropletImpactExciter final {
         return true;
     }
 
+    const StereoFrame& excitationFrame() const noexcept {
+        return driver_;
+    }
+
     std::uint64_t events() const noexcept {
         return pool_.events();
     }
@@ -109,6 +115,7 @@ class DropletImpactExciter final {
   private:
     DropletConfig config_{};
     WaterExcitationFeatures features_;
+    StereoFrame driver_{};
     detail::EventVoicePool pool_;
     RandomSource random_, activityRandom_;
     RandomSource::Seed seed_{RandomSource::kDefaultSeed};

@@ -9,10 +9,14 @@ namespace frazil::water::research {
 // EXP-W-RX-001 comparison identities, not product parameters or a selected default.
 enum class ModalExcitation { raw, hard, softsign, tanh, feature };
 
+inline constexpr std::array kModalExcitationNames{"raw", "hard", "softsign", "tanh", "feature"};
+inline const char* modalExcitationName(ModalExcitation mode) noexcept {
+    const auto index = static_cast<std::size_t>(mode);
+    return index < kModalExcitationNames.size() ? kModalExcitationNames[index] : "invalid";
+}
 inline bool parseModalExcitation(std::string_view name, ModalExcitation& mode) noexcept {
-    constexpr std::array names{"raw", "hard", "softsign", "tanh", "feature"};
-    for (std::size_t i = 0; i < names.size(); ++i)
-        if (name == names[i]) {
+    for (std::size_t i = 0; i < kModalExcitationNames.size(); ++i)
+        if (name == kModalExcitationNames[i]) {
             mode = static_cast<ModalExcitation>(i);
             return true;
         }

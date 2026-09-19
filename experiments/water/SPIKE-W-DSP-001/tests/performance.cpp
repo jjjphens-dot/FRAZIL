@@ -3,6 +3,10 @@
 #include "dsp/FluidCandidate.h"
 #include "dsp/FluidProtect.h"
 #include "dsp/LiquidModalResonator.h"
+#include "preview/AuditionMonitor.h"
+#include "preview/PreviewEngine.h"
+#include "preview/ResearchListeningCalibration.h"
+#include "preview/ResearchMappingAdapter.h"
 #include "preview/ResearchWaterMacroMapper.h"
 
 #include <algorithm>
@@ -59,11 +63,13 @@ template <typename Effect> double measure(const char* name, Effect effect, doubl
 } // namespace
 
 int main(int argc, char** argv) {
+    const bool previewStudy = argc == 2 && std::string_view(argv[1]) == "--preview-monitor-study";
     const bool activityStudy = argc == 2 && std::string_view(argv[1]) == "--activity-study";
     const bool motionStudy = argc == 2 && std::string_view(argv[1]) == "--motion-study";
     const bool normalized = argc == 2 && std::string_view(argv[1]) == "--normalization-study";
     const bool excitationStudy = argc == 2 && std::string_view(argv[1]) == "--excitation-study";
-    if (argc > 1 && !excitationStudy && !normalized && !motionStudy && !activityStudy)
+    if (argc > 1 && !excitationStudy && !normalized && !motionStudy && !activityStudy &&
+        !previewStudy)
         return 2;
     std::cout
         << "research_only rate=48000 block=128 stereo warmup=2000 measured=20000; "
@@ -84,6 +90,59 @@ int main(int argc, char** argv) {
             }
         },
         baseline);
+    if (previewStudy) {
+        using namespace frazil::water::preview;
+        for (const int model : {0, 1, 2})
+            for (const double motion : {0., .5, 1.})
+                for (const double decay : {0., .5, 1.}) {
+                    PreviewSettings settings;
+                    settings.mode = model == 0 ? 0 : 1;
+                    WaterExperimentState state;
+                    state.motion = motion;
+                    state.decay = decay;
+                    for (const auto macro : {MacroId::size, MacroId::motion, MacroId::decay})
+                        applyResearchMacro(settings, state, macro);
+                    ResearchListeningCalibration::apply(settings);
+                    settings.values[controlIndex(ControlId::modalExcitation)] = model == 1 ? 1 : 4;
+                    settings.values[controlIndex(ControlId::modalNormalization)] = 1;
+                    settings.values[controlIndex(ControlId::modalMotionModel)] = 1;
+                    PreviewEngine preview;
+                    if (!preview.prepare(kRate, settings))
+                        return 1;
+                    AuditionMonitor monitor;
+                    monitor.prepareDiagnostics(kRate, MonitorMode::processed, 1.f,
+                                               DiagnosticSignal::none);
+                    unsigned blockNumber{};
+                    const auto label = "preview_model_" + std::to_string(model) + "_motion_" +
+                                       std::to_string(motion) + "_decay_" + std::to_string(decay);
+                    measure(
+                        label.c_str(),
+                        [&](auto& buffer) {
+                            // Exercise normal/solo/driver transitions without re-preparing the
+                            // engine.
+                            const auto phase = (blockNumber++ / 32) % 3;
+                            const auto signal = phase == 0 ? DiagnosticSignal::none
+                                                : model == 0
+                                                    ? (phase == 1 ? DiagnosticSignal::droplet
+                                                                  : DiagnosticSignal::dropletDriver)
+                                                    : (phase == 1 ? DiagnosticSignal::modal
+                                                                  : DiagnosticSignal::modalDriver);
+                            monitor.setDiagnosticTargets(MonitorMode::processed, .12589254f, 1.f,
+                                                         signal);
+                            for (int i = 0; i < kBlock; ++i) {
+                                const StereoFrame source{buffer.getSample(0, i),
+                                                         buffer.getSample(1, i)};
+                                const auto residual = preview.residual(source);
+                                const auto output = monitor.processDiagnostics(
+                                    source, residual, preview.diagnosticFrames());
+                                for (int channel = 0; channel < 2; ++channel)
+                                    buffer.setSample(channel, i, output[channel]);
+                            }
+                        },
+                        baseline);
+                }
+        return 0;
+    }
     if (activityStudy) {
         using namespace frazil::water::preview;
         for (double motion : {0., .25, .5, 1.})

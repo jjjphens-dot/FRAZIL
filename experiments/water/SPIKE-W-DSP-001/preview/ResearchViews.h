@@ -264,22 +264,27 @@ class EngineeringView final : public juce::Component {
             headings_[group].setBounds(area.removeFromTop(36).reduced(2));
             if (!expanded_[group])
                 continue;
-            for (int row = 0; row < rows(group); ++row) {
-                auto line = area.removeFromTop(72);
-                const int width = line.getWidth() / 2;
-                for (int column = 0; column < 2; ++column) {
-                    const auto index = offsets_[group] + static_cast<std::size_t>(row * 2 + column);
-                    if (index < offsets_[group + 1])
-                        controls_[index].setBounds(line.removeFromLeft(width).reduced(8, 2));
-                }
+            juce::Rectangle<int> line;
+            const int width = area.getWidth() / 2;
+            int column = 0;
+            // Descriptor order is append-only for session compatibility, not grouped in memory.
+            for (std::size_t index = 0; index < kControls.size(); ++index) {
+                if (static_cast<std::size_t>(kControls[index].group) != group)
+                    continue;
+                if (column++ % 2 == 0)
+                    line = area.removeFromTop(72);
+                controls_[index].setBounds(line.removeFromLeft(width).reduced(8, 2));
             }
         }
     }
 
   private:
-    static constexpr std::array<std::size_t, 5> offsets_{0, 7, 14, 18, 23};
     static int rows(std::size_t group) noexcept {
-        return static_cast<int>((offsets_[group + 1] - offsets_[group] + 1) / 2);
+        int count = 0;
+        for (const auto& control : kControls)
+            if (static_cast<std::size_t>(control.group) == group)
+                ++count;
+        return (count + 1) / 2;
     }
     ResearchSessionModel& session_;
     ResearchOperations& operations_;

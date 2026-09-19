@@ -17,7 +17,7 @@ Reconciled on 2026-09-19 before documentation changes:
 | Protect PR #37 | `1a1fb410238c274488bdd2ca0709c6831cc15859`, OPEN |
 | Implementation CI | [35422887316](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35422887316), SUCCESS; historical evidence for the implementation commit, not subsequent documentation commits |
 | Current mapping | `research-water-mapping-v0.2` |
-| Research session export | v4, 25 explicit engineering targets |
+| Research session export | v5, 28 explicit engineering targets |
 | Production contract | Nine Host parameters, `schemaVersion=1`, unchanged |
 
 The [mapping specification](../../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md)
@@ -28,8 +28,8 @@ requires explicit Adopt/Return. Session version and mapping revision are separat
 Motion=0 schedules no new Bubble or Droplet events; active tails may decay and Flow continues.
 It is **event-silent, not an all-output mute**. C0 modal normalization (`b=1-r`) is unchanged.
 Resonant Motion audibility and Decay level/persistence tradeoffs remain unresolved. The preview default has no bounded
-excitation conditioner, C3 normalization or new temporal-motion candidate. Separate offline
-carrier comparisons and an actual-driver monitor are tracked in
+excitation conditioner, C3 normalization or new temporal-motion candidate. Explicit Engineering comparison options now make Hard/Feature+C3+structured Motion available
+after Apply; their presence is not adoption. Carrier comparisons and actual-driver monitors are tracked in
 [EXP-W-RX-001](../../experiments/water/EXP-W-RX-001.md); they do not replace this mapping baseline.
 
 ## Existing v0.2 objective evidence

@@ -31,7 +31,8 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         frame = 0;
         position.store(0);
         ended.store(false);
-        audition.prepare(rate, monitor.load(), auditionGain.load(), excitationAudition.load());
+        audition.prepareDiagnostics(rate, monitor.load(), auditionGain.load(),
+                                    diagnosticSelection.load());
         metrics.setPrepared(static_cast<float>(rate), audioDevice->getCurrentBufferSizeSamples(),
                             source.getNumChannels());
     }
@@ -51,8 +52,8 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         if (mismatch.load() || ended.load() || source.getNumSamples() == 0)
             return;
         const auto mode = monitor.load();
-        audition.setTargets(mode, outputGain.load(), auditionGain.load(),
-                            excitationAudition.load());
+        audition.setDiagnosticTargets(mode, outputGain.load(), auditionGain.load(),
+                                      diagnosticSelection.load());
         engine.setProtectDepth(protectDepth.load(std::memory_order_relaxed));
         const int channels = source.getNumChannels();
         float inputPeak{}, outputPeak{};
@@ -76,7 +77,8 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
             protectBlock.water.include(engine.waterReadout(), channels);
             protectBlock.latest = engine.protectReadout();
             protectBlock.peak.includePeak(protectBlock.latest);
-            const auto output = audition.process(input, residual, engine.excitationFrame());
+            const auto output =
+                audition.processDiagnostics(input, residual, engine.diagnosticFrames());
             for (int channel = 0; channel < channels; ++channel) {
                 const auto i = static_cast<std::size_t>(channel);
                 finite = finite && std::isfinite(output[i]);
@@ -113,7 +115,8 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
     AuditionMonitor audition;
     MonitorOverRange overRange;
     std::atomic<std::uint64_t> position{};
-    std::atomic<bool> isPlaying{}, ended{}, mismatch{}, excitationAudition{};
+    std::atomic<bool> isPlaying{}, ended{}, mismatch{};
+    std::atomic<DiagnosticSignal> diagnosticSelection{DiagnosticSignal::none};
     std::atomic<MonitorMode> monitor{MonitorMode::processed};
     std::atomic<float> outputGain{0.12589254f}, auditionGain{7.94328235f};
     // Sole UI->audio Protect transport: validated normalized target, sampled at block boundary.
@@ -123,6 +126,7 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
     static_assert(std::atomic<bool>::is_always_lock_free);
     static_assert(std::atomic<double>::is_always_lock_free);
     static_assert(std::atomic<MonitorMode>::is_always_lock_free);
+    static_assert(std::atomic<DiagnosticSignal>::is_always_lock_free);
     static_assert(std::atomic<std::uint64_t>::is_always_lock_free);
     static_assert(std::atomic<float>::is_always_lock_free);
 };
@@ -265,7 +269,12 @@ void PreviewController::setProtectDepth(double depth) noexcept {
         impl_->protectDepth.store(depth, std::memory_order_relaxed);
 }
 void PreviewController::setExcitationAudition(bool enabled) noexcept {
-    impl_->excitationAudition.store(enabled, std::memory_order_relaxed);
+    setDiagnosticSignal(enabled ? DiagnosticSignal::modalDriver : DiagnosticSignal::none);
+}
+void PreviewController::setDiagnosticSignal(DiagnosticSignal selection) noexcept {
+    if (selection >= DiagnosticSignal::count)
+        selection = DiagnosticSignal::none;
+    impl_->diagnosticSelection.store(selection, std::memory_order_relaxed);
 }
 
 void PreviewController::setMonitor(MonitorMode mode, float outputGainDb) noexcept {

@@ -42,7 +42,7 @@ ms/s display and strict exact entry. They own no session or DSP state, use only 
 library, and are tested by `frazil_water_preview`; all research time widgets consume these helpers.
 See [staged execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
 `ControlDescriptor.h` supplies typed IDs, module groups, units/display policy, baseline provenance,
-range and lifecycle metadata for the 25 research controls (21 original, two Modal Motion fields, the Droplet scheduling gate and onset probability). `PreviewSettings` consumes the descriptors
+range and lifecycle metadata for the 28 research controls (21 original, two Modal Motion fields, the Droplet scheduling gate and onset probability, and three explicit C comparison options). `PreviewSettings` consumes the descriptors
 without changing module JSON; DSP continues to use its existing typed config structs.
 `SessionCodec.h` owns the separate versioned research manifest including provisional Decay;
 `SessionJsonSyntax.h` bounds and validates its richer JSON syntax before schema decoding. Imports
@@ -137,3 +137,9 @@ See [C3 proof and evidence](../experiments/water/EXP-W-RN-001.md).
 The opt-in Water research Modal bank additionally offers typed/CLI R-M1 structured excitation
 redistribution. It has no preview/default/Host adoption; [experiment evidence](../experiments/water/EXP-W-RM-001.md)
 tracks its bounded weight proof, tests and pending independent listening.
+
+The research preview's `DiagnosticMonitor.h` holds a fixed diagnostic-frame array and selection
+availability metadata. `AuditionMonitor` owns separate 10 ms normal/component/driver weights;
+`PreviewController` transports the temporary selection atomically once per block. Actual accepted
+Bubble/Droplet trigger frames come from the voice pool, without additional RNG or synthesis.
+Engineering layout follows descriptor group membership, including append-only session fields.

@@ -59,12 +59,40 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             updateExcitationAudition();
             updateLayout();
         };
-        addAndMakeVisible(excitationAudition_);
-        excitationAudition_.setTooltip(
-            "Actual common Modal bank driver before weight distribution and Protect. "
-            "Monitor Output only; no E Trim; not saved in session/config.");
-        excitationAudition_.onClick = [this] {
-            controller_.setExcitationAudition(excitationAudition_.getToggleState());
+        addAndMakeVisible(diagnostic_);
+        for (std::size_t i = 0; i < kDiagnosticLabels.size(); ++i)
+            diagnostic_.addItem(kDiagnosticLabels[i], static_cast<int>(i) + 1);
+        diagnostic_.setSelectedId(1, juce::dontSendNotification);
+        diagnostic_.setTooltip(
+            "Monitor only, crossfaded in 10 ms. Solos use E Trim; actual accepted trigger/Modal "
+            "drivers use Monitor Output only. No DSP reset or session/history change.");
+        diagnostic_.onChange = [this] {
+            controller_.setDiagnosticSignal(
+                static_cast<DiagnosticSignal>(diagnostic_.getSelectedId() - 1));
+        };
+        addAndMakeVisible(cComparison_);
+        cComparison_.addItem("C control: Raw / C0 / independent Motion", 1);
+        cComparison_.addItem("C comparison: Hard / C3 / structured Motion", 2);
+        cComparison_.addItem("C comparison: Feature / C3 / structured Motion", 3);
+        cComparison_.setTextWhenNothingSelected("Custom C path (see engineering controls)");
+        cComparison_.setTooltip("Changes three research Draft fields only. Apply + Play required. "
+                                "Comparison option, not an accepted default.");
+        cComparison_.onChange = [this] {
+            const int choice = cComparison_.getSelectedId();
+            if (choice < 1 || choice > 3)
+                return;
+            operations_.action(
+                "C comparison path", ChangeOrigin::engineeringUI, true, false, [this, choice] {
+                    session_.setEngineering(ControlId::modalExcitation,
+                                            choice == 1   ? 0
+                                            : choice == 2 ? 1
+                                                          : 4,
+                                            ChangeOrigin::engineeringUI);
+                    session_.setEngineering(ControlId::modalNormalization, choice == 1 ? 0 : 1,
+                                            ChangeOrigin::engineeringUI);
+                    session_.setEngineering(ControlId::modalMotionModel, choice == 1 ? 0 : 1,
+                                            ChangeOrigin::engineeringUI);
+                });
         };
         addAndMakeVisible(autoAudition_);
         autoAudition_.setToggleState(true, juce::dontSendNotification);
@@ -197,7 +225,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         g.fillAll(juce::Colour(0xff0d181f));
     }
     int preferredHeight() const noexcept {
-        return 608 + (tabs_.getCurrentTabIndex() == 1 ? 32 : 0) + tabHeight() +
+        return 608 + (tabs_.getCurrentTabIndex() == 1 ? 64 : 0) + tabHeight() +
                protect_.preferredHeight() + (showDraft_.getToggleState() ? 110 : 0) +
                (showHistory_.getToggleState() ? 180 : 0) +
                (showDiagnostics_.getToggleState() ? 445 : 0);
@@ -225,9 +253,12 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         if (showHistory_.getToggleState())
             historyText_.setBounds(area.removeFromTop(180).reduced(3));
         tabs_.setBounds(area.removeFromTop(tabHeight()));
-        excitationAudition_.setVisible(tabs_.getCurrentTabIndex() == 1);
-        if (tabs_.getCurrentTabIndex() == 1)
-            excitationAudition_.setBounds(area.removeFromTop(32));
+        diagnostic_.setVisible(tabs_.getCurrentTabIndex() == 1);
+        cComparison_.setVisible(tabs_.getCurrentTabIndex() == 1);
+        if (tabs_.getCurrentTabIndex() == 1) {
+            cComparison_.setBounds(area.removeFromTop(32).reduced(3));
+            diagnostic_.setBounds(area.removeFromTop(32).reduced(3));
+        }
         auto monitor = area.removeFromTop(38);
         for (auto* button : {&dry_, &processed_, &residual_})
             button->setBounds(monitor.removeFromLeft(145).reduced(3));
@@ -257,21 +288,37 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
 
   private:
     void updateExcitationAudition() {
-        const bool enabled =
-            tabs_.getCurrentTabIndex() == 1 && session_.applied().engineering.mode == 1;
-        excitationAudition_.setEnabled(enabled);
-        if (!enabled) {
-            excitationAudition_.setToggleState(false, juce::dontSendNotification);
-            controller_.setExcitationAudition(false);
+        const bool engineering = tabs_.getCurrentTabIndex() == 1;
+        const std::string_view mode(
+            kModes[static_cast<std::size_t>(session_.applied().engineering.mode)]);
+        const auto available = [&](int id) {
+            return id > 0 && diagnosticAvailable(mode, static_cast<DiagnosticSignal>(id - 1));
+        };
+        for (std::size_t i = 1; i < kDiagnosticLabels.size(); ++i)
+            diagnostic_.setItemEnabled(static_cast<int>(i) + 1, available(static_cast<int>(i) + 1));
+        diagnostic_.setEnabled(engineering && mode != "baseline");
+        if (!engineering || mode == "baseline" || !available(diagnostic_.getSelectedId())) {
+            diagnostic_.setSelectedId(1, juce::dontSendNotification);
+            controller_.setDiagnosticSignal(DiagnosticSignal::none);
         }
+        const auto& values = session_.draft().engineering.values;
+        const auto excitation = values[controlIndex(ControlId::modalExcitation)];
+        const auto normalization = values[controlIndex(ControlId::modalNormalization)];
+        const auto motion = values[controlIndex(ControlId::modalMotionModel)];
+        const int choice = excitation == 0 && normalization == 0 && motion == 0 ? 1
+                           : normalization == 1 && motion == 1 ? (excitation == 1   ? 2
+                                                                  : excitation == 4 ? 3
+                                                                                    : 0)
+                                                               : 0;
+        cComparison_.setSelectedId(choice, juce::dontSendNotification);
     }
     void auditionPreset(double decibels) {
         operations_.action(decibels == 0 ? "Reference" : "Focus +18 dB", ChangeOrigin::soundLeadUI,
                            false, false, [this, decibels] { session_.setAuditionTrim(decibels); });
     }
     void setMonitorMode(MonitorMode mode) {
-        excitationAudition_.setToggleState(false, juce::dontSendNotification);
-        controller_.setExcitationAudition(false);
+        diagnostic_.setSelectedId(1, juce::dontSendNotification);
+        controller_.setDiagnosticSignal(DiagnosticSignal::none);
         operations_.action("Monitor mode", ChangeOrigin::soundLeadUI, false, false, [this, mode] {
             session_.setMonitor(mode, session_.draft().monitorGainDb);
         });
@@ -380,6 +427,22 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         draftDetails_.setText(draftSummary(session_), false);
     }
     void refreshApplied() {
+        const auto& applied = session_.applied().engineering;
+        const auto& values = applied.values;
+        const auto carrier = static_cast<research::ModalExcitation>(
+            static_cast<int>(values[controlIndex(ControlId::modalExcitation)]));
+        note_.setText(
+            applied.mode == 1
+                ? juce::String("RESEARCH C | ") + research::modalExcitationName(carrier) +
+                      (values[controlIndex(ControlId::modalNormalization)] == 1 ? " / C3"
+                                                                                : " / C0") +
+                      (values[controlIndex(ControlId::modalMotionModel)] == 1
+                           ? " / structured Motion"
+                           : " / independent Motion") +
+                      " | seed 42 | no Host automation"
+                : "Research only | shared experiment state | no Host automation | seed 42",
+            juce::dontSendNotification);
+
         appliedLabel_.setText(
             juce::String(session_.dspDirty() ? "DSP DIRTY | " : "DSP APPLIED | ") +
                 (session_.sessionDirty() ? "SESSION DIRTY | " : "SESSION APPLIED | ") +
@@ -516,7 +579,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     EngineeringView engineering_;
     ProtectView protect_;
     ViewTabs tabs_;
-    juce::ToggleButton excitationAudition_{"AUDITION EXCITATION / C only / Monitor Output only"};
+    juce::ComboBox diagnostic_, cComparison_;
     juce::ToggleButton showDraft_{"Draft details"}, showDiagnostics_{"Audio diagnostics"};
     juce::TextEditor draftDetails_, waterDiagnostics_, historyText_;
     juce::ToggleButton autoAudition_{"AUTO AUDITION (Sound Lead)"},

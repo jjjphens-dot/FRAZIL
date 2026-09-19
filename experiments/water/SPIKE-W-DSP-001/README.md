@@ -478,18 +478,33 @@ reproduction commands and validation. No new production path or implicit candida
 
 A final renderer argument `c0|c3` selects the [C3 study](../EXP-W-RN-001.md), after the conditioner
 and optional excitation WAV (`-` omits capture). C3 requires a bounded conditioner and rejects raw;
-omission remains C0. The six-mode bank's prepare-time energy target uses a common 480 ms anchor
+omission uses module JSON (default C0). The six-mode bank's prepare-time energy target uses a common 480 ms anchor
 and a separate induced-response cap; Motion and the gain knob do not change that target. The
 actual coefficients and bound are reported by the renderer. `bounded_normalization_study.py`
 measures source/impulse/partition results for 27 triples without selecting a preview default.
 
 Optional Modal renderer suffix: `[c0|c3] [independent|structured]` after conditioner and optional
-excitation output. R-M1 requires explicit `structured`; omitted behavior stays independent.
-[EXP-W-RM-001](../EXP-W-RM-001.md) contains proof, scripts and review limits. Module JSON,
-research session and GUI defaults are unchanged by this offline comparison.
+excitation output. R-M1 requires explicit `structured` in CLI or module JSON; the default stays independent.
+[EXP-W-RM-001](../EXP-W-RM-001.md) contains proof, scripts and review limits. The default path is unchanged; session v5 and explicit Engineering C comparison options can now
+select these candidates. CLI selectors override the corresponding module fields.
 
 Droplet optional `eventActivity` is a finite [0,1] onset probability, default1, separate from the
 binary `eventsEnabled` gate. Research session v4 stores it as a 25th descriptor target; legacy
 imports fill1. The default v0.2 mapper is unchanged. `frazil_water_research_cases --continuous-droplet`
 explicitly exports the separate candidate curve; [EXP-W-DA-001](../EXP-W-DA-001.md) records the
 actual probability/legacy comparison and pending human review. No production parameter is added.
+
+### Engineering diagnostics and candidate path controls
+
+Research session v5 stores 28 targets, adding Modal `excitation` (0 raw, 1 hard, 2 softsign,
+3 tanh, 4 feature), `normalization` (0 C0, 1 C3) and `motionModel` (0 independent, 1 structured).
+v1-v4 imports fill raw/C0/independent without remapping. Raw+C3 is rejected at Modal prepare.
+The Engineering comparison selector groups Raw/C0/independent, Hard/C3/structured and
+Feature/C3/structured as explicit Apply-required choices; macro ownership excludes these fields.
+
+`DiagnosticMonitor.h` defines temporary monitor selections and fixed sample frames. The engine
+captures actual A/B/D/C pre-Protect residuals and accepted A/B trigger or Modal excitation samples;
+`AuditionMonitor` crossfades normal/solo/driver weights in 10 ms. Solos use E Trim; drivers bypass
+E Trim/Protect and use Monitor Output only. No selection is saved in config/session or history.
+See the [operator guide](../../../docs/DEV_UI_WATER_DEBUG_GUIDE.md) and
+[phase evidence](../../../docs/evidence/WATER_DSP_LISTENING_EXECUTION.md).

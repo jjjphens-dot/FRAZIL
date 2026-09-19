@@ -88,7 +88,7 @@ inline juce::String encodeSession(const ResearchSessionState& state) {
     using namespace sessionDetail;
     auto root = object();
     put(root, "format", "frazil.water-research-session");
-    put(root, "version", 4);
+    put(root, "version", 5);
     put(root, "mappingRevision", state.mappingRevision);
     auto mappings = object();
     put(mappings, "size", static_cast<int>(state.macroMappings[0]));
@@ -154,7 +154,7 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
         SessionJsonSyntax::decodedProperties(root) != syntax.properties())
         return "Session: duplicate or invalid fields.";
     int version{}, seed{};
-    if (!integer(root["version"], 1, 4, version))
+    if (!integer(root["version"], 1, 5, version))
         return "Session: unsupported version.";
     const bool knownFields =
         version == 1
@@ -253,6 +253,7 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
                                    (version == 1   ? 21
                                     : version == 2 ? 23
                                     : version == 3 ? 24
+                                    : version == 4 ? 25
                                                    : static_cast<int>(kControls.size())))
         return "Session: incomplete target provenance.";
     const auto& config = root["configuration"];
@@ -299,7 +300,8 @@ inline juce::String decodeSession(std::string_view text, ResearchSessionState& o
         return "Session: Protect config and retained state disagree.";
     for (std::size_t i = 0; i < kControls.size(); ++i) {
         const auto& spec = kControls[i];
-        if ((version == 1 && i >= 21) || (version == 2 && i >= 23) || (version == 3 && i >= 24)) {
+        if ((version == 1 && i >= 21) || (version == 2 && i >= 23) || (version == 3 && i >= 24) ||
+            (version == 4 && i >= 25)) {
             // Older schemas predate these targets. Fill typed legacy defaults, never remap.
             candidate.engineering.values[i] = spec.initial;
             candidate.ownership[i] = {ChangeOrigin::sessionLoad, 0};

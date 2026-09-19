@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DiagnosticMonitor.h"
 #include "PreviewSettings.h"
 #include "ProtectDiagnostics.h"
 #include "render/ReadConfig.h"
@@ -13,6 +14,7 @@ class PreviewEngine final {
     bool prepare(double sampleRate, const PreviewSettings& settings) {
         ready_ = false;
         readout_ = {};
+        diagnostic_ = {};
         if (settings.mode < 0 || settings.mode >= static_cast<int>(kModes.size()) ||
             !std::isfinite(sampleRate) || sampleRate < 44100 || sampleRate > 96000)
             return false;
@@ -48,9 +50,11 @@ class PreviewEngine final {
         modal_.reset();
         protect_.reset();
         readout_ = {};
+        diagnostic_ = {};
     }
 
     research::StereoFrame residual(const research::StereoFrame& input) noexcept {
+        diagnostic_ = {};
         if (!ready_)
             return {};
         const auto gain = protect_.processSource(input);
@@ -60,11 +64,18 @@ class PreviewEngine final {
         auto& frames = readout_;
         if (modalMode_) {
             frames.at(WaterSignal::modal) = modal_.process(input);
+            diagnostic_.at(DiagnosticSignal::modal) = frames.at(WaterSignal::modal);
+            diagnostic_.at(DiagnosticSignal::modalDriver) = modal_.excitationFrame();
             frames.at(WaterSignal::totalPreProtect) = frames.at(WaterSignal::modal);
             frames.at(WaterSignal::postProtect) =
                 research::ResidualProtect::apply(frames.at(WaterSignal::modal), gain);
         } else {
             const auto parts = fluid_.processComponents(input);
+            diagnostic_.at(DiagnosticSignal::bubble) = parts.bubble;
+            diagnostic_.at(DiagnosticSignal::droplet) = parts.droplet;
+            diagnostic_.at(DiagnosticSignal::flow) = parts.flow;
+            diagnostic_.at(DiagnosticSignal::bubbleDriver) = fluid_.bubbleExcitation();
+            diagnostic_.at(DiagnosticSignal::dropletDriver) = fluid_.dropletExcitation();
             frames.at(WaterSignal::bubble) = parts.bubble;
             frames.at(WaterSignal::droplet) = parts.droplet;
             frames.at(WaterSignal::flow) = parts.flow;
@@ -77,6 +88,9 @@ class PreviewEngine final {
     // Actual common modal driver, pre-weight and pre-Protect; zero for non-C compositions.
     research::StereoFrame excitationFrame() const noexcept {
         return ready_ && modalMode_ ? modal_.excitationFrame() : research::StereoFrame{};
+    }
+    const DiagnosticFrames& diagnosticFrames() const noexcept {
+        return diagnostic_;
     }
     const WaterFrameReadout& waterReadout() const noexcept {
         return readout_;
@@ -121,6 +135,7 @@ class PreviewEngine final {
     research::FluidProtectTopology topology_{research::FluidProtectTopology::whole};
     bool ready_{}, baseline_{}, modalMode_{};
     WaterFrameReadout readout_;
+    DiagnosticFrames diagnostic_;
     research::ModalConfig modalConfig_;
     double sampleRate_{48000};
 };

@@ -98,6 +98,13 @@ int render(int argc, char** argv) {
     ResearchBaseline baseline;
     FluidCandidate fluid;
     LiquidModalResonator modal;
+    // Explicit CLI comparison options override module fields; omission preserves typed config.
+    if (argc < 10)
+        excitationMode = modalConfig.excitation;
+    if (argc < 12)
+        normalization = modalConfig.normalization;
+    if (argc < 13)
+        motionModel = modalConfig.motionModel;
     ResidualProtect protect;
     if (!protect.prepare(config.sampleRateHz, protectConfig.gain, protectConfig.depth))
         return 2;
@@ -247,7 +254,7 @@ int render(int argc, char** argv) {
     std::cout << std::setprecision(17);
     std::cout << "research mode=" << argv[3] << " seed=" << config.baseSeed
               << " frames=" << totalFrames << " rate=" << config.sampleRateHz
-              << " block=" << blockSize << " excitation=" << (argc >= 10 ? argv[9] : "raw")
+              << " block=" << blockSize << " excitation=" << modalExcitationName(excitationMode)
               << " peak=" << peak << " rms=" << std::sqrt(squareSum / samples)
               << " dc=" << dcSum / samples
               << " residual_rms=" << std::sqrt(residualSquareSum / samples)

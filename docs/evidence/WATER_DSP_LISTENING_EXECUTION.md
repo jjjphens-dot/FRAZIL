@@ -117,9 +117,9 @@ branches remain evidence gates; numerical tests cannot supply those decisions.
 | 4 Structured Resonant Motion | ENGINEERING COMPARISON PREPARED; human review pending; optional drift only after human evidence that R-M1 is insufficient |
 | 5 Fluid calibration | ENGINEERING PACK COMPLETE; 45 rows, no default selection without listening |
 | 6 Droplet activity | ENGINEERING COMPLETE; probability control/session v4, old output preserved at one |
-| 7 Continuous Flow | D0 review first; D1/D2 conditional on chorus/flanging REVISE |
-| 8 Droplet B2 | Conditional on existing Droplet review showing insufficiency |
-| 9 Component diagnostics | Actual monitor-only signals or documented existing offline ablations |
+| 7 Continuous Flow | CONDITIONAL IMPLEMENTATION NOT TRIGGERED: D0 review materials ready, no human REVISE |
+| 8 Droplet B2 | CONDITIONAL IMPLEMENTATION NOT TRIGGERED: no current human insufficiency finding |
+| 9 Component diagnostics | IN PROGRESS: actual monitor-only signals and explicit C comparison options |
 | 10 Staged listening pack | Five inputs including pad; fixed-source and matched results separate |
 | 11 Two-reviewer decisions | NOT ASSESSED; cannot be supplied by objective proxies |
 | 12 Protect re-evaluation | After baseline review, no reused D0/D1 musical conclusion |
@@ -320,3 +320,66 @@ measurement N/A because no C++/callback implementation changed. Prior crash obse
 13. No changed eligibility/frequency/Decay/gain or implicit mapping adoption. Prior rare renderer
     failures remain unresolved observations; none recurred in the final Phase6 suites.
 14. Review conditional Phase7/8 scope, then implement monitor-only diagnostics in Phase9.
+
+### Phase 7 conditional decision report
+
+1. Baseline `02fb78d`. 2. Assess D0 before new Flow architecture. 3. No DSP files changed.
+4. Plan sections61-68 require D0 listening evidence before D1/D2. 5. Existing D0 remains
+source-driven delayed-minus-input, no feedback. 6. No architecture, mapping, state or Host change.
+7. Phase5 actual D/ABD captures are available; no new executable validation is claimed for this
+conditional decision. 8. D remains the largest measured component on several inputs; that is
+not a human chorus/flanger judgment. 9. Evidence remains in `fluid-balance-v1` and EXP-W-LCF-001.
+10. Self-review checked the existing Flow code and conditional trigger, not a speculative D1.
+11. Ledger updated; implementation contracts and module docs remain accurate without changes.
+12. D0 human ACCEPT/REVISE/REJECT is NOT ASSESSED. 13. D1/D2 trigger is absent; do not invent it.
+14. Continue other authorized work; revisit Flow only with the specified current listening finding.
+
+### Phase 8 conditional decision report
+
+1. Baseline `02fb78d`. 2. Evaluate whether B2 is authorized by evidence. 3. No B2 implementation.
+4. Plan sections69-73 make dual-mechanism work conditional on existing Droplet insufficiency.
+5. Current single impulse/ring mechanism retained; probability work does not change it.
+6. No new impact layer, ring mapping, production DSP or state decision. 7. Existing Phase5 B
+and Phase6 B/ABD renders supply review material; no new tests claimed for an unimplemented B2.
+8. Objective event counts cannot establish an impact/ring identity deficit. 9. Records remain
+in EXP-W-LCF-001 and EXP-W-DA-001/local packs. 10. Self-review confirms no current human trigger.
+11. Ledger only; accepted brief and algorithm/module contracts need no change. 12. Human B2 need
+NOT ASSESSED. 13. Do not implement the conditional mechanism speculatively. 14. Proceed to Phase9
+monitor diagnostics so reviewers can inspect actual components and excitation.
+
+### Phase 9 report
+
+1. Baseline `02fb78d`, same isolated research branch; conditional Phase7/8 mechanisms not triggered.
+2. Monitor-only component/actual-excitation diagnostics and explicit access to existing C candidates.
+3. DiagnosticMonitor, AuditionMonitor, PreviewEngine/controller/panel/views, config/session adapters,
+   trigger readouts and tests changed. New fixed value type avoids UI access to DSP objects.
+4. Existing component/driver paths and 10 ms linear monitor smoothing reused; no new synthesis.
+5. A/B/D/C solos are pre-Protect with E Trim; accepted A/B impulses and common C driver bypass
+   E Trim/Protect. Selection changes neither config, history nor callback lifecycle. Explicit
+   Raw/C0, Hard/C3 and Feature/C3 choices update Draft and require Apply/Play.
+6. Research session v5/28 targets stores C choices; v1-v4 fill raw/C0/independent without remap.
+   Defaults, nine Host parameters, schema1, routing/latency/random persistence remain unchanged.
+7. Final serial safe builds/CTest: Debug25/25 (50.55 s), Release25/25 (21.14 s), ASAN25/25
+   (89.49 s) PASS. Actual PreviewEngine/direct candidate equality and config/CLI equality pass.
+8. Repeated 20-row activity study retains exact pre-change probability1 B/ABD identity on all
+   five inputs. Preview-monitor timing29 rows (27 candidate corners +2 controls), maximum
+   mean17.5534/P9519.8/P9927.8/worst310.6 us. Research timing only, not formal callback budget.
+9. Local `build/listening-ui/monitor-ui-v1` contains timing, screenshots and preset logs;
+   `droplet-activity-v2` retains repeat identity. No new human/audio-loopback judgment.
+10. Review checked fixed arrays, once-per-block atomic selection, no added RNG/allocation/I/O/lock,
+    pre-Protect component routing, exact actual-driver capture and session default compatibility.
+    Native GUI found old contiguous offsets hid append-only Droplet/new C fields. Layout now follows
+    descriptor groups; rebuilt GUI shows all fields and probability drag changes1 to0.516.
+    Droplet solo/trigger retained Ops1 and lifecycle0/0/0 during playback; applied Feature/C3/
+    structured showed correct header; C-driver switch retained Ops3/lifecycle3/1/0. Sound Lead
+    cleared diagnostic selection; Motion gesture retained candidate and added one normal lifecycle.
+    Native exact-keyboard entry was not confirmed by this automation; existing exact-entry tests pass.
+11. Guide, sound tools, README, mapping, module index, testing, current handoff and ledger updated.
+    Architecture/Coding Plan/Parameters/Code Standards/Document Governance/accepted brief/ADR and
+    production state, Host/performance contracts reviewed; no contract or milestone changes needed.
+12. Prior intermittent renderer failures remain unresolved observations (no recurrence in final
+    suites); human audibility/readiness, pluginval and DAW acceptance NOT RUN. Fifth input is
+    generated engineering pad, not a replacement for musical-pad acceptance.
+13. No new safety/adoption exception. UI controls expose candidates, not a selected product mapping.
+14. Continue Phase10 staged packs, then prepare two independent review forms and conditional
+    Protect handoff. User authorizes existing sampling pack; real musical material follows later.

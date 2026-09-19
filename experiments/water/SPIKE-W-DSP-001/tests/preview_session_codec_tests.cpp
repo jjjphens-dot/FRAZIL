@@ -62,6 +62,11 @@ int runSessionCodecTests() {
     legacy["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventsEnabled");
     legacy["configuration"]["droplet"].getDynamicObject()->removeProperty("eventActivity");
     legacy["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventActivity");
+    for (const auto* field : {"excitation", "normalization", "motionModel"}) {
+        legacy["configuration"]["modal"].getDynamicObject()->removeProperty(field);
+        legacy["ownership"]["targets"].getDynamicObject()->removeProperty(
+            juce::Identifier(juce::String("modal.") + field));
+    }
     auto legacyExpected = decoded.engineering;
     legacyExpected.values[controlIndex(ControlId::modalMotionDepth)] = 0;
     legacyExpected.values[controlIndex(ControlId::modalMotionInterval)] = .7;
@@ -81,6 +86,11 @@ int runSessionCodecTests() {
     v2["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventsEnabled");
     v2["configuration"]["droplet"].getDynamicObject()->removeProperty("eventActivity");
     v2["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventActivity");
+    for (const auto* field : {"excitation", "normalization", "motionModel"}) {
+        v2["configuration"]["modal"].getDynamicObject()->removeProperty(field);
+        v2["ownership"]["targets"].getDynamicObject()->removeProperty(
+            juce::Identifier(juce::String("modal.") + field));
+    }
     check(decodeSession(juce::JSON::toString(v2, false, 17).toStdString(), migrated).isEmpty() &&
               migrated.engineering.moduleJson() == decoded.engineering.moduleJson() &&
               migrated.mappingRevision == "legacy-research-v0.1" &&
@@ -94,6 +104,11 @@ int runSessionCodecTests() {
     v3.getDynamicObject()->setProperty("version", 3);
     v3["configuration"]["droplet"].getDynamicObject()->removeProperty("eventActivity");
     v3["ownership"]["targets"].getDynamicObject()->removeProperty("droplet.eventActivity");
+    for (const auto* field : {"excitation", "normalization", "motionModel"}) {
+        v3["configuration"]["modal"].getDynamicObject()->removeProperty(field);
+        v3["ownership"]["targets"].getDynamicObject()->removeProperty(
+            juce::Identifier(juce::String("modal.") + field));
+    }
     check(decodeSession(juce::JSON::toString(v3, false, 17).toStdString(), migrated).isEmpty() &&
               migrated.engineering.values[controlIndex(ControlId::dropletEventActivity)] == 1,
           "v3 defaults activity to legacy one without changing mapping");
@@ -102,6 +117,23 @@ int runSessionCodecTests() {
     check(decodeSession(encodeSession(probability).toStdString(), migrated).isEmpty() &&
               migrated.engineering.moduleJson() == probability.engineering.moduleJson(),
           "v4 retains explicit activity without macro adoption");
+    auto v4 = juce::JSON::parse(encodeSession(probability));
+    v4.getDynamicObject()->setProperty("version", 4);
+    for (const auto* field : {"excitation", "normalization", "motionModel"}) {
+        v4["configuration"]["modal"].getDynamicObject()->removeProperty(field);
+        v4["ownership"]["targets"].getDynamicObject()->removeProperty(
+            juce::Identifier(juce::String("modal.") + field));
+    }
+    check(decodeSession(juce::JSON::toString(v4, false, 17).toStdString(), migrated).isEmpty() &&
+              migrated.engineering.moduleJson() == probability.engineering.moduleJson(),
+          "v4 preserves probability and fills legacy C options");
+    probability.engineering.values[controlIndex(ControlId::modalExcitation)] = 4;
+    probability.engineering.values[controlIndex(ControlId::modalNormalization)] = 1;
+    probability.engineering.values[controlIndex(ControlId::modalMotionModel)] = 1;
+    check(decodeSession(encodeSession(probability).toStdString(), migrated).isEmpty() &&
+              controller.validate(migrated.engineering).isEmpty() &&
+              migrated.engineering.moduleJson() == probability.engineering.moduleJson(),
+          "v5 preserves explicit feature/C3/structured options");
     auto invalidMapping = juce::JSON::parse(text);
     invalidMapping.getDynamicObject()->setProperty("mappingRevision", "unknown-revision");
     check(decodeSession(juce::JSON::toString(invalidMapping).toStdString(), decoded).isNotEmpty() &&
@@ -127,7 +159,7 @@ int runSessionCodecTests() {
                             text.replace("\"decay\": 0.75", "\"decay\": NaN"),
                             text.replace("\"decay\": 0.75", "\"decay\": true"),
                             text.replace("\"decay\": 0.75", "\"decay\": 01"),
-                            text.replace("\"version\": 4", "\"version\": 5"),
+                            text.replace("\"version\": 5", "\"version\": 6"),
                             text.replace("\"seed\": 42", "\"seed\": 41")}) {
         check(bad != text, "invalid fixture actually mutates manifest");
         check(decodeSession(bad.toStdString(), decoded).isNotEmpty() &&

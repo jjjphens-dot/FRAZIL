@@ -66,6 +66,12 @@ class FluidCandidate final {
     StereoFrame process(const StereoFrame& input) noexcept {
         return processComponents(input).sum();
     }
+    StereoFrame bubbleExcitation() const noexcept {
+        return ready_ && config_.bubbleEnabled ? bubble_.excitationFrame() : StereoFrame{};
+    }
+    StereoFrame dropletExcitation() const noexcept {
+        return ready_ && config_.dropletEnabled ? droplet_.excitationFrame() : StereoFrame{};
+    }
     std::uint64_t bubbleEvents() const noexcept {
         return bubble_.events();
     }

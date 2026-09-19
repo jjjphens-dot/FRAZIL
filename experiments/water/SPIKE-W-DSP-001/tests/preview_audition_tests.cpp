@@ -63,6 +63,30 @@ int runAuditionTests() {
     for (int i = 0; i < 600; ++i)
         driverOutput = driverMonitor.process({.2f, 0}, {.01f, 0}, {.4f, 0});
     check(std::abs(driverOutput[0] - .025f) < 1e-6f, "return to normal monitor");
+    // Every diagnostic source has its own ramp, so changing between solos cannot step.
+    DiagnosticFrames signals;
+    for (std::size_t i = 1; i < signals.signals.size(); ++i)
+        signals.signals[i] = {static_cast<float>(i) * .01f, 0};
+    AuditionMonitor diagnostic;
+    diagnostic.prepareDiagnostics(48000, MonitorMode::processed, 2, DiagnosticSignal::none);
+    for (std::size_t i = 1; i < signals.signals.size(); ++i) {
+        const auto selection = static_cast<DiagnosticSignal>(i);
+        diagnostic.setDiagnosticTargets(MonitorMode::processed, 1, 2, selection);
+        frazil::water::research::StereoFrame output{};
+        for (int n = 0; n < 600; ++n)
+            output = diagnostic.processDiagnostics({.1f, 0}, {.02f, 0}, signals);
+        check(std::abs(output[0] - signals.signals[i][0] * (isDriver(selection) ? 1.f : 2.f)) <
+                      1e-6 &&
+                  output[1] == 0,
+              "solo uses E trim; driver bypasses trim; no dry/protected-E leak");
+    }
+    diagnostic.setDiagnosticTargets(MonitorMode::processed, 1, 2, DiagnosticSignal::bubble);
+    float last = .07f;
+    for (int i = 0; i < 480; ++i) {
+        const auto output = diagnostic.processDiagnostics({.1f, 0}, {.02f, 0}, signals);
+        check(std::abs(output[0] - last) < .001f, "diagnostic-to-diagnostic 10ms ramp");
+        last = output[0];
+    }
     ResearchSessionModel session;
     const auto config = session.draft().engineering.moduleJson();
     check(session.draft().auditionETrimDb == 18 && session.draft().monitorGainDb == -18 &&

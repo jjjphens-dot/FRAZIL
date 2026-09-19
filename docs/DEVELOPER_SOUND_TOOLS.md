@@ -135,7 +135,7 @@ edits retain inactive values, record origin/revision and require Apply. A/B capt
 experiment/engineering/monitor values. No reverse mapping is inferred from manual engineering edits.
 The [control-bridge record](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md) identifies staged validation;
 the standalone preview carries provisional Decay `0.5` in both views, A/B/reset and separate
-`frazil.water-research-session` v4 exports with conservative v1/v2/v3 import; v4 adds the
+`frazil.water-research-session` v5 exports with conservative v1/v2/v3/v4 import; v4 added the
 independent Droplet event probability while preserving legacy probability 1 on import. See the
 [research mapping](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md) for candidate formulas/limits. Copy/Export Session
 uses applied values; Import Session validates syntax/schema/config before replacing state. The
@@ -295,7 +295,8 @@ output peaks across UI polls and displays a 3 s warning without modifying sample
 change the plugin diagnostics behavior described above. See the
 [scoped remediation and normalization review](evidence/WATER_LISTENING_REMEDIATION.md).
 
-The research-only Engineering excitation audition exposes the actual common modal-bank driver,
-with Monitor Output but no E Trim or Protect. It is temporary, not serialized or recorded in
-history, and cannot alter DSP composition. Offline bounded-carrier candidates remain separate
-from preview defaults; see [EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md).
+Engineering diagnostic monitoring exposes actual A/B/D/C pre-Protect residuals and accepted
+Bubble/Droplet trigger or common Modal driver. Solos use E Trim; drivers use Monitor Output only.
+All selections crossfade in 10 ms without configuration/history/lifecycle changes and are temporary.
+Explicit Raw/C0, Hard/C3 and Feature/C3 comparison paths are Apply-required research config fields,
+serialized in session v5; older imports retain Raw/C0/independent. Defaults remain unchanged; see [EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md).

@@ -870,5 +870,13 @@ static/seed/partition behavior and finite extremes. The old default remains inde
 See [EXP-W-RM-001](../experiments/water/EXP-W-RM-001.md) for listening and timing limits.
 
 `frazil_water_activity` validates probability endpoints, eligible-onset/family preservation,
-channel/reset/partition behavior and extreme inputs. Preview tests cover research session v4
-probability roundtrip plus v1/v2/v3 legacy defaults; see [EXP-W-DA-001](../experiments/water/EXP-W-DA-001.md).
+channel/reset/partition behavior and extreme inputs. Preview tests cover research session v5
+probability and C-path roundtrips plus v1/v2/v3/v4 legacy defaults; see [EXP-W-DA-001](../experiments/water/EXP-W-DA-001.md).
+
+Phase9 preview regressions check every diagnostic solo equation, driver E-Trim bypass,
+diagnostic-to-diagnostic ramps, actual component/driver transport, raw+C3 rejection and exact
+Hard/Feature+C3/structured preview-to-direct-render identity. Native GUI checks cover group
+visibility and lifecycle counters; results are in the Water phase record. The optional
+`frazil_water_performance --preview-monitor-study` includes normal/solo/driver transitions for
+Fluid and both explicit C3 paths at three Motion and three Decay values; this is research wall
+time, not formal performance acceptance or device callback/Host proof.

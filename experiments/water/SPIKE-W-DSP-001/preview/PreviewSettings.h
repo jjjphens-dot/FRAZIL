@@ -48,7 +48,10 @@ struct PreviewSettings final {
                   modal.motionDepth,
                   modal.motionIntervalSeconds,
                   fluid.droplet.eventsEnabled,
-                  fluid.droplet.eventActivity};
+                  fluid.droplet.eventActivity,
+                  static_cast<double>(modal.excitation),
+                  static_cast<double>(modal.normalization),
+                  static_cast<double>(modal.motionModel)};
         protect = protection;
     }
 

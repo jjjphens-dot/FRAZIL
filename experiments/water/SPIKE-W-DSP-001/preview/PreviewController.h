@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DiagnosticMonitor.h"
 #include "PreviewSettings.h"
 #include "ProtectDiagnostics.h"
 #include "SessionMetadata.h"
@@ -30,6 +31,7 @@ class PreviewController final {
     void setAuditionTrim(double decibels) noexcept;
     // Temporary monitor-only override; not part of module/session JSON or operation history.
     void setExcitationAudition(bool enabled) noexcept;
+    void setDiagnosticSignal(DiagnosticSignal selection) noexcept;
     void setProtectDepth(double depth) noexcept;
     plugin::DeveloperDiagnosticsSnapshot diagnostics() const noexcept;
     ProtectDiagnosticsSnapshot protectDiagnostics() noexcept;

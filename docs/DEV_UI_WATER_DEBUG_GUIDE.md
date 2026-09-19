@@ -94,7 +94,7 @@ Output meter 位于 monitor gain 后；Input meter 是 WAV 源，保持原有 ag
 
 ### 双视图与共享实验状态
 
-默认 Sound Lead 页显示 Model、Size、Motion、Decay；Engineering 页显示相同宏和 25 个工程控件。
+默认 Sound Lead 页显示 Model、Size、Motion、Decay；Engineering 页显示相同宏和 28 个工程控件。
 两页读取同一个会话模型。Fluid 对应 ABD，Resonant 对应 C；选择其他 ablation composition 时
 Model 显示 CUSTOM，可用 **Return Model to Mapped** 返回该模型的完整组合。
 新会话的 Size/Motion/Decay 使用 **RESEARCH MAPPING v0.2 / NOT PRODUCT FROZEN**。
@@ -112,7 +112,7 @@ clean/dirty 状态、build variant 和 compiler。导入后保留导入 build �
 会更新当前会话元数据。A/B 同样保留源元数据；音频需单独保存。
 Session 导入和 A/B 恢复按各自记录的源采样率验证；当前 WAV 不得覆盖这个验证上下文。
 没有源元数据的会话以 48 kHz 验证，普通 Apply 则使用当前加载源的采样率。
-研究会话现导出 v4（25 个显式目标）；兼容 v1（工程值保留、CUSTOM / legacy-unmapped）和
+研究会话现导出 v5（28 个显式目标）；兼容 v1（工程值保留、CUSTOM / legacy-unmapped）和
 v2/v0.1（原始值保留、CUSTOM / legacy-research-v0.1）。只有显式 Adopt/Return 才采用 v0.2；正式插件 schema 不变。
 
 ## 5. 工程参数对应的 DSP 作用
@@ -225,7 +225,7 @@ Review 记录至少包含：Git commit + dirty 状态、源素材名称/授权�
 
 ### Listening-ready session v3 follow-up
 
-Research session exports now use v4, with the explicit Droplet scheduling target. The renderer
+Research session exports now use v5, with the explicit Droplet scheduling target. The renderer
 accepts the new optional field; omitted fields retain historical defaults. Production Host state
 is unchanged. v1 imports retain engineering values exactly, use `legacy-unmapped` with three
 CUSTOM macro states and 0 dB audition trim; adopting mapping requires an explicit action. v2/v0.1 imports remain raw/CUSTOM; v3
@@ -257,7 +257,7 @@ Engineering 页 **Restore Listening Calibration** 一次恢复四个增益，不
 
 三者最后都乘 Monitor Output。切换/增益使用 10 ms ramp；E Trim 是 **MONITOR ONLY / NOT DSP /
 NOT WATER AMOUNT**，不会影响源检测、事件触发、Protect GR 或 renderer module JSON。
-它随当前 v4 会话和 A/B 保存（也兼容 v2）；旧 v1 导入为 0 dB。输出无隐式 limiter，超过满幅由输出诊断显示。
+它随当前 v5 会话和 A/B 保存（也兼容 v2）；旧 v1 导入为 0 dB。输出无隐式 limiter，超过满幅由输出诊断显示。
 初次听测先用 Water Only/Focus 辨认层，再切 Reference/Full 评价源辨识、节奏及遮蔽。
 
 ### Water 分量诊断
@@ -300,7 +300,7 @@ Audio diagnostics 默认收起。该工作流不构成 Host、产品声音或 pe
 
 Motion=0 时 Bubble 新事件速率为 0，Droplet 的 `eventsEnabled=0` 禁止新事件；已有 response
 仍可自然衰减。Engineering 显示独立的 New events (0 off / 1 on) 控件；手动改动会使 Motion CUSTOM。
-新 session 导出 v4；v1 保持 legacy-unmapped，v2/v0.1 保留全部原始值并标记 legacy-research-v0.1。
+新 session 导出 v5；v1 保持 legacy-unmapped，v2/v0.1 保留全部原始值并标记 legacy-research-v0.1。
 只有显式 Adopt Research Mapping v0.2 / Return 操作才采用新曲线。
 
 实际监听输出任一 block 的 sample peak >1 时，界面显示 **OVER 0 dBFS / MONITOR OVER-RANGE**，
@@ -309,16 +309,27 @@ Motion=0 时 Bubble 新事件速率为 0，Droplet 的 `eventsEnabled=0` 禁止�
 
 归一化实验和本轮未完成门槛见 [remediation record](evidence/WATER_LISTENING_REMEDIATION.md)。
 
-### Resonant excitation research diagnostic
+### Engineering diagnostic monitoring and explicit C comparison
 
-Engineering 页在已应用的 composition=C 时提供 **AUDITION EXCITATION**。它监听实际送入
-Modal bank、尚未进行逐 mode 权重分配的公共载波；当前预览仍使用 R-E0 原始激励。
-此时仅 Monitor Output 生效，E Trim、Protect 和普通 Source/Full/Water Only 监听被旁路。
-切换使用 10 ms ramp，不停止/Prepare/重播，不修改 DSP 或 history。切回 Sound Lead、应用非 C
-或选择普通监听按钮会退出；该临时诊断开关不进入 session/module JSON、A/B 或 Host state。
+Engineering 页的 C comparison 下拉框提供 Raw/C0/independent、Hard/C3/structured、
+Feature/C3/structured 三条研究路径。选择只改 Draft；点击 Apply config，再 Play。
+上方 RESEARCH C 标识显示实际 Applied 路径。宏修改保留此选择；原始默认值没有改变。
+底层 Carrier 0/1/2/3/4 分别是 raw/hard/softsign/tanh/feature；Normalization 0/1 是 C0/C3；
+Motion model 0/1 是 independent/structured。Raw+C3 会被校验拒绝，不会悄悄修正。
 
-离线 R-E0/R-E1/R-E2 对比、实际 excitation WAV 和波形反例见
-[EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md)。候选尚未成为预览默认值或产品映射。
+| 监听选择 | 实际信号与增益 | 状态影响 |
+| --- | --- | --- |
+| Normal monitoring | 当前 Source / Full / Water only | 恢复普通监听 |
+| Solo Bubble / Droplet / Flow / Modal | 实际组件 residual，pre-Protect；E Trim 与 Monitor Output 生效 | 不改变 composition、宏、DSP config |
+| Audition Bubble / Droplet trigger | 实际获准事件送入 voice resonator 的有界脉冲；仅 Monitor Output | 不是持续源信号，也不是重建的估计值 |
+| Audition Resonant excitation | 实际 Modal 公共激励，逐 mode 权重之前；仅 Monitor Output | 使用实际 Applied carrier |
+
+诊断信号间切换均用 10 ms ramp，不停止/Prepare/重播、不记 history。只有 Applied composition
+可用的信号可以选择。切回 Sound Lead、选择普通监听按钮，或 Apply 后信号不再可用时恢复 Normal。
+临时诊断选择不写入 session/module JSON、A/B 或 Host state；三项 C 路径选项则保存在研究会话 v5
+的 28 个显式目标中。v1–v4 导入补 Raw/C0/independent，保留原工程值，不隐式采用候选。
+
+离线载波比较见 [EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md)；候选不是产品映射。
 
 ### Continuous Activity research control (session v4)
 
@@ -326,7 +337,7 @@ Engineering now exposes `droplet.eventActivity` (Onset probability), default 1. 
 engineering value: v0.2 Motion still owns threshold/refractory/eventsEnabled, and does not silently
 apply the separate `clamp(4*m*m,0,1)` experiment. Use explicit probability values for isolation;
 the cases exporter supports `--continuous-droplet` for offline candidate mapping comparisons.
-Session v4 stores 25 targets. v1/v2/v3 imports append Activity=1 without remapping or changing
+Session v4 introduced 25 targets; current v5 stores 28. v1/v2/v3 imports append Activity=1 without remapping or changing
 legacy gates; exports and A/B retain explicit probabilities. Apply is required. This is not Host
 state, a production mapping or a human-approved change. Two RNG domains keep shared eligible
 onsets' frequency-family choices unchanged while probability decides whether to schedule them.

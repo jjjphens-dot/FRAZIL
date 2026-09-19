@@ -84,6 +84,18 @@ int main() {
                 const float sample = i % 1500 < 800 ? .4f * std::sin(i * .1f) : 0.0f;
                 const research::StereoFrame input{sample, 0.0f};
                 const auto e = actual.residual(input);
+                const auto& frames = actual.diagnosticFrames().signals;
+                for (std::size_t c = 0; c < 2; ++c) {
+                    const float sum =
+                        static_cast<float>(static_cast<double>(frames[1][c]) + frames[2][c] +
+                                           frames[3][c] + frames[4][c]);
+                    check(std::abs(sum - e[c]) < 1e-7,
+                          "diagnostic solos are actual pre-Protect components");
+                    if (input == research::StereoFrame{})
+                        check(frames[5][c] == 0 && frames[6][c] == 0 && frames[7][c] == 0,
+                              "zero input has no actual new driver impulses");
+                }
+
                 check(actual.excitationFrame() == (mode == 1 ? input : research::StereoFrame{}),
                       "actual modal driver transport / non-modal silence");
                 const auto expected =
@@ -102,6 +114,35 @@ int main() {
                 check(actual.residual({.25f, -.125f}) == repeat.residual({.25f, -.125f}),
                       "reset reproduces freshly prepared DSP");
         }
+    }
+    // Explicit module/session C options reach the same bank as the offline typed path.
+    for (const auto carrier :
+         {research::ModalExcitation::hard, research::ModalExcitation::feature}) {
+        preview::PreviewSettings candidate;
+        candidate.mode = 1;
+        candidate.values[preview::controlIndex(preview::ControlId::modalExcitation)] =
+            static_cast<double>(carrier);
+        candidate.values[preview::controlIndex(preview::ControlId::modalNormalization)] = 1;
+        candidate.values[preview::controlIndex(preview::ControlId::modalMotionModel)] = 1;
+        candidate.values[preview::controlIndex(preview::ControlId::modalMotionDepth)] = .35;
+        preview::PreviewEngine engine;
+        research::LiquidModalResonator bank;
+        research::ModalConfig config;
+        config.motionDepth = .35;
+        check(engine.prepare(48000, candidate) &&
+                  bank.prepare(48000, config, carrier, research::ModalNormalization::c3,
+                               research::ModalMotionModel::structured),
+              "preview prepares explicit bounded C3 candidate");
+        for (int i = 0; i < 12003; ++i) {
+            const research::StereoFrame input{.2f * std::sin(i * .13f), 0};
+            check(engine.residual(input) == bank.process(input),
+                  "preview/offline C3 sample identity");
+            check(engine.diagnosticFrames().signals[static_cast<std::size_t>(
+                      preview::DiagnosticSignal::modalDriver)] == bank.excitationFrame(),
+                  "actual candidate driver transported without recomputation");
+        }
+        candidate.values[preview::controlIndex(preview::ControlId::modalExcitation)] = 0;
+        check(controller.validate(candidate).isNotEmpty(), "UI rejects raw/C3 before playback");
     }
     settings = {};
     settings.mode = 1;
