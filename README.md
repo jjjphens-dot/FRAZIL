@@ -37,6 +37,7 @@ M1 Exit 已批准并完成状态收口，当前进入 Water pre-M2 preparation �
 - [GitHub 协作流程](docs/GITHUB_WORKFLOW.md)
 - [双人协作分工](docs/COLLABORATION_ROLES.md)
 - [开发环境](docs/ENVIRONMENT.md)
+- [Debug UI 与 Water 研究预览联调指南](docs/DEV_UI_WATER_DEBUG_GUIDE.md)
 - [贡献指南](CONTRIBUTING.md)
 
 ## 本地构建

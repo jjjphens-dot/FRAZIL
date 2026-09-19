@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dsp/FluidCandidate.h"
+#include "dsp/FluidProtect.h"
 #include "dsp/LiquidModalResonator.h"
 
 #include <charconv>
@@ -15,9 +16,16 @@
 
 namespace frazil::water::research {
 
+struct ProtectRenderConfig final {
+    ProtectConfig gain;
+    double depth{};
+    FluidProtectTopology topology{FluidProtectTopology::whole};
+};
+
 // Offline-only strict configuration reader. Unknown fields and nonnumeric values are errors;
 // omitted values retain the versioned C++ research defaults, never production macro mappings.
-// Type/representation checks apply globally; only active DSP validates semantic ranges.
+// Type/representation checks apply globally; generator ranges apply only when enabled.
+// The renderer validates Protect ranges globally, including OFF and baseline modes.
 inline bool validVoiceRepresentation(double voices) noexcept {
     // Comparing with 2^digits avoids rounding SIZE_MAX upward before an unsafe integer cast.
     return std::isfinite(voices) && voices >= 0.0 &&
@@ -179,14 +187,12 @@ inline bool readNumbers(const juce::var& value,
     return true;
 }
 
-inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal) {
-    if (!file.existsAsFile())
+// Non-realtime entry point shared by the offline renderer and standalone research preview.
+// Callers without a Protect destination reject that module rather than silently discarding it.
+inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfig& modal,
+                           ProtectRenderConfig* protect = nullptr) {
+    if (text.empty() || text.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()))
         return false;
-    juce::MemoryBlock bytes;
-    if (!file.loadFileAsData(bytes) || bytes.getSize() == 0 ||
-        bytes.getSize() > static_cast<std::size_t>(std::numeric_limits<int>::max()))
-        return false;
-    std::string_view text(static_cast<const char*>(bytes.getData()), bytes.getSize());
     if (text.starts_with("\xef\xbb\xbf"))
         text.remove_prefix(3); // Tolerate a UTF-8 BOM, but never discard trailing file bytes.
     detail::ConfigJsonSyntax syntax(text);
@@ -232,10 +238,15 @@ inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& 
                                               {"maximumFrequencyHz", &c.maximumFrequencyHz},
                                               {"decaySeconds", &c.decaySeconds},
                                               {"transientThreshold", &c.transientThreshold},
+                                              {"eventsEnabled", &c.eventsEnabled},
+                                              {"eventActivity", &c.eventActivity},
                                               {"refractorySeconds", &c.refractorySeconds},
                                               {"residualGain", &c.residualGain},
                                               {"voices", &voices}}) ||
                 !validVoiceRepresentation(voices))
+                return false;
+            if ((c.eventsEnabled != 0 && c.eventsEnabled != 1) || c.eventActivity < 0 ||
+                c.eventActivity > 1)
                 return false;
             c.voices = static_cast<std::size_t>(voices);
         } else if (name == "flow") {
@@ -246,14 +257,67 @@ inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& 
                                               {"residualGain", &c.residualGain}}))
                 return false;
         } else if (name == "modal") {
-            if (!readNumbers(property.value, {{"rootFrequencyHz", &modal.rootFrequencyHz},
-                                              {"decaySeconds", &modal.decaySeconds},
-                                              {"residualGain", &modal.residualGain}}))
+            double excitation = static_cast<double>(modal.excitation);
+            double normalization = static_cast<double>(modal.normalization);
+            double motionModel = static_cast<double>(modal.motionModel);
+            if (!readNumbers(property.value,
+                             {{"rootFrequencyHz", &modal.rootFrequencyHz},
+                              {"decaySeconds", &modal.decaySeconds},
+                              {"motionDepth", &modal.motionDepth},
+                              {"motionIntervalSeconds", &modal.motionIntervalSeconds},
+                              {"excitation", &excitation},
+                              {"normalization", &normalization},
+                              {"motionModel", &motionModel},
+                              {"residualGain", &modal.residualGain}}) ||
+                excitation < 0 || excitation > 4 || excitation != std::floor(excitation) ||
+                (normalization != 0 && normalization != 1) ||
+                (motionModel != 0 && motionModel != 1))
                 return false;
+            modal.excitation = static_cast<ModalExcitation>(static_cast<int>(excitation));
+            modal.normalization = static_cast<ModalNormalization>(static_cast<int>(normalization));
+            modal.motionModel = static_cast<ModalMotionModel>(static_cast<int>(motionModel));
+        } else if (name == "protect") {
+            if (protect == nullptr)
+                return false;
+            auto& c = protect->gain;
+            double detector = static_cast<int>(c.score);
+            double topology = static_cast<int>(protect->topology);
+            if (!readNumbers(property.value, {{"depth", &protect->depth},
+                                              {"detector", &detector},
+                                              {"topology", &topology},
+                                              {"floor", &c.floor},
+                                              {"epsilon", &c.epsilon},
+                                              {"thresholdLow", &c.thresholdLow},
+                                              {"thresholdHigh", &c.thresholdHigh},
+                                              {"capDb", &c.capDb},
+                                              {"depthExponent", &c.depthExponent},
+                                              {"scoreExponent", &c.scoreExponent},
+                                              {"attackSeconds", &c.attackSeconds},
+                                              {"releaseSeconds", &c.releaseSeconds},
+                                              {"offSeconds", &c.offSeconds}}) ||
+                (detector != 0.0 && detector != 1.0) ||
+                (topology != 1.0 && topology != 2.0 && topology != 3.0))
+                return false;
+            c.score = static_cast<ProtectScore>(static_cast<int>(detector));
+            protect->topology = static_cast<FluidProtectTopology>(static_cast<int>(topology));
         } else {
             return false;
         }
     }
     return true;
+}
+
+inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,
+                       ProtectRenderConfig* protect = nullptr) {
+    juce::MemoryBlock bytes;
+    if (!file.existsAsFile() || !file.loadFileAsData(bytes))
+        return false;
+    return readConfigText({static_cast<const char*>(bytes.getData()), bytes.getSize()}, fluid,
+                          modal, protect);
+}
+
+inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,
+                       ProtectRenderConfig& protect) {
+    return readConfig(file, fluid, modal, &protect);
 }
 } // namespace frazil::water::research

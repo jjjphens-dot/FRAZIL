@@ -1,13 +1,20 @@
 #include "app/AudioEngine.h"
 #include "dsp/FlowModulator.h"
 #include "dsp/FluidCandidate.h"
+#include "dsp/FluidProtect.h"
 #include "dsp/LiquidModalResonator.h"
+#include "preview/AuditionMonitor.h"
+#include "preview/PreviewEngine.h"
+#include "preview/ResearchListeningCalibration.h"
+#include "preview/ResearchMappingAdapter.h"
+#include "preview/ResearchWaterMacroMapper.h"
 
 #include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <iostream>
 #include <numeric>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -55,7 +62,15 @@ template <typename Effect> double measure(const char* name, Effect effect, doubl
 }
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
+    const bool previewStudy = argc == 2 && std::string_view(argv[1]) == "--preview-monitor-study";
+    const bool activityStudy = argc == 2 && std::string_view(argv[1]) == "--activity-study";
+    const bool motionStudy = argc == 2 && std::string_view(argv[1]) == "--motion-study";
+    const bool normalized = argc == 2 && std::string_view(argv[1]) == "--normalization-study";
+    const bool excitationStudy = argc == 2 && std::string_view(argv[1]) == "--excitation-study";
+    if (argc > 1 && !excitationStudy && !normalized && !motionStudy && !activityStudy &&
+        !previewStudy)
+        return 2;
     std::cout
         << "research_only rate=48000 block=128 stereo warmup=2000 measured=20000; "
            "gated stereo workload; nearest-rank percentiles; wall time, not process CPU percent\n";
@@ -75,6 +90,130 @@ int main() {
             }
         },
         baseline);
+    if (previewStudy) {
+        using namespace frazil::water::preview;
+        for (const int model : {0, 1, 2})
+            for (const double motion : {0., .5, 1.})
+                for (const double decay : {0., .5, 1.}) {
+                    PreviewSettings settings;
+                    settings.mode = model == 0 ? 0 : 1;
+                    WaterExperimentState state;
+                    state.motion = motion;
+                    state.decay = decay;
+                    for (const auto macro : {MacroId::size, MacroId::motion, MacroId::decay})
+                        applyResearchMacro(settings, state, macro);
+                    ResearchListeningCalibration::apply(settings);
+                    settings.values[controlIndex(ControlId::modalExcitation)] = model == 1 ? 1 : 4;
+                    settings.values[controlIndex(ControlId::modalNormalization)] = 1;
+                    settings.values[controlIndex(ControlId::modalMotionModel)] = 1;
+                    PreviewEngine preview;
+                    if (!preview.prepare(kRate, settings))
+                        return 1;
+                    AuditionMonitor monitor;
+                    monitor.prepareDiagnostics(kRate, MonitorMode::processed, 1.f,
+                                               DiagnosticSignal::none);
+                    unsigned blockNumber{};
+                    const auto label = "preview_model_" + std::to_string(model) + "_motion_" +
+                                       std::to_string(motion) + "_decay_" + std::to_string(decay);
+                    measure(
+                        label.c_str(),
+                        [&](auto& buffer) {
+                            // Exercise normal/solo/driver transitions without re-preparing the
+                            // engine.
+                            const auto phase = (blockNumber++ / 32) % 3;
+                            const auto signal = phase == 0 ? DiagnosticSignal::none
+                                                : model == 0
+                                                    ? (phase == 1 ? DiagnosticSignal::droplet
+                                                                  : DiagnosticSignal::dropletDriver)
+                                                    : (phase == 1 ? DiagnosticSignal::modal
+                                                                  : DiagnosticSignal::modalDriver);
+                            monitor.setDiagnosticTargets(MonitorMode::processed, .12589254f, 1.f,
+                                                         signal);
+                            for (int i = 0; i < kBlock; ++i) {
+                                const StereoFrame source{buffer.getSample(0, i),
+                                                         buffer.getSample(1, i)};
+                                const auto residual = preview.residual(source);
+                                const auto output = monitor.processDiagnostics(
+                                    source, residual, preview.diagnosticFrames());
+                                for (int channel = 0; channel < 2; ++channel)
+                                    buffer.setSample(channel, i, output[channel]);
+                            }
+                        },
+                        baseline);
+                }
+        return 0;
+    }
+    if (activityStudy) {
+        using namespace frazil::water::preview;
+        for (double motion : {0., .25, .5, 1.})
+            for (double decay : {0., .5, 1.}) {
+                WaterExperimentState state;
+                state.motion = motion;
+                state.decay = decay;
+                const auto targets = ResearchWaterMacroMapper::map(state)->fluid;
+                DropletConfig config;
+                config.decaySeconds = targets.dropletDecaySeconds;
+                config.transientThreshold = targets.dropletThreshold;
+                config.refractorySeconds = targets.dropletRefractorySeconds;
+                config.eventsEnabled = targets.dropletEventsEnabled;
+                config.eventActivity = *ResearchWaterMacroMapper::continuousDropletActivity(motion);
+                DropletImpactExciter droplet;
+                if (!droplet.prepare({kRate, 42}, config))
+                    return 1;
+                const auto label = "B_activity_motion_" + std::to_string(motion) + "_decay_" +
+                                   std::to_string(decay);
+                measure(
+                    label.c_str(),
+                    [&](auto& buffer) {
+                        for (int i = 0; i < kBlock; ++i) {
+                            const auto y =
+                                droplet.process({buffer.getSample(0, i), buffer.getSample(1, i)});
+                            for (int channel = 0; channel < 2; ++channel)
+                                buffer.addSample(channel, i, y[channel]);
+                        }
+                    },
+                    baseline);
+            }
+        return 0;
+    }
+    if (excitationStudy || normalized || motionStudy) {
+        for (const auto name : {"raw", "hard", "softsign", "tanh", "feature"}) {
+            ModalExcitation excitation;
+            if (!parseModalExcitation(name, excitation))
+                return 2;
+            if ((normalized || motionStudy) && excitation == ModalExcitation::raw)
+                continue;
+            for (double motion : {0., .5, 1.})
+                for (double decay : {.03, .12, .48}) {
+                    const ModalConfig config{260, decay, .3, .35 * motion,
+                                             .7 * std::pow(2.8, 1 - 2 * motion)};
+                    LiquidModalResonator candidate;
+                    if (!candidate.prepare(kRate, config, excitation,
+                                           (normalized || motionStudy) ? ModalNormalization::c3
+                                                                       : ModalNormalization::c0,
+                                           motionStudy ? ModalMotionModel::structured
+                                                       : ModalMotionModel::independent))
+                        return 1;
+                    const auto label = std::string(motionStudy  ? "RM1_C3_"
+                                                   : normalized ? "C3_"
+                                                                : "C0_") +
+                                       name + "_motion_" + std::to_string(motion) + "_decay_" +
+                                       std::to_string(decay);
+                    measure(
+                        label.c_str(),
+                        [&](auto& buffer) {
+                            for (int i = 0; i < kBlock; ++i) {
+                                const auto y = candidate.process(
+                                    {buffer.getSample(0, i), buffer.getSample(1, i)});
+                                for (int channel = 0; channel < 2; ++channel)
+                                    buffer.addSample(channel, i, y[channel]);
+                            }
+                        },
+                        baseline);
+                }
+        }
+        return 0;
+    }
     FlowModulator flow;
     if (!flow.prepare({}))
         return 1;
@@ -107,6 +246,66 @@ int main() {
                 }
             },
             baseline);
+    }
+    for (double depth : {0., .175, .35}) {
+        LiquidModalResonator moving;
+        if (!moving.prepare(kRate, {260, .12, .3, depth, .25}))
+            return 1;
+        const auto name = "C_motion_" + std::to_string(depth);
+        measure(
+            name.c_str(),
+            [&](auto& buffer) {
+                for (int i = 0; i < kBlock; ++i) {
+                    const auto y = moving.process({buffer.getSample(0, i), buffer.getSample(1, i)});
+                    for (int c = 0; c < 2; ++c)
+                        buffer.addSample(c, i, y[c]);
+                }
+            },
+            baseline);
+    }
+    // PROTECT-EXP-001: same-run engine baselines, including detector/envelope cost at OFF.
+    // No trace/file I/O in measure; existing gated workload, warmup and percentiles apply.
+    for (bool resonant : {false, true}) {
+        FluidCandidate fluid;
+        LiquidModalResonator resonator;
+        if (!fluid.prepare({}) || !resonator.prepare(kRate))
+            return 1;
+        const auto render = [&](auto& buffer, ResidualProtect* protect,
+                                FluidProtectTopology topology) {
+            for (int i = 0; i < kBlock; ++i) {
+                const StereoFrame x{buffer.getSample(0, i), buffer.getSample(1, i)};
+                const double g = protect ? protect->processSource(x) : 1.0;
+                const auto e = resonant
+                                   ? ResidualProtect::apply(resonator.process(x), g)
+                                   : applyFluidProtect(fluid.processComponents(x), g, topology);
+                for (int c = 0; c < 2; ++c)
+                    buffer.addSample(c, i, e[c]);
+            }
+        };
+        const double reference = measure(
+            resonant ? "protect_C_reference" : "protect_F_reference",
+            [&](auto& buffer) { render(buffer, nullptr, FluidProtectTopology::whole); }, 0.0);
+        for (auto score : {ProtectScore::difference, ProtectScore::logRatio})
+            for (double depth : {0.0, .5, 1.0}) {
+                fluid.reset();
+                resonator.reset();
+                ProtectConfig config;
+                config.score = score;
+                if (score == ProtectScore::difference) {
+                    config.thresholdLow = .01;
+                    config.thresholdHigh = .12;
+                }
+                ResidualProtect protect;
+                if (!protect.prepare(kRate, config, depth))
+                    return 1;
+                const std::string name = std::string(resonant ? "protect_C_" : "protect_F_") +
+                                         (score == ProtectScore::difference ? "D0_" : "D1_") +
+                                         std::to_string(depth);
+                measure(
+                    name.c_str(),
+                    [&](auto& buffer) { render(buffer, &protect, FluidProtectTopology::whole); },
+                    reference);
+            }
     }
     return 0;
 }

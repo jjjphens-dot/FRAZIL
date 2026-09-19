@@ -4,6 +4,114 @@ Research-only A/B/D/C mechanisms; local Debug/Release/ASAN 16/16 each, 138 core 
 and 80 corpus renders PASS. Exact-head Hosted CI is separately recorded in PR #30.
 No production WaterProcessor or perceptual acceptance. Source and limitations: [REVALIDATION.md](REVALIDATION.md).
 
+Those counts describe the historical SPIKE revision. Current Protect follow-up results and limitations are
+separately recorded in [PROTECT-EXP-001](../../../docs/planning/WATER_PROTECT_EXECUTION.md).
+
+The [listening-UI follow-up](../../../docs/evidence/WATER_LISTENING_UI_EXECUTION.md) records the
+subsequent review fixes and research-tool changes. The preview now groups completed mouse gestures
+and debounced wheel/key edits into a 50-entry runtime operation history, separate from state revisions
+and excluded from every serialized format. Prepare-required drags stop once; live Protect remains live.
+
+## Protect follow-up — PROTECT-EXP-001
+
+The user authorized sequential objective engineering waves/self-review and one final upload after Wave 1.
+This is separate from the closed SPIKE scope and does not satisfy formal EXP-W-002 or human/product gates.
+The original A/B/D/C generators are reused unchanged; Protect owns no generator, random stream or tail.
+
+| Addition | API / ownership | Validation |
+|---|---|---|
+| `dsp/ProtectDetector.h` | prepare/reset/process; own linked fast/slow follower; D0 difference and D1 positive log ratio with slow floor | Level/floor/cap/rate/reset/stereo tests |
+| `dsp/ResidualProtect.h` | prepare/reset/setDepth/processSource; score-to-dB computer, own gain envelope; apply whole residual | Bounds, exact OFF/continuation, retarget, lifecycle and partition tests |
+| `dsp/FluidProtect.h` | Pure F1 whole / F2 Droplet exempt / F3 half-weight composition | Exact unity and cancellation counterexample |
+
+Single processing owner: lifecycle/targets and process must not race. Config is prepare-only except depth,
+which can be retargeted at sample boundaries by the research caller; no plugin transport exists. Follower
+and generator advance during OFF. Positive depth uses dB attack/release; OFF uses a finite dB ramp then exact
+unity. Repeated OFF does not restart; reset clears envelope state while retaining the prepared depth/config.
+The step-bound test is not a human click-free claim. F2/F3 can increase the summed residual through cancellation.
+
+The existing JSON config now optionally accepts a numeric `protect` object (omitted = exact OFF):
+
+| Field | Default | Valid experimental range / units |
+|---|---|---|
+| depth | 0 | 0..1; not a Host default |
+| detector / topology | 1 / 1 | detector 0=D0, 1=D1; topology 1=F1, 2=F2, 3=F3 (C always whole residual) |
+| floor / epsilon | 1e-4 / 1e-8 | floor 1e-8..0.1; 0 < epsilon <= floor; amplitude |
+| thresholdLow / thresholdHigh | 1 / 9 | 0 <= low < high <= 100 dB (D1), <=1 amplitude (D0); D0 examples use .01/.12 |
+| capDb | 9 | 0..12 dB attenuation; search cases 3/6/9/12 |
+| depthExponent / scoreExponent | 1 / 1 | .1..8; finite |
+| attackSeconds / releaseSeconds | .001 / .08 | .00025.. .002 / .04.. .2 seconds |
+| offSeconds | .01 | .001.. .1 seconds; finite transition duration |
+
+All Protect config semantics are validated before output, including OFF/baseline. No log/linear smoothing
+comparison, live Decay, macro mapping or optimized production settings are claimed. The renderer accepts
+an optional final `NEW-protect-trace.csv` after tail seconds. It records frame/D0/D1/GR outside DSP and timing,
+refuses output/source collisions and existing trace files, and fails on write errors. No makeup/limiter is used.
+
+```powershell
+# Existing research-enabled Release build, using the safe wrapper as documented below.
+$renderer = 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe'
+python experiments/water/SPIKE-W-DSP-001/analysis/protect_review.py --renderer $renderer --suite diagnostics --output build/protect-diagnostics
+python experiments/water/SPIKE-W-DSP-001/analysis/protect_review.py --renderer $renderer --suite interaction --output build/protect-interaction
+python experiments/water/SPIKE-W-DSP-001/analysis/protect_review.py --renderer $renderer --suite sweep --output build/protect-sweep
+```
+
+All output directories must be new. Reports contain raw metrics/config/seed, source commit+dirty state,
+per-sample traces and selected diagnostic plots. Canonical fixture onset annotations use 5 ms pre/50 ms post
+windows, union pooling, 1 dB duty threshold, nearest-rank P95 and a fixed 1 ms rectified-peak analysis envelope.
+These are declared engineering observations, not psychoacoustic timing constants or detector-derived labels.
+Silent denominator/zero residual are explicit N/A/negative-infinity reasons, never fake finite scores.
+Interaction uses static engineering activity/persistence proxies: 12 Fluid cases and 6 unique C cases; C
+Motion is N/A because the existing resonator has no such destination. No accepted macro curve is inferred.
+
+Listening handoff (user supplies audio/permission later):
+
+```powershell
+python -m pip install -r requirements-dsp.txt
+python experiments/water/SPIKE-W-DSP-001/analysis/prepare_protect_listening.py --renderer $renderer --source <authorized-input.wav> --source-metadata <local-metadata.json> --mode abd --dsp-seed 42 --randomization-seed 42 --appended-tail-seconds 3 --output build/protect-listening-fluid-v2
+```
+
+Use `--mode c` for Resonant; add `--diagnostic` for engineering fixtures. The metadata JSON requires nonempty
+`source`, `author`, `license`, `permission` and `storage_policy` strings. Describe the actual source/version and
+permission for local copies/derived renders; a filled field does not itself establish permission. Sources must
+be PCM/float WAV at 44.1/48/96 kHz, mono/stereo. Keep metadata, source copies and packs in ignored local storage.
+For example, a self-created fixture's metadata can identify its generator/version, author, applicable license,
+local-test permission and temporary retention policy. Do not copy those claims onto third-party music.
+
+Each run creates two independent randomized packs, each containing **21 Fluid or 13 C trials**:
+
+- `fixed_source/`: primary attack/source-preservation evidence. Every condition uses one common gain
+  `min(1, .9 / maximum_raw_peak)`, including dry/OFF and lower-residual controls. There is no per-condition
+  normalization, so the carrier coefficient is identical. The common gain and every playback gain are recorded.
+- `rms_matched/`: **preference-supporting evidence only**. Full comparison-window RMS (including the appended
+  tail) is matched with condition-specific gains and .9 peak headroom. This is neither LUFS nor proven equal
+  perceived loudness, and cannot establish attack/source preservation. It has separate scores and conclusions;
+  never copy/pool conclusions between the two packs.
+
+Both include explicit D0/D1 OFF/mild/medium/strong pairs and surviving Fluid topology pairs. D0 uses .01/.12
+amplitude thresholds; D1 uses 1/9 dB. All Protect fields are written explicitly to renderer configs. These are
+bounded configurations, not equally tuned detector families. OFF, D0-medium and D1-medium have hidden repeats
+with identical config/seed/gain/audio. Fixed-source randomization uses the supplied seed; RMS uses seed + 1.
+DSP seed is independent. Trial WAVs alone are the blind handoff; the coordinator retains keys and `reviewer/`
+raw/config/source files until scoring ends. Both scorecards start blank.
+
+Manifest schema 2 records source name/description, original `source_frames`/`source_duration_seconds`, channels,
+subtype/bit-depth, source/author/license/permission/storage policy, `dsp_seed`, actual `randomization_seed`,
+`comparison_frames`/duration and separate `appended_tail_seconds`. The original byte snapshot is retained as
+`reviewer/source.wav` relative to the run root; renderers use that snapshot. No source/artifact hashes are
+computed, per the user's superseding instruction. Names/metadata/copies distinguish sources, without a
+cryptographic identity claim. `code_commit`/`code_dirty` identify repository code, not source audio.
+
+`DETECTOR_SELECTION.md` requires independent fixed-source observations, repeat consistency, attack/identity,
+quiet-after-loud response and recovery tradeoffs, exact condition references, reviewer and rationale (including
+neither/revise). **D1 is not selected by default; Wave 7 remains BLOCKED until detector selection and human
+listening evidence exist.** Product adoption still needs Joint Gate/ADR. Historical 12/8 RMS-only packs are
+superseded preparation artifacts and cannot support attack/source-preservation conclusions.
+
+CTest `frazil_water_protect_listening` invokes the real renderer and pack CLI, checks decoded carrier gains,
+explicit detector behavior/configs, source metadata/tail separation, hidden repeats, deterministic order/audio,
+independent evidence labels/blank scores and missing-rights rejection. Hosted CI installs `requirements-dsp.txt`.
+
 ## Scope and execution state
 
 The optional pre-EXP-W-002 work item is defined in [Coding Plan](../../../docs/CODING_PLAN.md),
@@ -14,7 +122,7 @@ realtime, lifecycle, isolation, render and performance work. Engineering Lead im
 Sound & Host Lead independently reviews scope/evidence.
 
 Formal EXP-W-002 still requires accepted EXP-W-001 (#17). Subjective tuning/selection, Water
-identity acceptance, macro mapping and Fluid/Resonant quality rankings are forbidden before that
+identity acceptance, product macro adoption and Fluid/Resonant quality rankings are forbidden before that
 brief. This spike does not close EXP-W-002, accept ADR-W-001 or authorize production integration.
 Future EXP-W-002 reuses/revises these results against the accepted brief without duplicating DSP.
 LOCAL-WDSP-00..06 are engineering checkpoints; LOCAL-WDSP-07 remains deferred. No listening
@@ -26,14 +134,15 @@ Current remediation evidence is recorded in [REVALIDATION.md](REVALIDATION.md); 
 ## Module map and output contract
 
 All DSP lives here and is excluded from production plugin targets. State belongs to the calling
-processing owner; prepare/reset/process must not execute concurrently. Controls are fixed by
-prepare; no runtime parameter transport, automation smoothing or mode transitions are claimed.
+processing owner; prepare/reset/process must not execute concurrently. A/B/D/C generator controls are fixed
+by prepare; they have no runtime parameter transport, automation smoothing or mode transitions. The separate
+Protect depth retarget/OFF envelope is described above; it does not implement generator macro automation.
 
 | Module | Responsibility | State/reset/tail |
 |---|---|---|
-| `WaterDspConfig.h` | Sample-rate/seed values; stable A/B/D seed domains | No Host/state registration |
+| `WaterDspConfig.h` | Sample-rate/seed values; stable A/B/D/C-motion seed domains | No Host/state registration |
 | `WaterExcitationFeatures.h` | Linked max(abs(L),abs(R)), fast/slow envelopes, positive difference | Reset zero; control magnitude capped at 1; source audio unchanged |
-| `LiquidModalResonator.h` | Independent Resonant C; six fixed complex-pole modes | Separate stereo quadratures; reset zero; exponential tail, floor 1e-25 |
+| `LiquidModalResonator.h` | Independent Resonant C; six fixed complex-pole modes; optional normalized excitation movement | Separate stereo quadratures; fixed seed/reset, exponential tail, floor 1e-25 |
 | `BubbleEnsemble.h` | A; input/envelope-gated stochastic events | Own PRNG and feature state; reset reseeds and clears pool |
 | `DropletImpactExciter.h` | B; transient threshold, hysteresis and refractory gate | Own PRNG chooses frequency family; no autonomous event timing |
 | `FlowModulator.h` | D; source-activity-scaled smooth random fractional delay | Prepare-only allocation; reset clears both channel buffers/index/trajectory; tail <=20 ms |
@@ -43,8 +152,9 @@ prepare; no runtime parameter transport, automation smoothing or mode transition
 | `ResearchBaseline.h` | Zero-residual infrastructure control | No audio state or tail |
 
 Every sonic module returns **E**, not x+E. The renderer adds the source exactly once. Flow returns
-`gain*(xd-x)`. Modal weights sum to its residual gain, and its `(1-r)` excitation bounds the
-absolute impulse sum by that gain. Event voices receive bounded signed source impulses, not sample
+`gain*(xd-x)`. At zero Motion, Modal weights sum to its residual gain and `(1-r)` excitation
+bounds the absolute impulse sum by that gain. With Motion, positive excitation weights sum to six;
+the conservative time-varying output bound is residualGain * 1.35/.65 (<1 at maximum gain). Event voices receive bounded signed source impulses, not sample
 playback or added noise; total pool weighting bounds residual amplitude by the configured gain.
 There is no limiter, compressor, automatic makeup or hidden normalization after composition.
 Event gain normalization is an explicit design bound, not perceptual loudness matching.
@@ -93,6 +203,19 @@ choices. Bubble radius/frequency direction is inspired by isolated-bubble acoust
 uses frequency controls and does not claim a calibrated physical radius model. B v0 has deterministic
 threshold timing; stochastic timing is optional in the proposal and is not implemented.
 
+## Standalone engineering preview
+
+The optional `frazil_water_preview` GUI reuses these mechanisms for source-driven engineering
+inspection. It has a WAV transport, explicit-unit draft/apply controls, temporary applied-config
+A/B, Dry/Processed/Residual monitoring and JSON export understood by this renderer. Every algorithm
+change stops playback and requires Apply + Play; no DSP prepare runs in the audio callback. This
+adds no product macro mapping, perceptual acceptance or production plugin dependency.
+
+Enable `FRAZIL_BUILD_WATER_EXPERIMENT=ON` and `FRAZIL_BUILD_WATER_PREVIEW=ON` using the existing safe
+presets. The preview remains a separate executable even in Release. See the
+[Sound Lead debugging guide](../../../docs/DEV_UI_WATER_DEBUG_GUIDE.md) for buttons, raw controls,
+source/device limits and reproducibility, and [validation](../../../docs/evidence/WATER_PREVIEW_VALIDATION.md).
+
 ## Build, tests, render and measurement
 
 From an initialized MSVC developer environment at repository root:
@@ -119,7 +242,8 @@ python experiments/water/SPIKE-W-DSP-001/analysis/render_corpus.py --renderer $r
 ```
 
 Renderer arguments: input WAV, **new** output WAV, mode, block (1..8192), uint32 seed, optional
-JSON path (or `-` for defaults), optional integer tail seconds (0..30). Modes: `a`, `b`, `d`, `ab`,
+JSON path (or `-` for defaults), optional integer tail seconds (0..30), then optional new Protect trace CSV.
+Modes: `a`, `b`, `d`, `ab`,
 `ad`, `bd`, `abd`, `c`; append `-residual` for E only. `baseline` is pass-through PCM24; `residual`
 is its zero residual. Sonic renders are float32 WAV, retaining peaks above 1 for analysis. Input
 must be finite mono/stereo within full scale. Existing outputs are refused; failed renders are
@@ -163,6 +287,67 @@ production AudioEngine integration claim. Production sources and baseline harnes
 
 ## Validation checkpoints
 
+The [control-bridge execution record](../../../docs/evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md)
+tracks staged Preview/Protect integration. Phase 1 adds isolated UI-thread `formatTimeValue` and
+`parseTimeValue` helpers in `preview/TimeValue.h`, covered by the existing Preview test executable.
+Seconds remain the internal/config unit. Display uses ms through exactly one second, then s;
+the locale-independent formatter preserves fractional values. Exact entry accepts decimal or
+scientific numbers, ASCII whitespace and case-insensitive ms/s only, defaulting to ms. Bounds are
+inclusive in seconds; invalid input returns an error without overwriting the prior value or clamping.
+The formatter rejects negative/nonfinite values. Neither helper is called from the audio path or
+connected to current widgets yet; current GUI instructions remain unchanged.
+
+Phase 2 moves the existing 21-control metadata to `preview/ControlDescriptor.h`, adding typed IDs,
+groups, internal units, display policy, research baseline provenance and prepare-required lifecycle.
+The original values, UI ranges/steps, labels and four-module export schema are retained. Descriptor
+tests check complete unique IDs, typed DSP defaults, pre-refactor ranges and serialization coverage.
+
+Phase 3 adds a single message-thread `ResearchSessionModel` with command-based edits, provenance and
+draft/applied/A/B values. `ResearchViews.h` supplies Sound Lead/Engineering representations; the
+`PreviewPanel` coordinator stops playback for draft edits and validates through `PreviewController`.
+Model/composition maps Fluid/ABD and Resonant/C. The listening-ready follow-up maps Size/Motion/Decay
+through [research mapping v0.2](RESEARCH_MAPPING.md); legacy v1 imports remain CUSTOM/unmapped. Manual
+raw edits mark only their owning macro CUSTOM and do not reverse-map them. Inactive controls retain values and show their inactive status.
+No view owns duplicate parameter state or holds DSP objects. Session tests verify both-view observation,
+one notification per change, no-op feedback suppression, composition/active-module truth tables,
+provenance, invalid commands, applied isolation and complete temporary A/B restore.
+
+Phase 4 added normalized Decay with the DOC-W-DECAY-001 provisional baseline `0.5`; the follow-up
+now maps it to A/B/C persistence only, with no Flow destination. Four macros participate in A/B/reset and separate
+`frazil.water-research-session` manifests (v2 exports, conservative v1 imports). `SessionCodec.h` covers config/composition,
+fixed seed 42, monitor and provenance, including source/build context without audio bytes or absolute paths.
+Module imports reuse renderer defaults and validation, preserve session macros/source/monitor, and
+mark engineering values CUSTOM. Configure-time Git/build provenance requires reconfigure to refresh.
+All engineering/Protect exact-entry widgets use adaptive ms/s display, strict parsing, baseline reset
+and Shift fine drag. Engineering module cards retain inactive settings; draft details and audio
+diagnostics are optional expansions. The viewport follows the current tab and expansion heights.
+`SessionJsonSyntax.h` remains necessary because the renderer gate
+only supports two numeric object levels; the bounded session syntax additionally supports strings,
+booleans and nested provenance, rejects duplicate keys/full-input violations, and never runs in
+the callback. Import decodes a candidate, then validates existing DSP config before replacement.
+Source/build provenance and Protect state are included in the completed workflow; this research
+format has no public preset compatibility promise. Renderer module JSON retains old fields and adds optional Modal Motion fields in the follow-up.
+
+Phase 5 wires the existing `ResidualProtect` and `applyFluidProtect` into `PreviewEngine`, preserving
+exact Depth-zero baseline and generator progression. `PreviewController` transfers one lock-free
+double Depth target at callback boundaries; all other Protect config still requires stopped Apply.
+Source is added once by monitoring after residual processing. D0/D1 threshold memories, last nonzero
+Depth and Fluid topology belong to UI session state, not DSP/renderer config. Initial enable recall
+is a documented convenience `0.5`; the actual research baseline remains OFF/Depth zero. C uses only
+Whole and restores the remembered Fluid topology when returning. Session/renderer exports include
+existing Protect module fields; no schema key was added to the renderer. The shared exact-entry
+widget validates before slider snapping/clamping, supports adaptive ms/s and flags invalid text.
+Protect DSP sources remain identical to their source branch; samplewise integration tests compare
+both detector domains/topologies and exact OFF recovery at all three supported validation rates.
+
+Phase 6 adds `ProtectDiagnostics.h`: a preallocated 256-entry SPSC queue of callback summaries,
+carrying Fast/Slow linear amplitude, D0 amplitude, D1 dB ratio and GR dB attenuation. The callback
+keeps per-block peaks and publishes once; the 10 Hz UI drains at most 256 entries, displays the
+latest sample plus interval peaks and cumulative dropped summaries. Full queues drop new data,
+never wait/overwrite; Stop clears the queue after callback detach. Peaks are not co-timed values
+or output-level reduction. No rolling trace, callback strings or dynamically growing history is
+introduced. Concurrent transport/overflow tests complement samplewise detector-value comparisons.
+
 LOCAL-WDSP-00..06 cover baseline, features, C, A, D, B and Fluid integration respectively.
 Historical measurements are retained in [EVIDENCE.md](EVIDENCE.md). Current source, three-preset
 regression, isolation/capacity fixes, typical-signal smoke, 80 renders and preliminary timing are
@@ -179,7 +364,7 @@ direct-form recurrence for bounded quadrature state and clear excitation normali
 Known limitations: isolated bubbles omit coupling/geometry/pitch-rise; hard stealing can click;
 linear interpolation can color high frequencies; fixed modal ratios may sound generic or metallic;
 source-linked smooth random delay can still sound chorus-like. There is no evidence yet to justify
-refinements, macro mappings or production adoption. The modal normalization may be too subtle on
+accepted refinements, product macro mappings or production adoption. The modal normalization may be too subtle on
 some material; objective stability is not a Water-identity judgment. No claim of correct tonal
 recognizability is made from the source-carrier arithmetic alone.
 
@@ -208,3 +393,118 @@ Mirror hosting is not the primary authority. Citation correction changes no algo
 
 References were reviewed on 2026-09-16. FRAZIL's residual composition, Fluid/Resonant names, gains,
 frequency families and scheduling are engineering hypotheses, not formulas endorsed by these papers.
+
+The listening-ready follow-up exports research session v5 and accepts v1-v4 without changing raw
+engineering values. Legacy v1 macro states are CUSTOM / legacy-unmapped; v2/v0.1 uses CUSTOM / legacy-research-v0.1. Runtime operation history
+never enters either schema; see the debug guide for DSP/context dirty and checkpoint semantics.
+
+
+### Modal excitation movement follow-up
+
+Optional `modal.motionDepth` defaults to 0 (range 0..0.35), preserving exact historical sample
+arithmetic when omitted. `modal.motionIntervalSeconds` defaults to .7 s (range .02..10 s).
+The research macro maps depth=.35m and interval=.7*2.8^(1-2m). A/B/D and existing three Modal
+fields retain their defaults/ranges. Together with the Droplet scheduling/probability gates and C policy options, preview raw controls now total 28.
+
+Six positive random targets are normalized to sum six, then interpolated with smoothstep between
+normalized endpoints. Only excitation distribution changes: poles, decay and output gain are
+fixed at prepare. Instance-owned RNG uses base seed/domain 4, including renderer CLI seed; reset
+replays it. Callback code uses fixed arrays/scalars, no allocation, locks, strings or coefficient
+regeneration. Zero input creates no new sound. Normalization is not a perceptual loudness guarantee.
+
+v1 sessions omit the new fields/provenance and receive typed depth=0/interval=.7 defaults;
+v2 requires both fields. New mapped sessions use the research targets. Tests compare zero Motion
+against independent historical recurrence and legacy renderer omission, and active Motion across
+seeds/reset/block partitions/rates/finite extrema/channel isolation. No perceptual acceptance.
+
+`ResearchListeningCalibration.h` supplies the independent preview-session gain starting point,
+.26/.24/.06/.30 for A/B/D/C. The mapper never owns those gains; see [research mapping](RESEARCH_MAPPING.md).
+
+
+`AuditionMonitor` applies 10 ms Source/Full/Water Only and gain transitions after Protect. E Trim
+0..36 dB (new-session +18) multiplies only E; Reference=0, Focus=18; final monitor defaults -18 dB.
+This gain never feeds a detector/generator and is excluded from module JSON. It is session/A-B
+state, with v1 importing 0 dB. Tests exercise all equations/rates and live ramp/context isolation.
+
+`WaterDiagnostics.h` contains fixed numeric per-frame/block readouts for total/pre-Protect E,
+A/B/D/C and post-Protect E, plus cumulative events/steals and latest voices/delay/Modal targets.
+`PreviewEngine` exposes audio-owner values; controller accumulates energy/counts before audition
+and publishes in the existing Protect 256-entry SPSC queue. No second queue or callback strings.
+UI-only `WaterDiagnosticsText` formats sample-weighted RMS/peaks/activity; overflow is visible.
+
+Sound Lead Auto Audition defaults ON; completed macro gestures use one stopped prepare/apply/start. Engineering is manual. ResearchPresentation shows actual targets and the latest 50 completed operations. See the debugging guide for Reference/Focus, CUSTOM ownership, exact editing and session checkpoint semantics.
+
+## Supplied-input listening handoff
+
+`frazil_water_research_cases` exports the UI's 18 mapped configurations using the existing C++
+mapper/adapter/calibration. `render/listening_handoff.py` invokes the existing renderer and compares
+finite decoded audio, repeats, block partitions and channel isolation. Optional explicit reference
+excerpts remain read-only. Renderer stdout now includes input-window Flow min/max/travel observations;
+these are offline proxies outside the processing/timing harness. The handoff uses original sources,
+Protect OFF and fixed seed, with no automatic normalization or acceptance.
+
+See [current handoff evidence and commands](../../../docs/evidence/WATER_LISTENING_HANDOFF_V02.md): 72 cases
+pass objective checks, but Resonant residual/Motion can be very low-level. Human mapping/audibility
+and source-preservation decisions remain pending. No audio, generated pack or personal path is tracked.
+
+### Listening remediation boundaries
+
+`droplet.eventsEnabled` accepts exactly numeric 0 or 1 (default 1 for legacy module JSON).
+The v0.2 Motion mapper selects 0 at Motion=0; Bubble rate is `480*m*m`. This gate only disables
+new scheduling; the audio owner can close it without clearing active voices. Current macro
+editing still uses stopped prepare/restart transactions. Session v5 records all 28 targets;
+v2/v0.1 becomes legacy-research-v0.1 / CUSTOM and requires explicit adoption of v0.2.
+
+`render/modal_normalization_study.py --output <new-local-directory>` compares C0/C1/C2 formulas
+for the actual imaginary-output recurrence. Its candidate results do not replace Modal DSP;
+see [remediation status](../../../docs/evidence/WATER_LISTENING_REMEDIATION.md) for the Stop A
+finite-float counterexamples and remaining human listening gates.
+
+### EXP-W-RX-001 excitation comparison
+
+The optional `ModalExcitation` prepare argument selects raw/hard/softsign/tanh/feature carriers;
+raw remains the exact preview and omitted-renderer default. Only the modal residual path is
+conditioned. Candidate choice is an explicit offline renderer argument, not a module/session
+JSON field or adopted macro. `excitationFrame()` exposes the actual common driver before
+per-mode redistribution; the preview's temporary Engineering audition uses this value directly,
+with a 10 ms crossfade and Monitor Output only. No E Trim, Protect, history or serialization.
+
+`render/excitation_study.py` captures that driver and actual C0 output using the existing renderer,
+including a generated sustained engineering pad. See [experiment record](../EXP-W-RX-001.md)
+for equations, rejection of the first feature-carrier construction, finite/stereo proof,
+reproduction commands and validation. No new production path or implicit candidate selection.
+
+### C3 bounded normalization experiment
+
+A final renderer argument `c0|c3` selects the [C3 study](../EXP-W-RN-001.md), after the conditioner
+and optional excitation WAV (`-` omits capture). C3 requires a bounded conditioner and rejects raw;
+omission uses module JSON (default C0). The six-mode bank's prepare-time energy target uses a common 480 ms anchor
+and a separate induced-response cap; Motion and the gain knob do not change that target. The
+actual coefficients and bound are reported by the renderer. `bounded_normalization_study.py`
+measures source/impulse/partition results for 27 triples without selecting a preview default.
+
+Optional Modal renderer suffix: `[c0|c3] [independent|structured]` after conditioner and optional
+excitation output. R-M1 requires explicit `structured` in CLI or module JSON; the default stays independent.
+[EXP-W-RM-001](../EXP-W-RM-001.md) contains proof, scripts and review limits. The default path is unchanged; session v5 and explicit Engineering C comparison options can now
+select these candidates. CLI selectors override the corresponding module fields.
+
+Droplet optional `eventActivity` is a finite [0,1] onset probability, default1, separate from the
+binary `eventsEnabled` gate. Research session v4 stores it as a 25th descriptor target; legacy
+imports fill1. The default v0.2 mapper is unchanged. `frazil_water_research_cases --continuous-droplet`
+explicitly exports the separate candidate curve; [EXP-W-DA-001](../EXP-W-DA-001.md) records the
+actual probability/legacy comparison and pending human review. No production parameter is added.
+
+### Engineering diagnostics and candidate path controls
+
+Research session v5 stores 28 targets, adding Modal `excitation` (0 raw, 1 hard, 2 softsign,
+3 tanh, 4 feature), `normalization` (0 C0, 1 C3) and `motionModel` (0 independent, 1 structured).
+v1-v4 imports fill raw/C0/independent without remapping. Raw+C3 is rejected at Modal prepare.
+The Engineering comparison selector groups Raw/C0/independent, Hard/C3/structured and
+Feature/C3/structured as explicit Apply-required choices; macro ownership excludes these fields.
+
+`DiagnosticMonitor.h` defines temporary monitor selections and fixed sample frames. The engine
+captures actual A/B/D/C pre-Protect residuals and accepted A/B trigger or Modal excitation samples;
+`AuditionMonitor` crossfades normal/solo/driver weights in 10 ms. Solos use E Trim; drivers bypass
+E Trim/Protect and use Monitor Output only. No selection is saved in config/session or history.
+See the [operator guide](../../../docs/DEV_UI_WATER_DEBUG_GUIDE.md) and
+[phase evidence](../../../docs/evidence/WATER_DSP_LISTENING_EXECUTION.md).

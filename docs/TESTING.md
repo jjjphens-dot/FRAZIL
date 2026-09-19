@@ -465,6 +465,113 @@ save/reopen、schema evolution/default/migration fixtures 和 compatibility fall
 `parallel.balance`=Parallel proportion，`global.mix`=完整插件 dry/wet。内部 algorithmic LFO/random tests
 不构成 public LFO/modulation-matrix contract；通用用户 LFO 和可选 `Motion Mod` 均为 deferred。
 
+### Water Protect proposed validation
+
+Protocol: [DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md); actual test/render results and
+remaining gaps are recorded in the user-authorized [PROTECT-EXP-001 execution](planning/WATER_PROTECT_EXECUTION.md).
+No new M2 Exit requirement or formal EXP-W-002 readiness is created. Accepted perceptual definition and
+Decay Revision B remain prerequisites for subjective selection. The
+[theory](CORE_IMPLEMENTATION_GUIDE.md#510-water-protect-theory-candidate) defines D0/D1, F0–F3 and their limits.
+
+#### Staged functional and property evidence
+
+1. **Detector (Wave 2):** compare D0/D1 with identical linked input/envelope configuration, seeds and material.
+   Test silence, low levels around the floor, capped high levels, single-sample impulses, sparse/overlapping
+   notes, sustained bass/sines and noise; measure score, false triggers, missed/late onsets and level sensitivity.
+   Dry-input/fixture onset annotations must be fixed independently of the detector being evaluated.
+2. **Gain (Wave 3):** finite output, validated config, `0<gp<=1`, bounded attenuation and same gain for both
+   channels. Constant/reset P=0 must be bit-exact to the original candidate's output, including accumulation
+   order. For dynamic OFF, specify bounded transition/unity-snap policy first; separately test continuity,
+   completion and exact baseline continuation. An asymptotic release is not exact OFF.
+3. **State:** compare the same seed/config unprotected and protected generator state/RNG progression, including
+   after OFF, tails, reset/prepare and instance isolation. Event counts alone do not prove equal RNG state.
+   Generation runs once and is never gated/reseeded by Protect; expose comparison evidence outside processing.
+   Explicit Motion/Decay destinations stay unchanged while audible tail energy may change.
+4. **Topology (Wave 4):** retain F0, evaluate F1 first, then F2/F3 to test Droplet identity. Whole-residual
+   sample/window contraction applies only to F1 and common-gain C with identical unprotected E. F2/F3 can
+   increase summed energy; include the cancellation counterexample and total-output peak checks for all cases.
+5. **Rate/lifecycle:** 44.1/48/96 kHz, representative 32–1024 sample blocks plus zero/1/7/31/odd-length cases,
+   reset/reprepare, signal/silence/tail boundaries and channel isolation. Verify block-partition invariance
+   for equivalent sample-timed control trajectories; block-quantized controls need documented tolerances.
+   Exercise rapid depth/target changes once a live control path exists; static configs cannot prove automation.
+6. **Interaction (Wave 5):** two models x Motion low/high x Decay short/long x Protect OFF/medium/high = 24
+   configurations per fixed Size/input/seed. Use accepted macro anchors, independent destination checks and
+   repeated notes/tails. Prepare-only spike settings can support static engineering observations, not live
+   Decay policy or accepted product-macro evidence. Record that missing evidence explicitly.
+7. **Realtime:** review allocation, locks, I/O, initialization, bounds and instance-owned state; prepare computes
+   coefficients/capacity. No logging/analysis in process. Preserve zero Host-reported latency; measure response
+   lag separately. Linked gain prevents independent ducking per channel but does not prove unchanged perceived
+   stereo image after dry/residual interference. Review one-sided and anti-phase input cases.
+
+#### Objective analysis definitions (not perceptual scores)
+
+Record config/seed/rate/block/channels, valid sample counts, window definitions and units with each report.
+Keep raw processing metrics before any loudness matching. For each fixed dry-annotated onset tk, use explicit
+pre/post durations and half-open sample windows `[floor((tk-pre)*fs), ceil((tk+post)*fs))`, clipped to file bounds.
+Report windows individually; pooled statistics use their union to avoid double-counting overlaps. Offline
+analysis may inspect surrounding samples; runtime Protect may not look ahead.
+
+- Gain reduction `GR[n]=-20*log10(gp[n])` in positive dB: max, arithmetic sample mean and nearest-rank P95
+  (`sorted[ceil(.95*N)-1]`, N>0). Report full-file and onset-window statistics separately. Ducking duty is
+  samples with GR above a declared fixed threshold divided by valid samples (e.g. 1 dB for observation, not
+  an acceptance constant). Distinguish the common envelope from actual B weighting in F3; F0 GR is zero.
+- Residual/source deviation for y=protected Water output: `10*log10(sum((y-x)^2)/sum(x^2))` over identical
+  samples and channels. A declared source-energy floor marks silent windows N/A; do not report a huge
+  epsilon-driven ratio as a result. For a valid source window with exactly zero numerator the mathematical
+  result is negative infinity; encode null plus `zero residual` in finite-only JSON. Ratios do not measure
+  masking and need not be monotonic for F2/F3.
+- Attack-envelope discrepancy: `sum(abs(Fy-Fx))/sum(Fx)` using the same specified offline envelope and initial
+  conditions; below a declared denominator floor use N/A. It is an envelope proxy, not perceptual attack time
+  or instrument identification. Record numerator/denominator and floors so results can be reproduced.
+- Peak, RMS, DC, crest and tail energy/duration use declared windows, channel aggregation and thresholds.
+  Record non-finite counts before excluding any invalid samples; a non-finite output fails the relevant
+  property, not merely its analysis. Event/voice statistics are N/A if unavailable, not inferred from audio.
+- Performance uses same-run unprotected/protected comparisons after warmup, with machine/toolchain/config,
+  repetition count, average/P95/maximum callback wall time and incremental cost. Do not relabel callback
+  wall-time ratio as process CPU utilization or turn measurements into an unapproved formal budget.
+
+For cap/attack/release exploration, use bounded staged subsets from the plan and retain reasons for elimination.
+Compare dry, F0 and surviving candidates with fixed source/config/seed; record all normalization gains in a
+separate listening preparation record. No makeup gain or limiter is added to runtime Protect to win a metric.
+
+#### Independent listening and product decision (Waves 6–7)
+
+Use licensed bass, drums/percussion, pad, piano/guitar and appropriate vocal passages under LISTENING-001.
+Engineering impulse/noise evidence cannot replace these. Provide dry/OFF/mild/medium/strong references and
+surviving topology comparisons in two separate randomized/blinded packs, with repeated conditions and recorded
+monitoring level/environment. The **fixed-source-gain pack is primary for attack/source preservation**: one
+common playback gain across dry/OFF/candidates/controls, never per-condition normalization. The separate
+**RMS/loudness-matched pack supports preference only** and cannot establish attack/source preservation;
+its scores and conclusions must not be copied or pooled with the primary pack. Record gains and matching
+windows explicitly. Compare with a lower-Amount control to test whether Protect provides more than general
+material reduction (the current harness uses an offline lower-residual control, not production Amount mapping).
+
+The current harness includes explicit D0/D1 blinded pairs (thresholds .01/.12 amplitude versus 1/9 dB), including
+matching depth/topology/seed conditions and identical hidden repeats. These are bounded settings, not equally
+tuned detector families. D1 is not a final detector by default. Record selection evidence from the primary pack:
+reviewer, source/config/trial references, repeat consistency, attack/identity, quiet-after-loud response, recovery
+tradeoffs, alternatives and uncertainty. **Wave 7 product decision stays BLOCKED until detector selection and
+human listening evidence exist**; neither/revise keeps the block and requires bounded follow-up.
+
+Listening provenance uses original source name/description and a local source snapshot, original
+`source_frames`/duration, channels, subtype/bit-depth, source/author/license/permission, storage policy, independent
+`dsp_seed` and `randomization_seed`, and `comparison_frames`/duration with separate `appended_tail_seconds`.
+No hash is required/computed for this handoff under the user's superseding instruction; names/metadata do not
+claim cryptographic identity. Pack scores/reviews are separate and remain blank until human listening.
+CTest `frazil_water_protect_listening` verifies decoded common carrier gain, explicit D0/D1 renders, complete
+metadata, original versus padded frames, identical repeats and deterministic randomization/audio.
+
+Record separate judgments for attack clarity, source recognizability, Water identity, continuity, Droplet
+identity, tail preservation, pumping, post-attack holes, stereo stability, usefulness of variable depth and
+other artifacts. Sound & Host defines 1/3/5 anchors before scoring; do not fabricate scores or aggregate them
+into a quality winner. Each record includes reviewer, exact revision/material/config, observations, uncertainty
+and ACCEPT / REVISE / REJECT. Mechanism benefit and need for a user macro are independent decisions.
+
+Persistent medium-depth ducking, lost Water/Droplet identity, unnatural recovery, serious unexplained cost,
+lookahead dependence, or inability to distinguish Protect from Amount require revision/rejection before
+scope expansion. Preserve failed candidates as evidence. Adoption remains subject to Joint Gate/ADR and,
+for a user macro, parameter/state compatibility review; this protocol does not authorize Host/UI changes.
+
 ### Reject criteria
 
 Water/Ice candidate 至少在以下任一情况发生时 reject 或退回 experiment：
@@ -662,3 +769,114 @@ gates; spectra/coloration are observations, not subjective selection. The option
 `analyze_testdata.py`; generated WAV/metrics remain ignored. These engineering checks do not
 establish Water identity, source recognizability, musical acceptance or production readiness.
 Commands, actual results and limitations: [research README](../experiments/water/SPIKE-W-DSP-001/README.md).
+
+### Standalone Water preview regression
+
+With both research/preview options enabled, `frazil_water_preview` CTest compares all nine preview
+compositions to the unchanged research DSP at 44.1/48/96 kHz, checks fixed-seed reset, stereo isolation,
+finite output, engineering-control effects, rejected invalid configs and renderer-compatible export.
+It requires no audio device. GUI/physical-output operations are separately observed; see
+[WATER_PREVIEW_VALIDATION](evidence/WATER_PREVIEW_VALIDATION.md) and the
+[Sound Lead guide](DEV_UI_WATER_DEBUG_GUIDE.md). No product macro mapping, real DAW acceptance or
+subjective Water quality is inferred from this test.
+
+The control-bridge integration additionally tests Protect config parser compatibility and isolated
+time-value helpers in the same CTest. Time coverage includes the 1000 ms boundary, fractional ms,
+unitless-ms input, supported/unsupported suffixes, full consumption, finite/range checks and
+preserving the previous value on failure. This is not GUI exact-entry evidence; integration and
+human usability remain pending. Results: [control-bridge execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
+The same test executable checks the 21 descriptors against typed research defaults, the original
+UI ranges/steps, module grouping, seconds display metadata, lifecycle and complete JSON field coverage.
+Session regressions cover shared observation, origin/revision, idempotent edits, Model/composition
+mapping, legacy unmapped preservation, per-macro research mapping, no reverse mapping, inactive value retention, Draft/Applied isolation and
+temporary A/B. These model tests do not substitute for Phase 8 Windows GUI interaction evidence.
+Decay/session regressions cover provisional baseline, A/B/reset, complete macro/config/monitor and
+target-provenance roundtrip, duplicate decoded keys, unknown fields, nonfinite/invalid numbers,
+unsupported versions/seeds and failure atomicity. Session candidates are still validated by the
+existing prepare-time DSP authority before UI restore; session JSON is not renderer module JSON.
+Workflow regressions cover source/build roundtrips, source validation, live edit provenance,
+partial module defaults, module-specific coupled constraints and atomic rejection before state commit.
+Actual JUCE widget callbacks are exercised for valid/invalid text, Escape, external restore, integer
+rejection, precision and Shift-drag normalized fine adjustment. Draft differences use adaptive time units.
+Integrated Protect tests compare Preview to the unchanged research implementation at 44.1/48/96 kHz
+for D0/D1, all Fluid topologies and C/Whole, including exact finite OFF recovery and generator/RNG
+continuation. They cover live Depth/Enable state, separate calibration domains, retained Fluid topology,
+session/A/B retention and validation at Depth zero. Original Protect/listening regressions remain registered.
+Protect diagnostic tests check empty/full/drain/reset behavior, explicit overflow loss, bounded
+reader work and a real concurrent producer/reader with coherent payloads. Integrated readouts match
+the existing detector/envelope sample by sample. Runtime allocation instrumentation is not claimed;
+the fixed queue/atomic transport and callback call graph are separately reviewed for bounded work.
+
+The listening-UI follow-up adds regressions for retained Fluid topology/Enable-depth dirty state,
+explicit session/A/B sample-rate validation (a Flow clearance legal at 96k but invalid at 48k),
+normal descriptor-step gestures versus finer Shift movement and exact legal text. See
+[listening-UI execution](evidence/WATER_LISTENING_UI_EXECUTION.md) for staged results and scope.
+Operation tests use an injected monotonic clock: 100 callbacks within one drag, return-to-start,
+50 ms wheel bursts and 250 ms expiry (including delayed timer delivery), control switching,
+live Protect intermediate targets with no stop, composite import and 51-operation ring eviction.
+
+Session v3 tests cover strict revision/status/trim validation and atomic rejection; v1 migration
+preserves all existing engineering values and explicitly remains legacy-unmapped. v2/v0.1 imports
+preserve raw targets and become legacy-research-v0.1 / CUSTOM; the omitted scheduling gate remains ON. DSP/context
+dirty tests distinguish live monitor changes and retained Protect state from prepare requirements.
+
+Pure research mapper tests run without JUCE and cover dense monotonic sweeps, 0/.5/1 endpoints,
+finite guards and Flow clearance at 44.1/48/96 kHz. Session tests cover raw ownership, per-macro
+Return isolation, unowned gain/Protect preservation and explicit legacy adoption.
+
+Modal Motion validation includes exact zero-depth historical recurrence/renderer omission, active
+fixed-seed reset and partition identity, seed differentiation, positive normalized weights, finite
+float extrema and channel isolation at 44.1/48/96 kHz. Performance harness reports C Motion separately.
+
+Listening calibration tests verify raw gain CUSTOM ownership, preservation through macro movement
+and Return All, and isolated restoration of the four calibration gains.
+
+Preview audition tests check Source/Full/Water Only at 0/18/36 dB E trim across 44.1/48/96 kHz,
+10 ms monotonic ramp, channel isolation, session-only dirty, A/B retention and unchanged DSP JSON.
+
+Extended diagnostic queue tests run a real concurrent producer/consumer and verify coherent Water
+payloads and explicit overflow. Integration covers pre/post Protect OFF identity, activity/voice
+counts, ablation/inactive zeros, reset, and sample-weighted (unequal block size) RMS aggregation.
+
+Phase I preview tests inject lifecycle commands to assert 100 drag updates yield one stop/prepare/start, and cover no-op, invalid, source-less, Engineering/OFF and live Protect paths. Native GUI observations and validation limits are in the Water listening UI execution record.
+
+[Supplied-input listening handoff](evidence/WATER_LISTENING_HANDOFF.md) records 72 research endpoint/center cases, exact decoded repeats and block partitions, channel isolation and component/activity/tail proxies. Human audibility and quality acceptance remain pending, particularly Resonant Motion.
+
+The [PR #40 remediation record](evidence/WATER_LISTENING_REMEDIATION.md) retains the failed
+intermediate descriptor fixture run, its compile-time length guard repair, successful serial
+preset results and native GUI checks. Motion=0 tests exercise actual A/B schedulers; Droplet gate
+closure preserves an already active response. Monitor over-range tests cover the strict >1
+boundary and short-event retention through quiet blocks, without changing monitor samples.
+
+EXP-W-RX-001 adds `frazil_water_excitation`: bounded-carrier finite extremes, linked L/R ratio,
+left/right-only symmetry, silent feature release, failed prepare, settled-sine shape regression
+and exact reset/partition checks at 44.1/48/96 kHz. Existing modal historical-recurrence tests
+continue to verify raw identity. Renderer tests capture actual driver WAVs and reject overwrites;
+preview tests verify the driver transport and monitor-only routing without E Trim. The separate
+`excitation_study.py` pack compares nine engineering fixtures and explicit original inputs with
+C0 unchanged. `frazil_water_performance --excitation-study` reports all candidate Motion/Decay
+corners using the existing timing harness. These checks do not establish human audibility or
+acceptance; failures, measured results and UI validation are recorded in
+[EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md).
+
+C3 normalization adds `frazil_water_normalization`: actual impulse energy/persistence at all
+27 mapped triples, reversed-impulse-sign FLT_MAX adversaries through bounded excitation, raw
+parameter corners, stereo and partition/reset invariants. Renderer tests reject raw+C3 and
+unknown normalization selectors before output creation. The measured grid, positive-form energy
+identity, Cauchy-Schwarz L1 bound and timing are in [EXP-W-RN-001](../experiments/water/EXP-W-RN-001.md).
+
+Research-only `frazil_water_motion` checks optional R-M1 coherent normalized weights, C3 bound,
+static/seed/partition behavior and finite extremes. The old default remains independently covered.
+See [EXP-W-RM-001](../experiments/water/EXP-W-RM-001.md) for listening and timing limits.
+
+`frazil_water_activity` validates probability endpoints, eligible-onset/family preservation,
+channel/reset/partition behavior and extreme inputs. Preview tests cover research session v5
+probability and C-path roundtrips plus v1/v2/v3/v4 legacy defaults; see [EXP-W-DA-001](../experiments/water/EXP-W-DA-001.md).
+
+Phase9 preview regressions check every diagnostic solo equation, driver E-Trim bypass,
+diagnostic-to-diagnostic ramps, actual component/driver transport, raw+C3 rejection and exact
+Hard/Feature+C3/structured preview-to-direct-render identity. Native GUI checks cover group
+visibility and lifecycle counters; results are in the Water phase record. The optional
+`frazil_water_performance --preview-monitor-study` includes normal/solo/driver transitions for
+Fluid and both explicit C3 paths at three Motion and three Decay values; this is research wall
+time, not formal performance acceptance or device callback/Host proof.

@@ -42,6 +42,11 @@
 
 ## 4. 修改流程
 
+本地工作区位置规则由 `AGENTS.md` 第 0.2 节与 `ENVIRONMENT.md` 的 Local Workspace Boundary 共同维护。
+更新必须保持目录限制、必要例外和 portability 表述一致；共享规则使用相对路径或工作区占位符，各机器
+在执行时解析自身的绝对路径。上级说明以自身位置为锚点；机器专属绝对路径只进入 ignored 配置或本机环境变量。
+这一工程治理规则不改变产品架构、参数合同或 milestone 验收门槛。
+
 1. 先确定文档等级、owner、受影响的 issue/milestone 和是否改变合同；
 2. 实现已接受合同时，使用 issue + code/docs + tests + review；只有触发 ADR 条件时才先更新或新增 ADR；
 3. 同步测试合同、模块 README、`MODULE_INDEX`、AGENTS 和计划中的受影响字段；

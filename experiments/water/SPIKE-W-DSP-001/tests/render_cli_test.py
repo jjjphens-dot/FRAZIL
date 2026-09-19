@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import wave
+import csv
 
 
 def main():
@@ -72,6 +73,74 @@ def main():
                     if reference is not None: assert actual == reference
                     reference = actual
                 renders[mode] = reference
+            # EXP-W-RX-001: actual captured driver and raw control use the same bank path.
+            for candidate in ("raw", "hard", "softsign", "tanh", "feature"):
+                output = root / f"excitation-{rate}-{candidate}-C.wav"
+                excitation = root / f"excitation-{rate}-{candidate}-driver.wav"
+                command = [str(renderer), str(source), str(output), "c-residual", "257", "42",
+                           "-", "2", "-", candidate, str(excitation)]
+                subprocess.run(command, check=True, capture_output=True)
+                actual, driver = read_float(output), read_float(excitation)
+                assert len(driver) == len(actual) == len(renders["c"])
+                assert all(math.isfinite(v) and abs(v) <= 1 for v in driver)
+                assert all(v == 0 for v in driver[1::2])
+                assert all(v == 0 for v in driver[2*len(values):])
+                if candidate in ("raw", "hard"):
+                    assert actual == renders["c"]
+                    assert driver[:2*len(values):2] == tuple(v / 32768 for v in values)
+                assert subprocess.run(command, capture_output=True).returncode != 0
+            moving_config = root / "motion.json"
+            moving_config.write_text(json.dumps({"modal": {"motionDepth": .35, "motionIntervalSeconds": .02}}))
+            motion_audio = []
+            for model in ("independent", "structured"):
+                output = root / f"motion-{rate}-{model}.wav"
+                result = subprocess.run([str(renderer), str(source), str(output), "c-residual", "257", "42",
+                    str(moving_config), "2", "-", "hard", "-", "c3", model], check=True, capture_output=True, text=True)
+                assert f"modal_motion={model}" in result.stdout
+                motion_audio.append(read_float(output))
+            assert motion_audio[0] != motion_audio[1]
+            options_config = root / "options.json"
+            options_config.write_text(json.dumps({"modal":{"excitation":4,"normalization":1,"motionModel":1,"motionDepth":.35}}))
+            option_outputs=[]
+            for index,suffix in enumerate(([],["-","feature","-","c3","structured"])):
+                output=root/f"options-{rate}-{index}.wav"
+                result=subprocess.run([str(renderer),str(source),str(output),"c-residual","128","42",str(options_config),"2",*suffix],check=True,capture_output=True,text=True)
+                assert "excitation=feature" in result.stdout and "modal_normalization=c3" in result.stdout
+                option_outputs.append(read_float(output))
+            assert option_outputs[0]==option_outputs[1]
+            c3_file = root / f"c3-{rate}.wav"
+            c3_command = [str(renderer), str(source), str(c3_file), "c-residual", "128", "42",
+                          "-", "2", "-", "hard", "-", "c3"]
+            result = subprocess.run(c3_command, check=True, capture_output=True, text=True)
+            c3 = read_float(c3_file)
+            assert c3 != renders["c"] and all(math.isfinite(v) and abs(v) <= 4 for v in c3)
+            assert "modal_normalization=c3" in result.stdout
+            for carrier, normalization in (("raw", "c3"), ("hard", "invalid")):
+                rejected = root / f"c3-reject-{rate}-{carrier}.wav"
+                command = [str(renderer), str(source), str(rejected), "c-residual", "128", "42",
+                           "-", "2", "-", carrier, "-", normalization]
+                assert subprocess.run(command, capture_output=True).returncode != 0
+                assert not rejected.exists()
+            # New Modal motion is optional. Explicit zero must decode exactly like legacy omission;
+            # active motion is fixed-seed and block-partition invariant, with isolated right channel.
+            moving_reference = None
+            for depth in (0, .35):
+                motion_config = root / "modal-motion.json"
+                motion_config.write_text(json.dumps({"modal": {"motionDepth": depth, "motionIntervalSeconds": .02}}))
+                for block in (7, 128, 1024):
+                    output = root / f"motion-{rate}-{depth}-{block}.wav"
+                    subprocess.run([str(renderer), str(source), str(output), "c-residual", str(block),
+                                    "42", str(motion_config), "2"], check=True, capture_output=True)
+                    actual = read_float(output)
+                    assert all(math.isfinite(v) for v in actual)
+                    assert all(v == 0 for v in actual[1::2])
+                    if depth == 0:
+                        assert actual == renders["c"]
+                    elif moving_reference is None:
+                        moving_reference = actual
+                        assert actual != renders["c"]
+                    else:
+                        assert actual == moving_reference
             for mode, parts in (("ab", "ab"), ("ad", "ad"), ("bd", "bd"), ("abd", "abd")):
                 assert all(abs(renders[mode][i] - sum(renders[part][i] for part in parts)) < 1e-7 for i in range(len(renders[mode])))
             assert any(abs(value) > 1e-8 for value in renders["a"])
@@ -88,6 +157,59 @@ def main():
         output = root / "mono.wav"
         subprocess.run([str(renderer), str(source), str(output), "c", "7", "0"], check=True, capture_output=True)
         assert len(read_float(output)) == 1031
+        # Protect is opt-in and defaults to exact OFF. Decode F1 contraction and partition
+        # invariance; F2/F3 may change cancellation and intentionally have no such assertion.
+        for mode in ("abd", "c"):
+            baseline_path = root / f"protect-original-{mode}.wav"
+            subprocess.run([str(renderer), str(source), str(baseline_path), mode+"-residual",
+                            "128", "42"], check=True, capture_output=True)
+            original = read_float(baseline_path)
+            for topology in (1, 2, 3):
+                if mode == "c" and topology != 1:
+                    continue
+                for depth in (0.0, .5, 1.0):
+                    reference = None
+                    for block in (7, 128):
+                        config = root / "protect.json"
+                        config.write_text(json.dumps({"protect": {"depth":depth, "topology":topology}}))
+                        output = root / f"protect-{mode}-{topology}-{depth}-{block}.wav"
+                        trace = output.with_suffix(".csv")
+                        subprocess.run([str(renderer), str(source), str(output), mode+"-residual",
+                                        str(block), "42", str(config), "0", str(trace)],
+                                       check=True, capture_output=True)
+                        actual = read_float(output)
+                        assert len(actual) == len(original)
+                        assert all(math.isfinite(x) for x in actual)
+                        if depth == 0:
+                            assert actual == original
+                        elif topology == 1:
+                            assert all(abs(y) <= abs(x) for x,y in zip(original,actual))
+                            assert actual != original
+                        if reference is not None:
+                            assert actual == reference
+                        reference = actual
+                        with trace.open() as stream:
+                            rows = list(csv.DictReader(stream))
+                        assert len(rows) == len(actual)
+                        assert [int(row["frame"]) for row in rows] == list(range(len(actual)))
+                        assert all(0 <= float(row["gr_db"]) <= 9 for row in rows)
+                        if depth == 0:
+                            assert all(float(row["gr_db"]) == 0 for row in rows)
+        for index, bad in enumerate(({"depth":-1}, {"depth":2}, {"detector":.5},
+                {"topology":4}, {"capDb":13}, {"epsilon":0}, {"offSeconds":0},
+                {"thresholdLow":10}, {"attackSeconds":0}, {"unknown":0},
+                {"depth":True}, {"depth":"0"})):
+            config = root / "protect-invalid.json"
+            config.write_text(json.dumps({"protect":bad}))
+            output = root / f"protect-invalid-{index}.wav"
+            result = subprocess.run([str(renderer), str(source), str(output), "baseline",
+                                     "128", "42", str(config)], capture_output=True)
+            assert result.returncode == 2 and not output.exists()
+        # Trace creation also refuses collisions and preserves the source payload.
+        output = root / "trace-collision.wav"
+        result = subprocess.run([str(renderer), str(source), str(output), "abd", "128",
+                                 "42", "-", "0", str(source)], capture_output=True)
+        assert result.returncode == 2 and not output.exists()
         # Representation is globally strict; type-valid unused DSP ranges are independent.
         invalid_modules = {
             "bubble": {"voices": 0}, "droplet": {"voices": 17},
@@ -186,4 +308,11 @@ def check_frames(path, expected_frames):
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except subprocess.CalledProcessError as error:
+        # Preserve sanitizer/native diagnostics that capture_output otherwise hides on failure.
+        for stream in (error.stdout, error.stderr):
+            if stream:
+                print(stream.decode("utf-8", errors="replace") if isinstance(stream, bytes) else stream)
+        raise

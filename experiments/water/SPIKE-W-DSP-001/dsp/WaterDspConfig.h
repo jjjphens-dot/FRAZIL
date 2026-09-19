@@ -4,7 +4,13 @@
 
 namespace frazil::water::research {
 // Experiment identifiers are stable seed domains, not Host parameters or persisted state.
-enum class RandomDomain : std::uint64_t { bubble = 1, droplet = 2, flow = 3 };
+enum class RandomDomain : std::uint64_t {
+    bubble = 1,
+    droplet = 2,
+    flow = 3,
+    modalMotion = 4,
+    dropletActivity = 5
+};
 
 struct ResearchConfig final {
     double sampleRateHz{48000.0};

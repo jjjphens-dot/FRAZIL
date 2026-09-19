@@ -47,12 +47,14 @@ class BubbleEnsemble final {
     }
 
     void reset() noexcept {
+        driver_ = {};
         features_.reset();
         pool_.reset();
         random_.reseed(seed_);
     }
 
     StereoFrame process(const StereoFrame& input) noexcept {
+        driver_ = {};
         if (!ready_)
             return {};
         const auto feature = features_.process(input);
@@ -62,8 +64,12 @@ class BubbleEnsemble final {
         // schedule new events from the detector's release state; existing voices may decay.
         if (magnitude > config_.excitationThreshold &&
             random_.nextUnipolar() < probability_ * feature.slow)
-            pool_.trigger(input, random_.nextUInt() % detail::EventVoicePool::kFamilies);
+            driver_ = pool_.trigger(input, random_.nextUInt() % detail::EventVoicePool::kFamilies);
         return pool_.process(config_.residualGain);
+    }
+
+    const StereoFrame& excitationFrame() const noexcept {
+        return driver_;
     }
 
     std::uint64_t events() const noexcept {
@@ -79,6 +85,7 @@ class BubbleEnsemble final {
   private:
     BubbleConfig config_{};
     WaterExcitationFeatures features_;
+    StereoFrame driver_{};
     detail::EventVoicePool pool_;
     RandomSource random_;
     RandomSource::Seed seed_{RandomSource::kDefaultSeed};

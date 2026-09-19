@@ -28,6 +28,55 @@ ProcessSpec 当前实际位于 `src/app/ProcessSpec.h`，由 M1 AudioEngine 消�
 | Developer diagnostics presentation | `src/ui/DeveloperDiagnosticsView.*`, `src/ui/DeveloperLevelMeter.*` | compact runtime/finite text and aggregate INPUT/OUTPUT dBFS meters; no measurement or state ownership | `update(snapshot, routing)`; `setLevels(peak, rms)` | JUCE; existing diagnostics value type only in the view; no Processor/APVTS/engine access | message only, editor-owned | Debug/Release/ASAN isolation, CTest, pluginval and local size/signal observations; see Project Status 2.9 | 0003 (unchanged) | `DEV-UI-001` | Implementation candidate; human usability acceptance pending; not Production UI |
 | Production UI components | planned `src/ui/` | 产品参数表达、attachment、gesture 和 UI transaction | narrow plugin parameter interface、narrow app edit/history command interface | plugin parameter interface、app edit/history command interface | message only | interaction/resize/automation | 0002 | `UI-001..008`, `HIST-002..004` | Planned M5 |
 
+The standalone Water engineering preview lives in
+`experiments/water/SPIKE-W-DSP-001/preview/`: `PreviewSettings` owns application values/export,
+`PreviewEngine` owns existing research DSP selection/lifecycle, `PreviewController` owns source/device
+and audio callback state. `ResearchSessionModel` owns draft/applied experiment, engineering, provenance
+and A/B values; `PreviewPanel` coordinates commands and validation, `ResearchViews` renders two views,
+and `PreviewMain` owns application/window setup. It reuses the value-only diagnostic
+view/meter. Dependencies point from research application to existing DSP/UI primitives; FRAZIL targets
+do not depend on the preview. Tests and limitations: [validation](evidence/WATER_PREVIEW_VALIDATION.md).
+
+The control-bridge integration adds isolated `preview/TimeValue.h` UI/tooling helpers for adaptive
+ms/s display and strict exact entry. They own no session or DSP state, use only the C++ standard
+library, and are tested by `frazil_water_preview`; all research time widgets consume these helpers.
+See [staged execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
+`ControlDescriptor.h` supplies typed IDs, module groups, units/display policy, baseline provenance,
+range and lifecycle metadata for the 28 research controls (21 original, two Modal Motion fields, the Droplet scheduling gate and onset probability, and three explicit C comparison options). `PreviewSettings` consumes the descriptors
+to export module JSON; DSP consumes typed config structs rather than UI descriptors.
+`SessionCodec.h` owns the separate versioned research manifest including provisional Decay;
+`SessionJsonSyntax.h` bounds and validates its richer JSON syntax before schema decoding. Imports
+produce candidates and use the controller's existing DSP validation before restoring the model.
+`SessionMetadata.h` separates portable source/build context from audio bytes; generated
+`PreviewBuildInfo.h` records configure-time Git/build provenance for both preview and its tests.
+Module imports reuse renderer parsing/defaults and the existing prepare validators.
+`ProtectControls.h` adapts typed research config and separate calibration/enable memory;
+`ProtectView.h` owns its research presentation. `ExactValueControl.h` validates text before slider
+clamping and serves all engineering/Protect values, with fine gestures and baseline reset.
+`DraftSummary.h` formats applied-to-draft differences without owning parameter state.
+`PreviewEngine` reuses `ResidualProtect`/`applyFluidProtect`,
+while `PreviewController` transports only the live Depth target through a lock-free atomic value.
+`ProtectDiagnostics.h` provides a fixed 256-entry SPSC block-summary queue from callback to the
+message thread, with last-sample/peak values and explicit dropped-block accounting. It owns no
+algorithm state; UI formatting stays in `ProtectView` and no production target depends on it.
+
+`ResearchOperationHistory.h` owns a message-thread 50-entry runtime operation ring and a single
+pending transaction; `ResearchOperations` borrows the session and coordinates gesture/debounce
+boundaries through injected lifecycle callbacks. `ResearchSlider.h` exposes physical mouse
+boundaries independently of JUCE's wheel/key drag notifications. These are research diagnostics,
+not M5 undo/redo or Host history; neither is serialized or accessed by DSP.
+
+## Proposed Protect research
+
+[DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) records the theory. The user-authorized
+[PROTECT-EXP-001](planning/WATER_PROTECT_EXECUTION.md) adds `ProtectDetector`, `ResidualProtect` and pure
+`applyFluidProtect` in the existing opt-in research tree. They own linked detection/gain state and residual
+composition, with prepare/reset/sample processing and research unit/CLI tests; no production target depends
+on them. Offline listening preparation separates fixed-source primary and RMS-matched preference evidence,
+with explicit D0/D1 conditions and a real-renderer CTest regression. See the
+[research README](../experiments/water/SPIKE-W-DSP-001/README.md#protect-follow-up--protect-exp-001).
+Production Water-domain ownership/adoption gates remain; no fifth accepted macro or production module is created.
+
 ## Experiment support
 
 `experiments/water/reference_intake.py` is the bounded EXP-W-001 offline reference-intake CLI.
@@ -47,3 +96,50 @@ See [reference usage](../experiments/water/REFERENCE_INDEX.md) and
 ## Modification Policy
 
 本索引属于 LEVEL 3 MAINTAINED 文档，但其中的公共接口和依赖事实必须服从 Level 1/2 合同。修改需在相关代码/文档 PR 中同步，不能用索引文字掩盖未实现模块。
+
+`ResearchWaterMacroMapper.h` owns plain, allocation-free research curves;
+`ResearchMappingAdapter.h` owns the engineering destination table used by session commands.
+Neither is a production mapper; see [mapping v0.2](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md).
+
+Research `LiquidModalResonator` additionally owns six normalized excitation weights and an instance
+RNG in seed domain 4. Fixed coefficients remain prepare-only; preview/renderer share the optional
+Motion fields with zero-depth legacy behavior. No production DSP dependency is introduced.
+
+`ResearchListeningCalibration.h` owns four research-session starting gains independently of macro
+mapping and typed renderer defaults. Session commands/codec track MAPPED/CUSTOM status; no DSP path added.
+
+`AuditionMonitor.h` owns preview-only 10 ms carrier/E/output ramps after Protect. Controller
+transfers validated linear trim atomically; model/session own dB context, excluded from DSP JSON.
+
+`WaterDiagnostics.h` owns fixed numeric Water readouts/energy accumulation in the research preview.
+Existing Protect block transport carries both readouts with one bounded producer/consumer; the UI
+formats them in `WaterDiagnosticsText.h`. DSP only exposes scalar activity getters, with no UI dependency.
+
+ResearchAuditionWorkflow coordinates message-thread stop/prepare/start once per completed Sound Lead gesture. ResearchPresentation formats actual targets and bounded operation history; neither owns DSP. PreviewController exposes detached prepare/start with explicit source-rate and callback-state guards.
+
+Research config exporter `render/research_cases.cpp` reuses the UI mapper/adapter/calibration; `render/listening_handoff.py` orchestrates the existing renderer and decoded checks. Both are offline, opt-in research tools with no production dependency.
+
+`MonitorOverRange.h` latches actual output peaks above full scale across UI polling gaps;
+its atomic boolean is diagnostic only, outside session/history. `modal_normalization_study.py`
+is an offline C0/C1/C2 mathematical study, not a new DSP path or accepted normalization.
+
+`ModalExcitationConditioner.h` owns the opt-in EXP-W-RX-001 raw/bounded/feature carrier comparison;
+`LiquidModalResonator` consumes it with raw as the unchanged default. It is not a production DSP
+module. `PreviewEngine` exposes the actual common modal driver only to the audio owner;
+`AuditionMonitor` crossfades its temporary audition after processing. Offline comparison is in
+[EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md); no new Host or session target is registered.
+
+`detail/ModalNormalization.h` computes research C3 coefficients and a whole-bank induced-response
+bound during prepare. It requires the bounded excitation path; raw/C0 remains default. No new
+production dependency, callback allocation or module/session target is added by this experiment.
+See [C3 proof and evidence](../experiments/water/EXP-W-RN-001.md).
+
+The opt-in Water research Modal bank additionally offers typed/CLI R-M1 structured excitation
+redistribution. It has no preview/default/Host adoption; [experiment evidence](../experiments/water/EXP-W-RM-001.md)
+tracks its bounded weight proof, tests and pending independent listening.
+
+The research preview's `DiagnosticMonitor.h` holds a fixed diagnostic-frame array and selection
+availability metadata. `AuditionMonitor` owns separate 10 ms normal/component/driver weights;
+`PreviewController` transports the temporary selection atomically once per block. Actual accepted
+Bubble/Droplet trigger frames come from the voice pool, without additional RNG or synthesis.
+Engineering layout follows descriptor group membership, including append-only session fields.

@@ -14,6 +14,8 @@ struct DropletConfig final {
     double refractorySeconds{0.02};
     double residualGain{0.15};
     std::size_t voices{8};
+    double eventsEnabled{1}; // Exactly 0/1; omitted raw configs retain legacy scheduling.
+    double eventActivity{1}; // Probability per otherwise-valid onset, range [0,1].
 };
 
 // B: hysteretic transient threshold with refractory interval, not a free-running event clock.
@@ -24,6 +26,7 @@ class DropletImpactExciter final {
         ready_ = false;
         config_ = config;
         seed_ = research.seedFor(RandomDomain::droplet);
+        activitySeed_ = research.seedFor(RandomDomain::dropletActivity);
         reset();
         const double rate = research.sampleRateHz;
         if (!features_.prepare(rate) || !std::isfinite(config.minimumFrequencyHz) ||
@@ -36,7 +39,10 @@ class DropletImpactExciter final {
             config.refractorySeconds < .001 || config.refractorySeconds > 1.0 ||
             !std::isfinite(config.residualGain) || config.residualGain < 0.0 ||
             config.residualGain > .3 || config.voices < 1 ||
-            config.voices > detail::EventVoicePool::kCapacity)
+            config.voices > detail::EventVoicePool::kCapacity ||
+            (config.eventsEnabled != 0 && config.eventsEnabled != 1) ||
+            !std::isfinite(config.eventActivity) || config.eventActivity < 0 ||
+            config.eventActivity > 1)
             return false;
         refractorySamples_ = static_cast<std::uint32_t>(std::ceil(config.refractorySeconds * rate));
         if (!pool_.prepare(rate, config.minimumFrequencyHz, config.maximumFrequencyHz,
@@ -47,14 +53,17 @@ class DropletImpactExciter final {
     }
 
     void reset() noexcept {
+        driver_ = {};
         features_.reset();
         pool_.reset();
         random_.reseed(seed_);
+        activityRandom_.reseed(activitySeed_);
         remaining_ = 0;
         armed_ = true;
     }
 
     StereoFrame process(const StereoFrame& input) noexcept {
+        driver_ = {};
         if (!ready_)
             return {};
         const auto feature = features_.process(input);
@@ -64,13 +73,36 @@ class DropletImpactExciter final {
             armed_ = true;
         const double magnitude = std::max(std::abs(static_cast<double>(input[0])),
                                           std::abs(static_cast<double>(input[1])));
-        if (armed_ && remaining_ == 0 && feature.transient > config_.transientThreshold &&
-            magnitude > 0.0) {
-            pool_.trigger(input, random_.nextUInt() % detail::EventVoicePool::kFamilies);
+        if (config_.eventsEnabled != 0 && armed_ && remaining_ == 0 &&
+            feature.transient > config_.transientThreshold && magnitude > 0.0) {
+            // Consume the family on each eligible onset, even if activity rejects the event.
+            // Thus changing probability neither shifts family choices at shared onsets nor
+            // retries the same transient each sample. Activity=1 preserves legacy output exactly.
+            const auto family = random_.nextUInt() % detail::EventVoicePool::kFamilies;
+            if (config_.eventActivity >= 1 ||
+                activityRandom_.nextUnipolar() < config_.eventActivity)
+                driver_ = pool_.trigger(input, family);
             remaining_ = refractorySamples_;
             armed_ = false;
         }
         return pool_.process(config_.residualGain);
+    }
+
+    // Audio-owner-only scheduling gate. Existing voices and detector state are preserved.
+    void setEventsEnabled(bool enabled) noexcept {
+        config_.eventsEnabled = enabled ? 1 : 0;
+    }
+
+    // Audio-owner gate; pending voices/detector/family state survive an activity change.
+    bool setEventActivity(double activity) noexcept {
+        if (!std::isfinite(activity) || activity < 0 || activity > 1)
+            return false;
+        config_.eventActivity = activity;
+        return true;
+    }
+
+    const StereoFrame& excitationFrame() const noexcept {
+        return driver_;
     }
 
     std::uint64_t events() const noexcept {
@@ -83,9 +115,11 @@ class DropletImpactExciter final {
   private:
     DropletConfig config_{};
     WaterExcitationFeatures features_;
+    StereoFrame driver_{};
     detail::EventVoicePool pool_;
-    RandomSource random_;
+    RandomSource random_, activityRandom_;
     RandomSource::Seed seed_{RandomSource::kDefaultSeed};
+    RandomSource::Seed activitySeed_{RandomSource::kDefaultSeed};
     std::uint32_t refractorySamples_{};
     std::uint32_t remaining_{}; // Samples until another onset can trigger, cleared by reset.
     bool armed_{true}; // Re-arm below half threshold, rather than retrigger on sustained activity.

@@ -69,8 +69,36 @@ jobs:
         shell: pwsh
         run: ./tools/bootstrap_dependencies.ps1
 
+      - name: Install DSP experiment analysis dependencies
+        shell: pwsh
+        run: |
+          $ciPython = python -c "import sys; print(sys.executable)"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $ciPython -c "import sys; print('Dependency interpreter:', sys.executable); print(sys.version)"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $ciPython -m pip install -r requirements-dsp.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "FRAZIL_CI_PYTHON=$ciPython" >> $env:GITHUB_ENV
+
       - name: Configure
-        run: cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON
+        shell: pwsh
+        run: |
+          # Bind CMake to the interpreter that owns the installed dependencies, not a second discovery.
+          cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=ON "-DPython3_EXECUTABLE:FILEPATH=$env:FRAZIL_CI_PYTHON"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $cacheEntry = Select-String -Path build/ci-windows-debug/CMakeCache.txt -Pattern '^Python3_EXECUTABLE:FILEPATH='
+          $cmakePython = ($cacheEntry.Line -split '=', 2)[1]
+          $testJson = ctest --preset ci-windows-debug -R '^frazil_water_protect_listening$' --show-only=json-v1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $listeningTests = @((($testJson -join "`n") | ConvertFrom-Json).tests)
+          if ($listeningTests.Count -ne 1) { throw 'Protect listening test must remain registered' }
+          $ctestPython = $listeningTests[0].command[0]
+          foreach ($actual in @($cmakePython, $ctestPython)) {
+            if (!$actual -or [IO.Path]::GetFullPath($actual) -ine [IO.Path]::GetFullPath($env:FRAZIL_CI_PYTHON)) {
+              throw "Python interpreter mismatch: expected $env:FRAZIL_CI_PYTHON, got $actual"
+            }
+          }
+          Write-Host "Python identity PASS: pip=$env:FRAZIL_CI_PYTHON; CMake=$cmakePython; CTest=$ctestPython"
 
       - name: Build
         run: python tools/build_safe.py --preset ci-windows-debug

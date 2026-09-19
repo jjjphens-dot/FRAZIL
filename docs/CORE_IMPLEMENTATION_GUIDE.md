@@ -733,6 +733,152 @@ Official product documentation：
    <https://www.image-line.com/fl-studio-learning/fl-studio-online-manual/html/playlist_automationclip.htm>,
    <https://www.reaper.fm/userguide.php>.
 
+### 5.10 Water Protect theory (candidate)
+
+Status: **PROPOSED**, `DOC-W-PROTECT-001` / [#36](https://github.com/jjjphens-dot/FRAZIL/issues/36).
+This is a research hypothesis, not a fifth accepted Water macro or production algorithm. The
+[audit, perceptual draft and seven-wave plan](planning/WATER_PROTECT_CANDIDATE_REVISION.md) retain v1.4.
+The user subsequently authorized sequential objective research with per-wave self-review and one final
+upload; implementation/evidence is tracked in [PROTECT-EXP-001](planning/WATER_PROTECT_EXECUTION.md).
+Formal EXP-W-001/Decay Revision B acceptance, human listening and product adoption are not inferred from it.
+Tests are specified in [Testing](TESTING.md#water-protect-proposed-validation).
+
+#### Physical and perceptual rationale
+
+Linear acoustics superposes pressure, rather than adding positive scalar energies. UNSW's university tutorial
+[P1] explains coherent versus incoherent addition. For the digital Water-stage source `x` and residual `E`,
+with identical averaging windows:
+
+$$
+\langle (x+E)^2\rangle=\langle x^2\rangle+\langle E^2\rangle+2\langle xE\rangle.
+$$
+
+Do not silently drop the correlation term. Samples are not calibrated acoustic pressure; this identity is
+signal algebra, not a physical energy-conservation law for the effect. A fixed residual RMS/dB ceiling alone
+cannot establish attack clarity, masking or loudness.
+
+Gordon [P2] distinguishes perceptual attack time from physical onset and relates it to rise characteristics
+and listening level. Iverson/Krumhansl [P3] find dynamic timbre information in both onsets and remaining tone
+segments; onset does not uniquely determine identity. Elliott [P4] discusses threshold changes for signals
+before and after a masker (backward/forward masking), with stimulus-dependent timing. Elliott [P6] reports
+instrument-identification differences after removing attacks and releases together; that manipulation does
+not isolate attack alone. These motivate testing overlap near attacks, but establish neither Water efficacy
+nor universal attack/release constants. Auditory masking and a software sidechain are different mechanisms.
+
+#### Source-preserving feedforward placement
+
+Let `x[n]` be the **current Water-stage input**, including upstream processing, and `E[n]` the existing Water
+residual. Source detection and gain application are feedforward:
+
+```text
+x -> existing Water generator/state -> E -> residual gain -> + x -> Wp
+ \-> independent linked source detector -> gain computer -> gain envelope
+```
+
+$$ W_p[n]=x[n]+g_p[n]E[n],\qquad 0<g_p[n]\leq1. $$
+
+Protect temporarily attenuates material; it does not directly compress, limit or enhance `x`, replace Amount,
+or read final mixed/protected output as its key. Zero Protect must preserve the unprotected arithmetic path.
+Dynamic-range architecture terminology follows [P5]; the equations and candidate choices below are this
+proposal's engineering design, not a paper's validated Protect algorithm.
+
+For a **single common gain on the whole residual**, keeping the same generator state and seed:
+
+$$ |g_pE|^2\leq |E|^2,\qquad \sum_{n,c}|g_p[n]E_c[n]|^2\leq\sum_{n,c}|E_c[n]|^2. $$
+
+This proves contraction of residual sample/window energy only. It does not prove lower total-output peak,
+energy, loudness or masking: reducing a residual that cancelled `x` can increase output. Time-varying gain
+can also create modulation sidebands; no per-frequency contraction follows.
+
+Fluid comparisons (A=Bubble, B=Droplet, D=Flow) must distinguish:
+
+| Case | Protected residual | Purpose |
+|---|---|---|
+| F0 | `A+B+D` | Unprotected baseline |
+| F1 | `gp*(A+B+D)` | Whole-residual contraction reference |
+| F2 | `gp*(A+D)+B` | Preserve transient-triggered Droplet fully |
+| F3 | `gp*(A+D)+gB*B`, `gB=1-0.5*(1-gp)` | Half-weight Droplet attenuation |
+
+F2/F3 only bound each component individually. Counterexample: A=1, B=-1, D=0, gp=0.5 gives baseline 0,
+F2=-0.5 and F3=-0.25. Their **summed** residual energy can rise as cancellation changes. No whole-residual
+inequality or monotonic-output acceptance criterion may be copied to those topologies. Droplet is excited by
+source transients, so excessive Protect may remove a desired cue at precisely its activation time.
+
+Resonant C is attenuated **after** generation/resonator processing, not at excitation. Its damping, memory
+and tail continue. All models run generation and RNG scheduling once per sample irrespective of gain; no
+reseed, reset, skipped voice, frozen tail or double engine call is allowed. Output masking can still alter
+perceived persistence even when Decay targets and internal state remain unchanged.
+
+#### Detector candidates and scale limits
+
+Use a separate experiment-only detector; leave `WaterExcitationFeatures` and its A/B/D consumers unchanged.
+Begin comparisons with its inspected linked input `u=min(1,max(abs(L),abs(R)))`, fast envelope F (attack 1 ms,
+release 30 ms) and slow envelope S (attack 30 ms, release 200 ms). These are baseline configuration values,
+not perceptually optimized Protect constants. Both D0/D1 must use identical envelope/preprocessing settings.
+
+$$ D_0[n]=\max(0,F[n]-S[n]),\qquad
+D_1[n]=20\log_{10}\frac{F[n]+\epsilon}{S[n]+\epsilon}. $$
+
+For D1, set the activity score to zero when S is below an explicitly configured amplitude floor `Lmin`;
+nonpositive log ratios do not demand attenuation. Epsilon and Lmin use normalized linear amplitude units.
+D0 scales with level below the input cap. D1 is approximately scale-invariant only away from epsilon, the
+floor and saturation; it is not level-independent in silence, near threshold or above the capped range.
+The slow-envelope floor can delay/reject a genuine onset after silence. Test one-sample impulses and weak
+attacks explicitly. Periodic bass ripple, sustained noise, overlapping notes and stereo one-sided hits can
+produce false positives/negatives. A detector score is not human transient importance.
+
+#### Bounded gain and separate smoothing
+
+For either score d, choose documented thresholds `T1>T0` in that score's units. Candidate mapping:
+
+$$ z=\operatorname{clamp}\left(\frac{d-T_0}{T_1-T_0},0,1\right),\quad
+q=z^2(3-2z),\quad A_{max}(P)=A_{cap}P^\gamma,\quad
+G_t=-A_{max}(P)q^\beta,\quad g_t=10^{G_t/20}. $$
+
+`P in [0,1]`, `Acap` is positive dB attenuation, and gamma/beta are positive finite exponents. Thresholds,
+floor, epsilon and exponents remain experimental configuration, not proposed user controls. Validate them
+and calculate time constants during prepare; keep coefficients/state instance-owned. Reject invalid config.
+
+A separate dB gain envelope is one candidate (linear-gain smoothing is a distinct comparison):
+
+$$ G[n]=\alpha G[n-1]+(1-\alpha)G_t[n],\quad
+\alpha=\exp(-1/(f_s\tau)),\quad g_p[n]=10^{G[n]/20}. $$
+
+Use attack tau when the target is more negative than current G; otherwise release tau. Initialize G=0 dB.
+With valid positive tau and bounded target, the convex update keeps `G in [-Acap,0]` and
+`gp in [10^(-Acap/20),1]`. A zero-time option, if offered, needs explicit immediate-update semantics rather
+than division by zero. Detector smoothing and gain smoothing are independent; their delays accumulate.
+
+Static/reset `P=0` can be exactly baseline. After active ducking, an exponential release approaches unity
+asymptotically: it cannot also promise immediate exact identity. Dynamic OFF needs a reviewed bounded,
+smooth transition followed by explicit unity snap, preserving
+generator state. Test exact continuation after completion separately from transition continuity. Do not
+claim bit-exact identity merely because a floating-point value is close to one. PROTECT-EXP-001 implements
+a finite linear ramp in dB (10 ms experimental default, validated 1–100 ms config); tests bound the step and
+prove completion, not perceptual click-inaudibility or an adopted automation contract.
+
+Zero lookahead means causal source -> detector -> gain -> residual order without future samples. It does not
+mean instantaneous response, protection of the first impulse sample, or undoing preceding masking. Preserve
+ADR-0005's zero Host processing latency; if efficacy requires lookahead, stop and return to scope review.
+
+Search bounded subsets of caps 3/6/9/12 dB, gain attacks 0.25/0.5/1/2 ms and releases 40/80/120/200 ms.
+These are hypotheses from the requested experiment plan, not literature-derived optima. Record eliminated
+configurations before expanding. Do not equate a larger depth with a better result.
+
+#### References and access limits (checked 2026-09-17)
+
+| Ref | Primary source | Supported use / access boundary |
+|---|---|---|
+| P1 | Joe Wolfe, UNSW [Acoustics FAQ](https://phys.unsw.edu.au/jw/musFAQ.html) and [Decibels](https://www.animations.physics.unsw.edu.au/jw/dB.htm) | University tutorial text reviewed; coherent pressure and intensity/dB distinctions, not a psychoacoustic efficacy study. |
+| P2 | J. W. Gordon (1987), *The perceptual attack time of musical tones*, JASA 82(1), 88–105, [DOI 10.1121/1.395441](https://pubmed.ncbi.nlm.nih.gov/3624645/) | Indexed primary abstract reviewed; no full-method replication or numeric Protect thresholds inferred. |
+| P3 | P. Iverson and C. L. Krumhansl (1993), *Isolating the dynamic attributes of musical timbre*, JASA 94(5), 2595–2603, [DOI 10.1121/1.407371](https://pubmed.ncbi.nlm.nih.gov/8270737/) | Primary abstract reviewed; supports onset and remainder contributions, not onset-only identity. |
+| P4 | L. L. Elliott (1971), *Backward and Forward Masking*, Audiology 10(2), 65–76, [DOI 10.3109/00206097109072544](https://www.tandfonline.com/doi/abs/10.3109/00206097109072544) | Indexed publisher abstract; direct page access denied. No full-text check or universal masking window claimed. |
+| P5 | D. Giannoulis, M. Massberg and J. D. Reiss (2012), *Digital Dynamic Range Compressor Design—A Tutorial and Analysis*, JAES 60(6), 399–408, [AES publisher record](https://secure.aes.org/forum/pubs/journal/?ID=174), [author institutional manuscript](https://www.eecs.qmul.ac.uk/~josh/documents/2012/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf) | Publisher metadata/summary and indexed institutional text reviewed; direct full PDF retrieval unavailable. Architecture background only; proposed constants/formulas not attributed as validated settings. |
+| P6 | C. A. Elliott (1975), *Attacks and Releases as Factors in Instrument Identification*, JRME 23(1), 35–40, [DOI 10.2307/3345201](https://journals.sagepub.com/doi/10.2307/3345201) | Publisher abstract reviewed; joint attack/release removal limits causal inference about attack alone. |
+
+Literature motivates a falsifiable hypothesis. Only the gated experiment and independent human review can
+decide whether Protect improves this product, and whether it merits a control rather than a fixed safeguard.
+
 ## 6. Ice DSP 实验候选
 
 本节只保留长期 `experiments/ice/` candidate reference；当前不授权启动 Ice experiment。只有完成 M2 Exit

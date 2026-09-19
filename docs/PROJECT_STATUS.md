@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-> 快照日期：2026-09-16（仅追加 Decay baseline review/finalization 事实，其余 evidence 保留原适用范围）<br>
+> 快照日期：2026-09-18（仅追加 Protect review remediation；Decay baseline 与其余 evidence 保留原适用范围）<br>
 > 依据：最新 `origin/main` 的仓库文档/源码审计、TESTDATA-001 当前 revision 的本地 generator/build/CTest evidence，以及 GitHub PR/Issue live query；PR、CI 和合并状态以 GitHub live state 为准。<br>
 > 原则：这里只记录已验证事实；目标和待办分别由架构总纲与 Coding Plan 管理。
 
@@ -23,13 +23,31 @@ Water/Ice、Routing、完整 render regression matrix 和正式 UI 仍未实现�
 `CODING_PLAN.md` v1.4 的 candidate contract / engineering boundaries 已获
 [PR #35 proposal HEAD 765f42a 的独立 APPROVE](https://github.com/jjjphens-dot/FRAZIL/pull/35#pullrequestreview-5223609754)，
 该 HEAD 的 [Hosted Windows Debug / CMake / CTest](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35103827055) 已通过。
-本 finalization 定义 v1.4 为 Approved Development Baseline，随 PR #35 合入 main 生效；最终 HEAD 仍须满足
-review/check gates，不能复用 proposal approval/CI 作为最终提交证据。v1.3 / [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23)
-是 previous approved baseline；实际 merge 与 final-head review/check 以 GitHub evidence 为准。本段不宣称已合并。
+2026-09-17 live query 确认 [PR #35](https://github.com/jjjphens-dot/FRAZIL/pull/35) 已于
+2026-09-16 14:32:33 UTC 合入 `main@fc20370`，v1.4 Approved Development Baseline 已生效。
+上述 proposal HEAD 的历史 approval/CI 不冒充 merge commit 的新验证；v1.3 /
+[PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23) 是 previous approved baseline。
 这不代表 FRAZIL plugin v1.0 release，
 也不改变 M1、Water/Ice/Routing 的实际完成状态：Water production DSP、production candidate controls
 和 model transition 均未实现或注册；Debug/ASAN 开发面板中的 experiment-only controls 不属于该
 production scope。
+
+[DOC-W-PROTECT-001 / #36](planning/WATER_PROTECT_CANDIDATE_REVISION.md) 是历史 Wave 1 提案。用户后续授权
+逐波工程自审并最终统一上传；[PROTECT-EXP-001 execution](planning/WATER_PROTECT_EXECUTION.md) 记录现有
+独立 experiment 中的 detector、residual gain、Fluid placement、renderer 与数值验证，及每项实际结果。
+没有 production Water/Developer/Host Protect control 或第五个已接受 macro。Issue #17 的 owner brief/
+Decay Revision B、精确版本 re-review 和 whole-contract acceptance 仍待完成。该 objective follow-up 不等于
+formal EXP-W-002 或 product adoption；用户将后续提供音频/结论，人类听测尚未执行。PR #37 remediation
+将 fixed-source-gain 主听测与 RMS-matched preference evidence 分开，加入显式 D0/D1 盲测条件；
+detector selection 仍未完成，Wave 7 产品决定在 selection 和人类听测完成前保持 BLOCKED。
+
+PR #37 CI interpreter remediation：历史 head `90b7f2c` 的
+[run 35310887776](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35310887776) 为 FAIL（18/19；pip 使用
+Python 3.12.10，CMake/CTest 使用 3.14.7，听测测试缺 NumPy）。修复 head `82f6960` 的
+[run 35313675800](https://github.com/jjjphens-dot/FRAZIL/actions/runs/35313675800) 已 SUCCESS，19/19 PASS，
+`frazil_water_protect_listening` PASS；日志核实 pip/CMake/CTest 同为 Python 3.12.10 的同一个 executable。
+此结果只适用于该 implementation head，后续文档提交仍需自己的 exact-head CI 和最终独立 review。
+本次不诊断或宣称修复此前本地 `python312.dll` 崩溃，也不形成 Hosted Release/ASAN、听测或产品采纳证据。
 
 当前阻塞性差距：
 
@@ -372,3 +390,60 @@ feasibility before the accepted brief, not production Water DSP or perceptual ac
 It does not close EXP-W-002. Brief integration and human listening remain outstanding with
 Sound & Host Lead. Current validation and limitations are recorded in the
 [research checkpoint](../experiments/water/SPIKE-W-DSP-001/README.md).
+
+## Standalone Water preview implementation candidate
+
+An opt-in research executable connects WAV playback and explicit engineering controls to SPIKE-W-DSP-001
+A/B/D/C. It reuses the developer diagnostic view without changing the FRAZIL plugin, nine Host parameters,
+M1 wet path or plugin state. Draft/apply/restart preserves prepare-time DSP configuration; temporary A/B,
+monitor comparisons and renderer-compatible module export support Sound Lead engineering inspection.
+Production Water integration, accepted product macro mappings and final workflow/perceptual acceptance
+remain pending. Actual validation and limits are recorded in
+[WATER_PREVIEW_VALIDATION](evidence/WATER_PREVIEW_VALIDATION.md); usage in the
+[debugging guide](DEV_UI_WATER_DEBUG_GUIDE.md).
+
+The staged [Water UI control bridge](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md) has reconciled
+Preview and Protect on a separate integration branch and added isolated time-value tooling tests.
+Shared session state and Sound Lead/Engineering views are implemented with Model/composition sync,
+research Size/Fluid Motion/Decay mappings and Modal excitation-weight Motion (legacy imports stay unmapped), edit provenance, retained
+inactive controls and applied A/B state. The listening-ready follow-up is tracked in the
+[new execution record](evidence/WATER_LISTENING_UI_EXECUTION.md). Decay
+uses provisional `0.5` and participates in reset and separate session copy/export/import. Strict exact
+entry, adaptive time units, collapsible module cards and draft details are implemented. Session source/build
+provenance, module import and module-specific validation feedback are implemented and regression-tested.
+Protect is connected only in the research preview: Depth/Enable are live, configuration edits require
+Apply, D0/D1 retain separate calibration, and C permits only Whole. Existing Protect DSP is reused;
+no new production or human acceptance is claimed. Sound Lead Auto Audition and bounded operation history are implemented; supplied-input handoff and human mapping/audibility decisions are tracked separately in the listening UI execution record.
+
+The research listening follow-up completed phases A-I and generated the Phase J fixed-source pack: 72 cases across four supplied inputs pass finite/repeat/partition/isolation checks. [Handoff](evidence/WATER_LISTENING_HANDOFF.md) explicitly retains low-level Resonant Motion as a candidate risk; human ACCEPT/REVISE/REJECT, independent code review and production adoption are not complete.
+
+### PR #40 listening remediation in progress
+
+The [remediation record](evidence/WATER_LISTENING_REMEDIATION.md) tracks the no-op interaction fix,
+Motion v0.2 endpoint / legacy-session migration, monitor over-range warning and normalization
+study. C1/C2 are not adopted: the supplied Stop A requires numerical/design review. This work
+must not be read as completed Resonant audibility, accepted mapping or product DSP adoption.
+
+The next-stage [EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md) compares bounded modal
+excitation separately from the raw preview default and C0 normalization. An actual-driver
+Engineering audition is implemented; validation and candidate selection remain in the phase
+record. No human acceptance, C3 adoption or completed Water listening readiness is implied.
+
+
+### Next-stage candidate engineering handoff (PR #40 branch)
+
+The [phase ledger](evidence/WATER_DSP_LISTENING_EXECUTION.md) records bounded-carrier comparison,
+C3 induced-response-capped normalization, structured Modal Motion, Fluid balance comparison,
+separate continuous Droplet activity and monitor-only actual component/driver diagnostics.
+These are explicit research candidates; raw/C0/independent and the v0.2 macro defaults remain.
+Session v5 stores28 engineering targets with conservative v1-v4 import. Two90-case packs
+(Hard/C3 and Feature/C3) passed finite/repeat/partition/isolation, with separate RMS support and
+[blank independent review forms](evidence/WATER_CANDIDATE_LISTENING_REVIEW.md). The fifth input
+is a generated engineering pad; representative musical testing is deferred by the user.
+
+Latest local Debug/Release/ASAN each pass25/25; native GUI covers candidate Apply, diagnostics
+and descriptor-group visibility. Two earlier intermittent renderer failures remain unresolved
+observations, despite later passing suites; no root-cause fix is claimed. Human audibility,
+macro semantics, baseline acceptance/revision and subsequent Protect listening are NOT ASSESSED /
+NOT RUN. Conditional Flow D1/D2 and Droplet B2 were not triggered. This is unmerged PR-branch
+engineering evidence, not current-main adoption, formal Host validation or Water readiness.

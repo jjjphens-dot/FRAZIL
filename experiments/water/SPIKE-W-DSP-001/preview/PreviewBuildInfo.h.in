@@ -1,0 +1,9 @@
+#pragma once
+
+namespace frazil::water::preview {
+// Configure-time Git identity, not a content hash. Reconfigure after committing to refresh it.
+inline constexpr const char* kPreviewGitCommit = "@FRAZIL_GIT_COMMIT@";
+inline constexpr const char* kPreviewGitState = "@FRAZIL_GIT_STATE@";
+inline constexpr const char* kPreviewBuildVariant = "@FRAZIL_PREVIEW_VARIANT@";
+inline constexpr const char* kPreviewCompiler = "@CMAKE_CXX_COMPILER_ID@ @CMAKE_CXX_COMPILER_VERSION@";
+} // namespace frazil::water::preview

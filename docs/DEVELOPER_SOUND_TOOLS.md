@@ -60,7 +60,7 @@ input.gain         global.mix           output.gain
 ```
 
 During Water experiments the candidate vocabulary is Water Model, Water Size, Water Motion and Water Decay.
-The existing implementation exposes the first three; Decay is a PLANNED extension under
+The original plugin Developer surface exposes the first three; its Decay is a PLANNED extension under
 [DOC-W-DECAY-001](planning/WATER_DECAY_CANDIDATE_REVISION.md), not an implemented control.
 Before explicit parameter adoption, these controls are not Host parameters, do not enter
 `ParameterLayout`, do not change `schemaVersion`, and create no automation or compatibility promise. Their exact
@@ -115,6 +115,60 @@ realtime automation. No product ID enters the primitive, APVTS, ParameterLayout 
 Required follow-up evidence: default value, A/B retain Decay, experiment reset, explicit export contains Decay,
 consumer round-trip where a parser exists, unchanged nine Host parameters/plugin schema, Release Host enumeration
 and Developer-control exclusion. GUI/build/plugin validation follows `TESTING.md`; none is claimed by this revision.
+
+### Standalone Water engineering preview
+
+The opt-in `frazil_water_preview` application connects a WAV source and explicit engineering-unit
+controls to the existing SPIKE A/B/D/C DSP, with the same value-only diagnostic meters. This is a
+separate research target, not a modification of the FRAZIL plugin or its nine Host parameters.
+It may use the Release compiler configuration for research timing; that executable is not a
+FRAZIL release product/artifact. The plugin Developer/Release isolation invariant below is unchanged.
+The application supports applied/draft config, temporary A/B, Dry/Processed/Residual monitoring,
+fixed-seed restart and renderer-compatible module JSON export. Source loading/config preparation
+runs with the callback detached; algorithm values are prepare-time only. Monitoring gain and
+source/residual crossfade use 10 ms smoothing; no production automation/model transition is claimed.
+
+Sound Lead and Engineering views now share a message-thread `ResearchSessionModel`; Model maps only
+Fluid/ABD and Resonant/C. The listening-ready follow-up adds research-only Size/Fluid Motion/Decay
+curves with per-macro ownership; legacy sessions retain CUSTOM/unmapped values until adoption. Engineering
+edits retain inactive values, record origin/revision and require Apply. A/B captures complete applied
+experiment/engineering/monitor values. No reverse mapping is inferred from manual engineering edits.
+The [control-bridge record](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md) identifies staged validation;
+the standalone preview carries provisional Decay `0.5` in both views, A/B/reset and separate
+`frazil.water-research-session` v5 exports with conservative v1/v2/v3/v4 import; v4 added the
+independent Droplet event probability while preserving legacy probability 1 on import. See the
+[research mapping](../experiments/water/SPIKE-W-DSP-001/RESEARCH_MAPPING.md) for candidate formulas/limits. Copy/Export Session
+uses applied values; Import Session validates syntax/schema/config before replacing state. The
+original `DeveloperWaterExperimentSnapshot` and `frazil.dev-experiment` export are unchanged.
+Session source metadata is filename/rate/channels/frames only; configure-time Git/build information
+is retained on import alongside current build context. It is not a content-identity check. Module
+imports preserve macros/monitor/source and use renderer defaults for omitted configuration fields.
+Protect research controls now reuse the existing residual-only processor. Depth/Enable publish one
+lock-free target consumed at a callback boundary; detector/topology/timing changes require Apply.
+D0/D1 calibration memory and Fluid topology are retained separately, with C restricted to Whole.
+Protect time fields use strict ms/s exact entry. Fast/Slow/D0/D1/GR now show last-sample values and
+peaks over blocks consumed by each UI poll. A fixed SPSC queue drops/counts new summaries when full;
+peaks are not co-timed and GR does not imply output-level reduction. The original 21 controls also
+use exact entry, adaptive time display and fine gestures; engineering modules are collapsible and
+retain inactive values. Draft details and optional audio diagnostics share the scrollable layout.
+Actual Windows evidence and limits are recorded in the control-bridge record; no rolling trace is implemented.
+
+The original Debug UI still stores Water Model/Size/Motion locally without DSP mapping; its wet
+path remains M1 pass-through. The standalone preview uses engineering quantities, not inferred
+Size/Motion/Decay product mappings. Accepted EXP-W-001, subjective EXP-W-002 and production adoption
+gates are unchanged. See the [button and debugging guide](DEV_UI_WATER_DEBUG_GUIDE.md) and
+[validation record](evidence/WATER_PREVIEW_VALIDATION.md).
+
+### Proposed Protect research control
+
+[DOC-W-PROTECT-001](planning/WATER_PROTECT_CANDIDATE_REVISION.md) is the historical Wave 1 proposal. The
+user-authorized [PROTECT-EXP-001](planning/WATER_PROTECT_EXECUTION.md) established offline research. The
+separate Water control-bridge scope now connects it to the standalone research preview and its own
+session/module exports; the plugin Developer snapshot/editor is unchanged and DEV-UI-001 acceptance
+is not extended. Current Water
+plugin experiment controls remain Model/Size/Motion; the plugin Decay follow-up above remains planned. A future Protect
+experiment-control change needs its own accepted scope/readiness, bounded state handoff and config tests;
+it cannot register an APVTS/Host parameter or alter the production schema for convenience.
 
 ## 4. Realtime-to-offline handoff
 
@@ -230,3 +284,19 @@ internal implementation used to achieve them.
 
 `HOST-001` must still use DAW parameter enumeration, automation lanes, state restore and save/reopen. Developer UI
 success cannot be cited as Host evidence; interactive success cannot be cited as deterministic offline evidence.
+
+Sound Lead Auto Audition defaults ON: one completed macro gesture prepares/applies/restarts once. Engineering remains manual. Actual mapped targets and a bounded 50-operation history are visible. Monitor controls are above Protect; Reference/Focus and live Protect changes never restart DSP.
+
+A [current v0.2 supplied-input handoff](evidence/WATER_LISTENING_HANDOFF_V02.md) now provides reproducible fixed-source macro comparisons and a human review sheet. Numerically different low/high renders do not establish clear audibility; low-level Resonant Motion remains explicitly unresolved.
+
+PR #40 research-preview remediation defers Stop until an actual value mutation; untouched clicks
+do not prepare/restart or enter history. Its separate monitor-over-range latch retains short
+output peaks across UI polls and displays a 3 s warning without modifying samples. This does not
+change the plugin diagnostics behavior described above. See the
+[scoped remediation and normalization review](evidence/WATER_LISTENING_REMEDIATION.md).
+
+Engineering diagnostic monitoring exposes actual A/B/D/C pre-Protect residuals and accepted
+Bubble/Droplet trigger or common Modal driver. Solos use E Trim; drivers use Monitor Output only.
+All selections crossfade in 10 ms without configuration/history/lifecycle changes and are temporary.
+Explicit Raw/C0, Hard/C3 and Feature/C3 comparison paths are Apply-required research config fields,
+serialized in session v5; older imports retain Raw/C0/independent. Defaults remain unchanged; see [EXP-W-RX-001](../experiments/water/EXP-W-RX-001.md).

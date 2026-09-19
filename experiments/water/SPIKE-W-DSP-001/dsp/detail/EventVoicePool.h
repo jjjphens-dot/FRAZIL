@@ -44,9 +44,9 @@ class EventVoicePool final {
         steals_ = 0;
     }
 
-    void trigger(const StereoFrame& input, std::size_t family) noexcept {
+    StereoFrame trigger(const StereoFrame& input, std::size_t family) noexcept {
         if (capacity_ == 0)
-            return;
+            return {};
         std::size_t selected{};
         for (std::size_t i = 0; i < capacity_; ++i) {
             if (!voices_[i].active) {
@@ -61,10 +61,14 @@ class EventVoicePool final {
         voice = {};
         voice.active = true;
         voice.family = family % kFamilies;
-        for (std::size_t c = 0; c < 2; ++c)
-            (void)voice.state[c].process(std::clamp(static_cast<double>(input[c]), -1.0, 1.0),
+        StereoFrame driver{};
+        for (std::size_t c = 0; c < 2; ++c) {
+            driver[c] = std::clamp(input[c], -1.f, 1.f);
+            (void)voice.state[c].process(static_cast<double>(driver[c]),
                                          coefficients_[voice.family]);
+        }
         ++events_;
+        return driver; // Actual bounded impulse submitted to the resonators, for diagnostics only.
     }
 
     StereoFrame process(double residualGain) noexcept {

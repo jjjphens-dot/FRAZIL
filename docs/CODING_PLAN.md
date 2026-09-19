@@ -347,6 +347,11 @@ implementation responsibility 换人时才记录 Implementation DRI Transfer。
 |---|---:|---|---|
 | `SPIKE-W-DSP-001` | P1 (optional; not an M1/M2 exit gate) | Engineering Lead implements and validates; Sound & Host Lead independently reviews scope/evidence | [Issue #29](https://github.com/jjjphens-dot/FRAZIL/issues/29); standalone `experiments/water/SPIKE-W-DSP-001/`; numerical/realtime feasibility, determinism, residual/carrier, finite/reset/tail/state, RNG isolation, rate/block behavior, ablation, offline engineering renders and preliminary performance only. |
 
+A separately opt-in engineering preview may connect these same research mechanisms to a WAV
+transport and explicit-unit controls for inspection. Engineering configuration changes require stopped-callback
+prepare/restart; this does not authorize product macro mapping, subjective selection or production
+plugin integration. Implementation and Sound Lead usage: [debugging guide](DEV_UI_WATER_DEBUG_GUIDE.md).
+
 This spike may precede accepted EXP-W-001 and M1 Joint Exit. Acceptance requires bounded
 prepare/process contracts, enabled-component isolation, strict config representation, finite and
 repeatable property/render evidence, safe Debug/Release/ASAN validation, preliminary timing and
@@ -522,6 +527,30 @@ Bubble/Droplet/Modal 分别评估 normalized mapping curves，Flow 默认无直�
 判断另一个维度是否可稳定感知、四组合是否有音乐意义、跨模式 persistence 方向是否一致，以及 source
 recognizability 是否保留。检查 masking、runaway ringing、excessive steals/CPU/gain buildup；工程 proxy
 不替代 human decision。完整验证边界见 `TESTING.md`，后续采纳仍需 Joint Gate / ADR-W-001。
+
+### Protect objective research follow-up (no production adoption)
+
+`DOC-W-PROTECT-001` / [#36](https://github.com/jjjphens-dot/FRAZIL/issues/36) proposes source-keyed residual
+attenuation around attacks. Its [audit, perceptual draft and seven-wave plan](planning/WATER_PROTECT_CANDIDATE_REVISION.md)
+are **Wave 1 / PROPOSED / NOT ACCEPTED**. The subsequent user-authorized
+[PROTECT-EXP-001 execution](planning/WATER_PROTECT_EXECUTION.md) permits local objective research after each
+wave's self-review, followed by one overall review/upload. v1.4 remains the approved four-macro baseline; Protect is not an
+additional M2 Exit requirement or a fifth accepted product macro.
+
+Engineering owns theory and bounded implementation proposals; Sound & Host owns perceptual acceptance and
+the product-control decision. The task-specific user instruction supersedes the proposal's per-wave external
+review/merge wait for this objective follow-up, not the accepted-instance prerequisite for formal EXP-W-002
+or subjective tuning/selection. No EXP-W-001/Decay Revision B or Developer readiness acceptance is inferred.
+The closed SPIKE-W-DSP-001 scope is not retrospectively expanded. Human listening is deferred until the user
+supplies audio/conclusions; self-review is not formal independent GitHub approval or product acceptance.
+Protect's Wave 7 product decision remains BLOCKED until explicit detector selection and human listening
+evidence exist. Fixed-source attack/source-preservation judgments and RMS-matched preference judgments are
+independent evidence; the latter cannot substitute for the former. D1's renderer default is not a selection.
+
+Proposed sequence: detector comparison -> whole-residual gain -> Fluid topology comparison -> Motion/Decay
+interaction -> human listening -> Reject / Internal safeguard / User macro decision. Each is separately
+bounded; no production adoption, Host registration, state change or UI implementation follows from this table.
+Joint Gate, ADR-W-001 and compatibility review remain required at the existing adoption boundary.
 
 ### 生产实现
 
