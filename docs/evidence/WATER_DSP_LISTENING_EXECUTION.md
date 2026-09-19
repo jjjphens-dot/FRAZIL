@@ -115,8 +115,8 @@ branches remain evidence gates; numerical tests cannot supply those decisions.
 | 2 BIBO-capped C3 normalization | ENGINEERING COMPLETE; bounded proof, 54 renders and serial suites passed |
 | 3 Resonant Decay | ENGINEERING PREPARATION COMPLETE; listening unresolved, unexplained one-off Debug fault retained |
 | 4 Structured Resonant Motion | ENGINEERING COMPARISON PREPARED; human review pending; optional drift only after human evidence that R-M1 is insufficient |
-| 5 Fluid calibration | NEXT: compare LCF0/1/2; no default selection without listening |
-| 6 Droplet activity | Independent bounded scheduling refinement; zero events at zero |
+| 5 Fluid calibration | ENGINEERING PACK COMPLETE; 45 rows, no default selection without listening |
+| 6 Droplet activity | NEXT: independent bounded scheduling refinement; zero events at zero |
 | 7 Continuous Flow | D0 review first; D1/D2 conditional on chorus/flanging REVISE |
 | 8 Droplet B2 | Conditional on existing Droplet review showing insufficiency |
 | 9 Component diagnostics | Actual monitor-only signals or documented existing offline ablations |
@@ -266,3 +266,28 @@ normalization/default adoption. Continue to the independently testable R-M1 comp
 
 Phase 4 final Markdown/portability scans, scanner regression tests, VS Code task check,
 clang-format dry-run and staged whitespace check PASS. All heavy pipelines ran serially.
+
+### Phase 5 report
+
+1. Baseline `c96aa71`; same research branch.
+2. LC-F0/F1/F2 comparison only, keeping current Size mapping and LC0 default.
+3. Added balance render orchestrator and EXP-W-LCF-001 record; no DSP edits.
+4. User-specified bounded balance seeds, actual mapper and renderer reused.
+5. Changes only A/B/D gains in explicit offline configs; compares complete ABD and components.
+6. No Host/state/production, Size-to-Flow, mapping/default or realtime behavior change.
+7. Serial safe builds and CTest: Debug 24/24 (42.35 s), Release 24/24 (19.58 s), ASAN
+   24/24 (76.04 s), all PASS. No native renderer failure recurred in these runs.
+8. 45 rows finite, actual A+B+D agrees with ABD <1e-7; D remains numerically largest on several
+   center inputs even at LC-F2. This is not a human masking/identity judgment.
+9. Local `build/listening-ui/fluid-balance-v1`: four supplied inputs plus engineering pad;
+   fixed-source Full and separately RMS-matched ABD support, components and logs.
+10. Self-review checked gain-only changes, preserved source/seed, bounded batch, output refusal,
+    actual component comparison and matching applied only after DSP.
+11. Experiment record, operator handoff and ledger updated; no changes needed to Architecture,
+    Parameters, brief, ADR, TESTING or module API/index. Targeted consistency PASS.
+12. Two independent Full-ABD Fine/Deep and integration judgments NOT ASSESSED; no selected balance.
+13. No expansion of Size or adoption based on component level. Human reject gates remain open.
+14. Continue to continuous Droplet event-activity comparison with separate RNG domains.
+
+Phase 5 quality scans/regressions/task check/staged whitespace PASS; C++ formatting and new CPU
+measurement N/A because no C++/callback implementation changed. Prior crash observations retained.

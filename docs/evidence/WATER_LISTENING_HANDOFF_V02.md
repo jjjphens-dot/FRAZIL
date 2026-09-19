@@ -125,3 +125,13 @@ Both human reviews are NOT ASSESSED. The initial resource refusal was cleared. O
 Debug access violation was not reproduced in ten isolated runs or three full-suite repetitions;
 ASAN passed. This is an unresolved observation, not a claimed fix; see the execution ledger.
 The user authorized the current sample pack and deferred representative musical-input testing.
+
+Further engineering comparison packs (no adopted defaults):
+
+- [R-M1 Motion](../../experiments/water/EXP-W-RM-001.md): `build/listening-ui/motion-rm1-v1`,
+  60 hard/feature, legacy/structured, low/mid/high combinations with fixed and RMS support files.
+- [Fluid balance](../../experiments/water/EXP-W-LCF-001.md): `build/listening-ui/fluid-balance-v1`,
+  45 LC-F0/1/2 and Size combinations. Compare complete ABD before using component solos to diagnose.
+
+Neither pack supplies human approval. Quiet Resonant outputs, driven-source Decay level loss,
+possible Fluid masking and the unreproduced renderer failures remain review limitations.
