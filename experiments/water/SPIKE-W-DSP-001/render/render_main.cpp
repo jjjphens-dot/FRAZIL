@@ -1,4 +1,5 @@
 #include "ReadConfig.h"
+#include "dsp/BubbleA1.h"
 #include "dsp/ResearchBaseline.h"
 
 #include <charconv>
@@ -22,7 +23,7 @@ int render(int argc, char** argv) {
                      "[tail-seconds] [NEW-protect-trace.csv|-] [raw|hard|softsign|tanh|feature] "
                      "[NEW-excitation.wav|-] [c0|c3] [independent|structured]\n"
                      "Modes: baseline, residual (zero), a, b, d, ab, ad, bd, abd, c; append "
-                     "-residual for E only.\n";
+                     "-residual for E only. Offline A1 modes: a1, a1b, a1d, a1bd.\n";
         return 2;
     }
     std::string_view mode(argv[3]);
@@ -32,8 +33,9 @@ int render(int argc, char** argv) {
         mode.remove_suffix(9);
     }
     const bool baselineMode = mode == "baseline" || mode == "residual";
+    const bool a1Mode = mode == "a1" || mode == "a1b" || mode == "a1d" || mode == "a1bd";
     if (!baselineMode && mode != "a" && mode != "b" && mode != "d" && mode != "ab" &&
-        mode != "ad" && mode != "bd" && mode != "abd" && mode != "c")
+        mode != "ad" && mode != "bd" && mode != "abd" && mode != "c" && !a1Mode)
         return 2;
     ModalExcitation excitationMode{ModalExcitation::raw};
     if (argc >= 10 && (mode != "c" || !parseModalExcitation(argv[9], excitationMode)))
@@ -77,12 +79,16 @@ int render(int argc, char** argv) {
     FluidConfig fluidConfig;
     ModalConfig modalConfig;
     ProtectRenderConfig protectConfig;
+    BubbleA1RenderConfig a1Config;
     if (argc >= 7 && std::string_view(argv[6]) != "-" &&
-        !readConfig(cwd.getChildFile(argv[6]), fluidConfig, modalConfig, protectConfig)) {
+        !readConfig(cwd.getChildFile(argv[6]), fluidConfig, modalConfig, &protectConfig,
+                    &a1Config)) {
         std::cerr << "Invalid research config\n";
         return 2;
     }
-    fluidConfig.bubbleEnabled = mode.find('a') != std::string_view::npos;
+    if ((!a1Mode && a1Config.supplied) || (a1Mode && protectConfig.depth != 0))
+        return 2; // Explicit model selection, raw A1 sum only in this experiment.
+    fluidConfig.bubbleEnabled = !a1Mode && mode.find('a') != std::string_view::npos;
     fluidConfig.dropletEnabled = mode.find('b') != std::string_view::npos;
     fluidConfig.flowEnabled = mode.find('d') != std::string_view::npos;
     auto inputStream = input.createInputStream();
@@ -97,6 +103,8 @@ int render(int argc, char** argv) {
     config.sampleRateHz = reader->sampleRate;
     ResearchBaseline baseline;
     FluidCandidate fluid;
+    // Fixed DSP storage is allocated once here, outside the processing loop and Windows stack.
+    auto a1 = a1Mode ? std::make_unique<BubbleA1>() : nullptr;
     LiquidModalResonator modal;
     // Explicit CLI comparison options override module fields; omission preserves typed config.
     if (argc < 10)
@@ -112,7 +120,7 @@ int render(int argc, char** argv) {
                           : mode == "c" ? modal.prepare(config, modalConfig, excitationMode,
                                                         normalization, motionModel)
                                         : fluid.prepare(config, fluidConfig);
-    if (!prepared)
+    if (!prepared || (a1 && !a1->prepare(config, a1Config.bubble, a1Config.analysis)))
         return 2;
     // Optional diagnostic trace is offline-only, outside DSP and timing; refuse any overwrite.
     std::unique_ptr<juce::FileOutputStream> trace;
@@ -159,6 +167,8 @@ int render(int argc, char** argv) {
     double peak{}, squareSum{}, dcSum{}, residualSquareSum{};
     double flowMinimum{}, flowMaximum{}, flowTravel{}, previousFlowDelay{};
     bool observedFlow{};
+    double a1RateSum{}, a1ActivitySum{}, a1EnergySum{}, a1ActiveSum{}, a1Peak{}, a1SquareSum{};
+    std::size_t a1PeakActive{};
     // Offline observations only: never placed inside the DSP or timed callback harness.
     std::uint64_t bubbleSilentEvents{}, dropletSilentEvents{};
     juce::int64 bubbleFirstFrame{-1}, dropletFirstFrame{-1};
@@ -177,14 +187,26 @@ int render(int argc, char** argv) {
                     return 1;
             StereoFrame effect{};
             const double gain = protect.processSource(frame);
-            const auto beforeBubble = fluid.bubbleEvents();
+            const auto beforeBubble = a1 ? a1->pool().counters().started : fluid.bubbleEvents();
             const auto beforeDroplet = fluid.dropletEvents();
             if (mode == "c")
                 effect = ResidualProtect::apply(modal.process(frame), gain);
-            else if (!baselineMode)
-                effect =
-                    applyFluidProtect(fluid.processComponents(frame), gain, protectConfig.topology);
-            else if (!baseline.processResidual(frame, effect))
+            else if (!baselineMode) {
+                auto components = fluid.processComponents(frame);
+                if (a1) {
+                    components.bubble = a1->process(frame);
+                    a1RateSum += a1->requestedRate();
+                    a1ActivitySum += a1->excitation().activity;
+                    a1EnergySum += a1->excitation().fastPower;
+                    a1ActiveSum += a1->pool().active();
+                    a1PeakActive = std::max(a1PeakActive, a1->pool().active());
+                    for (float x : components.bubble) {
+                        a1Peak = std::max(a1Peak, std::abs(double(x)));
+                        a1SquareSum += double(x) * x;
+                    }
+                }
+                effect = applyFluidProtect(components, gain, protectConfig.topology);
+            } else if (!baseline.processResidual(frame, effect))
                 return 1;
             if (excitationWriter)
                 for (int channel = 0; channel < channels; ++channel)
@@ -213,7 +235,8 @@ int render(int argc, char** argv) {
                 if (!trace->writeText(line, false, false, "\n"))
                     return 1;
             }
-            const auto newBubble = fluid.bubbleEvents() - beforeBubble;
+            const auto newBubble =
+                (a1 ? a1->pool().counters().started : fluid.bubbleEvents()) - beforeBubble;
             const auto newDroplet = fluid.dropletEvents() - beforeDroplet;
             if (frame == StereoFrame{}) {
                 bubbleSilentEvents += newBubble;
@@ -258,7 +281,7 @@ int render(int argc, char** argv) {
               << " peak=" << peak << " rms=" << std::sqrt(squareSum / samples)
               << " dc=" << dcSum / samples
               << " residual_rms=" << std::sqrt(residualSquareSum / samples)
-              << " bubble_events=" << fluid.bubbleEvents()
+              << " bubble_events=" << (a1 ? a1->pool().counters().started : fluid.bubbleEvents())
               << " droplet_events=" << fluid.dropletEvents()
               << " flow_final_delay_samples=" << fluid.flowDelaySamples()
               << " flow_input_min_samples=" << flowMinimum
@@ -268,6 +291,30 @@ int render(int argc, char** argv) {
               << " droplet_silent_events=" << dropletSilentEvents
               << " bubble_first_frame=" << bubbleFirstFrame
               << " droplet_first_frame=" << dropletFirstFrame << '\n';
+    if (a1) {
+        const auto& p = a1->pool();
+        const auto& counters = p.counters();
+        std::cout << "bubble_model=A1 requested=" << a1->requested()
+                  << " accepted=" << counters.accepted << " started=" << counters.started
+                  << " capacity_drops=" << counters.capacityDrops << " steals=" << counters.steals
+                  << " requested_rate_mean=" << a1RateSum / totalFrames
+                  << " accepted_rate=" << counters.accepted * config.sampleRateHz / totalFrames
+                  << " active_mean=" << a1ActiveSum / totalFrames << " active_peak=" << a1PeakActive
+                  << " capacity=" << p.capacity()
+                  << " utilization=" << a1ActiveSum / totalFrames / p.capacity()
+                  << " activity_mean=" << a1ActivitySum / totalFrames
+                  << " source_energy_mean=" << a1EnergySum / totalFrames
+                  << " population_gamma=" << a1Config.bubble.populationGamma << " rising_fraction="
+                  << (counters.started ? double(counters.rising) / counters.started : 0)
+                  << " a1_peak=" << a1Peak
+                  << " a1_rms=" << std::sqrt(a1SquareSum / (2 * totalFrames)) << " radius_hist=";
+        for (std::size_t i = 0; i < 128; ++i)
+            std::cout << (i ? "," : "") << counters.radiusHistogram[i];
+        std::cout << " lifetime_hist=";
+        for (std::size_t i = 0; i < 128; ++i)
+            std::cout << (i ? "," : "") << counters.lifetimeHistogram[i];
+        std::cout << '\n';
+    }
     if (mode == "c") {
         const auto& readout = modal.normalizationReadout();
         std::cout << "modal_normalization="

@@ -1,8 +1,10 @@
 #pragma once
 
+#include "dsp/BubbleA1Model.h"
 #include "dsp/FluidCandidate.h"
 #include "dsp/FluidProtect.h"
 #include "dsp/LiquidModalResonator.h"
+#include "dsp/SharedExcitationAnalyzer.h"
 
 #include <charconv>
 #include <cmath>
@@ -20,6 +22,12 @@ struct ProtectRenderConfig final {
     ProtectConfig gain;
     double depth{};
     FluidProtectTopology topology{FluidProtectTopology::whole};
+};
+
+struct BubbleA1RenderConfig final {
+    BubbleA1Config bubble;
+    SharedExcitationConfig analysis;
+    bool supplied{};
 };
 
 // Offline-only strict configuration reader. Unknown fields and nonnumeric values are errors;
@@ -190,7 +198,8 @@ inline bool readNumbers(const juce::var& value,
 // Non-realtime entry point shared by the offline renderer and standalone research preview.
 // Callers without a Protect destination reject that module rather than silently discarding it.
 inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfig& modal,
-                           ProtectRenderConfig* protect = nullptr) {
+                           ProtectRenderConfig* protect = nullptr,
+                           BubbleA1RenderConfig* a1 = nullptr) {
     if (text.empty() || text.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()))
         return false;
     if (text.starts_with("\xef\xbb\xbf"))
@@ -218,7 +227,41 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
         return false;
     for (const auto& property : root.getDynamicObject()->getProperties()) {
         const auto name = property.name.toString();
-        if (name == "bubble") {
+        if (name == "bubbleA1") {
+            if (!a1)
+                return false; // Preview/session imports cannot silently adopt offline A1.
+            auto& c = a1->bubble;
+            auto& a = a1->analysis;
+            double capacity = static_cast<double>(c.voiceCapacity);
+            double energy = c.sourceEnergyAmplitude ? 1 : 0;
+            if (!readNumbers(property.value,
+                             {{"radiusMinMm", &c.radiusMinMm},
+                              {"radiusMaxMm", &c.radiusMaxMm},
+                              {"populationGamma", &c.populationGamma},
+                              {"amplitudeRadiusExponent", &c.amplitudeRadiusExponent},
+                              {"depthExponent", &c.depthExponent},
+                              {"persistenceScale", &c.persistenceScale},
+                              {"maxEventRateHz", &c.maxEventRateHz},
+                              {"motionFactor", &c.motionFactor},
+                              {"riseFactor", &c.riseFactor},
+                              {"riseCutoff", &c.riseCutoff},
+                              {"tailFloorDb", &c.tailFloorDb},
+                              {"stealReleaseMs", &c.stealReleaseMs},
+                              {"residualGain", &c.residualGain},
+                              {"voiceCapacity", &capacity},
+                              {"sourceEnergyAmplitude", &energy},
+                              {"fastAttackMs", &a.fastAttackMs},
+                              {"fastReleaseMs", &a.fastReleaseMs},
+                              {"slowAttackMs", &a.slowAttackMs},
+                              {"slowReleaseMs", &a.slowReleaseMs},
+                              {"activityFloorDbFS", &a.activityFloorDbFS},
+                              {"activityKneeDb", &a.activityKneeDb}}) ||
+                !validVoiceRepresentation(capacity) || (energy != 0 && energy != 1))
+                return false;
+            c.voiceCapacity = static_cast<std::size_t>(capacity);
+            c.sourceEnergyAmplitude = energy == 1;
+            a1->supplied = true;
+        } else if (name == "bubble") {
             auto& c = fluid.bubble;
             double voices = static_cast<double>(c.voices);
             if (!readNumbers(property.value, {{"minimumFrequencyHz", &c.minimumFrequencyHz},
@@ -308,12 +351,12 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
 }
 
 inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,
-                       ProtectRenderConfig* protect = nullptr) {
+                       ProtectRenderConfig* protect = nullptr, BubbleA1RenderConfig* a1 = nullptr) {
     juce::MemoryBlock bytes;
     if (!file.existsAsFile() || !file.loadFileAsData(bytes))
         return false;
     return readConfigText({static_cast<const char*>(bytes.getData()), bytes.getSize()}, fluid,
-                          modal, protect);
+                          modal, protect, a1);
 }
 
 inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,

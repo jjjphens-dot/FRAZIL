@@ -1,5 +1,9 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+The separate [Bubble A1 experiment](../EXP-W-BA-001.md) adds an explicit offline-only
+independent physical population and shared excitation candidate. Legacy A0/B/D/C and
+preview/session v5 remain unchanged. A1 is not connected to UI or accepted for production.
+
 Research-only A/B/D/C mechanisms; local Debug/Release/ASAN 16/16 each, 138 core + 4 supplemental smoke renders
 and 80 corpus renders PASS. Exact-head Hosted CI is separately recorded in PR #30.
 No production WaterProcessor or perceptual acceptance. Source and limitations: [REVALIDATION.md](REVALIDATION.md).

@@ -1,5 +1,12 @@
 # FRAZIL Module Index
 
+Research-only [Bubble A1](../experiments/water/EXP-W-BA-001.md):
+`SharedExcitationAnalyzer`, `BubbleA1Model`, `BubbleA1VoicePool`, `BubbleA1` under the
+existing spike `dsp/` own linked energy analysis, physical table, bounded voices and
+population scheduling respectively. JUCE-free prepare/reset/process; offline-only
+renderer/config/export/performance adapters. Tests: `frazil_water_bubble_a1` and
+`frazil_water_bubble_a1_cli`. No production, preview/session, A0/B/D/C responsibility change.
+
 本索引是模块边界、公共接口、依赖、线程和证据的快速入口。`Planned` 只表示计划合同，不表示当前源码已经存在；实现前必须先关联对应的 [Coding Plan](CODING_PLAN.md) work item。
 
 ProcessSpec 当前实际位于 `src/app/ProcessSpec.h`，由 M1 AudioEngine 消费。未来生产 Water/Ice/Routing 使用

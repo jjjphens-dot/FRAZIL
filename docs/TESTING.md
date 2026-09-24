@@ -1,5 +1,15 @@
 # FRAZIL 测试、听测与发布门槛
 
+Research [Bubble A1](../experiments/water/EXP-W-BA-001.md) adds
+`frazil_water_bubble_a1` (SI physics, analytic chirp, population, capacity, reset,
+stereo, finite/overload and occupancy tests) and `frazil_water_bubble_a1_cli`
+(actual renderer strict config, stereo, silence and block1/7/32/64/128/256/257/512/1024).
+The offline study compares decoded A0/B/D/BD/C/ABD against a preserved PR #40 baseline,
+and prepares separately labelled fixed-source/RMS support and two blank human forms.
+Standalone performance covers three rates and five capacities; it is not a formal
+budget or Host/device callback result. See the [execution record](evidence/WATER_BUBBLE_A1_EXECUTION.md)
+for actual results and the retained intermittent legacy renderer fault.
+
 > 目标：让“声音正确、实时安全、Host 可用、状态兼容”都由可重复证据支持，而不是只依赖编译成功或主观印象。
 
 ## Modification Policy

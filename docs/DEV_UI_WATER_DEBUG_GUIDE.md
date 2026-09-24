@@ -1,5 +1,8 @@
 # Debug UI 与 Water 研究预览联调指南
 
+当前 [Bubble A1](../experiments/water/EXP-W-BA-001.md) 仅提供显式离线 DSP/渲染路径，
+尚未接入本指南的 UI、session v5 或 mapping v0.2。旧 A0 控件不代表 A1 物理参数。
+
 ## 1. 两个入口及当前连接状态
 
 本指南面向 Sound & Host Lead。Water Research Preview 是用户授权的独立研究联调工具，
