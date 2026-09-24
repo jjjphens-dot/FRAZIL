@@ -1,5 +1,8 @@
 # Water Protect execution — PROTECT-EXP-001
 
+> Historical scope and source-specific evidence below are retained unchanged. Current Water
+> definition acceptance, A1 versus A0/Preview and deferred work are indexed in [Water research](../../experiments/water/README.md).
+
 Submission: [Issue #38](https://github.com/jjjphens-dot/FRAZIL/issues/38), combined
 [PR #37](https://github.com/jjjphens-dot/FRAZIL/pull/37); follows historical documentation issue #36.
 

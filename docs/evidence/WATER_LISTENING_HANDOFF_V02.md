@@ -106,7 +106,7 @@ Missing: a representative musical sustained pad (deferred by the user), bounded-
 adoption and human review, reliable Resonant macro audibility, Fluid balance review, two independent
 human decisions and subsequent Protect re-evaluation. None is implied by the 72-case regression.
 
-The [old handoff](WATER_LISTENING_HANDOFF.md) and
+The [v0.1 historical appendix](#historical-v01-handoff) and
 [old UI execution record](WATER_LISTENING_UI_EXECUTION.md) preserve v0.1/session-v2 history,
 including the former 30/s minimum and earlier measured levels; they are not current instructions.
 
@@ -236,3 +236,58 @@ No human audibility, musical usefulness, source preservation or Joint Gate readi
 
 The [independent review guide](WATER_CANDIDATE_LISTENING_REVIEW.md) explains the two blank CSV
 forms now generated per pack, rubric anchors, decision vocabulary and conditional Protect handoff.
+
+## Historical v0.1 handoff
+
+Merged from WATER_LISTENING_HANDOFF.md during A1 review remediation. Baseline4142db1,
+mappingv0.1/sessionv2; superseded instructions are not current defaults. The original
+command uses the same listening_handoff.py/four sources and three reference selections
+as the current guide, but must be run at that historical revision for v0.1 reproduction.
+Historical files: E; Full-Focus18-output-18 = x at-18dB +E;
+WaterOnly-Focus36-output-18 = E at+18dB; repeat/block257/left-only checks.
+Original review decisions remained PENDING; no new human result is recorded by this merge.
+References/selected ranges remain in WATER_PROTECT_EXECUTION; current reviewer workflow is above.
+
+## Objective results and candidate limitations
+
+All 72 cases: finite output, decoded-sample repeat identity, block 128 vs 257 exact equality,
+left-only input produces exactly zero right residual. All 24 low/high comparisons differ
+numerically. Identical center settings from three macro families produce identical decoded output.
+Source rates are retained (44.1/48 kHz); no original was trimmed or replaced for these checks.
+
+Partisan drum loop (48 kHz stereo, 5.647 s), endpoints 0 -> 1:
+
+| Model / macro | Observation | Interpretation limit |
+|---|---|---|
+| Fluid Size | Whole E spectral energy centroid 7193.1 -> 6939.7 Hz; isolated A 1332.7 -> 331.8 Hz, B 4161.4 -> 1034.1 Hz | Direction is measurable; D can mask the small combined change |
+| Resonant Size | E spectral energy centroid 1035.9 -> 346.3 Hz | Energy centroid is not perceived pitch |
+| Fluid Motion | A events 8 -> 148; B events 44 -> 50; Flow input delay travel 12.743 -> 237.225 samples | B is source-dependent; counts do not establish natural activity |
+| Fluid Decay | Tail energy time centroid .00266 -> .12162 s; A/B counts fixed 44/54 | No event rescheduling from Decay |
+| Resonant Decay | Tail energy time centroid .01523 -> .23932 s | Increased persistence also lowers output level under existing normalization |
+| Resonant Motion | Low/high difference RMS -102.9 dBFS before audition boost | Numerically different, potentially too subtle for reliable listening |
+
+Tail time centroid means energy-weighted time **after input end**, not an RT60 or accepted perceptual
+decay measure. Three-second silence is sufficient for these candidate bounds; no 30-second GUI-tail
+identity is claimed. The input-window Flow range/travel in `report.json` measures actual delay
+trajectory; its final value after silence returns to base and is not useful Motion evidence.
+
+| Original input | Source RMS dBFS | Fluid E/source range dB | Resonant E/source range dB |
+|---|---:|---:|---:|
+| Partisan loop | -29.20 | -21.76..-20.82 | -61.95..-50.13 |
+| Sub Bass | -21.68 | -19.28..-18.89 | -72.02..-43.12 |
+| Dunamis fill | -14.44 | -20.94..-20.40 | -59.04..-45.36 |
+| Axusr razor bass | -8.41 | -21.53..-21.00 | -66.41..-48.73 |
+
+Across the four inputs, E/source RMS ranges: Fluid -21.76..-18.89 dB; Resonant -72.02..-43.12 dB.
+Partisan Resonant Motion endpoints have E RMS about -84.9/-85.0 dBFS; with Focus +36 and output -18
+that is still about -66.9/-67.0 dBFS, and the low/high difference about -84.9 dBFS.
+**Candidate mechanism/audibility risk:** no claim of clearly audible Resonant Motion is made.
+Do not alter the requested mapping or disguise it with per-macro gain. If Sound Lead confirms
+A/B/C remain inaudible at Focus +36 with a suitable output level, stop mapping tuning and open a
+separate **Water Audibility DSP Remediation** task.
+
+The largest observed Fluid Focus +36 / output -18 peak is +0.76 dBFS. Keep the initial +18 Focus
+and lower monitor output before higher boosts; float offline files preserve over-range peaks.
+The preview has no hidden limiter. Flow remains delayed-minus-source and may sound like chorus or
+flanging; this is an unresolved candidate limitation, not accepted Water Motion. Minimum Fluid
+Motion still allows a 30/s maximum A rate; HI-08 final product-minimum compliance is not claimed.

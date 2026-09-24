@@ -1,5 +1,8 @@
 # EXP-W-RX-001 — bounded Resonant excitation comparison
 
+> Historical scope and source-specific evidence below are retained unchanged. Current Water
+> definition acceptance, A1 versus A0/Preview and deferred work are indexed in [Water research](README.md).
+
 Status: PHASE 1 ENGINEERING COMPARISON COMPLETE; no candidate selected, no production adoption. Implementation owner:
 Engineering. Perceptual acceptance remains with Sound Lead and independent collaborator.
 Phase baseline `a6828f1` (implementation inherited from `64f082c`). Scope is the research C

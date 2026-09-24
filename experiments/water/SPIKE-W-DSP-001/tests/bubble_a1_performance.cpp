@@ -49,9 +49,10 @@ int main() {
                 }
                 const double mean = std::accumulate(times.begin(), times.end(), 0.) / measured;
                 std::sort(times.begin(), times.end());
-                std::cout << rate << ',' << cap << ',' << (profile ? "dense" : "default") << ','
-                          << mean << ',' << times[2849] << ',' << times[2969] << ',' << times.back()
-                          << ',' << activeSum / measured << ',' << peak << ','
+                std::cout << rate << ',' << cap << ','
+                          << (profile ? "dense-stress" : "physical-reference") << ',' << mean << ','
+                          << times[2849] << ',' << times[2969] << ',' << times.back() << ','
+                          << activeSum / measured << ',' << peak << ','
                           << (a->requested() - eventStart) * rate / (measured * block) << ','
                           << a->pool().counters().steals - stealStart << ','
                           << a->pool().counters().capacityDrops - dropStart << ',' << sink << '\n';

@@ -1,5 +1,11 @@
 # FRAZIL Module Index
 
+Current authority: [Water research index](../experiments/water/README.md).
+SharedExcitationAnalyzer has no BubbleA1Model dependency; it owns linked power and
+one joint-peak stereo frame. A1 model/pool own P1/P0 event trajectories. A0 is the
+legacy Preview/control; B/D/C remain existing research candidates. Production Water
+remains NOT IMPLEMENTED; no A1 UI/session dependency is introduced.
+
 Research-only [Bubble A1](../experiments/water/EXP-W-BA-001.md):
 `SharedExcitationAnalyzer`, `BubbleA1Model`, `BubbleA1VoicePool`, `BubbleA1` under the
 existing spike `dsp/` own linked energy analysis, physical table, bounded voices and
@@ -91,7 +97,7 @@ It reads 1–6 explicit IDs from `REFERENCE_INDEX.csv`, resolves audio inside a 
 library, and reuses `tools/analyze_testdata.py` for development-only analysis/plots. JSON and plots stay
 under ignored `testdata/rendered/`; it does not copy audio, infer listening labels or enter production targets.
 See [reference usage](../experiments/water/REFERENCE_INDEX.md) and
-[acceptance/validation record](../experiments/water/task_plan.md). Its runtime is Python plus
+[acceptance/validation record](../experiments/water/REFERENCE_INDEX.md#historical-intake-and-closeout-validation). Its runtime is Python plus
 `requirements-dsp.txt`, on the offline caller thread; it has no plugin/app/DSP dependency.
 
 ## Registration and update rules

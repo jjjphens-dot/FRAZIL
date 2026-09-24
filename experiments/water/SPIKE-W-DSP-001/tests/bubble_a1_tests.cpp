@@ -75,14 +75,14 @@ int main() {
     BubbleA1Event event;
     event.physics = model.bins()[100];
     event.amplitude = {.3, -.3};
-    event.riseFactor = .1;
+    event.riseXi = .1;
     BubbleA1Voice voice;
     voice.start(event, 48000, -100);
     for (int n = 0; n < 300; ++n) {
         const auto y = voice.process();
         const double t = n / 48000.;
         const double phase = 2 * std::numbers::pi * event.physics.frequencyHz *
-                             (t + .5 * event.riseFactor * event.physics.dampingPerSecond * t * t);
+                             (t + .5 * event.riseXi * event.physics.dampingPerSecond * t * t);
         const double expected = .3 * std::exp(-t / event.physics.tauSeconds) * std::sin(phase);
         check(near(y[0], expected, 1e-11) && y[0] == -y[1], "analytic integrated chirp");
     }
@@ -90,6 +90,103 @@ int main() {
         (void)voice.process();
     check(voice.instantaneousFrequency() <= std::sqrt(2.) * event.physics.frequencyHz + 1e-8,
           "surface rise cap");
+    // Independent analytic P0/P1 check through and beyond the cap, at all persistence values.
+    for (double persistence : {.25, 1., 4.})
+        for (auto policy :
+             {BubbleA1RiseModel::physicalDampingP0, BubbleA1RiseModel::effectiveDampingP1}) {
+            auto e = event;
+            e.physics.tauSeconds = persistence / e.physics.dampingPerSecond;
+            e.physics.poleRadius = std::exp(-1 / (48000 * e.physics.tauSeconds));
+            e.riseModel = policy;
+            voice.start(e, 48000, -100);
+            const double sigma = e.riseXi * (policy == BubbleA1RiseModel::effectiveDampingP1
+                                                 ? 1 / e.physics.tauSeconds
+                                                 : e.physics.dampingPerSecond);
+            double phase = 0, previous = 0;
+            for (int n = 0; n < 12000; ++n) {
+                const auto y = voice.process();
+                const double expected =
+                    .3 * std::exp(-n / (48000 * e.physics.tauSeconds)) * std::sin(phase);
+                check(near(y[0], expected, 2e-10), "P0/P1 integrated rendered damping waveform");
+                const double f = std::min(e.physics.frequencyHz * (1 + sigma * (n + .5) / 48000),
+                                          std::sqrt(2.) * e.physics.frequencyHz);
+                phase += 2 * std::numbers::pi * f / 48000;
+                check(f >= previous, "monotone bounded rise");
+                previous = f;
+            }
+            const double risePerLifetime = sigma * e.physics.tauSeconds;
+            check(near(risePerLifetime,
+                       e.riseXi *
+                           (policy == BubbleA1RiseModel::effectiveDampingP1 ? 1 : persistence)),
+                  "P1 lifetime invariant; P0 explicit persistence dependent stylization");
+        }
+    // Shared-frame oracle: each carrier must be collinear with a REAL stereo frame from
+    // the window, including quadrature/decorrelated/unequal transient cases and swap ties.
+    for (double rate : {44100., 48000., 96000.})
+        for (int scenario = 0; scenario < 8; ++scenario) {
+            SharedExcitationAnalyzer analyzer, swappedAnalyzer;
+            check(analyzer.prepare(rate) && swappedAnalyzer.prepare(rate), "stereo oracle prepare");
+            std::vector<std::array<double, 2>> history(
+                static_cast<std::size_t>(std::ceil(.002 * rate)));
+            auto original = std::make_unique<BubbleA1>(), swapped = std::make_unique<BubbleA1>();
+            check(original->prepare({rate, 42}) && swapped->prepare({rate, 42}),
+                  "stereo event prepare");
+            RandomSource noise(719);
+            for (std::size_t n = 0; n < 8192; ++n) {
+                const float x = float(.7 * std::sin(n * .071));
+                StereoFrame input{x, x};
+                if (scenario == 1)
+                    input = {x, -x};
+                if (scenario == 2)
+                    input = {x, 0};
+                if (scenario == 3)
+                    input = {0, x};
+                if (scenario == 4)
+                    input = {x, .2f * x};
+                if (scenario == 5)
+                    input = {x, float(.7 * std::cos(n * .071))};
+                if (scenario == 6)
+                    input = {x, .5f * (2 * noise.nextUnipolar() - 1)};
+                if (scenario == 7)
+                    input = {n % 113 == 0 ? .9f : .1f * x, n % 127 == 0 ? -.6f : -.2f * x};
+                history[n % history.size()] = {input[0], input[1]};
+                (void)analyzer.process(input);
+                (void)swappedAnalyzer.process({input[1], input[0]});
+                std::array<double, 2> selected{};
+                double energy = 0;
+                for (const auto& frame : history) {
+                    const double value = frame[0] * frame[0] + frame[1] * frame[1];
+                    if (value > energy) {
+                        energy = value;
+                        selected = frame;
+                    }
+                }
+                const double norm = std::sqrt(energy / 2);
+                for (bool sourceEnergy : {false, true}) {
+                    const auto carrier = analyzer.eventCarrier(sourceEnergy);
+                    const auto reverse = swappedAnalyzer.eventCarrier(sourceEnergy);
+                    const double level = sourceEnergy ? std::sqrt(analyzer.state().fastPower) : .25;
+                    for (std::size_t ch = 0; ch < 2; ++ch) {
+                        check(near(carrier[ch], norm <= 1e-12 ? 0 : selected[ch] / norm * level),
+                              "one shared-frame direction and linked level");
+                        check(carrier[ch] == reverse[1 - ch], "carrier exact swap");
+                    }
+                }
+                const auto y = original->process(input), z = swapped->process({input[1], input[0]});
+                check(y[0] == z[1] && y[1] == z[0], "all stereo scenarios shared oscillator");
+                check(original->requested() == swapped->requested(),
+                      "shared request ID/timing/RNG");
+                const auto& a = original->lastRequestedEvent();
+                const auto& b = swapped->lastRequestedEvent();
+                check(a.bin == b.bin && a.physics.radiusMeters == b.physics.radiusMeters &&
+                          a.physics.frequencyHz == b.physics.frequencyHz &&
+                          a.physics.dampingPerSecond == b.physics.dampingPerSecond &&
+                          a.physics.tauSeconds == b.physics.tauSeconds && a.riseXi == b.riseXi &&
+                          a.depthExcitationProxy == b.depthExcitationProxy &&
+                          a.amplitude[0] == b.amplitude[1] && a.amplitude[1] == b.amplitude[0],
+                      "shared event physical state and excitation proxy");
+            }
+        }
     // Exact single-event waveform must not depend on capacity or memory slot ordering.
     std::vector<StereoFrame> single;
     for (std::size_t cap : {64u, 128u, 256u, 512u, 1024u}) {
@@ -220,7 +317,7 @@ int main() {
                     cfg.populationGamma = gamma;
                     cfg.amplitudeRadiusExponent = alpha;
                     cfg.persistenceScale = persistence;
-                    cfg.riseFactor = .2;
+                    cfg.riseXi = .2;
                     cfg.riseCutoff = .8;
                     cfg.maxEventRateHz = 10000;
                     cfg.depthExponent = 1;

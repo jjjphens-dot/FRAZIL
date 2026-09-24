@@ -1,5 +1,10 @@
 # FRAZIL 当前实现与差距
 
+Current Water distinction: EXP-W-001 Revision B is ACCEPTED for perceptual definition.
+A1 v2 is an engineering review candidate, HUMAN NOT ASSESSED, production NOT IMPLEMENTED.
+PHYS-REF and MACRO-NEUTRAL differ; Preview uses A0. B/D/C and Protect research behavior
+is unchanged. See [Water index](../experiments/water/README.md) for current versus historical evidence.
+
 2026-09-24 bounded research addition: [Bubble A1](../experiments/water/EXP-W-BA-001.md)
 implements an explicit offline independent-bubble candidate; validation state is in
 its [execution record](evidence/WATER_BUBBLE_A1_EXECUTION.md). UI integration, human
@@ -421,7 +426,7 @@ Protect is connected only in the research preview: Depth/Enable are live, config
 Apply, D0/D1 retain separate calibration, and C permits only Whole. Existing Protect DSP is reused;
 no new production or human acceptance is claimed. Sound Lead Auto Audition and bounded operation history are implemented; supplied-input handoff and human mapping/audibility decisions are tracked separately in the listening UI execution record.
 
-The research listening follow-up completed phases A-I and generated the Phase J fixed-source pack: 72 cases across four supplied inputs pass finite/repeat/partition/isolation checks. [Handoff](evidence/WATER_LISTENING_HANDOFF.md) explicitly retains low-level Resonant Motion as a candidate risk; human ACCEPT/REVISE/REJECT, independent code review and production adoption are not complete.
+The research listening follow-up completed phases A-I and generated the Phase J fixed-source pack: 72 cases across four supplied inputs pass finite/repeat/partition/isolation checks. [Handoff](evidence/WATER_LISTENING_HANDOFF_V02.md#historical-v01-handoff) explicitly retains low-level Resonant Motion as a candidate risk; human ACCEPT/REVISE/REJECT, independent code review and production adoption are not complete.
 
 ### PR #40 listening remediation in progress
 

@@ -8,7 +8,7 @@ import subprocess
 import numpy as np
 import soundfile as sf
 
-from listening_handoff import db, inspect, rms, measures
+from listening_handoff import inspect, rms, measures
 
 
 def diagnostics(text, config, rate):
@@ -34,6 +34,25 @@ def diagnostics(text, config, rate):
     return values
 
 
+# Separate unfilled observations, never a combined automatic quality score.
+REVIEW_QUESTIONS = (
+    "liquid_bubble_identity", "bell_or_metal_artifact", "microbubble_clicks_or_noise",
+    "low_frequency_body", "size_scale_direction", "motion_activity_direction",
+    "decay_persistence_direction", "pitch_rise_help_or_harm", "chorus_or_flange_artifact",
+    "stereo_wander_or_width_change", "source_attack_and_rhythm_preservation", "residual_audibility")
+
+
+def stereo_measures(audio):
+    if audio.shape[1] == 1:
+        audio = np.repeat(audio, 2, axis=1)
+    left, right = audio[:, 0], audio[:, 1]
+    energy = float(np.dot(left, left) + np.dot(right, right))
+    denom = float(np.sqrt(np.dot(left, left) * np.dot(right, right)))
+    return {"uncentered_correlation": float(np.dot(left, right) / denom) if denom else None,
+            "side_energy_fraction": float(np.square(left-right).sum() / (2*energy)) if energy else None,
+            "left_energy_fraction": float(np.dot(left, left) / energy) if energy else None}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--renderer", type=Path, required=True)
@@ -57,12 +76,19 @@ def main():
                               check=True, capture_output=True, text=True)
     manifest = json.loads(exported.stdout)
     (output / "mapped-cases.json").write_text(exported.stdout, encoding="utf-8")
-    assert manifest["mappingRevision"] == "bubble-a1-offline-v1" and len(manifest["cases"]) == 9
+    assert manifest["mappingRevision"] == "bubble-a1-offline-v2" and len(manifest["cases"]) == 9
     cases = [("A0", "a", {})]
     for name, gamma, energy, rise in (("A1-1", 0, 0, 0), ("A1-2", 2, 0, 0),
                                      ("A1-3", 2, 1, 0), ("A1-4", 2, 1, .1)):
-        cases.append((name, "a1", {"bubbleA1": {"populationGamma": gamma,
-            "sourceEnergyAmplitude": energy, "riseFactor": rise}}))
+        cases.append((name, "a1", {"bubbleA1": {"version": 2, "populationGamma": gamma,
+            "sourceEnergyAmplitude": energy, "riseXi": rise}}))
+    neutral = next(c["config"] for c in manifest["cases"] if c["macro"] == "size" and c["value"] == .5)
+    cases += [("A1-PHYS-REF", "a1", {"bubbleA1": {"version": 2}}),
+              ("A1-MACRO-NEUTRAL", "a1", neutral)]
+    for persistence in (.25, 1, 4):
+        for policy in (0, 1):
+            cases.append((f"P{policy}-persist-{persistence:g}", "a1", {"bubbleA1": {
+                "version": 2, "riseModel": policy, "persistenceScale": persistence}}))
     for case in manifest["cases"]:
         cases.append((f"{case['macro']}-{case['value']:g}", "a1", case["config"]))
     configs = {}
@@ -106,33 +132,38 @@ def main():
                    "config": config, "file": target.relative_to(output).as_posix(),
                    "finite": True, "repeat_partition_exact": True,
                    "measures": measures(residual, rate, len(audio), rms(audio)),
+                   "stereo": stereo_measures(residual[:len(audio)]),
+                   "source_stereo": stereo_measures(audio),
                    "diagnostics": diagnostics(text, config.get("bubbleA1", {}), rate)}
             report["renders"].append(row)
-        for group in (("A0","A1-1","A1-2","A1-3","A1-4"),
-                      *(tuple(f"{macro}-{v:g}" for v in (0,.5,1)) for macro in ("size","motion","decay"))):
+        for group_id, group in enumerate((("A0","A1-1","A1-2","A1-3","A1-4"),
+                      ("A1-PHYS-REF", "A1-MACRO-NEUTRAL"),
+                      *(tuple(f"P{p}-persist-{v:g}" for p in (0,1)) for v in (.25,1,4)),
+                      *(tuple(f"{macro}-{v:g}" for v in (0,.5,1)) for macro in ("size","motion","decay")))):
             # A truly silent Motion endpoint cannot be matched; retain it as unassessable.
             target_rms = min(levels[name] for name in group)
             gains = [target_rms / levels[name] if levels[name] else 0 for name in group]
-            report["matching"].append({"source":source.name,"cases":group,"gains":gains,
+            report["matching"].append({"source":source.name,"group_id":group_id,"cases":group,"gains":gains,
                                       "assessable":target_rms > 0})
             for name, gain in zip(group, gains):
-                sf.write(folder / f"{name}-RMSmatched.wav", results[name] * gain, rate, subtype="FLOAT")
+                sf.write(folder / f"{name}-group{group_id}-RMSmatched.wav", results[name] * gain, rate, subtype="FLOAT")
             for evidence, suffix in (("fixed source; character", "E.wav"),
                                      ("fixed source; preservation", "Full-Reference-minus18.wav"),
-                                     ("RMS matched support; no preservation claim", "RMSmatched.wav")):
+                                     ("RMS matched support; no preservation claim", f"group{group_id}-RMSmatched.wav")):
                 review.append({"reviewer":"", "date":"", "source":source.name, "role":role,
                     "cases":" / ".join(group), "evidence":evidence,
                     "files":" | ".join((folder/f"{name}-{suffix}").relative_to(output).as_posix() for name in group),
-                    "matching_assessable":target_rms > 0 if suffix == "RMSmatched.wav" else "N/A",
+                    "matching_assessable":target_rms > 0 if "RMSmatched" in suffix else "N/A",
                     "playback_device_level":"", "audibility":"", "water_identity_1_5":"",
                     "input_recognizability_1_5":"", "motion_fluidity_1_5":"", "musical_usefulness_1_5":"",
-                    "artifact_severity_1_5_lower_better":"", "decision":"NOT ASSESSED", "reason_timestamps":""})
+                    "artifact_severity_1_5_lower_better":"",
+                    **{question: "" for question in REVIEW_QUESTIONS}, "decision":"NOT ASSESSED", "reason_timestamps":""})
         for mode in ("a", "b", "d", "bd", "c", "abd"):
             old, _ = render(args.baseline_renderer, source, folder/f"legacy-{mode}-before.wav", mode, configs["A0"])
             new, _ = render(args.renderer, source, folder/f"legacy-{mode}-after.wav", mode, configs["A0"])
             assert np.array_equal(old,new), (source.name,mode,"legacy mismatch")
             report["legacy_regressions"].append({"source":source.name,"mode":mode,"decoded_exact":True})
-        print(f"PASS {source.name}: 14 comparisons and 6 exact legacy paths", flush=True)
+        print(f"PASS {source.name}: {len(cases)} comparisons and 6 exact legacy paths", flush=True)
     for number in (1,2):
         with (output/f"reviewer-{number}.csv").open("x",encoding="utf-8-sig",newline="") as handle:
             writer=csv.DictWriter(handle,fieldnames=list(review[0])); writer.writeheader(); writer.writerows(review)

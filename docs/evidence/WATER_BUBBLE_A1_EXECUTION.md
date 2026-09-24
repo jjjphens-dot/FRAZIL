@@ -1,9 +1,21 @@
 # Bubble A1 execution record
 
-## Status
+## Current review remediation
 
-ENGINEERING COMPLETE — local offline A1 implementation, validation and handoff prepared.
-HUMAN ACCEPTANCE NOT RUN. UI integration remains explicitly deferred.
+RESEARCH ONLY / HUMAN NOT ASSESSED. Shared-frame stereo, explicit P1/P0 and v2
+configuration implemented against review baseline1bc6947. Current commands/results
+are in the [remediation section](#remediation-execution); every earlier result below
+belongs to its recorded pre-review version. UI integration remains deferred.
+
+The [document audit](WATER_DOCUMENT_AUDIT.md) records KEEP/UPDATE/MERGE/DELETE/
+ARCHIVE dispositions and replacement authority. The [Water index](../../experiments/water/README.md)
+is the sole research navigation entry. Physics equations/provenance and the two
+named baselines are owned by EXP-W-BA-001, not duplicated as product contracts here.
+
+## Historical first implementation status
+
+ENGINEERING COMPLETE was the pre-review local handoff status. It did not establish
+stereo shared-frame correctness or human acceptance; this review reopens those findings.
 
 ## Goal and authority
 
@@ -257,7 +269,7 @@ analysis, bounded pool, orchestration, tests, offline evidence or auditable hand
     perceptual ACCEPT, production adoption or permission for deferred UI is inferred.
 
 
-## Final linked-AR carrier evidence — current delivery
+## Historical linked-AR carrier evidence — pre-review study-v2
 
 Current pack: `build/bubble-a1/study-v2`; current timing:
 `build/bubble-a1/performance-v2.csv`. Earlier v1 audio/measurements remain historical.
@@ -391,3 +403,204 @@ No unstaged implementation diff remains after staging the reviewed deliverable.
 - `experiments/water/SPIKE-W-DSP-001/tests/bubble_a1_cli_test.py`
 - `experiments/water/SPIKE-W-DSP-001/tests/bubble_a1_performance.cpp`
 - `experiments/water/SPIKE-W-DSP-001/tests/bubble_a1_tests.cpp`
+
+## Remediation execution
+
+### Contract Review
+
+Fetched main3c95e47, PR40 head1444b446 and A1 branch1bc6947; no upstream drift at
+start. Existing review branch remains stacked on PR40; no main/PR40 source changes.
+Full task-relevant canonical contracts and the Water documents in the disposition
+table were read. EXP-W-001 accepts intent; A1 is not accepted production DSP.
+Original1933 full text/FOAM official site and modern linked PDFs could not be fetched;
+van den Doel's author manuscript, Phillips2018 full Results and the2009/2016/2023
+author abstracts support the distinctions recorded in the provenance matrix.
+No advertising claim supplies coefficients or requires1024 voices.
+
+### Implementation
+
+- One joint-energy window frame now supplies BOTH signed channel components, with
+  linked AR magnitude; tiny-norm frames yield zero. The .25 amplitude ablation uses
+  the same direction. No per-channel scheduling/phase/RNG or physical propagation claim.
+- SharedExcitationAnalyzer no longer depends on BubbleA1Model for range validation.
+- P1 uses xi*dEffective; P0 retains xi*dPhysical as an explicit comparison. Internal
+  riseXi/depthExcitationProxy names state dimensionless meaning; depthExponent stays
+  empirical. Numeric version2 and riseModel0/1 reject ambiguous old configs; historical
+  exactv1 rendering remains at1bc6947. No automatic Preview/session migration.
+- PHYS-REF retains .2..10mm/Motion1/persistence1; MACRO-NEUTRAL retains the actual
+  .5/.5/.5 mapping (.632455532..10mm/Motion.25/persistence1). No gamma, gain, radius,
+  beta, rate or cutoff retuning. Default256 and all64/128/256/512/1024 capacities remain.
+- Scheduler still uses one occupancy draw/sample, with actual mean fs*(1-exp(-lambda/fs)).
+  No exact-Poisson, fluid geometry, coupling, bubble topology or air-radiation implementation.
+- Two new documents serve the requested navigation/disposition audit; four obsolete
+  files are removed after unique history migration. B/D/C and Protect evidence remain.
+
+### Functional Validation and retained failures
+
+First incremental Debug run was26/27 (61.58s): new v2 CLI config was rejected by the
+stale renderer. Header dependency detection contained a mojibake MSVC /showIncludes
+prefix and missed header-only rebuilds. This is NOT a DSP/config validation PASS.
+The failure log remains `build/bubble-a1/remediation-stale-renderer-debug.log`.
+A fresh configure and full safe rebuild, including all research translation units,
+passed27/27 (69.77s). Subsequent CLI coverage added quadrature/decorrelated/transient/
+right-only actual renders. Final preset results below apply to the completed change.
+Setting VSLANG alone did not repair the localized prefix; no permanent build-system
+fix is claimed. Fresh full builds and artifact timestamps avoid reliance on that cache.
+The first Release test sequence was interrupted after test23 during continued user
+interaction; its partial log remains `remediation-release-interrupted.log`. A complete
+rerun is required and recorded separately. No partial suite is called PASS.
+The earlier native0xc0000005 legacy fault remains unresolved, not repaired by A1.
+
+### Code Quality Review
+
+Separate post-implementation review inspected cohesion/dependency direction, signed
+stereo direction, normalization/epsilon, fixed192-frame bound, event ID/timing and
+last-request diagnostic ownership, P0/P1 units and integrated cap, schema rejection,
+RNG draw order, active/free pool, reset/prepare and source gating. No process I/O,
+locks, allocation, mutable global state or UI access was added. Last-event diagnostics
+copy one bounded value at a request; no growing event log or second audio path.
+RNG scheduling/radius/formation draws are unchanged. Pool cost remains active-voice
+processing plus bounded window/victim scans. Runtime allocation instrumentation was
+not run; source-path review and ASAN do not establish a formal realtime budget.
+
+Reviewed the study independently: actual renderer/exporter reused, explicit22-case
+selection, new-output-only policy, group-specific matched filenames (avoid accidental
+cross-group replacement), source-window attenuation, separate Full references and
+blank human questions. Source and output correlation/side-energy fraction are proxies,
+not a proof of perceptual spatial stability. Independent decoded-file verification
+checks equations, legacy identity, neutral labels and reviewer-file existence.
+
+### Comment & Documentation Pass
+
+Canonical model record now owns the Physics Provenance Matrix, gap/maturity matrix,
+P0/P1/config semantics, raw ranges and named baselines. Current guide/index/status/
+module/testing pages distinguish A1 offline, A0 Preview and unchanged B/D/C candidates.
+Four redundant files removed: oldhandoff, notes, task_plan and closedspikeplan. Unique
+numeric/human/validation/decision evidence is retained at the destinations in the audit.
+A single accepted-brief navigation link changes; no accepted intent clause changes.
+
+Reviewed without substantive update: Architecture, Coding Plan, Parameters, Perceptual
+framework, Code Standards, Document Governance and ProposedADR0006; production
+interfaces/Hoststate/routing/latency/random persistence/formal budgets/ownership and
+acceptance gates are unchanged (N/A). ReferenceCSV and LISTENING_LOG remain intact.
+Full Gate rows affected are research API, stereo/pitch behavior, tests, navigation and
+current-vs-historical status. No milestone, support or perceptual PASS is manufactured.
+
+### Final Validation — remediation
+
+All six stages completed for the bounded remediation. Final local executable checks,
+serial MSVC safe builds at6jobs with both research opt-ins and explicit Python:
+
+| Preset | Configure / safe build | CTest | Elapsed |
+| --- | --- | --- | --- |
+| windows-debug | PASS |27/27 PASS |73.70s |
+| windows-release | PASS |27/27 PASS |33.61s |
+| windows-asan | PASS |27/27 PASS |133.20s |
+
+Commands: `cmake --fresh --preset <preset> -DFRAZIL_BUILD_WATER_EXPERIMENT=ON
+-DFRAZIL_BUILD_WATER_PREVIEW=ON -DPython3_EXECUTABLE:FILEPATH=<discovered-python>`,
+`python tools/build_safe.py --preset <preset>`, `ctest --preset <preset> --output-on-failure`.
+The final Debug coverage rerun used normal configure after the fresh full build and
+explicitly refreshed research translation-unit timestamps to rebuild all consumers;
+no source content or safety check was changed for this cache workaround. Its safe
+build compiled58steps. Final binaries contain the v2 parser/new properties; all v2
+CLI cases passed. Python package/CMake/CTest interpreter identities agree. No parallel
+build/test pipelines, safety bypass or content hashes were used. TEMP/TMP stayed local
+under ignored build/bubble-a1/tmp. This is local engineering validation, not Host proof.
+
+Repository checks: `python tools/check_markdown_links.py`,
+`python tools/check_portability.py`, both scanner regression scripts,
+`python tools/check_vscode_tasks.py`, changed-C++ `clang-format --dry-run --Werror`,
+Python syntax compilation and `git diff --cached --check`: PASS. An initial link
+check caught the deleted-plan link in the accepted brief; only that navigation target
+was corrected. An extra EOF blank line was removed. No accepted intent text changed.
+Production/src, Preview runtime, original A0/B/D/C and Protect DSP have no remediation diff.
+
+### Current study-v3 results
+
+Release renderer and research-cases exporter generated a new ignored
+`build/bubble-a1/study-v3` pack: five sources,22 cases/source, eight comparison
+groups/source. Sources1–4 are the supplied Sub Bass, Dunamis fill, Partisan loop,
+and Razor Bass; source5 is the sustained-pad engineering fixture, not musical
+acceptance evidence. Seed42; block128 versus257; unchanged Protect boundary.
+110/110 renders are finite and repeat/partition exact. All30 decoded legacy
+A0/B/D/BD/C/ABD comparisons against the preserved PR40 renderer are exact.
+Independent decoded-file verification passed; maximum Full-equation float error
+was1.879468788934524e-08. Neutral labels/configs agree with the actual exporter.
+Two120-row human forms and12 specific listening questions remain blank / NOT ASSESSED.
+Fixed-source and group-specific RMS-matched conclusions must remain separate.
+Motion0 has no assessable residual match. These are engineering checks, not audibility PASS.
+
+| Source | PHYS-REF RMS dBFS | MACRO-NEUTRAL RMS dBFS | Source correlation | PHYS-REF correlation | PHYS-REF side-energy fraction |
+| --- | --- | --- | --- | --- | --- |
+| 1 | -65.77 | -59.76 | 0.999991 | 1.000000 | 0.000000 |
+| 2 | -52.99 | -47.97 | 0.249475 | 0.305280 | 0.354339 |
+| 3 | -81.64 | -76.75 | -0.090137 | -0.279309 | 0.639321 |
+| 4 | -48.97 | -58.21 | 0.997696 | 0.999889 | 0.000061 |
+| 5 | -67.54 | -66.08 | -1.000000 | -1.000000 | 0.900000 |
+
+RMS uses the source window; correlation is uncentered. Joint-frame excitation fixes
+inconsistent stereo sampling, but does not guarantee source width preservation:
+source3 produces negative residual correlation and0.639321 side-energy fraction.
+This remains a listening risk. Source5 is intentionally anti-phase and unequal gain.
+P0/P1 are decoded-bit-exact at persistence1 for all five inputs. At persistence0.25/4,
+maximum residual differences respectively are0.00130042/0.0106986 (source1),
+0.000760787/0.00652547 (source2),0.000959248/0.00651750 (source3),0/0 (source4),
+0.00202516/0.0137597 (source5). Source4 has no rising events; its equality does not
+prove general policy equivalence. Analytic tests cover both policies and all three
+persistence values independently of this sparse-event listening pack.
+
+### Current performance-v3 results
+
+Release benchmark, block128, same reference-machine scope as the earlier record;
+`build/bubble-a1/performance-v3.csv`,30/30 finite rows. Times are microseconds.
+Active mean/peak, requested events/sec, steals and drops describe this workload;
+no production realtime budget or universal deadline guarantee is inferred.
+
+| Rate | Capacity | Profile | Mean us | P95 us | P99 us | Worst us | Active mean | Active peak | Events/sec | Steals | Drops |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 44100 | 64 | physical-reference | 4.95977 | 5.6 | 6.6 | 152.1 | 1.04533 | 6 | 694.345 | 0 | 0 |
+| 44100 | 64 | dense-stress | 40.4138 | 48.3 | 92.2 | 264.9 | 63.999 | 64 | 6539.2 | 56886 | 0 |
+| 44100 | 128 | physical-reference | 5.4585 | 7.5 | 8.3 | 88.6 | 1.04533 | 6 | 694.345 | 0 | 0 |
+| 44100 | 128 | dense-stress | 69.0723 | 91.2 | 153.3 | 514.6 | 127.999 | 128 | 6539.2 | 56886 | 0 |
+| 44100 | 256 | physical-reference | 5.18403 | 6 | 8.1 | 98.7 | 1.04533 | 6 | 694.345 | 0 | 0 |
+| 44100 | 256 | dense-stress | 142.065 | 190.9 | 294.6 | 442.2 | 255.999 | 256 | 6539.2 | 56886 | 0 |
+| 44100 | 512 | physical-reference | 5.17567 | 6.2 | 9.6 | 117.8 | 1.04533 | 6 | 694.345 | 0 | 0 |
+| 44100 | 512 | dense-stress | 292.993 | 388.9 | 508 | 871 | 511.999 | 512 | 6539.2 | 56886 | 0 |
+| 44100 | 1024 | physical-reference | 4.7002 | 5.4 | 5.9 | 95 | 1.04533 | 6 | 694.345 | 0 | 0 |
+| 44100 | 1024 | dense-stress | 613.244 | 811 | 1002.9 | 1645.9 | 1024 | 1024 | 6539.2 | 56886 | 0 |
+| 48000 | 64 | physical-reference | 4.5233 | 5.5 | 8.1 | 72.5 | 1.05067 | 6 | 697.75 | 0 | 0 |
+| 48000 | 64 | dense-stress | 37.0709 | 45.3 | 85.3 | 186.5 | 63.9983 | 64 | 6580.88 | 52590 | 0 |
+| 48000 | 128 | physical-reference | 4.76843 | 5.5 | 6.2 | 116.4 | 1.05067 | 6 | 697.75 | 0 | 0 |
+| 48000 | 128 | dense-stress | 65.1913 | 80.2 | 155.4 | 393.9 | 127.998 | 128 | 6580.88 | 52590 | 0 |
+| 48000 | 256 | physical-reference | 4.83913 | 5.5 | 8.4 | 290.5 | 1.05067 | 6 | 697.75 | 0 | 0 |
+| 48000 | 256 | dense-stress | 144.442 | 190.3 | 273.1 | 668.8 | 255.998 | 256 | 6580.88 | 52590 | 0 |
+| 48000 | 512 | physical-reference | 4.7148 | 5.4 | 6.2 | 82.8 | 1.05067 | 6 | 697.75 | 0 | 0 |
+| 48000 | 512 | dense-stress | 295.915 | 383.5 | 525.1 | 947 | 511.998 | 512 | 6580.88 | 52590 | 0 |
+| 48000 | 1024 | physical-reference | 5.00307 | 5.6 | 7 | 68 | 1.05067 | 6 | 697.75 | 0 | 0 |
+| 48000 | 1024 | dense-stress | 611.535 | 828.9 | 1008.9 | 1611.9 | 1024 | 1024 | 6580.88 | 52590 | 0 |
+| 96000 | 64 | physical-reference | 4.61447 | 5.1 | 6 | 81.6 | 1.138 | 7 | 707 | 0 | 0 |
+| 96000 | 64 | dense-stress | 35.2071 | 41 | 77.7 | 218.4 | 63.998 | 64 | 6800.25 | 27175 | 0 |
+| 96000 | 128 | physical-reference | 4.62447 | 5.6 | 7.5 | 118.1 | 1.138 | 7 | 707 | 0 | 0 |
+| 96000 | 128 | dense-stress | 59.9435 | 70.8 | 134.1 | 289 | 127.998 | 128 | 6800.25 | 27175 | 0 |
+| 96000 | 256 | physical-reference | 4.2277 | 4.9 | 5.6 | 86.4 | 1.138 | 7 | 707 | 0 | 0 |
+| 96000 | 256 | dense-stress | 131.859 | 182.6 | 283.1 | 497.4 | 255.998 | 256 | 6800.25 | 27175 | 0 |
+| 96000 | 512 | physical-reference | 4.9656 | 5.4 | 9.3 | 134.4 | 1.138 | 7 | 707 | 0 | 0 |
+| 96000 | 512 | dense-stress | 278.078 | 367.7 | 504.5 | 969.1 | 511.998 | 512 | 6800.25 | 27175 | 0 |
+| 96000 | 1024 | physical-reference | 4.30267 | 5 | 6 | 72 | 1.138 | 7 | 707 | 0 | 0 |
+| 96000 | 1024 | dense-stress | 583.851 | 809.9 | 1063.1 | 1660.1 | 1024 | 1024 | 6800.25 | 27175 | 0 |
+
+At96kHz the128-frame deadline is1333.33us: dense1024 worst1660.1us exceeds it;
+dense512 worst969.1us does not exceed it in this run. Default256 is unchanged.
+Prior outliers remain in the historical tables above; neither a new mean nor an
+isolated passing maximum erases them. No capacity reduction or sonic retuning was
+introduced to hide overload. Occupancy approximation and voice stealing remain explicit.
+
+### Publication and acceptance boundary
+
+Validated source is the remediation diff on commit1bc69476251851363189817a42735e62e8987916.
+The resulting Git commit and exact-head Hosted CI run identify publication; they
+must be checked on GitHub separately from these local measurements. Generated audio,
+raw logs and machine-local configuration remain ignored. Human listening, formal
+independent approval, pluginval/DAW validation and production acceptance were NOT RUN.
+No merge, UI integration, next-module redesign or acceptance-gate closure is implied.

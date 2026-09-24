@@ -327,7 +327,7 @@ Actual command families: `cmd /c build/control-bridge/validate.cmd <windows-debu
 (initializes MSVC, configures both research options with one Python interpreter, invokes
 `python tools/build_safe.py --preset <preset>`, then `ctest --preset <preset> --output-on-failure`);
 `python experiments/water/SPIKE-W-DSP-001/render/listening_handoff.py ...` (full portable invocation in
-[handoff](WATER_LISTENING_HANDOFF.md)); `python tools/check_markdown_links.py`,
+[handoff](WATER_LISTENING_HANDOFF_V02.md#historical-v01-handoff)); `python tools/check_markdown_links.py`,
 `python tools/check_portability.py`, their two regression scripts, `python tools/check_vscode_tasks.py`,
 `clang-format --dry-run --Werror` on changed C++ and `git diff --cached --check`.
 

@@ -1,5 +1,15 @@
 # FRAZIL 测试、听测与发布门槛
 
+A1 remediation adds an independent shared-window oracle and event identity/timing/
+radius/frequency/damping/RNG checks for unequal levels,90-degree phase, deterministic
+decorrelation and asymmetric transients, alongside mono/anti-phase/isolation/swap.
+P0/P1 analytic integrated chirps cover persistence .25/1/4 through the cap; P1 keeps
+xi per rendered lifetime. Strict v2/old-field rejection and actual renderer comparisons
+remain offline. study-v3 distinguishes PHYS-REF/MACRO-NEUTRAL, includes P0/P1 pairs,
+stereo correlation/width proxies and12 blank listening questions.64/128/256/512/1024
+all remain tested:256 default,512 stress,1024 dense96k high-cost stress; timings are
+not universally realtime-safe or perceptual acceptance. Human decisions stay NOT ASSESSED.
+
 Research [Bubble A1](../experiments/water/EXP-W-BA-001.md) adds
 `frazil_water_bubble_a1` (SI physics, analytic chirp, population, capacity, reset,
 stereo, finite/overload and occupancy tests) and `frazil_water_bubble_a1_cli`
@@ -850,7 +860,7 @@ counts, ablation/inactive zeros, reset, and sample-weighted (unequal block size)
 
 Phase I preview tests inject lifecycle commands to assert 100 drag updates yield one stop/prepare/start, and cover no-op, invalid, source-less, Engineering/OFF and live Protect paths. Native GUI observations and validation limits are in the Water listening UI execution record.
 
-[Supplied-input listening handoff](evidence/WATER_LISTENING_HANDOFF.md) records 72 research endpoint/center cases, exact decoded repeats and block partitions, channel isolation and component/activity/tail proxies. Human audibility and quality acceptance remain pending, particularly Resonant Motion.
+[Supplied-input listening handoff](evidence/WATER_LISTENING_HANDOFF_V02.md#historical-v01-handoff) records 72 research endpoint/center cases, exact decoded repeats and block partitions, channel isolation and component/activity/tail proxies. Human audibility and quality acceptance remain pending, particularly Resonant Motion.
 
 The [PR #40 remediation record](evidence/WATER_LISTENING_REMEDIATION.md) retains the failed
 intermediate descriptor fixture run, its compile-time length guard repair, successful serial

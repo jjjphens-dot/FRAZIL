@@ -1,5 +1,8 @@
 # Water UI control bridge execution
 
+> Historical scope and source-specific evidence below are retained unchanged. Current Water
+> definition acceptance, A1 versus A0/Preview and deferred work are indexed in [Water research](../../experiments/water/README.md).
+
 ## Goal and acceptance
 
 Implement the user-reviewed staged research UI plan: shared Sound Lead/Engineering session state,

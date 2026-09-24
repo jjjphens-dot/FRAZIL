@@ -1,5 +1,7 @@
 # Debug UI 与 Water 研究预览联调指南
 
+当前 Preview 的 Bubble 是 A0；A1 v2 的 PHYS-REF / MACRO-NEUTRAL、P0/P1 比较仅在离线工具中使用。
+
 当前 [Bubble A1](../experiments/water/EXP-W-BA-001.md) 仅提供显式离线 DSP/渲染路径，
 尚未接入本指南的 UI、session v5 或 mapping v0.2。旧 A0 控件不代表 A1 物理参数。
 

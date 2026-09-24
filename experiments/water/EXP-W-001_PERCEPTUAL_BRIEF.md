@@ -81,7 +81,7 @@ Fluid 与 Resonant 是**同等重要、互不从属**的 Water Character；分�
 遵循 [Perceptual Contract framework](../../docs/PERCEPTUAL_CONTRACT.md)、
 [Coding Plan](../../docs/CODING_PLAN.md)、[Architecture](../../docs/FRAZIL_PROJECT_ARCHITECTURE_v0.3.md)、
 [Parameters](../../docs/PARAMETERS.md) 和 [Testing](../../docs/TESTING.md)。
-详细阶段对齐见 [执行计划](task_plan.md)；参考见 [索引](REFERENCE_INDEX.md)。
+历史阶段与收口验证见 [记录](REFERENCE_INDEX.md#historical-intake-and-closeout-validation)；参考见 [索引](REFERENCE_INDEX.md)。
 本实例只定义产品目标，不授权候选 DSP。EXP-W-002 必须先消费已验收的本实例。
 
 ### 已确认的 Human Intent 澄清（HI-01）

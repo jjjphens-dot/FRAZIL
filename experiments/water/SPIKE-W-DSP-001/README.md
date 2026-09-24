@@ -1,5 +1,8 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+Current navigation: [Water research index](../README.md). Preview/Fluid retain A0;
+B/D/C and Protect keep their existing research behavior. Production Water is NOT IMPLEMENTED.
+
 The separate [Bubble A1 experiment](../EXP-W-BA-001.md) adds an explicit offline-only
 independent physical population and shared excitation candidate. Legacy A0/B/D/C and
 preview/session v5 remain unchanged. A1 is not connected to UI or accepted for production.
@@ -121,7 +124,7 @@ independent evidence labels/blank scores and missing-rights rejection. Hosted CI
 The optional pre-EXP-W-002 work item is defined in [Coding Plan](../../../docs/CODING_PLAN.md),
 [Perceptual Contract section 6](../../../docs/PERCEPTUAL_CONTRACT.md#6-optional-objective-feasibility-before-the-water-instance)
 and [Issue #29](https://github.com/jjjphens-dot/FRAZIL/issues/29). The
-[implementation plan](../SPIKE-W-DSP-001_IMPLEMENTATION_PLAN.md) bounds objective numerical,
+[historical implementation scope](REVALIDATION.md#historical-implementation-scope-and-checkpoints) bounds objective numerical,
 realtime, lifecycle, isolation, render and performance work. Engineering Lead implements;
 Sound & Host Lead independently reviews scope/evidence.
 
@@ -194,8 +197,8 @@ not accepted. Flags are fixed at prepare, not live bypass/transition controls.
 |---|---|---|
 | Sample rate | 48000 Hz | 44100..96000; tested 44100/48000/96000 |
 | Features | fast attack/release .001/.03 s; slow .03/.2 s | Each .0001..2 s in C++ config; renderer uses defaults |
-| A frequency/decay | 250..2800 Hz / .07 s | 40 Hz..0.45*fs, ordered; .002..0.5 s |
-| A rate/threshold/gain/voices | 120/s / .0001 / .2 / 16 | 0..2000/s / 0..1 / 0..0.3 / 1..16 |
+| Legacy A0 frequency/decay | 250..2800 Hz / .07 s | 40 Hz..0.45*fs, ordered; .002..0.5 s |
+| Legacy A0 rate/threshold/gain/voices | 120/s / .0001 / .2 / 16 | 0..2000/s / 0..1 / 0..0.3 / 1..16 |
 | B frequency/decay | 600..4500 Hz / .012 s | 40 Hz..0.45*fs, ordered; .002..0.1 s |
 | B threshold/refractory/gain/voices | .015 / .02 s / .15 / 8 | .0001..1 / .001..1 s / 0..0.3 / 1..16 |
 | D base/depth | .004/.001 s | base-depth >=1 sample; base+depth <=.02 s; depth >=0 |
@@ -207,7 +210,7 @@ choices. Bubble radius/frequency direction is inspired by isolated-bubble acoust
 uses frequency controls and does not claim a calibrated physical radius model. B v0 has deterministic
 threshold timing; stochastic timing is optional in the proposal and is not implemented.
 
-## Standalone engineering preview
+## Standalone engineering preview (Bubble A0)
 
 The optional `frazil_water_preview` GUI reuses these mechanisms for source-driven engineering
 inspection. It has a WAV transport, explicit-unit draft/apply controls, temporary applied-config

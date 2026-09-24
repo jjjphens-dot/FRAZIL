@@ -1,6 +1,9 @@
 #pragma once
-#include "BubbleA1Model.h"
 #include "WaterExcitationFeatures.h"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
 
 namespace frazil::water::research {
 struct SharedExcitationConfig final {
@@ -9,21 +12,22 @@ struct SharedExcitationConfig final {
 };
 struct SharedExcitation final {
     double fastPower{}, slowPower{}, rms{}, activity{};
-    std::array<double, 2> channelRms{};
 };
 
-// One linked detector and a 2 ms stereo observation window. Independent channel measurements
-// are not event generators. Event polarity comes from the strongest window sample, never the
-// triggering PCM sample; this preserves channel swap, isolation, dual mono and anti-phase.
+// One linked detector and a 2 ms stereo observation window. Event direction comes from ONE
+// observed stereo frame, selected by joint energy, not independently selected channel peaks.
 class SharedExcitationAnalyzer final {
   public:
     bool prepare(double rate, const SharedExcitationConfig& c = {}) noexcept {
         ready_ = false;
         reset();
-        if (!a1Range(rate, 44100, 96000) || !a1Range(c.fastAttackMs, .5, 5) ||
-            !a1Range(c.fastReleaseMs, 10, 80) || !a1Range(c.slowAttackMs, 10, 80) ||
-            !a1Range(c.slowReleaseMs, 80, 500) || !a1Range(c.activityFloorDbFS, -80, -40) ||
-            !a1Range(c.activityKneeDb, 3, 12))
+        const auto valid = [](double x, double lo, double hi) {
+            return std::isfinite(x) && x >= lo && x <= hi;
+        };
+        if (!valid(rate, 44100, 96000) || !valid(c.fastAttackMs, .5, 5) ||
+            !valid(c.fastReleaseMs, 10, 80) || !valid(c.slowAttackMs, 10, 80) ||
+            !valid(c.slowReleaseMs, 80, 500) || !valid(c.activityFloorDbFS, -80, -40) ||
+            !valid(c.activityKneeDb, 3, 12))
             return false;
         const std::array times{c.fastAttackMs, c.fastReleaseMs, c.slowAttackMs, c.slowReleaseMs};
         for (std::size_t i = 0; i < 4; ++i)
@@ -49,7 +53,6 @@ class SharedExcitationAnalyzer final {
             const double old = window_[cursor_][ch];
             sums_[ch] = std::max(0., sums_[ch] + x * x - old * old);
             window_[cursor_][ch] = x;
-            state_.channelRms[ch] = std::sqrt(sums_[ch] / windowSize_);
         }
         cursor_ = (cursor_ + 1) % windowSize_;
         const double power = (sums_[0] + sums_[1]) / (2 * windowSize_);
@@ -70,18 +73,21 @@ class SharedExcitationAnalyzer final {
     }
     std::array<double, 2> eventCarrier(bool sourceEnergy) const noexcept {
         std::array<double, 2> peak{}, result{};
-        if (state_.rms == 0)
+        double jointPeak{};
+        for (std::size_t i = 0; i < windowSize_; ++i) {
+            const auto& frame = window_[i];
+            const double energy = frame[0] * frame[0] + frame[1] * frame[1];
+            if (energy > jointPeak) { // Equal energies retain the lowest physical window index.
+                jointPeak = energy;
+                peak = frame;
+            }
+        }
+        const double norm = std::sqrt(jointPeak / 2);
+        if (norm <= 1e-12)
             return result;
-        for (std::size_t i = 0; i < windowSize_; ++i)
-            for (std::size_t ch = 0; ch < 2; ++ch)
-                if (std::abs(window_[i][ch]) > std::abs(peak[ch]))
-                    peak[ch] = window_[i][ch];
+        const double level = sourceEnergy ? std::sqrt(state_.fastPower) : .25;
         for (std::size_t ch = 0; ch < 2; ++ch)
-            // The window supplies stereo direction; linked AR energy supplies event level.
-            // Separating these prevents low-frequency phase/zero crossings from collapsing
-            // an otherwise sustained source's excitation. No independent channel followers.
-            result[ch] = std::copysign(state_.channelRms[ch], peak[ch]) / state_.rms *
-                         (sourceEnergy ? std::sqrt(state_.fastPower) : .25);
+            result[ch] = peak[ch] / norm * level;
         return result;
     }
     const SharedExcitation& state() const noexcept {

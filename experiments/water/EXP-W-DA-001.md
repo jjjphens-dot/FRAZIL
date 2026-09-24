@@ -1,5 +1,8 @@
 # EXP-W-DA-001 — Continuous Droplet onset activity
 
+> Historical scope and source-specific evidence below are retained unchanged. Current Water
+> definition acceptance, A1 versus A0/Preview and deferred work are indexed in [Water research](README.md).
+
 Status: ENGINEERING VALIDATED; research comparison, no default curve adoption.
 Baseline `04b6639`. Existing source pack authorized; musical-input review deferred by the user.
 

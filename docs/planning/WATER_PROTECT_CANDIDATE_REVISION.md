@@ -1,5 +1,8 @@
 # Water Protect — DOC-W-PROTECT-001
 
+> Historical scope and source-specific evidence below are retained unchanged. Current Water
+> definition acceptance, A1 versus A0/Preview and deferred work are indexed in [Water research](../../experiments/water/README.md).
+
 > Historical Wave 1 proposal/audit at `08df5f4`. The user's subsequent authorization replaces its per-wave
 > external-review/merge wait with local self-review and a final combined upload. Current scope, deviations,
 > evidence and pending human acceptance are tracked in [PROTECT-EXP-001](WATER_PROTECT_EXECUTION.md).

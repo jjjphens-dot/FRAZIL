@@ -234,8 +234,11 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
             auto& a = a1->analysis;
             double capacity = static_cast<double>(c.voiceCapacity);
             double energy = c.sourceEnergyAmplitude ? 1 : 0;
+            double version = 0, riseModel = static_cast<int>(c.riseModel);
             if (!readNumbers(property.value,
-                             {{"radiusMinMm", &c.radiusMinMm},
+                             {{"version", &version},
+                              {"riseModel", &riseModel},
+                              {"radiusMinMm", &c.radiusMinMm},
                               {"radiusMaxMm", &c.radiusMaxMm},
                               {"populationGamma", &c.populationGamma},
                               {"amplitudeRadiusExponent", &c.amplitudeRadiusExponent},
@@ -243,7 +246,7 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
                               {"persistenceScale", &c.persistenceScale},
                               {"maxEventRateHz", &c.maxEventRateHz},
                               {"motionFactor", &c.motionFactor},
-                              {"riseFactor", &c.riseFactor},
+                              {"riseXi", &c.riseXi},
                               {"riseCutoff", &c.riseCutoff},
                               {"tailFloorDb", &c.tailFloorDb},
                               {"stealReleaseMs", &c.stealReleaseMs},
@@ -256,10 +259,12 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
                               {"slowReleaseMs", &a.slowReleaseMs},
                               {"activityFloorDbFS", &a.activityFloorDbFS},
                               {"activityKneeDb", &a.activityKneeDb}}) ||
+                version != 2 || (riseModel != 0 && riseModel != 1) ||
                 !validVoiceRepresentation(capacity) || (energy != 0 && energy != 1))
                 return false;
             c.voiceCapacity = static_cast<std::size_t>(capacity);
             c.sourceEnergyAmplitude = energy == 1;
+            c.riseModel = static_cast<BubbleA1RiseModel>(static_cast<int>(riseModel));
             a1->supplied = true;
         } else if (name == "bubble") {
             auto& c = fluid.bubble;

@@ -1,5 +1,8 @@
 # EXP-W-RM-001 — Structured Resonant Motion comparison
 
+> Historical scope and source-specific evidence below are retained unchanged. Current Water
+> definition acceptance, A1 versus A0/Preview and deferred work are indexed in [Water research](README.md).
+
 Status: ENGINEERING COMPARISON PREPARED, research candidate only. No default selection or human acceptance.
 Baseline: `64ebf4d`, following bounded C3 and the Decay comparison preparation.
 

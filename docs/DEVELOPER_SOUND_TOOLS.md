@@ -1,5 +1,10 @@
 # FRAZIL Developer Sound Tools
 
+Current [Water research index](../experiments/water/README.md): Preview Bubble is A0.
+Bubble A1 v2 is offline-only; no Developer/Preview controls, session codec, transport,
+Host registry or production DSP are connected to A1. Its PHYS-REF and MACRO-NEUTRAL
+baselines are separate from the Preview v0.2/sessionv5 baseline.
+
 > Document status: CURRENT/CONTROLLED; first established by v1.3 / [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23). Decay candidate revision follows the [v1.4 activation rule](CODING_PLAN.md).<br>
 > Capability implementation status: tracked individually as CURRENT / PLANNED / CANDIDATE / DEFERRED below.<br>
 > The Debug/ASAN Developer Control Surface implementation is merged on `main` and is engineering-ready for Sound &

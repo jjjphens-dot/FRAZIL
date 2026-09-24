@@ -17,6 +17,8 @@ int exportBubbleA1() {
             const auto& c = *mapped;
             juce::var config(new juce::DynamicObject()), bubble(new juce::DynamicObject());
             auto* b = bubble.getDynamicObject();
+            b->setProperty("version", 2);
+            b->setProperty("riseModel", 1);
             b->setProperty("radiusMinMm", c.radiusMinMm);
             b->setProperty("radiusMaxMm", c.radiusMaxMm);
             b->setProperty("motionFactor", c.motionFactor);
@@ -30,7 +32,7 @@ int exportBubbleA1() {
             cases.add(entry);
         }
     juce::var root(new juce::DynamicObject());
-    root.getDynamicObject()->setProperty("mappingRevision", "bubble-a1-offline-v1");
+    root.getDynamicObject()->setProperty("mappingRevision", "bubble-a1-offline-v2");
     root.getDynamicObject()->setProperty("seed", 42);
     root.getDynamicObject()->setProperty("cases", cases);
     std::cout << juce::JSON::toString(root, false, 17) << '\n';

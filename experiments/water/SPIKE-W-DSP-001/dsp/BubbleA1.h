@@ -24,6 +24,7 @@ class BubbleA1 final {
         pool_.reset();
         random_.reseed(seed_);
         requested_ = 0;
+        lastRequestedEvent_ = {};
         driver_ = {};
         requestedRate_ = 0;
     }
@@ -40,11 +41,14 @@ class BubbleA1 final {
             BubbleA1Event e;
             e.bin = model_.sample(random_.nextUnipolar());
             e.physics = model_.bins()[e.bin];
-            e.depth = std::pow(double(random_.nextUnipolar()), config_.depthExponent);
-            e.riseFactor = e.depth > config_.riseCutoff ? config_.riseFactor : 0;
+            e.depthExcitationProxy =
+                std::pow(double(random_.nextUnipolar()), config_.depthExponent);
+            e.riseXi = e.depthExcitationProxy > config_.riseCutoff ? config_.riseXi : 0;
+            e.riseModel = config_.riseModel;
             e.amplitude = analyzer_.eventCarrier(config_.sourceEnergyAmplitude);
             for (auto& a : e.amplitude)
-                a *= e.physics.amplitude * e.depth * config_.residualGain;
+                a *= e.physics.amplitude * e.depthExcitationProxy * config_.residualGain;
+            lastRequestedEvent_ = e;
             if (pool_.trigger(e))
                 driver_ = {static_cast<float>(e.amplitude[0]), static_cast<float>(e.amplitude[1])};
         }
@@ -78,7 +82,13 @@ class BubbleA1 final {
         return requestedRate_;
     }
 
+    // Offline diagnostics: request identity is requested(); timing is the caller sample index.
+    const BubbleA1Event& lastRequestedEvent() const noexcept {
+        return lastRequestedEvent_;
+    }
+
   private:
+    BubbleA1Event lastRequestedEvent_{};
     BubbleA1Config config_{};
     BubbleA1Model model_;
     SharedExcitationAnalyzer analyzer_;

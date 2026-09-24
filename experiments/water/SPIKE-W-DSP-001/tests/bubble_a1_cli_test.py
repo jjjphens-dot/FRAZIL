@@ -32,7 +32,7 @@ def main():
             left = .7 * np.sin(2 * np.pi * 197 * time)
             source = root / "source.wav"
             sf.write(source, np.column_stack((left, -.3 * left)), rate, subtype="FLOAT")
-            config.write_text('{"bubbleA1": {}}', encoding="utf-8")
+            config.write_text('{"bubbleA1": {"version":2}}', encoding="utf-8")
             reference, stats = run(renderer, source, root / f"{rate}-base.wav", config)
             assert "bubble_model=A1" in stats and "radius_hist=" in stats
             fields = dict(token.split("=", 1) for token in stats.split() if "=" in token)
@@ -62,27 +62,52 @@ def main():
                 actual, _ = run(renderer, source, root / f"{rate}-{stereo}.wav", config)
                 expected = np.zeros(len(actual)) if stereo == "left" else actual[:, 0] * (1 if stereo == "mono" else -1)
                 assert np.array_equal(actual[:, 1], expected)
-            config.write_text('{"bubbleA1":{"motionFactor":0}}', encoding="utf-8")
+            # File-level asymmetric/phase/decorrelated/transient coverage, in addition to
+            # the C++ independent shared-frame oracle and per-request trajectory checks.
+            rng = np.random.default_rng(719)
+            for label, pair in (
+                ("right", np.column_stack((np.zeros_like(left), left))),
+                ("quadrature", np.column_stack((left, .7*np.cos(2*np.pi*197*time)))),
+                ("decorrelated", np.column_stack((left, rng.uniform(-.5,.5,len(left))))),
+                ("transients", np.column_stack((np.where(np.arange(len(left))%113==0,.9,.1*left),
+                                                  np.where(np.arange(len(left))%127==0,-.6,-.2*left))))):
+                sf.write(source, pair, rate, subtype="FLOAT")
+                actual, trace = run(renderer, source, root / f"{rate}-{label}.wav", config)
+                sf.write(source, pair[:, ::-1], rate, subtype="FLOAT")
+                reverse, reverse_trace = run(renderer, source, root / f"{rate}-{label}-swap.wav", config)
+                assert np.array_equal(actual[:, ::-1], reverse)
+                if label == "right":
+                    assert not np.any(actual[:,0]) and np.any(actual[:,1])
+                def counters(text):
+                    return {k:v for k,v in (t.split("=",1) for t in text.split() if "=" in t)
+                            if k in ("requested","started","radius_hist","lifetime_hist","rising")}
+                assert counters(trace) == counters(reverse_trace)
+            config.write_text('{"bubbleA1":{"version":2,"motionFactor":0}}', encoding="utf-8")
             silent, stats = run(renderer, source, root / f"{rate}-zero.wav", config)
             assert not np.any(silent) and "requested=0 " in stats
         invalid = [
-            '{"bubbleA1":{"radiusMinMm":2,"radiusMaxMm":2}}',
-            '{"bubbleA1":{"voiceCapacity":65}}',
-            '{"bubbleA1":{"voiceCapacity":64.5}}',
-            '{"bubbleA1":{"maxEventRateHz":10001}}',
-            '{"bubbleA1":{"sourceEnergyAmplitude":2}}',
-            '{"bubbleA1":{"radiusMinMm":NaN}}',
-            '{"bubbleA1":{"radiusMinMm":1,"radiusMinMm":2}}',
-            '{"bubbleA1":{"fastAttackMs":0}}',
-            '{"bubbleA1":{"unknown":1}}',
-            '{"bubbleA1":{"motionFactor":true}}',
-            '{"bubbleA1":{}} trailing',
-            '{"bubbleA1":{},"protect":{"depth":1}}',
+            '{"bubbleA1":{}}',
+            '{"bubbleA1":{"version":1}}',
+            '{"bubbleA1":{"version":2,"riseFactor":0.1}}',
+            '{"bubbleA1":{"version":2,"riseModel":0.5}}',
+            '{"bubbleA1":{"version":2,"riseModel":2}}',
+            '{"bubbleA1":{"version":2,"radiusMinMm":2,"radiusMaxMm":2}}',
+            '{"bubbleA1":{"version":2,"voiceCapacity":65}}',
+            '{"bubbleA1":{"version":2,"voiceCapacity":64.5}}',
+            '{"bubbleA1":{"version":2,"maxEventRateHz":10001}}',
+            '{"bubbleA1":{"version":2,"sourceEnergyAmplitude":2}}',
+            '{"bubbleA1":{"version":2,"radiusMinMm":NaN}}',
+            '{"bubbleA1":{"version":2,"radiusMinMm":1,"radiusMinMm":2}}',
+            '{"bubbleA1":{"version":2,"fastAttackMs":0}}',
+            '{"bubbleA1":{"version":2,"unknown":1}}',
+            '{"bubbleA1":{"version":2,"motionFactor":true}}',
+            '{"bubbleA1":{"version":2}} trailing',
+            '{"bubbleA1":{"version":2},"protect":{"depth":1}}',
         ]
         for i, text in enumerate(invalid):
             config.write_text(text, encoding="utf-8")
             run(renderer, source, root / f"bad-{i}.wav", config, ok=False)
-        config.write_text('{"bubbleA1":{}}', encoding="utf-8")
+        config.write_text('{"bubbleA1":{"version":2}}', encoding="utf-8")
         run(renderer, source, root / "implicit-upgrade.wav", config, mode="a-residual", ok=False)
     print("A1 renderer partition/stereo/silence/strict-config PASS")
 

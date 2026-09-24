@@ -1,5 +1,8 @@
 # Round 01 — Common Water Identity
 
+> Historical scope and source-specific evidence below are retained unchanged. Current Water
+> definition acceptance, A1 versus A0/Preview and deferred work are indexed in [Water research](README.md).
+
 > 2026-09-16 · Agent first → Human calibration · **PARTIAL FIRST PASS / NOT CALIBRATED**
 > One question, four references (2 pure + 2 musical). No DSP candidate or acceptance.
 

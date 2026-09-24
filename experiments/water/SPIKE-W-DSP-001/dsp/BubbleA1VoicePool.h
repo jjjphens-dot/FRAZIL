@@ -9,8 +9,9 @@ namespace frazil::water::research {
 struct BubbleA1Event final {
     BubbleA1Bin physics;
     std::array<double, 2> amplitude{};
-    double depth{}, riseFactor{};
+    double depthExcitationProxy{}, riseXi{};
     std::size_t bin{};
+    BubbleA1RiseModel riseModel{BubbleA1RiseModel::effectiveDampingP1};
 };
 
 // Shared acoustic trajectory, separate signed channel amplitudes. Linear complex recurrences
@@ -27,7 +28,12 @@ class BubbleA1Voice final {
         envelope_ = 1;
         rate_ = rate;
         step_ = 2 * std::numbers::pi * e.physics.frequencyHz / rate;
-        delta_ = step_ * e.riseFactor * e.physics.dampingPerSecond / rate;
+        // P1 uses the rendered decay rate so xi describes rise over an audible lifetime.
+        // P0 retains the historical physical-damping slope as an explicit offline ablation.
+        const double riseDamping = e.riseModel == BubbleA1RiseModel::effectiveDampingP1
+                                       ? 1 / e.physics.tauSeconds
+                                       : e.physics.dampingPerSecond;
+        delta_ = step_ * e.riseXi * riseDamping / rate;
         cap_ = 2 * std::numbers::pi * std::min(std::sqrt(2.) * e.physics.frequencyHz, .45 * rate) /
                rate;
         // Midpoint integration of f(t), not sin(2*pi*f(t)*t).
@@ -207,7 +213,7 @@ class BubbleA1VoicePool final {
         voices_[slot].start(e, rate_, floorDb_);
         ++counters_.started;
         ++counters_.radiusHistogram[e.bin];
-        counters_.rising += e.riseFactor > 0 ? 1u : 0u;
+        counters_.rising += e.riseXi > 0 ? 1u : 0u;
     }
     std::array<BubbleA1Voice, kStorage> voices_{};
     std::array<std::size_t, kStorage> active_{}, free_{};

@@ -1,6 +1,6 @@
 # Research Water Mapping v0.2
 
-[Bubble A1](../EXP-W-BA-001.md) has a separate explicit `bubble-a1-offline-v1` exporter
+[Bubble A1](../EXP-W-BA-001.md) has a separate explicit `bubble-a1-offline-v2` exporter
 candidate. It does not replace these curves or migrate session v5. UI integration is deferred.
 
 Status: research listening candidate; NOT PRODUCT FROZEN. No production parameter, Host state,
@@ -77,3 +77,12 @@ Raw/C0/independent remains. Engineering Hard/C3/structured and Feature/C3/struct
 Apply; they retain the v0.2 Size/Motion/Decay targets and independent calibration. v1-v4 imports
 fill default C options, preserving previous engineering values. Diagnostic monitor selection
 is temporary and never becomes a mapped field or saved session target.
+
+## Bubble A1 baseline identity
+
+A1-PHYS-REF is raw .2..10mm, Motion factor1, persistence1.
+A1-MACRO-NEUTRAL is Size/Motion/Decay=.5/.5/.5 -> .632455532..10mm,
+Motion factor.25, persistence1. They are not interchangeable defaults. A1 config
+requires version2, uses P1 effective-damping rise by default, and permits explicit
+P0 offline comparison. Legacyv1 exact reproduction stays at1bc6947.
+See EXP-W-BA-001 for the canonical provenance/ranges; Preview mappingv0.2 remains A0.

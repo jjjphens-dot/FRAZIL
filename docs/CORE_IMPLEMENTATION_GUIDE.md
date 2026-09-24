@@ -1,5 +1,11 @@
 # FRAZIL 核心功能具体实现与算法指南
 
+Current research implementation note: [Bubble A1](../experiments/water/EXP-W-BA-001.md)
+is an opt-in offline independent population with shared-frame stereo excitation and
+P1 effective-damping rise. Its provenance matrix owns the approximation limits.
+The legacy Bubble/Fluid explanations below describe A0; Preview remains A0. B/D/C
+research and Proposed ADR-0006 are unchanged; production Water is NOT IMPLEMENTED.
+
 > 文档状态：Maintained implementation guide（实现参考，不替代产品/架构合同）
 > 初始整理日期：2026-09-07
 > 适用范围：M1-C 至 M7，重点覆盖 State、Water、Ice、Routing、Automation、History 与验证

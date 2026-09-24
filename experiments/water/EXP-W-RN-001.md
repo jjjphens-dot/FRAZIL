@@ -1,5 +1,8 @@
 # EXP-W-RN-001 — C3 bounded modal normalization
 
+> Historical scope and source-specific evidence below are retained unchanged. Current Water
+> definition acceptance, A1 versus A0/Preview and deferred work are indexed in [Water research](README.md).
+
 Status: ENGINEERING VALIDATED; explicit research candidate, not preview default or product adoption.
 Baseline: `24247c6`, following the reviewed [excitation comparison](EXP-W-RX-001.md).
 This work preserves C0 and the [unmodified C1/C2 failure record](../../docs/evidence/WATER_LISTENING_REMEDIATION.md).

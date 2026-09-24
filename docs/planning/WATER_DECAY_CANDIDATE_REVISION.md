@@ -1,5 +1,8 @@
 # Water Decay candidate revision — DOC-W-DECAY-001
 
+> Historical scope and source-specific evidence below are retained unchanged. Current Water
+> definition acceptance, A1 versus A0/Preview and deferred work are indexed in [Water research](../../experiments/water/README.md).
+
 > Scope: Revision A, controlled documentation only; proposal approved, v1.4 Approved Development Baseline effective upon PR #35 merge.<br>
 > Issue: [#32](https://github.com/jjjphens-dot/FRAZIL/issues/32). Baseline inspected: `origin/main@c7e68ce`, 2026-09-16.<br>
 > Input: user-provided Water Decay Candidate Macro Revision Plan and REQUEST_CHANGES remediation; no production adoption is recorded here.

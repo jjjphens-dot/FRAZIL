@@ -15,13 +15,16 @@ inline bool a1Capacity(std::size_t n) noexcept {
     return n == 64 || n == 128 || n == 256 || n == 512 || n == 1024;
 }
 
+enum class BubbleA1RiseModel { physicalDampingP0, effectiveDampingP1 };
+
 struct BubbleA1Config final {
     double radiusMinMm{.2}, radiusMaxMm{10};
     double populationGamma{2}, amplitudeRadiusExponent{1.5}, depthExponent{10};
     double persistenceScale{1}, maxEventRateHz{1000}, motionFactor{1};
-    double riseFactor{.1}, riseCutoff{.9};
+    double riseXi{.1}, riseCutoff{.9};
     double tailFloorDb{-80}, stealReleaseMs{1.5}, residualGain{.2};
     std::size_t voiceCapacity{256};
+    BubbleA1RiseModel riseModel{BubbleA1RiseModel::effectiveDampingP1};
     // A1-1/2 ablation only: fixed linked amplitude, still source-gated and stereo-linked.
     bool sourceEnergyAmplitude{true};
 };
@@ -51,9 +54,11 @@ class BubbleA1Model final {
             !a1Range(c.populationGamma, 0, 6) || !a1Range(c.amplitudeRadiusExponent, .75, 2.25) ||
             !a1Range(c.depthExponent, 1, 16) || !a1Range(c.persistenceScale, .25, 4) ||
             !a1Range(c.maxEventRateHz, 0, 10000) || !a1Range(c.motionFactor, 0, 1) ||
-            !a1Range(c.riseFactor, 0, .2) || !a1Range(c.riseCutoff, .8, 1) ||
+            !a1Range(c.riseXi, 0, .2) || !a1Range(c.riseCutoff, .8, 1) ||
             !a1Range(c.tailFloorDb, -100, -60) || !a1Range(c.stealReleaseMs, .5, 4) ||
-            !a1Range(c.residualGain, 0, 1) || !a1Capacity(c.voiceCapacity))
+            !a1Range(c.residualGain, 0, 1) || !a1Capacity(c.voiceCapacity) ||
+            (c.riseModel != BubbleA1RiseModel::physicalDampingP0 &&
+             c.riseModel != BubbleA1RiseModel::effectiveDampingP1))
             return false;
         double weightSum{}, amplitudeMoment{};
         for (std::size_t i = 0; i < kBins; ++i) {

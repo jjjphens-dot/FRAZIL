@@ -1,6 +1,6 @@
 # EXP-W-BA-001 — Bubble A1 independent population
 
-Status: ENGINEERING COMPLETE / RESEARCH ONLY / NOT ACCEPTED. UI integration is deferred by
+Status: REMEDIATION LOCALLY VALIDATED / RESEARCH ONLY / HUMAN NOT ASSESSED. UI integration is deferred by
 the current user instruction. Baseline: PR #40 `1444b4466a4bab8e1e60b59c399174d40f4f6491`.
 The accepted Revision B perceptual definition supplies rejection criteria, not DSP approval.
 ADR-0006 remains Proposed. No production or Host/state contract changes are authorized.
@@ -75,7 +75,7 @@ Physical damping is `0.13/R + 0.0072/pow(R,1.5)` per second; effective damping d
 this by persistence. This empirical fit is used only above its 0.15 mm lower limit.
 Surface tension, pressure changes with depth, nonlinear oscillation and propagation
 are omitted. Persistence other than one is an explicit nonphysical research scaling.
-The rendered signal is a calibrated oscillator proxy, not measured pressure in Pa or
+The rendered signal is a relative-amplitude oscillator proxy, not measured pressure in Pa or
 an absolute bubble-to-microphone transfer prediction. Large-radius bins still assume
 spherical independent oscillation; their availability does not prove real large bubbles
 remain spherical/stable. No measured geometry, depth, temperature or fluid velocity is
@@ -85,8 +85,13 @@ Engineering choices: 128 bins; probability proportional to `R^-gamma` per log bi
 size amplitude `(R/Rref)^alpha` normalized by its probability-weighted second moment.
 This removes distribution-dependent expected initial squared amplitude, not duration,
 perceived loudness, instantaneous peaks or event-rate loudness. No capacity divisor.
-Depth proxy `D=U^beta`; rise only above cutoff. Integrate instantaneous frequency
-`f0*(1+xi*dPhysical*t)` and cap at both `sqrt(2)*f0` and `0.45*fs`.
+Excitation proxy `D=U^beta` is not geometric depth; rise only above cutoff.
+P1 (current default) integrates `f0*(1+xi*dEffective*t)`, where
+`dEffective=dPhysical/persistenceScale=1/tauEffective`. P0 explicitly uses
+`f0*(1+xi*dPhysical*t)` for historical slope comparison. Both cap at `sqrt(2)*f0`
+and `0.45*fs`. P1 keeps rise over one effective lifetime equal to xi; P0 makes it
+xi times persistence. Both are approximate/stylized surface-rise models, not a
+simulation of vertical velocity, position, hydrostatic pressure or a moving interface.
 
 The requested per-sample probability `1-exp(-lambda/fs)` represents Poisson interval
 occupancy, with at most one event per sample. Actual mean is `fs*(1-exp(-lambda/fs))`,
@@ -106,7 +111,8 @@ controlled status/acceptance record is rewritten as part of this research experi
 
 ## Validation and handoff
 
-Local Debug/Release/ASAN27/27 each and final70-case render validation passed. Human listening, two independent reviewer decisions
+Historical pre-review Debug/Release/ASAN27/27 and70-case study-v2 results are preserved;
+remediation measurements are recorded separately in the execution record. Human listening, two independent reviewer decisions
 and production adoption are NOT RUN. Actual commands/results and the new legacy-path
 fault are in the [execution record](../../docs/evidence/WATER_BUBBLE_A1_EXECUTION.md).
 
@@ -116,11 +122,14 @@ fault are in the [execution record](../../docs/evidence/WATER_BUBBLE_A1_EXECUTIO
 linear-power knee times slow RMS, empty-window gate. Analysis bounds finite source
 channels to [-1,1]; neither source nor residual audio is clipped. Nonfinite analysis
 samples become zero; offline input rejects nonfinite/over-full-scale audio.
-Event carriers use per-channel window RMS divided by linked window RMS for stereo
-direction, signed by the strongest window sample with stable window-index ties.
-Their common amplitude is the square root of linked fast AR power (or fixed .25 in
-the ablation). Thus sustained low-frequency excitation does not collapse at a sample
-zero crossing. `source_energy_mean` reports this fast-power proxy. It is not spatial acoustic propagation or
+Event carriers select ONE 2 ms frame `i*=argmax(L[i]^2+R[i]^2)`; equal energies
+retain the lowest physical ring-buffer index. Its signed vector v is divided by
+`sqrt((vL*vL+vR*vR)/2)`; norm <=1e-12 yields zero. The common amplitude is
+`sqrt(linkedFastPower)` (fixed .25 for the amplitude ablation). Channel magnitudes
+and signs therefore come from the same instant, including quadrature/transients.
+No independent channel peak, phase, event scheduler or RNG is used. This preserves
+swap/dual-mono/anti-phase/isolation; it does not promise original wideband stereo
+correlation or perceived width. `source_energy_mean` reports this fast-power proxy. It is not spatial acoustic propagation or
 the original waveform. Events may continue for 2 ms after input ends, not through
 the detector's whole release. No delayed dry path or Host latency is added.
 
@@ -139,13 +148,15 @@ not per active voice per sample.
 | depthExponent | 1..16 | 10 |
 | persistenceScale | .25..4 | 1 |
 | maxEventRateHz / motionFactor | 0..10000 / 0..1 | 1000 / 1 |
-| riseFactor / riseCutoff | 0...2 / .8..1 | .1 / .9 |
+| riseXi / riseCutoff | 0...2 / .8..1 | .1 / .9 |
 | voiceCapacity | 64,128,256,512,1024 | 256 |
 | tailFloorDb / stealReleaseMs | -100..-60 / .5..4 | -80 / 1.5 |
 | residualGain | 0..1 | .2 |
 | fastAttackMs / fastReleaseMs | .5..5 / 10..80 | 1 / 30 |
 | slowAttackMs / slowReleaseMs | 10..80 / 80..500 | 30 / 200 |
 | activityFloorDbFS / activityKneeDb | -80..-40 / 3..12 | -60 / 6 |
+| version | required numeric 2 for supplied bubbleA1 objects | 2 |
+| riseModel | numeric 0=P0 physical slope, 1=P1 effective slope | 1 |
 | sourceEnergyAmplitude | numeric 0 or 1; ablation only | 1 |
 
 Overflow chooses least envelope-weighted amplitude (lowest slot tie), releases it
@@ -170,10 +181,10 @@ its sum has no limiter/normalizer. Other modes and preview imports reject `bubbl
 fields. Legacy A modes and omitted config remain A0. Example:
 
 ```json
-{"bubbleA1":{"radiusMinMm":0.2,"radiusMaxMm":10,"voiceCapacity":256}}
+{"bubbleA1":{"version":2,"radiusMinMm":0.2,"radiusMaxMm":10,"voiceCapacity":256}}
 ```
 
-`frazil_water_research_cases --bubble-a1` exports `bubble-a1-offline-v1`: Size moves
+`frazil_water_research_cases --bubble-a1` exports `bubble-a1-offline-v2`: Size moves
 radius endpoints `.2*10^s` and `2*25^s` mm, Motion sets `m*m`, Decay sets persistence
 `4^(2*d-1)`. Other fields retain defaults. No import/overwrite of v0.2/session v5.
 
@@ -181,7 +192,8 @@ radius endpoints `.2*10^s` and `2*25^s` mm, Motion sets `m*m`, Decay sets persis
 historical default; A1-1 uses physical radius/damping, flat bins, fixed linked RMS .25
 and no rise; A1-2 adds gamma2; A1-3 adds source energy; A1-4 adds selective rise.
 Fixed-amplitude ablations still retain source gating and stereo direction.
-Per source: five ablations, nine macro cases, repeat/block257 checks, raw residual,
+Per source: A0, four ablations, two named baselines, six P0/P1 persistence cases and
+nine macro cases (22 total), repeat/block257 checks, raw residual,
 and `(x+E)*10^(-18/20)` references. Post-render RMS matching only attenuates to the
 quietest source-window RMS, with gains recorded. Motion0 makes that matched triplet
 unassessable. Matching is not LUFS/perceptual equality or preservation evidence.
@@ -207,3 +219,77 @@ paths remain local/ignored. Timing: 44.1/48/96 kHz, five capacities, default/den
 profiles, block128, 500 warmup and 3000 measured calls, nearest-rank P95/P99. Active
 mean/peak are sampled at block ends. This is research wall time, not device callback,
 Host or formal budget acceptance. Event-time setup and detector math are timed.
+
+## Version and baseline identity
+
+Supplied `bubbleA1` objects MUST contain `version:2`. Missing/v1 versions and the old
+`riseFactor` key reject before output creation. `riseXi` is dimensionless; the typed
+`depthExcitationProxy` is dimensionless D, and `depthExponent` remains its empirical
+shape parameter. No meters are inferred. `riseModel:0` chooses P0 with the corrected
+shared-frame carrier; it does NOT recreate the old stereo defect. Reproduce exact
+v1 audio at commit `1bc69476251851363189817a42735e62e8987916` with its v1 configs.
+No public Host/state/session compatibility is changed. An explicit a1 mode with no
+config uses current P1 physical-reference defaults; legacy a modes remain A0.
+
+| Baseline name | Radius mm | Motion factor | Persistence | Meaning |
+| --- | --- | --- | --- | --- |
+| A1-PHYS-REF | .2..10 | 1 | 1 | Raw physical-reference configuration; gamma2, alpha1.5, beta10, xi.1, cutoff.9, rate1000, gain.2, cap256 |
+| A1-MACRO-NEUTRAL | .632455532..10 | .25 | 1 | Offline Size/Motion/Decay=.5/.5/.5; other physical-reference fields retained |
+
+These are deliberately different configurations. Macro neutral is not the raw
+physical baseline. Neither is a perceptually accepted product default. The v2
+exporter is authoritative for the macro curves; Python does not duplicate them.
+
+## Physics Provenance Matrix
+
+Source keys refer to the primary-source links above. Categories distinguish physical
+approximations, empirical hypotheses, source coupling, product mapping and engineering.
+
+| Element | Category / source | Implemented meaning and limit |
+| --- | --- | --- |
+| Minnaert frequency | Physical approximation; Minnaert via van den Doel and Phillips eq2 | SI radius, pressure/density/kappa; isolated spherical small oscillations in unbounded liquid |
+| Radius-dependent damping | Empirical physical approximation; van den Doel eq3 | Normal water/air fit above .15mm; no separately solved viscous/thermal/radiation losses |
+| Relative R^1.5 amplitude | Physical scaling assumption; van den Doel eq4/6 | Radius-independent initial inward velocity assumption; normalized relative amplitude, not calibrated Pa/SPL |
+| D=U^beta and cutoff | Empirical population/formation proxy; van den Doel eq7 | Lumped attenuation/excitation, not metric depth; beta10/cutoff.9 are retained research choices |
+| R^-gamma log-bin probabilities | Empirical statistical population; van den Doel eq8 | Adjustable relative rates; gamma2 is not a measured FRAZIL water distribution |
+| 128 log-radius bins | Engineering discretization | Paper demonstrates50;128 is not a literature-required threshold or fidelity guarantee |
+| One exponential occupancy trial/sample | Engineering approximation to paper Poisson populations | Mean fs*(1-exp(-lambda/fs)); one-event ceiling, not exact Poisson counts |
+| P1/P0 pitch rise | Empirical acoustic cue; van den Doel section4 | P1 xi times effective damping; P0 historical physical-damping slope; both integrated/capped, neither geometry solver |
+| sqrt(2) and .45fs caps | Approximate surface limit plus engineering bandwidth guard | No interface crossing/popping dynamics or proof of alias-free modulation |
+| Shared power/activity and carrier | FRAZIL source-coupling engineering | One observed stereo frame, linked AR power, source gate; music is not fluid forcing data |
+| Size endpoints / Motion squared | Product research mapping | Offline candidate curves, not physics or accepted Host macros |
+| Persistence scale | Nonphysical research control | Multiplies tau; P1 keeps relative rise consistent, does not turn persistence into a physical fluid property |
+| Gain .2 / moment normalization | Engineering calibration | Capacity independent initial-energy normalization; no loudness or integrated-energy equivalence |
+| 64/128/256/512/1024 capacities | Engineering resource controls | Default256;512 stress,1024 dense96k high-cost stress; commercial FOAM is no physical validation |
+| Active list / retirement / stealing | Engineering bounded lifecycle | Tail floor,30s guard, release/replacement/drop counters; no claim of physical bubble extinction |
+| Geometry / boundary transfer | Not implemented; Harmonic Fluids / Complex Bubbles | No shape, moving surface/solid boundary, cavity transfer or bubble-to-ear model |
+| Entrainment / splitting / merging / popping | Not implemented; Complex Bubbles | Stochastic arrivals replace fluid topology/forcing; no physical creation/extinction process |
+| Coupled bubble clouds | Not implemented; Coupled Bubbles | More independent voices cannot reproduce collective low-frequency modes |
+| Underwater-to-air radiation | Not implemented; Phillips2018 | Surface-driven airborne sound is distinct from simply transmitting underwater pressure |
+
+The cited synthesis work is a physical/empirical hybrid. Literature provenance does
+not make source coupling, product curves or finite resource policies physical laws.
+Primary audit on remediation: van den Doel full manuscript sections3-6 and Phillips
+full Results/Frequency/Propagation sections verified; 2009/2016/2023 author abstracts
+verified, linked PDF retrieval failed. Original1933 full text and FOAM official page
+remain inaccessible. Commercial marketing is excluded from quantitative validation.
+
+## Remaining physical gaps and layered maturity
+
+| Layer / gap | Status | Evidence boundary / next prerequisite |
+| --- | --- | --- |
+| Single-bubble core frequency/damping | PASS within declared approximation | Analytic SI/oscillator tests; no measured FRAZIL acoustic fit |
+| Population synthesis | PARTIAL | Independent empirical log-bin distribution, no measured entrainment statistics |
+| Arrival process | APPROXIMATE | Discrete occupancy bias retained and tested; no exact-count claim |
+| Source coupling / stereo | ENGINEERING VALIDATED within tests | Shared-frame/event trajectory, finite/partition/swap properties; human width/identity NOT ASSESSED |
+| Baseline identity | EXPLICIT | PHYS-REF and MACRO-NEUTRAL named separately; no silent v1 adoption |
+| Capacity and CPU | MEASURED, NOT universally realtime-safe | All five capacities retained; per-device stress observations cannot establish Host deadline guarantees |
+| Geometry / fluid topology | NOT IMPLEMENTED | Needs independently scoped fluid/shape/creation model |
+| Propagation / radiation | NOT IMPLEMENTED | Needs transfer and surface-radiation model, not gain tuning |
+| Bubble coupling / collective low end | NOT IMPLEMENTED | Needs coupled dynamics; voice count alone is insufficient |
+| Full water/fluid simulation | NOT ACHIEVED | No claim that A1 reproduces the whole physical water process |
+| Perceptual / production acceptance | NOT ASSESSED / NOT ADOPTED | Sound Lead and independent listening, later formal gates |
+
+Do not tune gamma, gain, radii, beta, rate or cutoff merely to improve numeric metrics.
+Quiet microbubble-dominant defaults and rare rise remain listening risks. A1 review
+stops here; Droplet/Flow/Resonant redesign, A2 coupling and UI require later scope.
