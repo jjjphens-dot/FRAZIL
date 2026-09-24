@@ -1,5 +1,7 @@
 # Research Water Mapping v0.2
 
+B1 uses separate `droplet-b1-offline-v1` Size/Decay candidates documented in [EXP-W-DB-001](../EXP-W-DB-001.md). Its core accepts radius/persistence/admission, not product IDs. M0-A strict calm and M0-B onset-preserving calm remain unaccepted comparisons; no Motion curve is adopted. This v0.2 mapping and session v5 remain unchanged.
+
 [Bubble A1](../EXP-W-BA-001.md) has a separate explicit `bubble-a1-offline-v2` exporter
 candidate. It does not replace these curves or migrate session v5. UI integration is deferred.
 

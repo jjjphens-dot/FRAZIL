@@ -1,5 +1,7 @@
 # FRAZIL 分阶段 Coding Plan
 
+Physical-model implementation work additionally follows [DSP Physical Model Governance](DSP_PHYSICAL_MODEL_GOVERNANCE.md). This traceability rule adds no milestone, changes no sequencing/acceptance gate, and does not promote research algorithms.
+
 > 版本：1.4（Water Decay candidate revision）<br>
 > 状态：Approved Development Baseline，随 PR #35 合入 main 生效（effective upon merge）<br>
 > 日期：2026-09-16

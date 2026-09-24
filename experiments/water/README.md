@@ -6,6 +6,8 @@ does not accept a DSP implementation. Production Water remains NOT IMPLEMENTED.
 
 | Current question | Authoritative entry |
 | --- | --- |
+| Droplet B1 modular physics, descriptor and source-event contract | [EXP-W-DB-001](EXP-W-DB-001.md), [physical governance](../../docs/DSP_PHYSICAL_MODEL_GOVERNANCE.md) |
+| B1 actual tests, renders, performance and handoff | [B1 execution](../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md) |
 | Bubble A1 candidate, physics provenance, P1/P0, v2 config and two named baselines | [EXP-W-BA-001](EXP-W-BA-001.md) |
 | A1 actual tests, performance, study-v3 and limitations | [Execution evidence](../../docs/evidence/WATER_BUBBLE_A1_EXECUTION.md) |
 | A0 legacy control, existing B/D/C and renderer commands | [Research module README](SPIKE-W-DSP-001/README.md) |
@@ -15,7 +17,7 @@ does not accept a DSP implementation. Production Water remains NOT IMPLEMENTED.
 | Original human intent, corrections and accepted definition attribution | [Listening log](LISTENING_LOG.md), [initial Round01](ROUND_01_COMMON_WATER.md) |
 | Document disposition and removed-file replacements | [Consolidation audit](../../docs/evidence/WATER_DOCUMENT_AUDIT.md) |
 
-Retained research, with no new adoption: [Droplet activity](EXP-W-DA-001.md),
+Retained research, with no new adoption: [historical B0 Droplet activity](EXP-W-DA-001.md),
 [Fluid balance](EXP-W-LCF-001.md), [Resonant excitation](EXP-W-RX-001.md),
 [normalization](EXP-W-RN-001.md), [Motion](EXP-W-RM-001.md),
 [phase ledger](../../docs/evidence/WATER_DSP_LISTENING_EXECUTION.md),
@@ -30,6 +32,6 @@ Historical engineering: [original spike](SPIKE-W-DSP-001/EVIDENCE.md),
 [Decay revision](../../docs/planning/WATER_DECAY_CANDIDATE_REVISION.md),
 [Protect proposal](../../docs/planning/WATER_PROTECT_CANDIDATE_REVISION.md).
 
-Deferred: A1 UI/session/Host integration; Droplet/Flow/Resonant redesign; A2 geometry,
-radiation/coupling; product adoption and Ice. A1 work stops at Sound Lead review with
+Deferred: A1/B1 UI/session/Host integration; Flow/Resonant redesign; A2 geometry,
+radiation/coupling; product adoption and Ice. A1/B1 work stops at Sound Lead review with
 two independent blank forms; no numeric result supplies a listening decision.

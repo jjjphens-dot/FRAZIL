@@ -900,3 +900,18 @@ visibility and lifecycle counters; results are in the Water phase record. The op
 `frazil_water_performance --preview-monitor-study` includes normal/solo/driver transitions for
 Fluid and both explicit C3 paths at three Motion and three Decay values; this is research wall
 time, not formal performance acceptance or device callback/Host proof.
+
+## Droplet B1 research validation
+
+[EXP-W-DB-001](../experiments/water/EXP-W-DB-001.md) is the canonical model contract.
+CTest adds independent physics, onset, lifecycle/stereo/isolation, allocation observation
+and actual CLI/descriptor tests. Required rates44.1/48/96kHz and partitions
+1/7/32/64/128/256/257/512/1024 are engineering checks, not human acceptance.
+The descriptor must equal `experiments/water/contracts/droplet-b1-v1.json`;
+unknown versions, derived writable fields and invalid bounds reject before output.
+The separate B1 study compares B0, physical reference, bounded hypotheses and A1/B1/D0
+integration with blank human forms. Before/after decoded A1 and legacy render identity
+is required locally. No CI result alone proves before/after identity against an absent
+historical binary. Timing includes mean/P95/P99/worst, occupancy and isolated start cost.
+Run Debug/Release/ASAN serially through build_safe with existing research opt-ins.
+Actual commands/results and limitations: [B1 execution](evidence/WATER_DROPLET_B1_EXECUTION.md).

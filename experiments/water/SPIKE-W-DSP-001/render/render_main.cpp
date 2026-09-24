@@ -1,5 +1,7 @@
+#include "DropletB1Descriptor.h"
 #include "ReadConfig.h"
 #include "dsp/BubbleA1.h"
+#include "dsp/DropletB1.h"
 #include "dsp/ResearchBaseline.h"
 
 #include <charconv>
@@ -18,12 +20,17 @@ template <typename Integer> bool parse(std::string_view text, Integer& value) {
 }
 
 int render(int argc, char** argv) {
+    if (argc == 2 && std::string_view(argv[1]) == "--describe-droplet-b1") {
+        std::cout << juce::JSON::toString(dropletB1Descriptor()).toStdString() << '\n';
+        return 0;
+    }
     if (argc < 6 || argc > 13) {
         std::cerr << "Usage: renderer input.wav NEW-output.wav mode block seed [config.json|-] "
                      "[tail-seconds] [NEW-protect-trace.csv|-] [raw|hard|softsign|tanh|feature] "
                      "[NEW-excitation.wav|-] [c0|c3] [independent|structured]\n"
                      "Modes: baseline, residual (zero), a, b, d, ab, ad, bd, abd, c; append "
-                     "-residual for E only. Offline A1 modes: a1, a1b, a1d, a1bd.\n";
+                     "-residual for E only. Offline A1 modes: a1, a1b, a1d, a1bd. "
+                     "B1 modes: b1, a1b1, a1b1d. Descriptor: --describe-droplet-b1.\n";
         return 2;
     }
     std::string_view mode(argv[3]);
@@ -33,9 +40,11 @@ int render(int argc, char** argv) {
         mode.remove_suffix(9);
     }
     const bool baselineMode = mode == "baseline" || mode == "residual";
-    const bool a1Mode = mode == "a1" || mode == "a1b" || mode == "a1d" || mode == "a1bd";
+    const bool b1Mode = mode == "b1" || mode == "a1b1" || mode == "a1b1d";
+    const bool a1Mode = mode == "a1" || mode == "a1b" || mode == "a1d" || mode == "a1bd" ||
+                        mode == "a1b1" || mode == "a1b1d";
     if (!baselineMode && mode != "a" && mode != "b" && mode != "d" && mode != "ab" &&
-        mode != "ad" && mode != "bd" && mode != "abd" && mode != "c" && !a1Mode)
+        mode != "ad" && mode != "bd" && mode != "abd" && mode != "c" && !a1Mode && !b1Mode)
         return 2;
     ModalExcitation excitationMode{ModalExcitation::raw};
     if (argc >= 10 && (mode != "c" || !parseModalExcitation(argv[9], excitationMode)))
@@ -80,16 +89,18 @@ int render(int argc, char** argv) {
     ModalConfig modalConfig;
     ProtectRenderConfig protectConfig;
     BubbleA1RenderConfig a1Config;
+    DropletB1RenderConfig b1Config;
     if (argc >= 7 && std::string_view(argv[6]) != "-" &&
-        !readConfig(cwd.getChildFile(argv[6]), fluidConfig, modalConfig, &protectConfig,
-                    &a1Config)) {
+        !readConfig(cwd.getChildFile(argv[6]), fluidConfig, modalConfig, &protectConfig, &a1Config,
+                    &b1Config)) {
         std::cerr << "Invalid research config\n";
         return 2;
     }
-    if ((!a1Mode && a1Config.supplied) || (a1Mode && protectConfig.depth != 0))
+    if ((!a1Mode && a1Config.supplied) || (!b1Mode && b1Config.supplied) ||
+        ((a1Mode || b1Mode) && protectConfig.depth != 0))
         return 2; // Explicit model selection, raw A1 sum only in this experiment.
     fluidConfig.bubbleEnabled = !a1Mode && mode.find('a') != std::string_view::npos;
-    fluidConfig.dropletEnabled = mode.find('b') != std::string_view::npos;
+    fluidConfig.dropletEnabled = !b1Mode && mode.find('b') != std::string_view::npos;
     fluidConfig.flowEnabled = mode.find('d') != std::string_view::npos;
     auto inputStream = input.createInputStream();
     if (!inputStream)
@@ -105,6 +116,7 @@ int render(int argc, char** argv) {
     FluidCandidate fluid;
     // Fixed DSP storage is allocated once here, outside the processing loop and Windows stack.
     auto a1 = a1Mode ? std::make_unique<BubbleA1>() : nullptr;
+    auto b1 = b1Mode ? std::make_unique<DropletB1>() : nullptr;
     LiquidModalResonator modal;
     // Explicit CLI comparison options override module fields; omission preserves typed config.
     if (argc < 10)
@@ -120,7 +132,8 @@ int render(int argc, char** argv) {
                           : mode == "c" ? modal.prepare(config, modalConfig, excitationMode,
                                                         normalization, motionModel)
                                         : fluid.prepare(config, fluidConfig);
-    if (!prepared || (a1 && !a1->prepare(config, a1Config.bubble, a1Config.analysis)))
+    if (!prepared || (a1 && !a1->prepare(config, a1Config.bubble, a1Config.analysis)) ||
+        (b1 && !b1->prepare(config, b1Config.droplet)))
         return 2;
     // Optional diagnostic trace is offline-only, outside DSP and timing; refuse any overwrite.
     std::unique_ptr<juce::FileOutputStream> trace;
@@ -169,6 +182,8 @@ int render(int argc, char** argv) {
     bool observedFlow{};
     double a1RateSum{}, a1ActivitySum{}, a1EnergySum{}, a1ActiveSum{}, a1Peak{}, a1SquareSum{};
     std::size_t a1PeakActive{};
+    double b1ActiveSum{};
+    std::size_t b1PeakActive{};
     // Offline observations only: never placed inside the DSP or timed callback harness.
     std::uint64_t bubbleSilentEvents{}, dropletSilentEvents{};
     juce::int64 bubbleFirstFrame{-1}, dropletFirstFrame{-1};
@@ -188,7 +203,7 @@ int render(int argc, char** argv) {
             StereoFrame effect{};
             const double gain = protect.processSource(frame);
             const auto beforeBubble = a1 ? a1->pool().counters().started : fluid.bubbleEvents();
-            const auto beforeDroplet = fluid.dropletEvents();
+            const auto beforeDroplet = b1 ? b1->pool().counters().started : fluid.dropletEvents();
             if (mode == "c")
                 effect = ResidualProtect::apply(modal.process(frame), gain);
             else if (!baselineMode) {
@@ -204,6 +219,11 @@ int render(int argc, char** argv) {
                         a1Peak = std::max(a1Peak, std::abs(double(x)));
                         a1SquareSum += double(x) * x;
                     }
+                }
+                if (b1) {
+                    components.droplet = b1->process(frame);
+                    b1ActiveSum += b1->pool().active();
+                    b1PeakActive = std::max(b1PeakActive, b1->pool().active());
                 }
                 effect = applyFluidProtect(components, gain, protectConfig.topology);
             } else if (!baseline.processResidual(frame, effect))
@@ -237,7 +257,8 @@ int render(int argc, char** argv) {
             }
             const auto newBubble =
                 (a1 ? a1->pool().counters().started : fluid.bubbleEvents()) - beforeBubble;
-            const auto newDroplet = fluid.dropletEvents() - beforeDroplet;
+            const auto newDroplet =
+                (b1 ? b1->pool().counters().started : fluid.dropletEvents()) - beforeDroplet;
             if (frame == StereoFrame{}) {
                 bubbleSilentEvents += newBubble;
                 dropletSilentEvents += newDroplet;
@@ -282,7 +303,7 @@ int render(int argc, char** argv) {
               << " dc=" << dcSum / samples
               << " residual_rms=" << std::sqrt(residualSquareSum / samples)
               << " bubble_events=" << (a1 ? a1->pool().counters().started : fluid.bubbleEvents())
-              << " droplet_events=" << fluid.dropletEvents()
+              << " droplet_events=" << (b1 ? b1->pool().counters().started : fluid.dropletEvents())
               << " flow_final_delay_samples=" << fluid.flowDelaySamples()
               << " flow_input_min_samples=" << flowMinimum
               << " flow_input_max_samples=" << flowMaximum
@@ -314,6 +335,28 @@ int render(int argc, char** argv) {
         for (std::size_t i = 0; i < 128; ++i)
             std::cout << (i ? "," : "") << counters.lifetimeHistogram[i];
         std::cout << '\n';
+    }
+    if (b1) {
+        const auto& c = b1->counters();
+        const auto& v = b1->pool().counters();
+        const auto& p = b1->physics();
+        const auto& last = b1->pool().lastStarted();
+        std::cout << "droplet_model=B1 eligible=" << c.eligible << " admitted=" << c.admitted
+                  << " queued=" << c.queued << " started=" << v.started
+                  << " rejectedByAdmission=" << c.rejectedByAdmission
+                  << " droppedByPendingCapacity=" << c.droppedByPendingCapacity
+                  << " droppedByVoiceCapacity=" << v.droppedByVoiceCapacity
+                  << " steals=" << v.steals << " completed=" << v.completed
+                  << " pending_peak=" << c.pendingPeak
+                  << " active_mean=" << b1ActiveSum / totalFrames << " active_peak=" << b1PeakActive
+                  << " frequency_hz=" << p.frequencyHz
+                  << " damping_per_second=" << p.dampingPerSecond
+                  << " physicalAmplitudeScale=" << p.physicalAmplitudeScale
+                  << " renderAmplitudeScale=" << p.renderAmplitudeScale
+                  << " lastStartedSourceExcitation=" << last.impact.sourceExcitation
+                  << " lastStartedRenderAmplitude="
+                  << last.physics.renderAmplitudeScale * last.impact.sourceExcitation * last.gain
+                  << '\n';
     }
     if (mode == "c") {
         const auto& readout = modal.normalizationReadout();

@@ -1,5 +1,7 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+[Droplet B1](../EXP-W-DB-001.md) is an explicit offline-only causal entrained-bubble candidate. `b1`, `b1-residual`, `a1b1`, `a1b1d` select it; legacy `b/bd/abd` remain B0. `--describe-droplet-b1` emits the code-generated v1 contract. Configuration, sources, commands and actual validation: [B1 execution](../../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md). No Preview/session or production adoption.
+
 Current navigation: [Water research index](../README.md). Preview/Fluid retain A0;
 B/D/C and Protect keep their existing research behavior. Production Water is NOT IMPLEMENTED.
 

@@ -1,5 +1,7 @@
 # FRAZIL agent 协作与工程执行规范
 
+新增物理模型工作须遵守 [DSP Physical Model Governance](docs/DSP_PHYSICAL_MODEL_GOVERNANCE.md)：明确 PHYSICAL / REDUCED_PHYSICAL_MODEL / PRODUCT_MAPPING / ENGINEERING 分类及公式→代码→独立测试追溯。此规则不放宽下文 realtime、文档、感知验收或生产采纳门槛。
+
 本文件约束所有在本仓库内工作的自动化 agent 与开发者。产品与架构真相以 `docs/FRAZIL_PROJECT_ARCHITECTURE_v0.3.md` 为总纲；阶段顺序、依赖和验收门槛以 `docs/CODING_PLAN.md` 为准。若两者冲突，先停止扩大实现范围，新增或更新 ADR，再同步相关文档。
 
 ## 0. 哈希计算默认禁用

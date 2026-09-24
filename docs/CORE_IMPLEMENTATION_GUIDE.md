@@ -484,29 +484,24 @@ Nyquist margin、reset/tail 和 denormal policy。independent oscillators 是 v1
 
 #### 5.3.2 Droplet/Impact Exciter（B）
 
-> EXPERIMENT CANDIDATE — NOT PRODUCTION IMPLEMENTATION
+B0 remains the legacy transient/frequency-family resonator used by Preview/session v5.
+The separate [B1 contract](../experiments/water/EXP-W-DB-001.md) describes the explicit
+source onset → virtual impact → admission → pinch-off delay → equivalent bubble
+oscillation → relative volume-acceleration residual. The characteristic liquid cue
+is motivated by Phillips' measured entrainment sequence; audio onset, admission and
+fixed delay are reduced/engineering surrogates, not reconstructed drop kinematics.
 
-事件率 `lambda` 对应每 sample 概率：
+Frequency and natural damping derive from acoustic radius. Persistence is an explicit
+nonphysical factor. Source excitation replaces unknown fluid velocity only as a
+labelled dimensionless proxy. The fixed pool owns lifecycle, not physical selection.
+Raw versus normalized amplitude and displacement versus acceleration remain explicit
+ablation choices. Full equations, limits and independent test ownership live in the
+canonical B1 contract to avoid duplicated numeric authority. The old stochastic
+trigger sketch is not the implemented B0 or B1 detector.
 
-\[
-p=1-e^{-\lambda/f_s}
-\]
-
-仅在输入包络或瞬态满足条件时触发：
-
-\[
-trigger=(u<p)\land(e>\theta)
-\]
-
-事件幅度绑定输入并有硬上界：
-
-\[
-A=\min(A_{max},ke^\gamma)
-\]
-
-事件用于激发短衰减 resonator，而不是播放独立采样。实现使用固定容量 voice pool，明确最大 voice
-数、幅度、事件密度和 deterministic voice stealing。Bubble 与 Droplet/Impact 在物理参考和感知贡献上
-不得被无证据合并为同一个“随机水声”旋钮。
+B1 is RESEARCH ONLY. A1 is not tuned; B0/D0/C/Protect behavior and production contracts
+remain unchanged. Follow [physical governance](DSP_PHYSICAL_MODEL_GOVERNANCE.md),
+not a claim of full CFD, free-surface radiation, absolute SPL or product acceptance.
 
 #### 5.3.3 Flow Modulator（D）
 

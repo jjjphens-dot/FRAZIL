@@ -37,6 +37,7 @@
 | `PERCEPTUAL_CONTRACT.md` / `templates/PERCEPTUAL_CONTRACT_TEMPLATE.md` | Level 2/3 | 维护 Human -> Contract -> Experiment -> Evidence -> Decision 规则；实例和 objective proxies 不得冻结 DSP 或冒充听感真值 |
 | `PROJECT_STATUS.md` | Level 4 | 只写已核验的当前事实、证据和明确的未验证项 |
 | `docs/adr/*` | Level 1/2 | Accepted Decision 不原地改写；新决策通过 supersedes 链接演进 |
+| `DSP_PHYSICAL_MODEL_GOVERNANCE.md` | Level 2 | Physical/reduced/product/engineering classification, provenance, independent equations/tests and descriptor traceability; does not accept an algorithm |
 | `CODE_STANDARDS.md` / 本文件 | Level 2 | 质量、治理和修改流程变更需同步 Agent/计划/模块文档 |
 | `MODULE_INDEX.md` / `src/*/README.md` | Level 3 | 随实现维护；公共接口事实必须回链 Level 2 合同 |
 

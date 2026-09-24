@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dsp/BubbleA1Model.h"
+#include "dsp/DropletB1Config.h"
 #include "dsp/FluidCandidate.h"
 #include "dsp/FluidProtect.h"
 #include "dsp/LiquidModalResonator.h"
@@ -27,6 +28,11 @@ struct ProtectRenderConfig final {
 struct BubbleA1RenderConfig final {
     BubbleA1Config bubble;
     SharedExcitationConfig analysis;
+    bool supplied{};
+};
+
+struct DropletB1RenderConfig final {
+    DropletB1Config droplet;
     bool supplied{};
 };
 
@@ -199,7 +205,8 @@ inline bool readNumbers(const juce::var& value,
 // Callers without a Protect destination reject that module rather than silently discarding it.
 inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfig& modal,
                            ProtectRenderConfig* protect = nullptr,
-                           BubbleA1RenderConfig* a1 = nullptr) {
+                           BubbleA1RenderConfig* a1 = nullptr,
+                           DropletB1RenderConfig* b1 = nullptr) {
     if (text.empty() || text.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()))
         return false;
     if (text.starts_with("\xef\xbb\xbf"))
@@ -227,7 +234,34 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
         return false;
     for (const auto& property : root.getDynamicObject()->getProperties()) {
         const auto name = property.name.toString();
-        if (name == "bubbleA1") {
+        if (name == "dropletB1") {
+            if (!b1)
+                return false; // Preview/session cannot adopt B1 through a module import.
+            double version = 0;
+            for (const auto& field : property.value.getDynamicObject()->getProperties()) {
+                if (!field.value.isInt() && !field.value.isInt64() && !field.value.isDouble())
+                    return false;
+                const double value = static_cast<double>(field.value);
+                if (!std::isfinite(value))
+                    return false;
+                if (field.name.toString() == "version") {
+                    version = value;
+                    continue;
+                }
+                bool found = false;
+                for (std::size_t i = 0; i < kB1Parameters.size(); ++i)
+                    if (field.name.toString() == kB1Parameters[i].name.data()) {
+                        b1->droplet.values[i] = value;
+                        found = true;
+                        break;
+                    }
+                if (!found)
+                    return false;
+            }
+            if (version != 1 || !b1->droplet.valid())
+                return false;
+            b1->supplied = true;
+        } else if (name == "bubbleA1") {
             if (!a1)
                 return false; // Preview/session imports cannot silently adopt offline A1.
             auto& c = a1->bubble;
@@ -356,12 +390,13 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
 }
 
 inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,
-                       ProtectRenderConfig* protect = nullptr, BubbleA1RenderConfig* a1 = nullptr) {
+                       ProtectRenderConfig* protect = nullptr, BubbleA1RenderConfig* a1 = nullptr,
+                       DropletB1RenderConfig* b1 = nullptr) {
     juce::MemoryBlock bytes;
     if (!file.existsAsFile() || !file.loadFileAsData(bytes))
         return false;
     return readConfigText({static_cast<const char*>(bytes.getData()), bytes.getSize()}, fluid,
-                          modal, protect, a1);
+                          modal, protect, a1, b1);
 }
 
 inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,

@@ -1,5 +1,7 @@
 # FRAZIL Module Index
 
+B1 research addition: [EXP-W-DB-001](../experiments/water/EXP-W-DB-001.md) owns the separate onset → source coupler → entrainment → pending queue → bubble voice/emission → fixed pool chain. `physics/BubblePhysics.h` currently serves B1 only. Explicit offline renderer/descriptor adapters are outside Preview and production; A1/B0/D0/C are retained. See the contract for responsibilities and independent test owners.
+
 Current authority: [Water research index](../experiments/water/README.md).
 SharedExcitationAnalyzer has no BubbleA1Model dependency; it owns linked power and
 one joint-peak stereo frame. A1 model/pool own P1/P0 event trajectories. A0 is the

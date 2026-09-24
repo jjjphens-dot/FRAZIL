@@ -1,5 +1,7 @@
 # FRAZIL 当前实现与差距
 
+B1 branch work: [Droplet B1](../experiments/water/EXP-W-DB-001.md) is a separate offline research candidate. Validation and limitations are recorded only in [B1 execution](evidence/WATER_DROPLET_B1_EXECUTION.md). Human listening and product adoption remain NOT ASSESSED; Preview/session v5 still uses A0/B0/D0. Historical B0 evidence below is not B1 evidence.
+
 Current Water distinction: EXP-W-001 Revision B is ACCEPTED for perceptual definition.
 A1 v2 is an engineering review candidate, HUMAN NOT ASSESSED, production NOT IMPLEMENTED.
 PHYS-REF and MACRO-NEUTRAL differ; Preview uses A0. B/D/C and Protect research behavior

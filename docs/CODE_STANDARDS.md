@@ -1,5 +1,7 @@
 # FRAZIL Code Quality Standards
 
+New physical-model work follows [DSP Physical Model Governance](DSP_PHYSICAL_MODEL_GOVERNANCE.md): one primary classification per equation/parameter, explicit approximation limits, code/test traceability and independent oracles. This supplements existing quality/realtime gates; it does not authorize production adoption.
+
 ## 1. Scope and rule
 
 本规范适用于 `src/`、`tests/`、生产工具和所有后续 agent。它把“功能工作正常”与“代码可维护、可审查、可实时运行”分开：代码只有在功能验证、Code Quality Review 和 Comment & Documentation Pass 都完成后才能标记 Done。

@@ -1,0 +1,189 @@
+{
+  "model": "droplet-b1",
+  "modelVersion": 1,
+  "configVersion": 1,
+  "parameters": [
+    {
+      "name": "equivalentBubbleRadiusMm",
+      "unit": "mm",
+      "classification": "PHYSICAL",
+      "minimum": 0.2,
+      "maximum": 7.0,
+      "default": 2.0,
+      "writable": true
+    },
+    {
+      "name": "persistenceScale",
+      "unit": "ratio",
+      "classification": "PRODUCT_MAPPING",
+      "minimum": 0.25,
+      "maximum": 4.0,
+      "default": 1.0,
+      "writable": true
+    },
+    {
+      "name": "entrainmentProbability",
+      "unit": "probability",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 1.0,
+      "writable": true
+    },
+    {
+      "name": "pinchOffDelayMs",
+      "unit": "ms",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 8.0,
+      "maximum": 40.0,
+      "default": 24.0,
+      "writable": true
+    },
+    {
+      "name": "onsetRatioDb",
+      "unit": "dB",
+      "classification": "ENGINEERING",
+      "minimum": 3.0,
+      "maximum": 12.0,
+      "default": 6.0,
+      "writable": true
+    },
+    {
+      "name": "rearmHysteresisDb",
+      "unit": "dB",
+      "classification": "ENGINEERING",
+      "minimum": 1.0,
+      "maximum": 6.0,
+      "default": 3.0,
+      "writable": true
+    },
+    {
+      "name": "minOnsetSpacingMs",
+      "unit": "ms",
+      "classification": "ENGINEERING",
+      "minimum": 8.0,
+      "maximum": 80.0,
+      "default": 20.0,
+      "writable": true
+    },
+    {
+      "name": "sourceFloorDbFS",
+      "unit": "dBFS",
+      "classification": "ENGINEERING",
+      "minimum": -80.0,
+      "maximum": -40.0,
+      "default": -60.0,
+      "writable": true
+    },
+    {
+      "name": "riseXi",
+      "unit": "ratio",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0.0,
+      "maximum": 0.1,
+      "default": 0.0,
+      "writable": true,
+      "choices": [
+        0.0,
+        0.05,
+        0.1
+      ]
+    },
+    {
+      "name": "residualGain",
+      "unit": "linear",
+      "classification": "ENGINEERING",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 0.15,
+      "writable": true
+    },
+    {
+      "name": "tailFloorDb",
+      "unit": "relative envelope dB",
+      "classification": "ENGINEERING",
+      "minimum": -100.0,
+      "maximum": -60.0,
+      "default": -80.0,
+      "writable": true
+    },
+    {
+      "name": "stealReleaseMs",
+      "unit": "ms",
+      "classification": "ENGINEERING",
+      "minimum": 0.5,
+      "maximum": 4.0,
+      "default": 1.5,
+      "writable": true
+    },
+    {
+      "name": "voiceCapacity",
+      "unit": "voices",
+      "classification": "ENGINEERING",
+      "minimum": 16.0,
+      "maximum": 256.0,
+      "default": 32.0,
+      "writable": true,
+      "choices": [
+        16.0,
+        32.0,
+        64.0,
+        128.0,
+        256.0
+      ]
+    },
+    {
+      "name": "amplitudePolicy",
+      "unit": "0=raw,1=normalized",
+      "classification": "ENGINEERING",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 0.0,
+      "writable": true,
+      "choices": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "emission",
+      "unit": "0=volume-acceleration,1=displacement-ablation",
+      "classification": "ENGINEERING",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 0.0,
+      "writable": true,
+      "choices": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "frequencyHz",
+      "unit": "Hz",
+      "classification": "PHYSICAL",
+      "minimum": 469.5045143141316,
+      "maximum": 16432.658000994605,
+      "default": 1643.2658000994604,
+      "writable": false
+    },
+    {
+      "name": "dampingPerSecond",
+      "unit": "1/s",
+      "classification": "PHYSICAL",
+      "minimum": 30.865208553153764,
+      "maximum": 3195.5844122715707,
+      "default": 145.49844718999242,
+      "writable": false
+    },
+    {
+      "name": "sourceExcitation",
+      "unit": "dimensionless proxy",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 0.0,
+      "writable": false
+    }
+  ]
+}

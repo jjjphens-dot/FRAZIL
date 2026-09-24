@@ -9,7 +9,11 @@ enum class RandomDomain : std::uint64_t {
     droplet = 2,
     flow = 3,
     modalMotion = 4,
-    dropletActivity = 5
+    dropletActivity = 5,
+    // Domain 6 is already used by A1; preserve its identity and numeric implementation.
+    dropletB1Identity = 7,
+    dropletB1Admission = 8,
+    dropletB1Jitter = 9 // Reserved, not consumed by B1 v1.
 };
 
 struct ResearchConfig final {
