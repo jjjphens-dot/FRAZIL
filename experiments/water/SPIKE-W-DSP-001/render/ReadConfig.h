@@ -2,6 +2,7 @@
 
 #include "dsp/BubbleA1Model.h"
 #include "dsp/DropletB1Config.h"
+#include "dsp/FlowD1Config.h"
 #include "dsp/FluidCandidate.h"
 #include "dsp/FluidProtect.h"
 #include "dsp/LiquidModalResonator.h"
@@ -33,6 +34,11 @@ struct BubbleA1RenderConfig final {
 
 struct DropletB1RenderConfig final {
     DropletB1Config droplet;
+    bool supplied{};
+};
+
+struct FlowD1RenderConfig final {
+    FlowD1Config flow;
     bool supplied{};
 };
 
@@ -205,8 +211,8 @@ inline bool readNumbers(const juce::var& value,
 // Callers without a Protect destination reject that module rather than silently discarding it.
 inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfig& modal,
                            ProtectRenderConfig* protect = nullptr,
-                           BubbleA1RenderConfig* a1 = nullptr,
-                           DropletB1RenderConfig* b1 = nullptr) {
+                           BubbleA1RenderConfig* a1 = nullptr, DropletB1RenderConfig* b1 = nullptr,
+                           FlowD1RenderConfig* d1 = nullptr) {
     if (text.empty() || text.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()))
         return false;
     if (text.starts_with("\xef\xbb\xbf"))
@@ -234,7 +240,20 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
         return false;
     for (const auto& property : root.getDynamicObject()->getProperties()) {
         const auto name = property.name.toString();
-        if (name == "dropletB1") {
+        if (name == "flowD1") {
+            if (!d1)
+                return false;
+            double version = 0;
+            auto& c = d1->flow;
+            if (!readNumbers(property.value,
+                             {{"version", &version},
+                              {kD1Velocity.name.data(), &c.velocityScaleMps},
+                              {kD1StructureLength.name.data(), &c.virtualStructureLengthMeters},
+                              {kD1ExcessPath.name.data(), &c.maxExcessPathMeters}}) ||
+                version != 1 || !c.valid())
+                return false;
+            d1->supplied = true;
+        } else if (name == "dropletB1") {
             if (!b1)
                 return false; // Preview/session cannot adopt B1 through a module import.
             double version = 0;
@@ -391,12 +410,12 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
 
 inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,
                        ProtectRenderConfig* protect = nullptr, BubbleA1RenderConfig* a1 = nullptr,
-                       DropletB1RenderConfig* b1 = nullptr) {
+                       DropletB1RenderConfig* b1 = nullptr, FlowD1RenderConfig* d1 = nullptr) {
     juce::MemoryBlock bytes;
     if (!file.existsAsFile() || !file.loadFileAsData(bytes))
         return false;
     return readConfigText({static_cast<const char*>(bytes.getData()), bytes.getSize()}, fluid,
-                          modal, protect, a1, b1);
+                          modal, protect, a1, b1, d1);
 }
 
 inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,

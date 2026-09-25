@@ -1,5 +1,13 @@
 # FRAZIL Module Index
 
+[Flow D1](../experiments/water/EXP-W-FD-001.md) adds research-only FlowD1Config
+(typed SI proxy values), FlowD1Model (pure derivation), FlowD1Trajectory (domain10
+waypoints), FlowD1FractionalDelay (fixed separate stereo memory) and FlowD1
+(emission transfer/correction). All live under the existing spike dsp directory.
+prepare/reset/process are JUCE-free and instance-owned; wide result fields preserve
+finite-float extremes. Offline descriptor, renderer/study and tests do not add a
+Preview or production dependency. D0/A1/B1 source responsibilities remain unchanged.
+
 B1 closeout: the fixed pool owns finite-rate/internal storage validation; public capacity choices remain in config. Existing bounded captured events supply offline onset/due/start diagnostics, with no DSP history or UI adapter.
 
 B1 research addition: [EXP-W-DB-001](../experiments/water/EXP-W-DB-001.md) owns the separate onset → source coupler → entrainment → pending queue → bubble voice/emission → fixed pool chain. `physics/BubblePhysics.h` serves the same SI frequency/damping equations for A1 and B1; before/after validation is recorded in the A1 execution record. Explicit offline renderer/descriptor adapters are outside Preview and production; A1/B0/D0/C are retained. See the contract for responsibilities and independent test owners.

@@ -1,5 +1,10 @@
 # Research Water Mapping v0.2
 
+Flow D1 has no product macro mapping. Its independent offline version1 accepts
+virtual velocity, structure length and excess path only; Size/Decay and the existing
+v0.2/sessionv5 destinations stay unchanged. U0 is exact identity, not a decision
+about A1/B1 minimum-Motion admission. See [D1 contract](../EXP-W-FD-001.md).
+
 B1 uses separate `droplet-b1-offline-v1` Size/Decay candidates documented in [EXP-W-DB-001](../EXP-W-DB-001.md). Its core accepts radius/persistence/admission, not product IDs. M0-A strict calm and M0-B onset-preserving calm remain unaccepted comparisons; no Motion curve is adopted. This v0.2 mapping and session v5 remain unchanged.
 
 [Bubble A1](../EXP-W-BA-001.md) has a separate explicit `bubble-a1-offline-v2` exporter

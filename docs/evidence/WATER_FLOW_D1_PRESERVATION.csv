@@ -1,0 +1,5 @@
+baseline_commit,group,pairs,decoded_exact
+30186b83466352b9e800de52dad40f1c17ab9770,A1,840,True
+30186b83466352b9e800de52dad40f1c17ab9770,legacy,96,True
+30186b83466352b9e800de52dad40f1c17ab9770,B1,312,True
+30186b83466352b9e800de52dad40f1c17ab9770,rate-partition-stereo,459,True

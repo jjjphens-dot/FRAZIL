@@ -1,8 +1,10 @@
 #include "BubbleA1Descriptor.h"
 #include "DropletB1Descriptor.h"
+#include "FlowD1Descriptor.h"
 #include "ReadConfig.h"
 #include "dsp/BubbleA1.h"
 #include "dsp/DropletB1.h"
+#include "dsp/FlowD1.h"
 #include "dsp/ResearchBaseline.h"
 
 #include <charconv>
@@ -29,6 +31,10 @@ int render(int argc, char** argv) {
         std::cout << juce::JSON::toString(dropletB1Descriptor()).toStdString() << '\n';
         return 0;
     }
+    if (argc == 2 && std::string_view(argv[1]) == "--describe-flow-d1") {
+        std::cout << juce::JSON::toString(flowD1Descriptor()).toStdString() << '\n';
+        return 0;
+    }
     if (argc < 6 || argc > 13) {
         std::cerr << "Usage: renderer input.wav NEW-output.wav mode block seed [config.json|-] "
                      "[tail-seconds] [NEW-protect-trace.csv|-] [raw|hard|softsign|tanh|feature] "
@@ -36,7 +42,7 @@ int render(int argc, char** argv) {
                      "Modes: baseline, residual (zero), a, b, d, ab, ad, bd, abd, c; append "
                      "-residual for E only. Offline A1 modes: a1, a1b, a1d, a1bd. "
                      "B1 modes: b1, a1b1, a1b1d. Descriptors: --describe-bubble-a1, "
-                     "--describe-droplet-b1.\n";
+                     "--describe-droplet-b1, --describe-flow-d1. D1 modes: a1d1, b1d1, a1b1d1.\n";
         return 2;
     }
     std::string_view mode(argv[3]);
@@ -46,9 +52,11 @@ int render(int argc, char** argv) {
         mode.remove_suffix(9);
     }
     const bool baselineMode = mode == "baseline" || mode == "residual";
-    const bool b1Mode = mode == "b1" || mode == "a1b1" || mode == "a1b1d";
+    const bool d1Mode = mode == "a1d1" || mode == "b1d1" || mode == "a1b1d1";
+    const bool b1Mode =
+        mode == "b1" || mode == "a1b1" || mode == "a1b1d" || mode == "b1d1" || mode == "a1b1d1";
     const bool a1Mode = mode == "a1" || mode == "a1b" || mode == "a1d" || mode == "a1bd" ||
-                        mode == "a1b1" || mode == "a1b1d";
+                        mode == "a1b1" || mode == "a1b1d" || mode == "a1d1" || mode == "a1b1d1";
     if (!baselineMode && mode != "a" && mode != "b" && mode != "d" && mode != "ab" &&
         mode != "ad" && mode != "bd" && mode != "abd" && mode != "c" && !a1Mode && !b1Mode)
         return 2;
@@ -96,18 +104,19 @@ int render(int argc, char** argv) {
     ProtectRenderConfig protectConfig;
     BubbleA1RenderConfig a1Config;
     DropletB1RenderConfig b1Config;
+    FlowD1RenderConfig d1Config;
     if (argc >= 7 && std::string_view(argv[6]) != "-" &&
         !readConfig(cwd.getChildFile(argv[6]), fluidConfig, modalConfig, &protectConfig, &a1Config,
-                    &b1Config)) {
+                    &b1Config, d1Mode ? &d1Config : nullptr)) {
         std::cerr << "Invalid research config\n";
         return 2;
     }
     if ((!a1Mode && a1Config.supplied) || (!b1Mode && b1Config.supplied) ||
         ((a1Mode || b1Mode) && protectConfig.depth != 0))
-        return 2; // Explicit model selection, raw A1 sum only in this experiment.
+        return 2; // Explicit research model selection; Protect coupling remains deferred.
     fluidConfig.bubbleEnabled = !a1Mode && mode.find('a') != std::string_view::npos;
     fluidConfig.dropletEnabled = !b1Mode && mode.find('b') != std::string_view::npos;
-    fluidConfig.flowEnabled = mode.find('d') != std::string_view::npos;
+    fluidConfig.flowEnabled = !d1Mode && mode.find('d') != std::string_view::npos;
     auto inputStream = input.createInputStream();
     if (!inputStream)
         return 2;
@@ -123,6 +132,7 @@ int render(int argc, char** argv) {
     // Fixed DSP storage is allocated once here, outside the processing loop and Windows stack.
     auto a1 = a1Mode ? std::make_unique<BubbleA1>() : nullptr;
     auto b1 = b1Mode ? std::make_unique<DropletB1>() : nullptr;
+    FlowD1 d1;
     LiquidModalResonator modal;
     // Explicit CLI comparison options override module fields; omission preserves typed config.
     if (argc < 10)
@@ -139,7 +149,8 @@ int render(int argc, char** argv) {
                                                         normalization, motionModel)
                                         : fluid.prepare(config, fluidConfig);
     if (!prepared || (a1 && !a1->prepare(config, a1Config.bubble, a1Config.analysis)) ||
-        (b1 && !b1->prepare(config, b1Config.droplet)))
+        (b1 && !b1->prepare(config, b1Config.droplet)) ||
+        (d1Mode && !d1.prepare(config, d1Config.flow)))
         return 2;
     // Optional diagnostic trace is offline-only, outside DSP and timing; refuse any overwrite.
     std::unique_ptr<juce::FileOutputStream> trace;
@@ -183,6 +194,7 @@ int render(int argc, char** argv) {
         if (!excitationWriter)
             return 1;
     }
+    double d1MinPath{}, d1MaxPath{}, d1Speed{}, d1Previous{}, d1CorrectionSquares{};
     double peak{}, squareSum{}, dcSum{}, residualSquareSum{};
     double flowMinimum{}, flowMaximum{}, flowTravel{}, previousFlowDelay{};
     bool observedFlow{};
@@ -235,7 +247,25 @@ int render(int argc, char** argv) {
                     b1ActiveSum += b1->pool().active();
                     b1PeakActive = std::max(b1PeakActive, b1->pool().active());
                 }
-                effect = applyFluidProtect(components, gain, protectConfig.topology);
+                if (d1Mode) {
+                    const auto transferred = d1.process(components.sum());
+                    const double path = d1.pathMeters();
+                    d1MinPath = std::min(d1MinPath, path);
+                    d1MaxPath = std::max(d1MaxPath, path);
+                    d1Speed = std::max(d1Speed, std::abs(path - d1Previous) * config.sampleRateHz);
+                    d1Previous = path;
+                    for (std::size_t ch = 0; ch < 2; ++ch) {
+                        const double value = transferred.transferred[ch];
+                        if (!std::isfinite(value) ||
+                            std::abs(value) > std::numeric_limits<float>::max())
+                            return 1;
+                        effect[ch] = static_cast<float>(value);
+                        d1CorrectionSquares +=
+                            transferred.correction[ch] * transferred.correction[ch];
+                    }
+                } else {
+                    effect = applyFluidProtect(components, gain, protectConfig.topology);
+                }
             } else if (!baseline.processResidual(frame, effect))
                 return 1;
             if (excitationWriter)
@@ -338,6 +368,12 @@ int render(int argc, char** argv) {
               << " droplet_silent_events=" << dropletSilentEvents
               << " bubble_first_frame=" << bubbleFirstFrame
               << " droplet_first_frame=" << dropletFirstFrame << '\n';
+    if (d1Mode) {
+        std::cout << "flow_model=D1 d1_min_path_m=" << d1MinPath << " d1_max_path_m=" << d1MaxPath
+                  << " d1_max_speed_mps=" << d1Speed
+                  << " d1_correction_rms=" << std::sqrt(d1CorrectionSquares / (2 * totalFrames))
+                  << " d1_drain_samples=" << d1.drainSamples() << '\n';
+    }
     if (a1) {
         const auto& p = a1->pool();
         const auto& counters = p.counters();

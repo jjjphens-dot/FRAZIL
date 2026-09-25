@@ -1,5 +1,13 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+Flow D1: [canonical contract](../EXP-W-FD-001.md) and
+[execution](../../../docs/evidence/WATER_FLOW_D1_EXECUTION.md). Use explicit
+`a1d1`, `b1d1`, `a1b1d1` or their `-residual` variants; `--describe-flow-d1`
+emits version1 specs. Root `flowD1` requires version1 and rejects elsewhere,
+including Preview imports. D1 consumes source residual only; no raw carrier delay,
+feedback, gain knob, UI/session or product mapping. High-frequency interpolation
+accuracy is limited; numerical success is not physical or human acceptance.
+
 [Droplet B1](../EXP-W-DB-001.md) is an explicit offline-only causal entrained-bubble candidate. `b1`, `b1-residual`, `a1b1`, `a1b1d` select it; legacy `b/bd/abd` remain B0. `--describe-droplet-b1` emits the code-generated v1 contract. Configuration, sources, commands and actual validation: [B1 execution](../../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md). No Preview/session or production adoption.
 
 Current navigation: [Water research index](../README.md). Preview/Fluid retain A0;

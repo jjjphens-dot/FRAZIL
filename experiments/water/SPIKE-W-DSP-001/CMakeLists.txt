@@ -7,7 +7,7 @@ target_compile_features(frazil_water_research PUBLIC cxx_std_20)
 
 set(water_test_targets)
 set(water_test_names)
-foreach(module IN ITEMS baseline features modal excitation normalization motion bubble bubble_a1 droplet_b1_physics droplet_b1_onset droplet_b1 droplet_b1_allocation flow droplet activity fluid event_pool protect_detector protect mapping)
+foreach(module IN ITEMS baseline features modal excitation normalization motion bubble bubble_a1 droplet_b1_physics droplet_b1_onset droplet_b1 droplet_b1_allocation flow flow_d1 droplet activity fluid event_pool protect_detector protect mapping)
     set(target "frazil_water_${module}_tests")
     if(module STREQUAL "baseline")
         set(target frazil_water_experiment_tests)
@@ -41,6 +41,10 @@ add_test(NAME frazil_water_droplet_b1_cli
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/droplet_b1_cli_test.py"
             $<TARGET_FILE:frazil_water_experiment_render>)
 
+add_test(NAME frazil_water_flow_d1_cli
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_cli_test.py"
+            $<TARGET_FILE:frazil_water_experiment_render>)
+
 add_executable(frazil_water_performance tests/performance.cpp
     ../../../src/app/AudioEngine.cpp ../../../src/dsp/DryWetMixer.cpp
     ../../../src/dsp/primitives/LinearSmoother.cpp)
@@ -49,6 +53,9 @@ add_executable(frazil_water_bubble_a1_performance tests/bubble_a1_performance.cp
 target_link_libraries(frazil_water_bubble_a1_performance PRIVATE frazil_water_research)
 add_executable(frazil_water_droplet_b1_performance tests/droplet_b1_performance.cpp)
 target_link_libraries(frazil_water_droplet_b1_performance PRIVATE frazil_water_research)
+
+add_executable(frazil_water_flow_d1_performance tests/flow_d1_performance.cpp)
+target_link_libraries(frazil_water_flow_d1_performance PRIVATE frazil_water_research)
 
 # Separate research application. It is never linked into FRAZIL or registered as a Host plugin.
 if(FRAZIL_BUILD_WATER_PREVIEW)
@@ -84,17 +91,17 @@ if(FRAZIL_BUILD_WATER_PREVIEW)
 endif()
 
 # Include opt-in research in existing safe presets; never link it into production targets.
-add_dependencies(frazil_smoke ${water_test_targets} frazil_water_experiment_render frazil_water_performance frazil_water_research_cases frazil_water_bubble_a1_performance frazil_water_droplet_b1_performance)
+add_dependencies(frazil_smoke ${water_test_targets} frazil_water_experiment_render frazil_water_performance frazil_water_research_cases frazil_water_bubble_a1_performance frazil_water_droplet_b1_performance frazil_water_flow_d1_performance)
 
 if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
     get_filename_component(water_msvc_bin "${CMAKE_CXX_COMPILER}" DIRECTORY)
-    set_property(TEST ${water_test_names} frazil_water_experiment_render_cli frazil_water_protect_listening frazil_water_bubble_a1_cli frazil_water_droplet_b1_cli
+    set_property(TEST ${water_test_names} frazil_water_experiment_render_cli frazil_water_protect_listening frazil_water_bubble_a1_cli frazil_water_droplet_b1_cli frazil_water_flow_d1_cli
         PROPERTY ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${water_msvc_bin}")
     foreach(target IN LISTS water_test_targets)
         add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${water_msvc_bin}/clang_rt.asan_dynamic-x86_64.dll" "$<TARGET_FILE_DIR:${target}>" VERBATIM)
     endforeach()
-    foreach(target IN ITEMS frazil_water_experiment_render frazil_water_performance frazil_water_research_cases frazil_water_bubble_a1_performance frazil_water_droplet_b1_performance)
+    foreach(target IN ITEMS frazil_water_experiment_render frazil_water_performance frazil_water_research_cases frazil_water_bubble_a1_performance frazil_water_droplet_b1_performance frazil_water_flow_d1_performance)
         add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${water_msvc_bin}/clang_rt.asan_dynamic-x86_64.dll" "$<TARGET_FILE_DIR:${target}>" VERBATIM)
     endforeach()

@@ -1,5 +1,12 @@
 # FRAZIL 当前实现与差距
 
+Flow D1 is implemented as a separate offline reduced-transfer research candidate;
+validation status and open numerical/listening limits are in
+[D1 execution](evidence/WATER_FLOW_D1_EXECUTION.md). It does not change Preview,
+Host/state or production readiness. The older PR40 “conditional Flow not triggered”
+statements below retain their historical campaign scope; the new user plan independently
+authorizes EXP-W-FD-001. Human acceptance remains NOT ASSESSED.
+
 A1+B1 closeout fixes B1 pool bounds, mixed amplitude provenance and captured-event diagnostics. Local Debug/Release/ASAN and current/historical decoded preservation pass; combined freeze also requires hosted CI on the published exact head. Scope and evidence: [B1 execution](evidence/WATER_DROPLET_B1_EXECUTION.md). Human NOT ASSESSED; product NOT ADOPTED; production Water NOT IMPLEMENTED.
 
 A1 governance remediation on B1 base `8f3b7ca`: classifications, typed v2 authority,

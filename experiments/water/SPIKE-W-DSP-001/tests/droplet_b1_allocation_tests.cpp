@@ -1,4 +1,5 @@
 #include "DropletB1TestSupport.h"
+#include "dsp/FlowD1.h"
 
 #include <cstdlib>
 #include <memory>
@@ -93,6 +94,21 @@ int main() {
         check(allocations == 0 && std::isfinite(sum),
               "measured process/retarget/reset/steal allocation free");
         check(pool->counters().steals > 0, "allocation observer exercised overflow");
+    }
+    // Reuse the isolated allocation observer; no second global allocation implementation.
+    for (double rate : {44100., 48000., 96000.}) {
+        FlowD1 flow;
+        check(flow.prepare({rate, 42}, {1, .005, .05}), "D1 allocation prepare");
+        allocations = 0;
+        observing = true;
+        double sum = 0;
+        for (int n = 0; n < int(rate * 2); ++n) {
+            if (n == 20000)
+                flow.reset();
+            sum += flow.process({float(std::sin(n * .1)), 0}).transferred[0];
+        }
+        observing = false;
+        check(allocations == 0 && std::isfinite(sum), "D1 process/reset allocation observation");
     }
     return check.failures ? 1 : 0;
 }

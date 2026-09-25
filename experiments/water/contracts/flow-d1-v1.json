@@ -1,0 +1,34 @@
+{
+  "model": "flow-d1",
+  "modelVersion": 1,
+  "configVersion": 1,
+  "parameters": [
+    {
+      "name": "velocityScaleMps",
+      "unit": "m/s",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.2,
+      "writable": true
+    },
+    {
+      "name": "virtualStructureLengthMeters",
+      "unit": "m",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0.005,
+      "maximum": 0.2,
+      "default": 0.03,
+      "writable": true
+    },
+    {
+      "name": "maxExcessPathMeters",
+      "unit": "m",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0,
+      "maximum": 0.05,
+      "default": 0.015,
+      "writable": true
+    }
+  ]
+}

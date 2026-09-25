@@ -74,7 +74,7 @@ def main():
                 compare("A1:" + row["case"], sources[row["source"]], mode, row["config"], args.a1_baseline)
             print("PASS A1", row["source"], row["case"], flush=True)
         for source in sources.values():
-            for mode in ("a", "b", "d", "bd", "c", "abd"):
+            for mode in ("a", "b", "d", "ab", "ad", "bd", "c", "abd"):
                 for suffix in ("", "-residual"):
                     compare("legacy", source, mode + suffix, {}, args.a1_baseline)
             print("PASS legacy", source.name, flush=True)
@@ -101,7 +101,7 @@ def main():
             source = args.output / f"stereo-matrix-{rate}.wav"
             sf.write(source, fixture, rate, subtype="FLOAT")
             for block in (1, 7, 32, 64, 128, 256, 257, 512, 1024):
-                for mode in ("a", "b", "d", "bd", "abd", "c", "a1", "a1-residual",
+                for mode in ("a", "b", "d", "ab", "ad", "bd", "abd", "c", "a1", "a1-residual",
                              "a1b", "a1d", "a1bd", "b1", "b1-residual", "a1b1", "a1b1d"):
                     baseline = args.b1_baseline if "b1" in mode else args.a1_baseline
                     compare("rate-partition-stereo", source, mode, {}, baseline, block, 1)

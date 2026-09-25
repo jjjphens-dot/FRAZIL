@@ -1,5 +1,10 @@
 # Water research index
 
+Current Flow research: [EXP-W-FD-001 canonical model](EXP-W-FD-001.md),
+[D1 execution and branch lineage](../../docs/evidence/WATER_FLOW_D1_EXECUTION.md).
+New offline a1d1/b1d1/a1b1d1 modes use reduced emission transfer. A1/B1 and D0
+remain preserved references. No Preview/UI or production adoption; human NOT ASSESSED.
+
 Navigation only. Product authority remains Architecture, Coding Plan, Parameters and
 the accepted [EXP-W-001 definition](EXP-W-001_PERCEPTUAL_BRIEF.md). Definition acceptance
 does not accept a DSP implementation. Production Water remains NOT IMPLEMENTED.

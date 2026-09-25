@@ -1,5 +1,14 @@
 # FRAZIL 测试、听测与发布门槛
 
+Flow D1 research tests cover independent SI and interpolation oracles, path/speed
+bounds, domains1..10, finite-float extremes, zero history, exact U0/A0, reset,
+channel isolation and partitions1/7/32/64/128/256/257/512/1024 at three rates.
+The existing isolated B1 allocation observer also exercises D1 process/reset.
+`frazil_water_flow_d1_cli` checks actual descriptor snapshot, strict rejection,
+explicit mode isolation and carrier-once composition. Independent kernel comparison,
+preserved30186b8 decoded legacy regression, performance and fixed-source study are
+separate from human listening. See [D1 execution](evidence/WATER_FLOW_D1_EXECUTION.md).
+
 A1 governance regression requires the actual `--describe-bubble-a1` output to equal
 `experiments/water/contracts/bubble-a1-v2.json` (22 writable fields), with unchanged
 v2 rejection and all bounds checked through CLI. Named domain6 and every existing
