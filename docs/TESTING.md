@@ -1,5 +1,18 @@
 # FRAZIL 测试、听测与发布门槛
 
+A1 governance regression requires the actual `--describe-bubble-a1` output to equal
+`experiments/water/contracts/bubble-a1-v2.json` (22 writable fields), with unchanged
+v2 rejection and all bounds checked through CLI. Named domain6 and every existing
+numeric RNG domain must preserve seed identity. An independent analytic all-domain
+envelope bound plus adversarial recurrence must prove natural retirement before the
+unchanged30s guard at44.1/48/96kHz. Before/after decoded A1 identity against95be0de,
+legacy identity and B1 identity against the pre-remediation B1 base are mandatory;
+ordinary CTest cannot substitute for an unavailable historical binary. The tracked
+[A1 timing CSV](evidence/WATER_BUBBLE_A1_PERFORMANCE.csv) preserves measured research
+data, not formal Host performance. Actual results and resource refusals belong to
+the execution record. No current-frame-zero diagnostic proves source independence.
+
+
 A1 remediation adds an independent shared-window oracle and event identity/timing/
 radius/frequency/damping/RNG checks for unequal levels,90-degree phase, deterministic
 decorrelation and asymmetric transients, alongside mono/anti-phase/isolation/swap.

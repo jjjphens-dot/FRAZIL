@@ -18,6 +18,8 @@ struct BubbleA1Event final {
 // integrate the frequency ramp; transcendental setup occurs at event start, never per voice/sample.
 class BubbleA1Voice final {
   public:
+    // Engineering backstop; independent all-domain envelope proof is in A1 tests.
+    static constexpr double kMaximumLifetimeSeconds = 30;
     void start(const BubbleA1Event& e, double rate, double floorDb) noexcept {
         event = e;
         age = 0;
@@ -43,7 +45,7 @@ class BubbleA1Voice final {
         deltaReal_ = std::cos(delta_);
         deltaImag_ = std::sin(delta_);
         floor_ = std::pow(10., floorDb / 20);
-        maxAge_ = static_cast<std::uint32_t>(30 * rate);
+        maxAge_ = static_cast<std::uint32_t>(BubbleA1Voice::kMaximumLifetimeSeconds * rate);
     }
     std::array<double, 2> process() noexcept {
         const double fade = releaseLeft ? double(releaseLeft) / releaseTotal_ : 1;
@@ -107,7 +109,7 @@ class BubbleA1VoicePool final {
         ready_ = false;
         reset();
         if (!a1Range(rate, 44100, 96000) || !a1Capacity(c.voiceCapacity) ||
-            !a1Range(c.tailFloorDb, -100, -60) || !a1Range(c.stealReleaseMs, .5, 4))
+            !kA1TailFloorDb.accepts(c.tailFloorDb) || !kA1StealReleaseMs.accepts(c.stealReleaseMs))
             return false;
         rate_ = rate;
         floorDb_ = c.tailFloorDb;
@@ -182,8 +184,9 @@ class BubbleA1VoicePool final {
                 continue;
             }
             ++counters_.completed;
-            const auto bin = static_cast<std::size_t>(127 * std::log(double(std::max(1u, v.age))) /
-                                                      std::log(30 * rate_));
+            const auto bin =
+                static_cast<std::size_t>(127 * std::log(double(std::max(1u, v.age))) /
+                                         std::log(BubbleA1Voice::kMaximumLifetimeSeconds * rate_));
             ++counters_.lifetimeHistogram[std::min<std::size_t>(127, bin)];
             if (v.pending && activeCount_ <= capacity_) {
                 const auto e = v.replacement;

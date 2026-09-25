@@ -1,5 +1,11 @@
 # FRAZIL 当前实现与差距
 
+A1 governance remediation on B1 base `8f3b7ca`: classifications, typed v2 authority,
+strict descriptor snapshot and independent lifetime/seed properties are implemented
+for review. Final validation is recorded in [A1 execution](evidence/WATER_BUBBLE_A1_EXECUTION.md);
+do not infer a PASS from this status entry. No sonic tuning or new B1 behavior is intended.
+
+
 B1 branch work: [Droplet B1](../experiments/water/EXP-W-DB-001.md) is a separate offline research candidate. Validation and limitations are recorded only in [B1 execution](evidence/WATER_DROPLET_B1_EXECUTION.md). Human listening and product adoption remain NOT ASSESSED; Preview/session v5 still uses A0/B0/D0. Historical B0 evidence below is not B1 evidence.
 
 Current Water distinction: EXP-W-001 Revision B is ACCEPTED for perceptual definition.

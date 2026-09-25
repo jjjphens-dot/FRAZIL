@@ -4,7 +4,8 @@
 #include "WaterDspConfig.h"
 
 namespace frazil::water::research {
-// Opt-in offline A1. A0 and the B/D/C paths never depend on this class or its detector.
+// Opt-in offline A1. Legacy A0/B0/D0/C do not depend on this class or its detector.
+// The independent shared analyzer also serves B1; population scheduling remains A1-owned.
 class BubbleA1 final {
   public:
     bool prepare(const ResearchConfig& research, const BubbleA1Config& config = {},
@@ -13,7 +14,7 @@ class BubbleA1 final {
         config_ = config;
         rate_ = research.sampleRateHz;
         // New research-only domain; legacy seed streams and persistence remain untouched.
-        seed_ = RandomSource::deriveInstanceSeed(research.baseSeed, 6);
+        seed_ = research.seedFor(RandomDomain::bubbleA1);
         reset();
         ready_ = model_.prepare(rate_, config) && analyzer_.prepare(rate_, analysis) &&
                  pool_.prepare(rate_, config);
@@ -55,7 +56,7 @@ class BubbleA1 final {
         return pool_.process();
     }
     bool setMotion(double motion) noexcept {
-        if (!a1Range(motion, 0, 1))
+        if (!kA1MotionFactor.accepts(motion))
             return false;
         config_.motionFactor = motion;
         return true;

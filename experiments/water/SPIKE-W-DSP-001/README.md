@@ -6,7 +6,9 @@ Current navigation: [Water research index](../README.md). Preview/Fluid retain A
 B/D/C and Protect keep their existing research behavior. Production Water is NOT IMPLEMENTED.
 
 The separate [Bubble A1 experiment](../EXP-W-BA-001.md) adds an explicit offline-only
-independent physical population and shared excitation candidate. Legacy A0/B/D/C and
+independent population and shared excitation candidate. Physical equations, reduced
+source/population hypotheses, product mappings and engineering policies are classified
+separately; `--describe-bubble-a1` exports the typed v2 research contract. Legacy A0/B/D/C and
 preview/session v5 remain unchanged. A1 is not connected to UI or accepted for production.
 
 Research-only A/B/D/C mechanisms; local Debug/Release/ASAN 16/16 each, 138 core + 4 supplemental smoke renders

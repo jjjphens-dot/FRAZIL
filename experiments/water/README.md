@@ -9,7 +9,7 @@ does not accept a DSP implementation. Production Water remains NOT IMPLEMENTED.
 | Droplet B1 modular physics, descriptor and source-event contract | [EXP-W-DB-001](EXP-W-DB-001.md), [physical governance](../../docs/DSP_PHYSICAL_MODEL_GOVERNANCE.md) |
 | B1 actual tests, renders, performance and handoff | [B1 execution](../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md) |
 | Bubble A1 candidate, physics provenance, P1/P0, v2 config and two named baselines | [EXP-W-BA-001](EXP-W-BA-001.md) |
-| A1 actual tests, performance, study-v3 and limitations | [Execution evidence](../../docs/evidence/WATER_BUBBLE_A1_EXECUTION.md) |
+| A1 governance remediation, exact sonic comparisons, tracked timing and historical study-v3 | [Execution evidence](../../docs/evidence/WATER_BUBBLE_A1_EXECUTION.md) |
 | A0 legacy control, existing B/D/C and renderer commands | [Research module README](SPIKE-W-DSP-001/README.md) |
 | Preview v0.2/sessionv5 uses Bubble A0; offline A1 mapping is separate | [Mapping](SPIKE-W-DSP-001/RESEARCH_MAPPING.md), [Preview guide](../../docs/DEV_UI_WATER_DEBUG_GUIDE.md) |
 | Current B/D/C listening packs and retained v0.1 evidence | [v0.2 handoff](../../docs/evidence/WATER_LISTENING_HANDOFF_V02.md) |

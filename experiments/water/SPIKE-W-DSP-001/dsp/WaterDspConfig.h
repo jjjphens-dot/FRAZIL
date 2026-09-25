@@ -10,7 +10,7 @@ enum class RandomDomain : std::uint64_t {
     flow = 3,
     modalMotion = 4,
     dropletActivity = 5,
-    // Domain 6 is already used by A1; preserve its identity and numeric implementation.
+    bubbleA1 = 6, // Named historical domain; no stream is renumbered.
     dropletB1Identity = 7,
     dropletB1Admission = 8,
     dropletB1Jitter = 9 // Reserved, not consumed by B1 v1.

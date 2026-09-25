@@ -4,7 +4,7 @@
 
 namespace frazil::water::research {
 // PHYSICAL reference approximation, SI units. Not a geometry/propagation solver.
-// EXP-W-DB-001 B1-PHY-001/002. A1 is intentionally not migrated in this change.
+// EXP-W-BA-001 and EXP-W-DB-001: shared constants and unchanged evaluation order.
 struct BubblePhysics final {
     static constexpr double kPressurePa = 101325, kDensityKgM3 = 998, kGamma = 1.4;
     static double minnaertFrequency(double radiusMeters) noexcept {

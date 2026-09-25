@@ -1,12 +1,18 @@
 # FRAZIL Module Index
 
-B1 research addition: [EXP-W-DB-001](../experiments/water/EXP-W-DB-001.md) owns the separate onset → source coupler → entrainment → pending queue → bubble voice/emission → fixed pool chain. `physics/BubblePhysics.h` currently serves B1 only. Explicit offline renderer/descriptor adapters are outside Preview and production; A1/B0/D0/C are retained. See the contract for responsibilities and independent test owners.
+B1 research addition: [EXP-W-DB-001](../experiments/water/EXP-W-DB-001.md) owns the separate onset → source coupler → entrainment → pending queue → bubble voice/emission → fixed pool chain. `physics/BubblePhysics.h` serves the same SI frequency/damping equations for A1 and B1; before/after validation is recorded in the A1 execution record. Explicit offline renderer/descriptor adapters are outside Preview and production; A1/B0/D0/C are retained. See the contract for responsibilities and independent test owners.
 
 Current authority: [Water research index](../experiments/water/README.md).
 SharedExcitationAnalyzer has no BubbleA1Model dependency; it owns linked power and
 one joint-peak stereo frame. A1 model/pool own P1/P0 event trajectories. A0 is the
 legacy Preview/control; B/D/C remain existing research candidates. Production Water
 remains NOT IMPLEMENTED; no A1 UI/session dependency is introduced.
+
+A1 numeric authority: `BubbleA1ConfigSpec.h` references the independent shared-analysis
+specs in `SharedExcitationConfig.h`; both use immutable `ResearchParameterSpec` values.
+Named members retain value ownership. `BubbleA1Descriptor.h` is an offline JUCE adapter;
+its JSON snapshot is checked by the existing actual-renderer CLI test. None is a Host
+parameter registry or Preview descriptor. The named A1 RNG domain remains numeric6.
 
 Research-only [Bubble A1](../experiments/water/EXP-W-BA-001.md):
 `SharedExcitationAnalyzer`, `BubbleA1Model`, `BubbleA1VoicePool`, `BubbleA1` under the

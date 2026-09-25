@@ -163,8 +163,9 @@ dropDiameterMm, impactVelocityMps, cavityDepthMm, waterVelocityMps or pressurePa
 
 Explicit b1/b1-residual/a1b1/a1b1d modes only. Legacy b/bd/abd remain B0;
 A1/B0/D0/C and Preview/sessionv5, Host/state and production are unchanged.
-BubblePhysics initially serves B1 only: A1 extraction is deferred unless exact
-render identity and regression evidence justify it. No A1 tuning is permitted.
+BubblePhysics now also supplies the unchanged A1 reference equations. Consolidation
+requires exact decoded A1/B1 identity; see the A1 governance execution record for
+validation status. No A1/B1 tuning is permitted.
 Descriptor version1 and tracked JSON snapshot own the numeric parameter contract.
 Study must preserve separate fixed-source and RMS-matched questions and two blank
 human forms. Engineering results and regeneration commands belong to

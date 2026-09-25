@@ -1,9 +1,231 @@
 # Bubble A1 execution record
 
-## Current review remediation
+## Governance remediation on B1 base
+
+Implementation and local validation complete for review. Baseline `8f3b7ca06073439d9d47742f2a3b92a361029c1f`;
+A1 sonic reference `95be0de109c66be6ab218a9ac65384eabde3815e`. No sonic tuning,
+B1 redesign, Preview/UI, Host/state, production adoption or merge. Human acceptance
+NOT ASSESSED. Earlier records below retain their historical scope and failures.
+
+### Contract Review
+
+Latest attachment sections0–35 governs this non-sonic remediation. Started from the
+clean newest B1 branch `codex/experiment/water-droplet-b1` at `8f3b7ca06073439d9d47742f2a3b92a361029c1f`,
+a descendant of A1 `95be0de109c66be6ab218a9ac65384eabde3815e`. Fetched remote before branching;
+no intervening upstream commits. Work branch `codex/fix/water-a1-governance`.
+The unrelated default checkout remains untouched. Read all attachment-mandated
+contracts, model/analysis/config/renderer/study/tests and A1/B1 evidence in full.
+Reviewed the applicable architecture/parameter/Developer boundaries. New research
+API/metadata and documented responsibilities trigger Documentation Synchronization;
+no production algorithm, Host/state, latency, routing or formal budget changes.
+
+Preserved Release executables under ignored `build/a1-governance`: the A1 renderer
+previously built/verified at95be0de, and the pre-edit8f3b7ca B1 renderer. Existing
+A1 Release tests passed2/2 in5.63s before edits. No content hashes were computed.
+Current source audit revisited author2009/2016/2023 abstracts and the Phillips
+publisher article. van den Doel retrieval timed out; prior full-text audit remains
+explicit historical evidence. No new coefficient, paper-derived calibration or
+full-fluid claim is inferred from an abstract or unavailable paper.
+
+### Implementation
+
+Named historical RNG domain6; retained all other IDs/draw ordering. Centralized22
+writable numeric specifications without changing named config storage/defaults.
+Shared analysis owns its six specs independently of the A1 model. The small immutable
+spec type exists because both those owners need the same numeric/choice validation.
+The offline descriptor and versioned snapshot make that authority reviewable and
+executable. Parser field names consume the same specs; v2/unknown-field rejection stays.
+
+A1 delegates identical SI expressions to the existing B1 helper with the same types,
+constants and evaluation order. Adoption of that consolidation is conditional on the
+exact render checks below. Diagnostic additions are offline observations only;
+legacy aliases remain explicitly deprecated. The30s value is named, not changed.
+Independent tests bound the complete legal amplitude/lifetime domain and exercise
+adversarial natural retirement. The identity script only invokes existing renderers
+with retained study configs; it introduces no alternate synthesis or audio conversion.
+
+### Functional Validation
+
+First Debug build preflight REFUSED:2.49GiB available,3GiB required for6 jobs.
+No compiler pipeline was bypassed. After the user explicitly reported freeing memory
+and requested retry, the same6-job safe wrapper passed. Fresh Debug build and all
+32/32 tests passed in159.44s, including new descriptor/bounds/defaults/window diagnostics.
+Final preset, sonic and performance results are recorded below.
+
+### Retained governance ASAN harness failure
+
+First complete ASAN run:31/32 in260.54s. `frazil_water_experiment_render_cli`
+reported a process SegFault after19.88s. Windows Application event at14:35:24
+identified `python.exe`3.12.4, exception0xc0000005, unknown fault module and offset0.
+This is an interpreter-process observation, not an identified renderer/DSP failure.
+The other31 tests, including A1 and B1 CLI/properties, passed. First-run CTest and
+Windows event evidence remain under ignored `build/a1-governance`.
+
+**A1-GOV-ENV-001, OPEN:** root cause is not established. Existing research history
+also contains intermittent native/renderer observations, but no common cause is
+inferred. No Python installation, ASAN setup, DSP path or test assertion is changed
+to hide this result. Isolated repetitions enable only `PYTHONFAULTHANDLER=1` for a
+stack if the interpreter fails again; subsequent success is non-reproduction, not a fix.
+The unchanged isolated test passed twice (61.61s and63.43s). The subsequent complete
+ASAN suite passed32/32 in299.42s with that same diagnostic environment variable.
+First-failure logs, Windows event, repetition log and final suite log are all retained.
+
+### Code Quality Review
+
+Separate post-functional self-review inspected cohesion, coupling, naming, units,
+includes, storage ownership, globals, macros, dead code, callback work and numeric
+boundaries. Config/spec headers are standard-library value definitions; shared
+analysis has no A1 model dependency. No callback JSON, string formatting, allocation,
+I/O, mutex, UI/history or mutable global state was added. Descriptor allocation and
+identity file I/O are strictly offline. Recurrence, scheduling draw count, captured
+stereo amplitudes, active-list order, stealing, normalization and mappings are unchanged.
+The resource guard proof is independent of production metadata/functions, with a
+conservative test envelope and a legal-parameter property grid. Existing analytic
+P0/P1 and stereo oracles remain. This is agent self-review, not independent approval.
+
+### Comment & Documentation Pass
+
+Canonical A1 now owns only model, classifications, equation/code/test mapping,
+parameter authority, lifecycle and integration boundaries. Its former A0 gap audit,
+run commands and execution observations moved into historical sections below.
+Original failures, partial results, legacy crash limitations and human gaps remain.
+Every significant mechanism has one primary class; mixed amplitude, rise, caps,
+analysis/source coupling and stochastic scheduling are decomposed. A1-PHYS-REF retains
+its name/output and a whole-pipeline disclaimer. riseXi is explicitly0..0.2.
+
+Updated Core Guide, Module Index, Project Status, Testing, Water/spike READMEs and
+B1's shared-helper relationship. The tracked30-row CSV is the unchanged accepted
+engineering performance-v3 dataset from95be0de, not a fresh benchmark or Host budget.
+A1 source-window diagnostics have precise first-frame versus count definitions.
+
+Reviewed without update: Architecture (research/production direction unchanged),
+Coding Plan (same phase/ownership/gates), Parameters (nine Host values/schema1 intact),
+Perceptual Contract and accepted brief (no human decision), Developer Sound Tools and
+DEV_UI_WATER_DEBUG_GUIDE (A0 Preview/sessionv5 remains), Code Standards/Document Governance
+and DSP Physical Model Governance (rules applied, not changed), and Accepted ADRs
+(no production decision). No physical-source claim or automatic quality score replaces
+listening. Cross-document status is IMPLEMENTED offline / HUMAN NOT ASSESSED /
+production NOT IMPLEMENTED; no B1 redesign or milestone closure.
+
+### Final Validation — governance
+
+Fresh6-job safe Debug, Release and ASAN builds passed. Pipelines ran serially.
+
+| Validation | Result | Scope / limitation |
+| --- | --- | --- |
+| Debug CTest | PASS32/32,159.44s | Fresh safe build after documented memory refusal |
+| Release CTest | PASS32/32,50.98s | Fresh safe build |
+| ASAN final CTest | PASS32/32,299.42s | Initial31/32 failure remains OPEN as A1-GOV-ENV-001; isolated repeat2/2 PASS |
+| Decoded sonic identity | PASS1224/1224 | A1840, legacy72, B1312; exact preserved-baseline samples |
+| Runtime descriptor | PASS22 fields | Generated snapshot equality, implicit/explicit defaults and boundary rejection in CLI CTest |
+| Lifetime/resource properties | PASS | Independent global bound;3 rates and9 block sizes covered by suite |
+| Performance measurement | COMPLETE30 rows | Dense96k/cap1024 P99/worst miss deadline; no formal realtime acceptance |
+| Interpreter consistency | PASS | All3 CMake caches and6 Python CTest commands per preset use the discovered interpreter |
+| Static/document checks | PASS | clang-format, Python AST, diff whitespace, Markdown links, portability and scanner regressions |
+| Human listening / Host / pluginval | NOT RUN | No perceptual or production acceptance inferred |
+| Independent review / merge | NOT RUN | Agent self-review only; branch publication is not approval |
+
+Exact decoded comparison: **PASS,1224 unique pairs**. Existing study-v3 supplies
+21 A1 configurations x5 original inputs x8 full/residual modes =840 pairs against
+preserved95be0de. Modes: a1/a1-residual/a1b/a1b-residual/a1d/a1d-residual/a1bd/a1bd-residual.
+Legacy a/b/d/bd/c/abd x6 inputs x2 full/residual forms =72 pairs against95be0de.
+B1 study-v1's26 conditions x6 inputs x2 forms =312 pairs against8f3b7ca, including
+A1+B1 and A1+B1+D0. All use seed42, block128 and3s appended tail. No tolerance,
+normalization or PCM quantization is introduced: decoded float samples compare exactly.
+An independent report audit verifies counts, unique source/case/mode combinations and
+all PASS flags. Existing rate/partition/stereo/property tests remain in each suite.
+Shared physics consolidation is retained on this evidence; no sonic edit was needed.
+
+Current [governance timing CSV](WATER_BUBBLE_A1_GOVERNANCE_PERFORMANCE.csv) contains
+30 finite rows from the final Release DSP, same machine/workload/protocol as the
+historical [performance-v3 CSV](WATER_BUBBLE_A1_PERFORMANCE.csv). No other build/test
+pipeline ran during timing. Reference-profile means span4.4219..7.64983us/block.
+At96kHz/cap1024/dense: mean728.076us, P951276.8us, P991658.4us, worst3021.7us,
+active mean/peak1024, requested6800.25/s, steals27175, drops0. P99 and worst exceed
+the1333.33us period. This run is slower than the historical row; cause was not isolated.
+Do not infer a DSP repair, universal realtime safety or formal budget acceptance.
+Historical outliers and current failures to meet the stress deadline remain visible.
+
+### Governance regeneration and artifacts
+
+Use the documented MSVC environment; run each preset serially:
+
+```powershell
+cmake --fresh --preset windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=ON
+python tools/build_safe.py --preset windows-debug
+ctest --preset windows-debug --output-on-failure
+# Repeat serially for windows-release and windows-asan with the same discovered Python.
+```
+
+Actual configure supplies `-DPython3_EXECUTABLE:FILEPATH=<resolved interpreter>`.
+Preserve the two baseline Release renderers before replacing build outputs. Their
+provenance is the previous verified A1 build and this branch's pre-edit B1 build;
+using the current renderer twice does not establish historical identity.
+
+```powershell
+$renderer = 'build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe'
+& $renderer --describe-bubble-a1
+python experiments/water/SPIKE-W-DSP-001/render/a1_governance_identity.py `
+  --renderer $renderer `
+  --a1-baseline build/a1-governance/a1-95be0de-render.exe `
+  --b1-baseline build/a1-governance/b1-8f3b7ca-render.exe `
+  --a1-study build/bubble-a1/study-v3 --b1-study build/droplet-b1/study-v1 `
+  --input "$env:FRAZIL_LISTENING_INPUT_DIR/-_Sub Bass.wav" `
+  --input "$env:FRAZIL_LISTENING_INPUT_DIR/ABL2_Fill_32_Dunamis_BPM191.wav" `
+  --input "$env:FRAZIL_LISTENING_INPUT_DIR/ABL2_Loops_42_Partisan_BPM170.wav" `
+  --input "$env:FRAZIL_LISTENING_INPUT_DIR/Axusr_razor Bass 01 C.wav" `
+  --input $env:FRAZIL_B1_ENGINEERING_PAD `
+  --input testdata/input/transient_response__pitch_decay.wav `
+  --output build/a1-governance/identity-new
+& build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_bubble_a1_performance.exe
+```
+
+Actual local identity output is `build/a1-governance/identity-v1/report.json`.
+The harness retains a failed pair and logs if a comparison fails; successful WAVs
+are removed from its new output directory after equality is recorded. Original
+study audio, configs and both sets of blank human forms are untouched. No audio,
+binary, machine path or content hash is added to Git. Regeneration requires the
+explicitly authorized local input files and the preserved historical executables.
+
+
+### Governance file inventory
+
+No files deleted; no production or Preview/session source changes.
+
+| Change | File | Purpose |
+| --- | --- | --- |
+| Modified | `docs/CORE_IMPLEMENTATION_GUIDE.md` | A1 classification and model-authority boundary |
+| Modified | `docs/MODULE_INDEX.md` | Shared physics, config ownership and offline descriptor dependencies |
+| Modified | `docs/PROJECT_STATUS.md` | Scoped governance status without acceptance claim |
+| Modified | `docs/TESTING.md` | Descriptor, numeric authority, lifetime, identity and diagnostic regression requirements |
+| Modified | `docs/evidence/WATER_BUBBLE_A1_EXECUTION.md` | Current six-stage evidence and preserved history |
+| Created | `docs/evidence/WATER_BUBBLE_A1_PERFORMANCE.csv` | Preserved30-row historical v3 timing |
+| Created | `docs/evidence/WATER_BUBBLE_A1_GOVERNANCE_PERFORMANCE.csv` | New30-row Release timing, including deadline exceedances |
+| Modified | `experiments/water/EXP-W-BA-001.md` | Canonical classified equation/code/test and parameter contract |
+| Modified | `experiments/water/EXP-W-DB-001.md` | Shared-helper relationship only; B1 model unchanged |
+| Modified | `experiments/water/README.md` | Single research navigation |
+| Modified | `experiments/water/SPIKE-W-DSP-001/README.md` | Offline A1 descriptor and model boundary |
+| Modified | `experiments/water/SPIKE-W-DSP-001/dsp/BubbleA1.h` | Named historical seed domain and typed Motion range |
+| Modified | `experiments/water/SPIKE-W-DSP-001/dsp/BubbleA1Model.h` | Typed defaults/validation and unchanged shared equations |
+| Modified | `experiments/water/SPIKE-W-DSP-001/dsp/BubbleA1VoicePool.h` | Typed resource bounds and named unchanged30s guard |
+| Modified | `experiments/water/SPIKE-W-DSP-001/dsp/SharedExcitationAnalyzer.h` | Consume independent shared config authority |
+| Modified | `experiments/water/SPIKE-W-DSP-001/dsp/WaterDspConfig.h` | Name domain6 without renumbering |
+| Modified | `experiments/water/SPIKE-W-DSP-001/dsp/physics/BubblePhysics.h` | Document A1/B1 consumers; expressions unchanged |
+| Created | `experiments/water/SPIKE-W-DSP-001/dsp/BubbleA1ConfigSpec.h` | Sixteen A1 specs plus six shared specs in descriptor order |
+| Created | `experiments/water/SPIKE-W-DSP-001/dsp/ResearchParameterSpec.h` | Small immutable range/choice authority used by both config owners |
+| Created | `experiments/water/SPIKE-W-DSP-001/dsp/SharedExcitationConfig.h` | Six analyzer specs/defaults independent of A1 |
+| Created | `experiments/water/SPIKE-W-DSP-001/render/BubbleA1Descriptor.h` | Offline JUCE serialization from typed specs |
+| Modified | `experiments/water/SPIKE-W-DSP-001/render/ReadConfig.h` | Consume A1 spec names/choices; retain strictv2 semantics |
+| Modified | `experiments/water/SPIKE-W-DSP-001/render/render_main.cpp` | Explicit descriptor command and correctly named offline diagnostics |
+| Created | `experiments/water/SPIKE-W-DSP-001/render/a1_governance_identity.py` | Reuse preserved renderers/study configs for1224 decoded pairs |
+| Modified | `experiments/water/SPIKE-W-DSP-001/tests/bubble_a1_cli_test.py` | Snapshot/default/range and active-window counter regressions |
+| Modified | `experiments/water/SPIKE-W-DSP-001/tests/bubble_a1_tests.cpp` | Independent global guard proof, recurrence properties and stable seed domains |
+| Created | `experiments/water/contracts/bubble-a1-v2.json` | Runtime-generated versioned22-field review snapshot |
+
+## Historical stereo/rise remediation
 
 RESEARCH ONLY / HUMAN NOT ASSESSED. Shared-frame stereo, explicit P1/P0 and v2
-configuration implemented against review baseline1bc6947. Current commands/results
+configuration implemented against review baseline1bc6947. Historical commands/results
 are in the [remediation section](#remediation-execution); every earlier result below
 belongs to its recorded pre-review version. UI integration remains deferred.
 
@@ -66,7 +288,7 @@ Production, B/D/C, Protect, Ice and routing are outside the write scope.
 
 ## Next action / checkpoint
 
-Two independent humans can review `build/bubble-a1/study-v2` using its blank forms.
+Historical handoff: two independent humans could review `build/bubble-a1/study-v2` using its blank forms.
 Calibration/adoption requires their decisions; UI integration awaits a later user instruction.
 
 ## Blockers and limitations
@@ -231,7 +453,7 @@ analysis, bounded pool, orchestration, tests, offline evidence or auditable hand
    Main reference `3c95e47212a03d43ccf06a2484d8f3861a4f6b33`.
    Branch publication is user-authorized; no merge is authorized.
 2. **Documents reviewed:** canonical list and status discrepancies are in
-   [EXP-W-BA-001](../../experiments/water/EXP-W-BA-001.md#documentation-audit).
+   [EXP-W-BA-001](#documentation-audit).
 3. **Scientific sources:** original van den Doel manuscript; author-hosted
    Harmonic Fluids, Complex Acoustic Bubbles and Coupled Bubbles; original 2018
    Phillips/Agarwal/Jordan experiment. Source access limits and model omissions
@@ -553,7 +775,8 @@ persistence values independently of this sparse-event listening pack.
 ### Current performance-v3 results
 
 Release benchmark, block128, same reference-machine scope as the earlier record;
-`build/bubble-a1/performance-v3.csv`,30/30 finite rows. Times are microseconds.
+[Tracked original performance-v3 CSV](WATER_BUBBLE_A1_PERFORMANCE.csv),30/30 finite rows.
+This is the preserved95be0de study, not a new governance-branch measurement. Times are microseconds.
 Active mean/peak, requested events/sec, steals and drops describe this workload;
 no production realtime budget or universal deadline guarantee is inferred.
 
@@ -604,3 +827,108 @@ must be checked on GitHub separately from these local measurements. Generated au
 raw logs and machine-local configuration remain ignored. Human listening, formal
 independent approval, pluginval/DAW validation and production acceptance were NOT RUN.
 No merge, UI integration, next-module redesign or acceptance-gate closure is implied.
+
+## Migrated historical contract record
+
+Historical scope before governance remediation; model authority is now EXP-W-BA-001.
+
+## Phase 0: A0 gap matrix (recorded before implementation)
+
+Paths below are relative to `SPIKE-W-DSP-001/`.
+
+| Concern | Actual A0 evidence | A1 requirement |
+| --- | --- | --- |
+| Radius | `dsp/BubbleEnsemble.h`, Hz-only config | Explicit meters internally; mm at offline boundary |
+| Frequency | `detail/EventVoicePool.h`, 16 log frequency families | 128 log radius bins; Minnaert frequency |
+| Damping | One `decaySeconds` shared by all families | Radius-dependent physical damping and separate persistence scale |
+| Amplitude | `trigger(input, family)` clips trigger PCM | Short-window source energy, radius factor and depth proxy |
+| Population | `nextUInt() % 16` | Normalized power-law probability per log-radius bin |
+| Scheduler | `probability_ * feature.slow`; instantaneous threshold | Linked power activity; exponential occupancy probability |
+| Pitch | Fixed complex poles | Optional selective, capped integrated-frequency rise |
+| Capacity | Fixed 16 slots; configured 1..16 | Fixed 1024 storage; five discrete ceilings |
+| Gain | `residualGain / capacity_` | Distribution normalization independent of voice capacity |
+| Stereo | Shared events; separate resonator channel states | Keep event symmetry; remove trigger-zero dependence |
+| Termination | Hard `ceil(24*tau*fs)` | Envelope floor and independent bounded lifetime guard |
+| Stealing | Oldest voice hard reset | Deterministic least-audible release before replacement |
+| Analysis | `WaterExcitationFeatures.h`, max-absolute envelope | Separate A1 linked-power analyzer; preserve legacy class |
+| Size | Preview v0.2 maps Hz | Separate offline radius mapping candidate |
+| Motion | Preview v0.2 maps rate | Offline activity multiplier; zero closes new events |
+| Decay | Preview maps one time constant | Offline multiplier on physical lifetime only |
+
+Legacy `FluidCandidate`, A0, B/D/C, Protect, preview/session v5 and mapping v0.2
+remain reference paths. A1 is explicitly selected offline; omission never upgrades A0.
+Do not translate legacy Hz fields into radius or relabel old listening evidence.
+
+
+## Migrated historical contract record
+
+Historical scope before governance remediation; model authority is now EXP-W-BA-001.
+
+## Documentation audit
+
+Reviewed Architecture, Coding Plan, Parameters, Core Implementation Guide, Testing,
+Code Standards, Document Governance, Module Index, Project Status, Perceptual Contract,
+accepted EXP-W-001 brief, Developer Sound Tools, debug guide, ADR-0006, spike README,
+mapping, listening execution and v0.2 handoff. Old conditional EXP-W-001 PLANNED text
+in AGENTS does not override the accepted brief; older phase ledgers are historical.
+Current repository M1 status supersedes the user's older pasted baseline. No unrelated
+controlled status/acceptance record is rewritten as part of this research experiment.
+
+## Validation and handoff
+
+Historical pre-review Debug/Release/ASAN27/27 and70-case study-v2 results are preserved;
+remediation measurements are recorded separately in the execution record. Human listening, two independent reviewer decisions
+and production adoption are NOT RUN. Actual commands/results and the new legacy-path
+fault are in the [execution record](WATER_BUBBLE_A1_EXECUTION.md).
+
+
+## Migrated historical contract record
+
+Historical scope before governance remediation; model authority is now EXP-W-BA-001.
+
+## Offline workflow
+
+Existing renderer modes `a1-residual` (E), `a1` (x+E), `a1b`, `a1d`, `a1bd` explicitly
+select A1. The latter replace only A in legacy composition. A1 rejects enabled Protect;
+its sum has no limiter/normalizer. Other modes and preview imports reject `bubbleA1`
+fields. Legacy A modes and omitted config remain A0. Example:
+
+```json
+{"bubbleA1":{"version":2,"radiusMinMm":0.2,"radiusMaxMm":10,"voiceCapacity":256}}
+```
+
+`frazil_water_research_cases --bubble-a1` exports `bubble-a1-offline-v2`: Size moves
+radius endpoints `.2*10^s` and `2*25^s` mm, Motion sets `m*m`, Decay sets persistence
+`4^(2*d-1)`. Other fields retain defaults. No import/overwrite of v0.2/session v5.
+
+`render/bubble_a1_study.py` reuses the renderer/exporter/listening metrics. A0 is the
+historical default; A1-1 uses physical radius/damping, flat bins, fixed linked RMS .25
+and no rise; A1-2 adds gamma2; A1-3 adds source energy; A1-4 adds selective rise.
+Fixed-amplitude ablations still retain source gating and stereo direction.
+Per source: A0, four ablations, two named baselines, six P0/P1 persistence cases and
+nine macro cases (22 total), repeat/block257 checks, raw residual,
+and `(x+E)*10^(-18/20)` references. Post-render RMS matching only attenuates to the
+quietest source-window RMS, with gains recorded. Motion0 makes that matched triplet
+unassessable. Matching is not LUFS/perceptual equality or preservation evidence.
+Two blank reviewer forms request identity, recognizability, motion, usefulness,
+artifacts and timestamped decisions; no aggregate score chooses a winner.
+
+After serial safe builds with the existing research opt-ins enabled:
+
+```powershell
+$research = 'build/windows-release/experiments/water/SPIKE-W-DSP-001'
+python experiments/water/SPIKE-W-DSP-001/render/bubble_a1_study.py `
+  --renderer "$research/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe" `
+  --baseline-renderer build/bubble-a1/pr40-baseline-render.exe `
+  --cases-executable "$research/frazil_water_research_cases_artefacts/Release/frazil_water_research_cases.exe" `
+  --input "$env:FRAZIL_SAMPLE_ROOT/Sample_Input/-_Sub Bass.wav" `
+  --output build/bubble-a1/new-study
+& "$research/frazil_water_bubble_a1_performance.exe"
+```
+
+Build the baseline executable from the recorded unmodified PR head before edits.
+The batch compares decoded A0/B/D/BD/C/ABD exactly. Audio, source names, logs and machine
+paths remain local/ignored. Timing: 44.1/48/96 kHz, five capacities, default/dense
+profiles, block128, 500 warmup and 3000 measured calls, nearest-rank P95/P99. Active
+mean/peak are sampled at block ends. This is research wall time, not device callback,
+Host or formal budget acceptance. Event-time setup and detector math are timed.

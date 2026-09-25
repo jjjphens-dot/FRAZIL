@@ -1,4 +1,6 @@
 #pragma once
+#include "BubbleA1ConfigSpec.h"
+#include "physics/BubblePhysics.h"
 
 #include <algorithm>
 #include <array>
@@ -12,21 +14,30 @@ inline bool a1Range(double x, double lo, double hi) noexcept {
     return std::isfinite(x) && x >= lo && x <= hi;
 }
 inline bool a1Capacity(std::size_t n) noexcept {
-    return n == 64 || n == 128 || n == 256 || n == 512 || n == 1024;
+    return kA1VoiceCapacity.accepts(static_cast<double>(n));
 }
 
 enum class BubbleA1RiseModel { physicalDampingP0, effectiveDampingP1 };
 
 struct BubbleA1Config final {
-    double radiusMinMm{.2}, radiusMaxMm{10};
-    double populationGamma{2}, amplitudeRadiusExponent{1.5}, depthExponent{10};
-    double persistenceScale{1}, maxEventRateHz{1000}, motionFactor{1};
-    double riseXi{.1}, riseCutoff{.9};
-    double tailFloorDb{-80}, stealReleaseMs{1.5}, residualGain{.2};
-    std::size_t voiceCapacity{256};
-    BubbleA1RiseModel riseModel{BubbleA1RiseModel::effectiveDampingP1};
-    // A1-1/2 ablation only: fixed linked amplitude, still source-gated and stereo-linked.
-    bool sourceEnergyAmplitude{true};
+    double radiusMinMm{kA1RadiusMinMm.initial};
+    double radiusMaxMm{kA1RadiusMaxMm.initial};
+    double populationGamma{kA1PopulationGamma.initial};
+    double amplitudeRadiusExponent{kA1AmplitudeRadiusExponent.initial};
+    double depthExponent{kA1DepthExponent.initial};
+    double persistenceScale{kA1PersistenceScale.initial};
+    double maxEventRateHz{kA1MaxEventRateHz.initial};
+    double motionFactor{kA1MotionFactor.initial};
+    double riseXi{kA1RiseXi.initial};
+    double riseCutoff{kA1RiseCutoff.initial};
+    double tailFloorDb{kA1TailFloorDb.initial};
+    double stealReleaseMs{kA1StealReleaseMs.initial};
+    double residualGain{kA1ResidualGain.initial};
+    std::size_t voiceCapacity{static_cast<std::size_t>(kA1VoiceCapacity.initial)};
+    BubbleA1RiseModel riseModel{
+        static_cast<BubbleA1RiseModel>(static_cast<int>(kA1RiseModel.initial))};
+    // Fixed amplitude is an offline ablation, still source-gated and stereo-linked.
+    bool sourceEnergyAmplitude{kA1SourceEnergyAmplitude.initial == 1};
 };
 
 struct BubbleA1Bin final {
@@ -39,26 +50,29 @@ struct BubbleA1Bin final {
 class BubbleA1Model final {
   public:
     static constexpr std::size_t kBins = 128;
-    static constexpr double kPressurePa = 101325, kDensityKgM3 = 998, kKappa = 1.4;
+    static constexpr double kPressurePa = BubblePhysics::kPressurePa,
+                            kDensityKgM3 = BubblePhysics::kDensityKgM3,
+                            kKappa = BubblePhysics::kGamma;
     static double frequency(double radiusMeters) noexcept {
-        return std::sqrt(3 * kKappa * kPressurePa / kDensityKgM3) /
-               (2 * std::numbers::pi * radiusMeters);
+        return BubblePhysics::minnaertFrequency(radiusMeters);
     }
     static double damping(double radiusMeters) noexcept {
-        return .13 / radiusMeters + .0072 / std::pow(radiusMeters, 1.5);
+        return BubblePhysics::damping(radiusMeters);
     }
     bool prepare(double rate, const BubbleA1Config& c) noexcept {
         bins_ = {};
-        if (!a1Range(rate, 44100, 96000) || !a1Range(c.radiusMinMm, .2, 10) ||
-            !a1Range(c.radiusMaxMm, 2, 50) || c.radiusMinMm >= c.radiusMaxMm ||
-            !a1Range(c.populationGamma, 0, 6) || !a1Range(c.amplitudeRadiusExponent, .75, 2.25) ||
-            !a1Range(c.depthExponent, 1, 16) || !a1Range(c.persistenceScale, .25, 4) ||
-            !a1Range(c.maxEventRateHz, 0, 10000) || !a1Range(c.motionFactor, 0, 1) ||
-            !a1Range(c.riseXi, 0, .2) || !a1Range(c.riseCutoff, .8, 1) ||
-            !a1Range(c.tailFloorDb, -100, -60) || !a1Range(c.stealReleaseMs, .5, 4) ||
-            !a1Range(c.residualGain, 0, 1) || !a1Capacity(c.voiceCapacity) ||
-            (c.riseModel != BubbleA1RiseModel::physicalDampingP0 &&
-             c.riseModel != BubbleA1RiseModel::effectiveDampingP1))
+        if (!a1Range(rate, 44100, 96000) || !kA1RadiusMinMm.accepts(c.radiusMinMm) ||
+            !kA1RadiusMaxMm.accepts(c.radiusMaxMm) || c.radiusMinMm >= c.radiusMaxMm ||
+            !kA1PopulationGamma.accepts(c.populationGamma) ||
+            !kA1AmplitudeRadiusExponent.accepts(c.amplitudeRadiusExponent) ||
+            !kA1DepthExponent.accepts(c.depthExponent) ||
+            !kA1PersistenceScale.accepts(c.persistenceScale) ||
+            !kA1MaxEventRateHz.accepts(c.maxEventRateHz) ||
+            !kA1MotionFactor.accepts(c.motionFactor) || !kA1RiseXi.accepts(c.riseXi) ||
+            !kA1RiseCutoff.accepts(c.riseCutoff) || !kA1TailFloorDb.accepts(c.tailFloorDb) ||
+            !kA1StealReleaseMs.accepts(c.stealReleaseMs) ||
+            !kA1ResidualGain.accepts(c.residualGain) || !a1Capacity(c.voiceCapacity) ||
+            !kA1RiseModel.accepts(static_cast<int>(c.riseModel)))
             return false;
         double weightSum{}, amplitudeMoment{};
         for (std::size_t i = 0; i < kBins; ++i) {

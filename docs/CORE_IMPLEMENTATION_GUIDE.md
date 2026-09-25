@@ -2,7 +2,12 @@
 
 Current research implementation note: [Bubble A1](../experiments/water/EXP-W-BA-001.md)
 is an opt-in offline independent population with shared-frame stereo excitation and
-P1 effective-damping rise. Its provenance matrix owns the approximation limits.
+P1 effective-damping rise (PRODUCT_MAPPING); P0 physical-damping rise is a
+REDUCED_PHYSICAL_MODEL. Its canonical equation/code/test matrix separates physical
+frequency and empirical damping from source proxies, discretization and normalization.
+A1-PHYS-REF is a historical label, not a wholly first-principles pipeline.
+The v2 descriptor and snapshot mirror one typed parameter authority; execution
+results remain in the A1 evidence record.
 The legacy Bubble/Fluid explanations below describe A0; Preview remains A0. B/D/C
 research and Proposed ADR-0006 are unchanged; production Water is NOT IMPLEMENTED.
 

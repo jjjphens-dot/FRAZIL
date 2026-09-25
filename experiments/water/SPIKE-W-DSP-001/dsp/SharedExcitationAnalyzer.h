@@ -1,4 +1,5 @@
 #pragma once
+#include "SharedExcitationConfig.h"
 #include "WaterExcitationFeatures.h"
 
 #include <algorithm>
@@ -6,10 +7,6 @@
 #include <cmath>
 
 namespace frazil::water::research {
-struct SharedExcitationConfig final {
-    double fastAttackMs{1}, fastReleaseMs{30}, slowAttackMs{30}, slowReleaseMs{200};
-    double activityFloorDbFS{-60}, activityKneeDb{6};
-};
 struct SharedExcitation final {
     double fastPower{}, slowPower{}, rms{}, activity{};
 };
@@ -24,10 +21,12 @@ class SharedExcitationAnalyzer final {
         const auto valid = [](double x, double lo, double hi) {
             return std::isfinite(x) && x >= lo && x <= hi;
         };
-        if (!valid(rate, 44100, 96000) || !valid(c.fastAttackMs, .5, 5) ||
-            !valid(c.fastReleaseMs, 10, 80) || !valid(c.slowAttackMs, 10, 80) ||
-            !valid(c.slowReleaseMs, 80, 500) || !valid(c.activityFloorDbFS, -80, -40) ||
-            !valid(c.activityKneeDb, 3, 12))
+        if (!valid(rate, 44100, 96000) || !kSharedFastAttackMs.accepts(c.fastAttackMs) ||
+            !kSharedFastReleaseMs.accepts(c.fastReleaseMs) ||
+            !kSharedSlowAttackMs.accepts(c.slowAttackMs) ||
+            !kSharedSlowReleaseMs.accepts(c.slowReleaseMs) ||
+            !kSharedActivityFloorDbFS.accepts(c.activityFloorDbFS) ||
+            !kSharedActivityKneeDb.accepts(c.activityKneeDb))
             return false;
         const std::array times{c.fastAttackMs, c.fastReleaseMs, c.slowAttackMs, c.slowReleaseMs};
         for (std::size_t i = 0; i < 4; ++i)

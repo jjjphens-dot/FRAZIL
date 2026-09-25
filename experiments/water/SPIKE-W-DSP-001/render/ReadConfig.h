@@ -271,30 +271,30 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
             double version = 0, riseModel = static_cast<int>(c.riseModel);
             if (!readNumbers(property.value,
                              {{"version", &version},
-                              {"riseModel", &riseModel},
-                              {"radiusMinMm", &c.radiusMinMm},
-                              {"radiusMaxMm", &c.radiusMaxMm},
-                              {"populationGamma", &c.populationGamma},
-                              {"amplitudeRadiusExponent", &c.amplitudeRadiusExponent},
-                              {"depthExponent", &c.depthExponent},
-                              {"persistenceScale", &c.persistenceScale},
-                              {"maxEventRateHz", &c.maxEventRateHz},
-                              {"motionFactor", &c.motionFactor},
-                              {"riseXi", &c.riseXi},
-                              {"riseCutoff", &c.riseCutoff},
-                              {"tailFloorDb", &c.tailFloorDb},
-                              {"stealReleaseMs", &c.stealReleaseMs},
-                              {"residualGain", &c.residualGain},
-                              {"voiceCapacity", &capacity},
-                              {"sourceEnergyAmplitude", &energy},
-                              {"fastAttackMs", &a.fastAttackMs},
-                              {"fastReleaseMs", &a.fastReleaseMs},
-                              {"slowAttackMs", &a.slowAttackMs},
-                              {"slowReleaseMs", &a.slowReleaseMs},
-                              {"activityFloorDbFS", &a.activityFloorDbFS},
-                              {"activityKneeDb", &a.activityKneeDb}}) ||
-                version != 2 || (riseModel != 0 && riseModel != 1) ||
-                !validVoiceRepresentation(capacity) || (energy != 0 && energy != 1))
+                              {kA1RiseModel.name.data(), &riseModel},
+                              {kA1RadiusMinMm.name.data(), &c.radiusMinMm},
+                              {kA1RadiusMaxMm.name.data(), &c.radiusMaxMm},
+                              {kA1PopulationGamma.name.data(), &c.populationGamma},
+                              {kA1AmplitudeRadiusExponent.name.data(), &c.amplitudeRadiusExponent},
+                              {kA1DepthExponent.name.data(), &c.depthExponent},
+                              {kA1PersistenceScale.name.data(), &c.persistenceScale},
+                              {kA1MaxEventRateHz.name.data(), &c.maxEventRateHz},
+                              {kA1MotionFactor.name.data(), &c.motionFactor},
+                              {kA1RiseXi.name.data(), &c.riseXi},
+                              {kA1RiseCutoff.name.data(), &c.riseCutoff},
+                              {kA1TailFloorDb.name.data(), &c.tailFloorDb},
+                              {kA1StealReleaseMs.name.data(), &c.stealReleaseMs},
+                              {kA1ResidualGain.name.data(), &c.residualGain},
+                              {kA1VoiceCapacity.name.data(), &capacity},
+                              {kA1SourceEnergyAmplitude.name.data(), &energy},
+                              {kSharedFastAttackMs.name.data(), &a.fastAttackMs},
+                              {kSharedFastReleaseMs.name.data(), &a.fastReleaseMs},
+                              {kSharedSlowAttackMs.name.data(), &a.slowAttackMs},
+                              {kSharedSlowReleaseMs.name.data(), &a.slowReleaseMs},
+                              {kSharedActivityFloorDbFS.name.data(), &a.activityFloorDbFS},
+                              {kSharedActivityKneeDb.name.data(), &a.activityKneeDb}}) ||
+                version != 2 || !kA1RiseModel.accepts(riseModel) ||
+                !validVoiceRepresentation(capacity) || !kA1SourceEnergyAmplitude.accepts(energy))
                 return false;
             c.voiceCapacity = static_cast<std::size_t>(capacity);
             c.sourceEnergyAmplitude = energy == 1;

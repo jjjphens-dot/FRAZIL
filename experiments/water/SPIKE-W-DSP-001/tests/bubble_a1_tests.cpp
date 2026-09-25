@@ -16,6 +16,66 @@ bool near(double a, double b, double tolerance = 1e-10) {
 }
 } // namespace
 int main() {
+    // Preserve the numeric identity of EVERY historic stream, including named A1 domain 6.
+    const std::array domains{RandomDomain::bubble,
+                             RandomDomain::droplet,
+                             RandomDomain::flow,
+                             RandomDomain::modalMotion,
+                             RandomDomain::dropletActivity,
+                             RandomDomain::bubbleA1,
+                             RandomDomain::dropletB1Identity,
+                             RandomDomain::dropletB1Admission,
+                             RandomDomain::dropletB1Jitter};
+    for (std::size_t i = 0; i < domains.size(); ++i) {
+        check(static_cast<std::uint64_t>(domains[i]) == i + 1, "stable domain ID");
+        for (RandomSource::Seed seed : {0u, 42u, 20260916u}) {
+            ResearchConfig research{48000, seed};
+            check(research.seedFor(domains[i]) == RandomSource::deriveInstanceSeed(seed, i + 1),
+                  "named domain retains exact historical seed");
+        }
+    }
+    // Independent all-domain bound, not a call to production physics/config metadata.
+    // Every unnormalized radius amplitude >=1 => weighted second-moment norm >=1.
+    // Rmax/Rmin<=250, alpha<=2.25, carrier<=sqrt(2), proxy/gain<=1.
+    // Damping decreases with R; tau<=4/d(.05); absolute floor>=1e-5.
+    const double maximumAmplitude = std::sqrt(2.) * std::pow(250., 2.25);
+    const double maximumTau = 4 / (.13 / .05 + .0072 / std::pow(.05, 1.5));
+    const double lifetimeBound = maximumTau * std::log(maximumAmplitude / 1e-5);
+    check(lifetimeBound < 29.942, "independent global audible-envelope lifetime");
+    for (double rate : {44100., 48000., 96000.}) {
+        check(lifetimeBound + 2 / rate < BubbleA1Voice::kMaximumLifetimeSeconds,
+              "30s guard exceeds global bound plus sample margin");
+        BubbleA1Event adversary;
+        adversary.physics.frequencyHz = 400;
+        adversary.physics.tauSeconds = maximumTau;
+        adversary.physics.poleRadius = std::exp(-1 / (maximumTau * rate));
+        adversary.amplitude = {maximumAmplitude, -maximumAmplitude};
+        BubbleA1Voice bounded;
+        bounded.start(adversary, rate, -100);
+        while (!bounded.done() && bounded.age < static_cast<unsigned>(30 * rate))
+            (void)bounded.process();
+        check(bounded.audibleEnvelope() <= 1e-5 && bounded.age < 30 * rate,
+              "adversarial envelope retires naturally before guard at every rate");
+        for (double minimum : {.2, 1., 10.})
+            for (double maximum : {2., 10., 50.})
+                for (double gamma : {0., 2., 6.})
+                    for (double alpha : {.75, 1.5, 2.25}) {
+                        if (minimum >= maximum)
+                            continue;
+                        BubbleA1Config corner;
+                        corner.radiusMinMm = minimum;
+                        corner.radiusMaxMm = maximum;
+                        corner.populationGamma = gamma;
+                        corner.amplitudeRadiusExponent = alpha;
+                        corner.persistenceScale = 4;
+                        BubbleA1Model table;
+                        check(table.prepare(rate, corner), "guard property table");
+                        for (const auto& bin : table.bins())
+                            check(bin.amplitude * std::sqrt(2.) <= maximumAmplitude * (1 + 1e-12) &&
+                                      bin.tauSeconds <= maximumTau * (1 + 1e-12),
+                                  "population normalization respects analytic guard bound");
+                    }
+    }
     BubbleA1Model model;
     BubbleA1Config cfg;
     check(model.prepare(48000, cfg), "default model");

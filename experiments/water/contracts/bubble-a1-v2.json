@@ -1,0 +1,221 @@
+{
+  "model": "bubble-a1",
+  "modelVersion": 2,
+  "configVersion": 2,
+  "parameters": [
+    {
+      "name": "radiusMinMm",
+      "unit": "mm",
+      "classification": "PHYSICAL",
+      "minimum": 0.2,
+      "maximum": 10.0,
+      "default": 0.2,
+      "writable": true
+    },
+    {
+      "name": "radiusMaxMm",
+      "unit": "mm",
+      "classification": "PHYSICAL",
+      "minimum": 2.0,
+      "maximum": 50.0,
+      "default": 10.0,
+      "writable": true
+    },
+    {
+      "name": "populationGamma",
+      "unit": "dimensionless",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0.0,
+      "maximum": 6.0,
+      "default": 2.0,
+      "writable": true
+    },
+    {
+      "name": "amplitudeRadiusExponent",
+      "unit": "dimensionless",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0.75,
+      "maximum": 2.25,
+      "default": 1.5,
+      "writable": true
+    },
+    {
+      "name": "depthExponent",
+      "unit": "dimensionless",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 1.0,
+      "maximum": 16.0,
+      "default": 10.0,
+      "writable": true
+    },
+    {
+      "name": "persistenceScale",
+      "unit": "dimensionless",
+      "classification": "PRODUCT_MAPPING",
+      "minimum": 0.25,
+      "maximum": 4.0,
+      "default": 1.0,
+      "writable": true
+    },
+    {
+      "name": "maxEventRateHz",
+      "unit": "Hz",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0.0,
+      "maximum": 10000.0,
+      "default": 1000.0,
+      "writable": true
+    },
+    {
+      "name": "motionFactor",
+      "unit": "dimensionless",
+      "classification": "PRODUCT_MAPPING",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 1.0,
+      "writable": true
+    },
+    {
+      "name": "riseXi",
+      "unit": "dimensionless",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0.0,
+      "maximum": 0.2,
+      "default": 0.1,
+      "writable": true
+    },
+    {
+      "name": "riseCutoff",
+      "unit": "dimensionless proxy",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0.8,
+      "maximum": 1.0,
+      "default": 0.9,
+      "writable": true
+    },
+    {
+      "name": "tailFloorDb",
+      "unit": "dB relative amplitude",
+      "classification": "ENGINEERING",
+      "minimum": -100.0,
+      "maximum": -60.0,
+      "default": -80.0,
+      "writable": true
+    },
+    {
+      "name": "stealReleaseMs",
+      "unit": "ms",
+      "classification": "ENGINEERING",
+      "minimum": 0.5,
+      "maximum": 4.0,
+      "default": 1.5,
+      "writable": true
+    },
+    {
+      "name": "residualGain",
+      "unit": "linear gain",
+      "classification": "ENGINEERING",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 0.2,
+      "writable": true
+    },
+    {
+      "name": "voiceCapacity",
+      "unit": "voices",
+      "classification": "ENGINEERING",
+      "minimum": 64.0,
+      "maximum": 1024.0,
+      "default": 256.0,
+      "writable": true,
+      "choices": [
+        64.0,
+        128.0,
+        256.0,
+        512.0,
+        1024.0
+      ]
+    },
+    {
+      "name": "riseModel",
+      "unit": "choice",
+      "classification": "PRODUCT_MAPPING",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 1.0,
+      "writable": true,
+      "choices": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "sourceEnergyAmplitude",
+      "unit": "choice",
+      "classification": "REDUCED_PHYSICAL_MODEL",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 1.0,
+      "writable": true,
+      "choices": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "fastAttackMs",
+      "unit": "ms",
+      "classification": "ENGINEERING",
+      "minimum": 0.5,
+      "maximum": 5.0,
+      "default": 1.0,
+      "writable": true
+    },
+    {
+      "name": "fastReleaseMs",
+      "unit": "ms",
+      "classification": "ENGINEERING",
+      "minimum": 10.0,
+      "maximum": 80.0,
+      "default": 30.0,
+      "writable": true
+    },
+    {
+      "name": "slowAttackMs",
+      "unit": "ms",
+      "classification": "ENGINEERING",
+      "minimum": 10.0,
+      "maximum": 80.0,
+      "default": 30.0,
+      "writable": true
+    },
+    {
+      "name": "slowReleaseMs",
+      "unit": "ms",
+      "classification": "ENGINEERING",
+      "minimum": 80.0,
+      "maximum": 500.0,
+      "default": 200.0,
+      "writable": true
+    },
+    {
+      "name": "activityFloorDbFS",
+      "unit": "dBFS",
+      "classification": "ENGINEERING",
+      "minimum": -80.0,
+      "maximum": -40.0,
+      "default": -60.0,
+      "writable": true
+    },
+    {
+      "name": "activityKneeDb",
+      "unit": "dB",
+      "classification": "ENGINEERING",
+      "minimum": 3.0,
+      "maximum": 12.0,
+      "default": 6.0,
+      "writable": true
+    }
+  ],
+  "constraint": "radiusMinMm < radiusMaxMm"
+}

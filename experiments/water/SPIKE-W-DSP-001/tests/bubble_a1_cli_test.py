@@ -22,6 +22,13 @@ def run(renderer, source, output, config, block=128, mode="a1-residual", ok=True
 
 def main():
     renderer = Path(sys.argv[1]).resolve()
+    descriptor = json.loads(subprocess.run([str(renderer), "--describe-bubble-a1"],
+                                          check=True, capture_output=True, text=True).stdout)
+    snapshot = Path(__file__).resolve().parents[2] / "contracts" / "bubble-a1-v2.json"
+    assert descriptor == json.loads(snapshot.read_text(encoding="utf-8"))
+    assert descriptor["modelVersion"] == descriptor["configVersion"] == 2
+    assert len(descriptor["parameters"]) == 22
+    assert len({p["name"] for p in descriptor["parameters"]}) == 22
     build = Path(__file__).resolve().parents[4] / "build" / "bubble-a1"
     build.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=build, prefix="cli-") as directory:
@@ -34,10 +41,17 @@ def main():
             sf.write(source, np.column_stack((left, -.3 * left)), rate, subtype="FLOAT")
             config.write_text('{"bubbleA1": {"version":2}}', encoding="utf-8")
             reference, stats = run(renderer, source, root / f"{rate}-base.wav", config)
+            config.write_text(json.dumps({"bubbleA1": {"version": 2, **{
+                p["name"]: p["default"] for p in descriptor["parameters"]}}}), encoding="utf-8")
+            explicit, _ = run(renderer, source, root / f"{rate}-explicit-defaults.wav", config)
+            assert np.array_equal(reference, explicit), "descriptor and typed defaults disagree"
             assert "bubble_model=A1" in stats and "radius_hist=" in stats
             fields = dict(token.split("=", 1) for token in stats.split() if "=" in token)
             assert int(fields["bubble_events"]) == int(fields["started"]) > 0
-            assert int(fields["bubble_first_frame"]) >= 0
+            assert int(fields["bubble_first_frame"]) == int(fields["a1_started_frame"]) >= 0
+            assert 0 <= int(fields["a1_requested_frame"]) <= int(fields["a1_started_frame"])
+            assert int(fields["a1_start_on_zero_current_frame"]) == int(fields["bubble_silent_events"])
+            assert int(fields["a1_source_window_active"]) > 0
             assert np.square(reference).sum() > 0
             for mode, components in (("a1b", ("a1", "b")), ("a1d", ("a1", "d")),
                                      ("a1bd", ("a1", "b", "d"))):
@@ -85,6 +99,17 @@ def main():
             config.write_text('{"bubbleA1":{"version":2,"motionFactor":0}}', encoding="utf-8")
             silent, stats = run(renderer, source, root / f"{rate}-zero.wav", config)
             assert not np.any(silent) and "requested=0 " in stats
+            # Zero current frames coexist with an active 2 ms window; these starts
+            # are source-linked, not spontaneous events. Keep the distinction executable.
+            pulses = np.zeros((len(left), 2))
+            pulses[100::16, 0] = .9
+            sf.write(source, pulses, rate, subtype="FLOAT")
+            config.write_text('{"bubbleA1":{"version":2,"maxEventRateHz":10000}}', encoding="utf-8")
+            _, stats = run(renderer, source, root / f"{rate}-window.wav", config)
+            fields = dict(token.split("=", 1) for token in stats.split() if "=" in token)
+            assert int(fields["a1_start_on_zero_current_frame"]) > 0
+            assert int(fields["a1_source_window_active"]) > 0
+            assert int(fields["a1_requested_frame"]) >= 100
         invalid = [
             '{"bubbleA1":{}}',
             '{"bubbleA1":{"version":1}}',
@@ -104,6 +129,10 @@ def main():
             '{"bubbleA1":{"version":2}} trailing',
             '{"bubbleA1":{"version":2},"protect":{"depth":1}}',
         ]
+        # Descriptor bounds are executable: parser/DSP must reject each field outside them.
+        for parameter in descriptor["parameters"]:
+            for value in (parameter["minimum"] - 1, parameter["maximum"] + 1):
+                invalid.append(json.dumps({"bubbleA1": {"version": 2, parameter["name"]: value}}))
         for i, text in enumerate(invalid):
             config.write_text(text, encoding="utf-8")
             run(renderer, source, root / f"bad-{i}.wav", config, ok=False)

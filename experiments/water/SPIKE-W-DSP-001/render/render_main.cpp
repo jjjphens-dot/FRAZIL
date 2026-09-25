@@ -1,3 +1,4 @@
+#include "BubbleA1Descriptor.h"
 #include "DropletB1Descriptor.h"
 #include "ReadConfig.h"
 #include "dsp/BubbleA1.h"
@@ -20,6 +21,10 @@ template <typename Integer> bool parse(std::string_view text, Integer& value) {
 }
 
 int render(int argc, char** argv) {
+    if (argc == 2 && std::string_view(argv[1]) == "--describe-bubble-a1") {
+        std::cout << juce::JSON::toString(bubbleA1Descriptor()).toStdString() << '\n';
+        return 0;
+    }
     if (argc == 2 && std::string_view(argv[1]) == "--describe-droplet-b1") {
         std::cout << juce::JSON::toString(dropletB1Descriptor()).toStdString() << '\n';
         return 0;
@@ -30,7 +35,8 @@ int render(int argc, char** argv) {
                      "[NEW-excitation.wav|-] [c0|c3] [independent|structured]\n"
                      "Modes: baseline, residual (zero), a, b, d, ab, ad, bd, abd, c; append "
                      "-residual for E only. Offline A1 modes: a1, a1b, a1d, a1bd. "
-                     "B1 modes: b1, a1b1, a1b1d. Descriptor: --describe-droplet-b1.\n";
+                     "B1 modes: b1, a1b1, a1b1d. Descriptors: --describe-bubble-a1, "
+                     "--describe-droplet-b1.\n";
         return 2;
     }
     std::string_view mode(argv[3]);
@@ -186,7 +192,8 @@ int render(int argc, char** argv) {
     std::size_t b1PeakActive{};
     // Offline observations only: never placed inside the DSP or timed callback harness.
     std::uint64_t bubbleSilentEvents{}, dropletSilentEvents{};
-    juce::int64 bubbleFirstFrame{-1}, dropletFirstFrame{-1};
+    juce::int64 bubbleFirstFrame{-1}, dropletFirstFrame{-1}, a1RequestedFrame{-1};
+    std::uint64_t a1SourceWindowActive{};
     for (juce::int64 start = 0; start < totalFrames; start += blockSize) {
         const auto count = static_cast<int>(std::min<juce::int64>(blockSize, totalFrames - start));
         buffer.clear();
@@ -202,6 +209,7 @@ int render(int argc, char** argv) {
                     return 1;
             StereoFrame effect{};
             const double gain = protect.processSource(frame);
+            const auto beforeA1Requested = a1 ? a1->requested() : 0;
             const auto beforeBubble = a1 ? a1->pool().counters().started : fluid.bubbleEvents();
             const auto beforeDroplet = b1 ? b1->pool().counters().started : fluid.dropletEvents();
             if (mode == "c")
@@ -254,6 +262,11 @@ int render(int argc, char** argv) {
                                   juce::String(protect.reductionDb(), 12) + "\n";
                 if (!trace->writeText(line, false, false, "\n"))
                     return 1;
+            }
+            if (a1) {
+                a1SourceWindowActive += a1->excitation().activity > 0 ? 1u : 0u;
+                if (a1->requested() > beforeA1Requested && a1RequestedFrame < 0)
+                    a1RequestedFrame = start + sample;
             }
             const auto newBubble =
                 (a1 ? a1->pool().counters().started : fluid.bubbleEvents()) - beforeBubble;
@@ -315,6 +328,12 @@ int render(int argc, char** argv) {
     if (a1) {
         const auto& p = a1->pool();
         const auto& counters = p.counters();
+        // Frame fields are FIRST request/start; window-active counts eligible frames.
+        // Legacy silent-events counts zero CURRENT frames, not unexcited windows.
+        std::cout << "a1_requested_frame=" << a1RequestedFrame
+                  << " a1_started_frame=" << bubbleFirstFrame
+                  << " a1_start_on_zero_current_frame=" << bubbleSilentEvents
+                  << " a1_source_window_active=" << a1SourceWindowActive << '\n';
         std::cout << "bubble_model=A1 requested=" << a1->requested()
                   << " accepted=" << counters.accepted << " started=" << counters.started
                   << " capacity_drops=" << counters.capacityDrops << " steals=" << counters.steals
