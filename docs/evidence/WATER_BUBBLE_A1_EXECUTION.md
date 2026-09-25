@@ -1,5 +1,13 @@
 # Bubble A1 execution record
 
+## Subsequent exact-head hosted verification
+
+[Run133 /36104661534](https://github.com/jjjphens-dot/FRAZIL/actions/runs/36104661534)
+verified SUCCESS for41a7a67c82f9be30cab6a184c7355ffa1b12155c during combined closeout.
+This is hosted Windows Debug evidence only; local Release/ASAN, human listening and
+Host/pluginval remain separate. Subsequent B1-only closeout and combined preservation
+are recorded in [B1 execution](WATER_DROPLET_B1_EXECUTION.md); no A1 contract change.
+
 ## Governance remediation on B1 base
 
 Implementation and local validation complete for review. Baseline `8f3b7ca06073439d9d47742f2a3b92a361029c1f`;

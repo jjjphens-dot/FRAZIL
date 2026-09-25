@@ -26,7 +26,8 @@ class DropletB1 final {
             return false;
         detector_.prepare(rate_, config);
         entrainment_.prepare(research);
-        pool_.prepare(rate_, static_cast<std::size_t>(config[B1Parameter::capacity]));
+        if (!pool_.prepare(rate_, static_cast<std::size_t>(config[B1Parameter::capacity])))
+            return false;
         ready_ = true;
         return true;
     }

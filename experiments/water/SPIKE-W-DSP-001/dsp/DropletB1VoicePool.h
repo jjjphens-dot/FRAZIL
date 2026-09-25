@@ -3,6 +3,7 @@
 #include "WaterExcitationFeatures.h"
 
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -15,10 +16,17 @@ struct DropletB1VoiceCounters final {
 class DropletB1VoicePool final {
   public:
     static constexpr std::size_t kCapacity = 256;
-    void prepare(double rate, std::size_t capacity) noexcept {
+    // Internal storage domain is 1..256; public research choices belong to Config.
+    bool prepare(double rate, std::size_t capacity) noexcept {
+        capacity_ = 0;
+        rate_ = 0;
+        reset();
+        if (!std::isfinite(rate) || rate < 44100 || rate > 96000 || capacity < 1 ||
+            capacity > kCapacity)
+            return false;
         rate_ = rate;
         capacity_ = capacity;
-        reset();
+        return true;
     }
     void reset() noexcept {
         slots_ = {};
@@ -102,6 +110,6 @@ class DropletB1VoicePool final {
     DropletB1VoiceCounters counters_{};
     DropletB1Event lastStarted_{}; // Bounded audio-owner readout; no trace allocation.
     double rate_{};
-    std::size_t capacity_{32}, active_{};
+    std::size_t capacity_{}, active_{};
 };
 } // namespace frazil::water::research

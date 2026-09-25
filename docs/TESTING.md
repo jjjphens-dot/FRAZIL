@@ -928,3 +928,21 @@ is required locally. No CI result alone proves before/after identity against an 
 historical binary. Timing includes mean/P95/P99/worst, occupancy and isolated start cost.
 Run Debug/Release/ASAN serially through build_safe with existing research opt-ins.
 Actual commands/results and limitations: [B1 execution](evidence/WATER_DROPLET_B1_EXECUTION.md).
+
+
+### A1+B1 zero-sonic closeout regressions
+
+B1 direct pool tests include capacity0/1/16/32/256/257/SIZE_MAX and finite/nonfinite
+rate bounds; invalid prepare must remove stale voices and leave request/process safe.
+Public capacity1 still rejects. Independent amplitude tests distinguish R^1.5 ratios
+from exactly1 at the2mm engineering reference. Deterministic short-pulse/delayed-start
+CLI tests verify captured onset+delay=due=start for a free voice; pool tests verify
+replacement initialization on the final release frame and emission on the next.
+Deprecated B1 aliases equal the explicit diagnostics; silence does not erase causality.
+
+Combined closeout reruns both descriptors, A1 lifetime, B1 lifecycle/allocation,
+three-rate/nine-partition/stereo properties and preserved-binary decoded comparisons.
+Historical95be0de A1 and current pre-closeout41a7a67 references remain separate;
+using the newly built renderer as both sides never establishes preservation.
+Debug/Release/ASAN and exact-head hosted CI are separate results. Existing environment,
+A1 stress and B1 listening findings stay open. See the B1 execution record.

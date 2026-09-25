@@ -72,6 +72,23 @@ def main():
                 if label == "right": assert not np.any(y[:,0])
                 if label == "mono": assert np.array_equal(y[:,0],y[:,1])
                 if label == "anti": assert np.array_equal(y[:,0],-y[:,1])
+            # A short source pulse ends well before the captured 40ms pinch-off time.
+            pulse = np.zeros((int(rate * .1), 2))
+            pulse[:int(rate * .002)] = [.9, -.3]
+            sf.write(source, pulse, rate, subtype="FLOAT")
+            config.write_text('{"dropletB1":{"version":1,"pinchOffDelayMs":40}}')
+            _, timing = render(exe, source, root/f"{rate}-delay.wav", config)
+            onset = int(timing["b1_first_source_onset_frame"])
+            due = int(timing["b1_first_due_frame"])
+            started = int(timing["b1_first_started_frame"])
+            assert onset == int(timing["b1_first_eligible_frame"]) < due
+            assert due == onset + int(np.ceil(rate * .04)) == started
+            assert started >= len(pulse[:int(rate * .002)]) and int(timing["b1_start_on_zero_current_frame"]) > 0
+            assert int(timing["b1_first_started_eligible_id"]) == 1
+            assert timing["droplet_first_frame"] == timing["b1_first_started_frame"]
+            assert timing["droplet_silent_events"] == timing["b1_start_on_zero_current_frame"]
+            assert timing["physicalAmplitudeScale"] == timing["relativeFormationAmplitudeScale"]
+            assert float(timing["lastStartedSourceExcitation"]) > 0
             config.write_text('{"dropletB1":{"version":1,"entrainmentProbability":0}}')
             zero, stats = render(exe, source, root/f"{rate}-p0.wav", config)
             assert not np.any(zero) and int(stats["eligible"]) > 0 and stats["admitted"] == "0"

@@ -498,7 +498,11 @@ fixed delay are reduced/engineering surrogates, not reconstructed drop kinematic
 
 Frequency and natural damping derive from acoustic radius. Persistence is an explicit
 nonphysical factor. Source excitation replaces unknown fluid velocity only as a
-labelled dimensionless proxy. The fixed pool owns lifecycle, not physical selection.
+labelled dimensionless proxy. R^1.5 is the reference physical relation; the2mm
+normalization is engineering relative calibration. The fixed pool owns lifecycle
+and validates its internal1..256 capacity independently of public16..256 choices.
+Offline B1 diagnostics distinguish captured onset/due from actual initialization;
+zero current input at delayed start does not imply a spontaneous event.
 Raw versus normalized amplitude and displacement versus acceleration remain explicit
 ablation choices. Full equations, limits and independent test ownership live in the
 canonical B1 contract to avoid duplicated numeric authority. The old stochastic

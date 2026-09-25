@@ -194,6 +194,8 @@ int render(int argc, char** argv) {
     std::uint64_t bubbleSilentEvents{}, dropletSilentEvents{};
     juce::int64 bubbleFirstFrame{-1}, dropletFirstFrame{-1}, a1RequestedFrame{-1};
     std::uint64_t a1SourceWindowActive{};
+    juce::int64 b1FirstEligible{-1}, b1SourceOnset{-1}, b1Due{-1};
+    std::uint64_t b1StartedEligibleId{};
     for (juce::int64 start = 0; start < totalFrames; start += blockSize) {
         const auto count = static_cast<int>(std::min<juce::int64>(blockSize, totalFrames - start));
         buffer.clear();
@@ -278,8 +280,19 @@ int render(int argc, char** argv) {
             }
             if (newBubble && bubbleFirstFrame < 0)
                 bubbleFirstFrame = start + sample;
-            if (newDroplet && dropletFirstFrame < 0)
+            if (b1 && b1FirstEligible < 0 && b1->counters().eligible)
+                b1FirstEligible = static_cast<juce::int64>(b1->lastEligible().impact.sourceSample);
+            if (newDroplet && dropletFirstFrame < 0) {
                 dropletFirstFrame = start + sample;
+                if (b1) {
+                    // Pair captured source/due with the first observed initialization frame.
+                    // A zero current input frame says nothing about this event's causality.
+                    const auto& event = b1->pool().lastStarted();
+                    b1SourceOnset = static_cast<juce::int64>(event.impact.sourceSample);
+                    b1Due = static_cast<juce::int64>(event.dueSample);
+                    b1StartedEligibleId = event.eligibleId;
+                }
+            }
             for (int channel = 0; channel < channels; ++channel) {
                 const float value =
                     residualOnly ? effect[channel] : frame[channel] + effect[channel];
@@ -360,6 +373,13 @@ int render(int argc, char** argv) {
         const auto& v = b1->pool().counters();
         const auto& p = b1->physics();
         const auto& last = b1->pool().lastStarted();
+        // Existing droplet_* and physicalAmplitudeScale outputs are deprecated B1 aliases.
+        std::cout << "b1_first_eligible_frame=" << b1FirstEligible
+                  << " b1_first_source_onset_frame=" << b1SourceOnset
+                  << " b1_first_due_frame=" << b1Due
+                  << " b1_first_started_frame=" << dropletFirstFrame
+                  << " b1_first_started_eligible_id=" << b1StartedEligibleId
+                  << " b1_start_on_zero_current_frame=" << dropletSilentEvents << '\n';
         std::cout << "droplet_model=B1 eligible=" << c.eligible << " admitted=" << c.admitted
                   << " queued=" << c.queued << " started=" << v.started
                   << " rejectedByAdmission=" << c.rejectedByAdmission
@@ -370,7 +390,8 @@ int render(int argc, char** argv) {
                   << " active_mean=" << b1ActiveSum / totalFrames << " active_peak=" << b1PeakActive
                   << " frequency_hz=" << p.frequencyHz
                   << " damping_per_second=" << p.dampingPerSecond
-                  << " physicalAmplitudeScale=" << p.physicalAmplitudeScale
+                  << " relativeFormationAmplitudeScale=" << p.relativeFormationAmplitudeScale
+                  << " physicalAmplitudeScale=" << p.relativeFormationAmplitudeScale
                   << " renderAmplitudeScale=" << p.renderAmplitudeScale
                   << " lastStartedSourceExcitation=" << last.impact.sourceExcitation
                   << " lastStartedRenderAmplitude="

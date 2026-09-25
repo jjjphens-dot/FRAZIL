@@ -36,7 +36,9 @@ M0-B onset-only probability0.25 are offline comparison hypotheses, not adopted c
   the last is weakly audible. This supports separate admission, not our numeric probability.
 - [van den Doel 2005](https://www.persianney.com/kvdoelcsubc/publications/tap05.pdf):
   original manuscript/reference equations reviewed in the A1 source audit; current
-  retrieval was intermittent and direct download denied. Selected damping fit applies
+  retrieval was intermittent and direct download denied in the original audit. Closeout
+  retrieved the author PDF and rechecked section3 eq4: R^1.5 multiplies inward velocity;
+  the2mm reference calibration is our engineering choice. Selected damping fit applies
   above approximately0.15mm. Radius-amplitude scaling assumes unknown inward fluid velocity;
   optional rise and population statistics form a physical/empirical hybrid. Its19-subject
   single-bubble study motivates testing2–7mm, not a measured entrainment distribution.
@@ -56,12 +58,15 @@ All paths below are under `SPIKE-W-DSP-001/`. Each row has one primary category.
 | --- | --- | --- | --- | --- | --- | --- |
 | B1-PHY-001 | f0=sqrt(3*1.4*101325/998)/(2*pi*R), SI radius | PHYSICAL | Phillips eq2 | physics/BubblePhysics | physics fixed-radius oracle | IMPLEMENTED |
 | B1-PHY-002 | d=.13/R+.0072/R^1.5; natural tau=1/d | PHYSICAL | van den Doel damping fit | physics/BubblePhysics | physics formula/monotonicity | IMPLEMENTED |
-| B1-PHY-003 | physicalAmplitudeScale=(R/.002)^1.5 | PHYSICAL | simplified formation scaling, relative reference | DropletB1Model | radius-scale oracle | IMPLEMENTED |
+| B1-PHY-003 | formation-radius relation proportional to R^1.5, at fixed unknown inward velocity | PHYSICAL | van den Doel eq4 | DropletB1Model | independent two-radius exponent ratio | IMPLEMENTED |
+| B1-RED-004 | dimensionless source excitation substitutes unavailable fluid forcing | REDUCED_PHYSICAL_MODEL | project musical-source substitution | DropletB1SourceCoupler | captured source/stereo oracle | IMPLEMENTED |
+| B1-ENG-005 | reference divisor (.002)^1.5 for relativeFormationAmplitudeScale | ENGINEERING | project relative normalization | DropletB1Model | exactly1 at2mm, decoded identity | IMPLEMENTED |
 | B1-PHY-004 | x=A*exp(-d*t)*sin(phase), phase'=omega | PHYSICAL | isolated small radial perturbation model | DropletB1BubbleVoice | analytic early-sample oracle | IMPLEMENTED |
 | B1-PHY-005 | relative emission proportional to4*pi*R^2*x'' | PHYSICAL | Phillips eq3, linearized spherical volume | DropletB1AcousticEmission | analytic volume-acceleration oracle | IMPLEMENTED |
 | B1-RED-001 | eligible musical onset to captured VirtualImpact | REDUCED_PHYSICAL_MODEL | project source coupling | DropletB1SourceCoupler | captured stereo/source tests | IMPLEMENTED |
 | B1-RED-002 | independent admission probability; delayed single bubble | REDUCED_PHYSICAL_MODEL | entrainment literature, project surrogate | DropletB1EntrainmentModel | RNG/timing/endpoint oracle | IMPLEMENTED |
-| B1-RED-003 | optional f=f0*(1+xi*dPhysical*t), capped | REDUCED_PHYSICAL_MODEL | van den Doel empirical rise cue | DropletB1BubbleVoice | integrated chirp/cap oracle | IMPLEMENTED |
+| B1-RED-003 | optional f=f0*(1+xi*dPhysical*t) | REDUCED_PHYSICAL_MODEL | van den Doel empirical rise cue | DropletB1BubbleVoice | integrated chirp/cap oracle | IMPLEMENTED |
+| B1-RED-003a | sqrt(2)*f0 surface-limit cue, no geometry | REDUCED_PHYSICAL_MODEL | van den Doel surface approximation | DropletB1BubbleVoice | capped analytic chirp | IMPLEMENTED |
 | B1-PROD-001 | dEffective=dPhysical/persistence | PRODUCT_MAPPING | explicit nonphysical persistence | DropletB1Model | isolation/lifetime tests | IMPLEMENTED |
 | B1-PROD-002 | R=.2*35^Size mm; persistence=4^(2*Decay-1) | PRODUCT_MAPPING | offline-v1 candidate, no Motion mapping | offline mapper | endpoints/isolation | RESEARCH-CANDIDATE |
 | B1-ENG-001 | 10log10((Pfast+eps)/(Pslow+eps)), floor/hysteresis/spacing | ENGINEERING | Bello context; project detector | DropletB1OnsetDetector | synthetic source fixtures | IMPLEMENTED |
@@ -102,10 +107,16 @@ No noisy finite differences. An explicit displacement ablation is separate.
 Raw formation scaling and normalized musical amplitude are explicit alternatives;
 normalization divides out the radius-amplitude factor, not the physical equation.
 Source excitation is dimensionless and bounded, never measured fluid velocity.
+The PHYSICAL reference relation R^1.5 assumes radius-independent inward velocity;
+the audio forcing substitution is REDUCED_PHYSICAL_MODEL. Dividing by the2mm
+reference radius is ENGINEERING relative calibration. The implementation retains
+`pow(R/.002,1.5)` evaluation order for exact historical audio, named
+`relativeFormationAmplitudeScale`; it is not absolute amplitude, pressure or SPL.
 
 Rise defaults0; optional.05/.1 uses physical damping slope, independent of persistence.
-Frequency is capped at min(sqrt(2)*f0,.45*fs); cap is a numerical/stylized boundary,
-not a geometric free surface. The analytic derivative uses zero omegaPrime after cap.
+Frequency is capped at min(sqrt(2)*f0,.45*fs). The sqrt(2) surface-limit cue is
+REDUCED_PHYSICAL_MODEL; the .45*fs bandwidth margin is ENGINEERING. Neither
+reconstructs a geometric free surface or guarantees alias-free output. The analytic derivative uses zero omegaPrime after cap.
 Product parameters are prepare-only, except audio-owner admission retarget preserving
 already queued events and tails. This is not realtime macro automation acceptance.
 
@@ -118,6 +129,12 @@ least estimated audible envelope with stable slot tie, release linearly, then st
 the captured replacement. If every slot is already releasing, drop the new request.
 Stealing can add up to `ceil(fs*releaseMs/1000)` samples beyond the pinch-off due
 time (at most 4 ms plus sampling quantization), and is recorded explicitly.
+
+The pool itself validates finite44100..96000Hz and internal capacity1..256.
+Public configuration still accepts only16/32/64/128/256. `prepare` returns bool;
+failure clears voices, replacements and captured state and leaves capacity0.
+Requests then fail and processing stays silent; reset cannot enable failed preparation.
+No silent clamping. Successful reset retains valid prepared resource settings.
 
 ## Lifecycle and diagnostics
 
@@ -133,13 +150,34 @@ has a replacement reserved. A reset clears every counter and captured event.
 `active` includes a replacement initialized at the end of the current sample;
 timing reports sample block-end occupancy, not a voice-time integral.
 
-The renderer reports physical and render amplitude scales separately, plus the last
+The renderer reports relative formation and render amplitude scales separately, plus the last
 started event's captured `sourceExcitation` and `renderAmplitude` (scale times source
 excitation times residual gain, before signed stereo direction and emission).
 These last-event diagnostics are zero if no voice started. They are neither peak
 audio amplitude nor pressure. Tail-floor retirement is gain independent; it is not
 an absolute audibility claim. The bounded priority estimate used for stealing is
 an engineering heuristic, not a perceptual loudness detector.
+
+Explicit offline B1 timing fields (frame indices since reset, -1 if absent):
+
+- `b1_first_eligible_frame`: first eligible detector/captured source sample, including admission rejection.
+- `b1_first_source_onset_frame` and `b1_first_due_frame`: captured source/due of the
+  event observed at the first initialization frame; paired with `b1_first_started_eligible_id`.
+- `b1_first_started_frame`: first coefficient initialization frame. A free slot starts
+  at due; a replacement initializes at due+ceil(fs*releaseMs/1000)-1 and first emits
+  on the following frame. Multiple simultaneous starts use the pool's last-started
+  event for the paired source/due/id; no complete event history is implied.
+- `b1_start_on_zero_current_frame`: count of starts while the current stereo input
+  is exactly zero. Captured nonzero excitation can correctly start after source end.
+- `droplet_first_frame` and `droplet_silent_events` remain B0 diagnostics; in B1 they
+  are deprecated aliases for initialization frame and zero-current-frame count.
+- `relativeFormationAmplitudeScale` is the primary relative-scale readout;
+  `physicalAmplitudeScale` remains only its deprecated, numerically identical alias.
+
+Only the renderer accumulates these observations. DSP already exposes fixed-size
+`lastEligible`/`lastStarted` values; no callback log/history or source resampling is added.
+Admission0 can report eligible events with onset/due/start fields still -1 (no start).
+Current-frame silence is never evidence of source-independent sound generation.
 
 ## Research parameter authority
 

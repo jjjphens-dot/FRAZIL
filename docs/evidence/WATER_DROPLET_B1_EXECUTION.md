@@ -1,5 +1,190 @@
 # Water Droplet B1 execution
 
+## A1+B1 governance closeout
+
+Status: MODULE-LEVEL ENGINEERING COMPLETE / RESEARCH ONLY; all local closeout gates pass.
+The combined engineering baseline freeze additionally requires successful hosted CI
+on the published exact head, reported by its GitHub run and final handoff. Human
+acceptance NOT ASSESSED; product NOT ADOPTED; production Water NOT IMPLEMENTED.
+Starting branch `codex/fix/water-a1-governance`, fetched clean at
+`41a7a67c82f9be30cab6a184c7355ffa1b12155c`. No intervening commits.
+A1 historical sonic reference95be0de; B1/current reference41a7a67, itself retaining
+8f3b7ca B1 audio. Existing unrelated HOST changes in another checkout are untouched.
+
+### Contract Review
+
+The closeout attachment accepts A1 remediation with open findings and requires only
+B1-P1-01/02/03 plus combined regression. Reviewed B1 contract/model/pool/orchestration,
+renderer, tests and prior execution, A1 classification matrix, Physical Governance,
+Code Standards and applicable Documentation Gate. API/safety/diagnostic/status changes
+trigger the affected module/testing/status synchronization rows; no product contract,
+DRI transfer, algorithm adoption or production Joint Gate is introduced.
+
+Reopened the van den Doel author manuscript successfully: section3 eq4 relates
+formation amplitude to radius^1.5 times inward velocity. The2mm reference and audio
+proxy remain project choices. Phillips publisher retrieval failed in this pass;
+previous source audit is retained, not reported as a new successful full-text read.
+No coefficient, onset, source observation, delay, gain or mapping is retuned.
+
+### Implementation
+
+- B1-P1-01: pool prepare returns bool, clears state first and rejects nonfinite or
+  out-of-domain rates and capacities. Internal1..256 differs from public choices.
+  Capacity0 is the inactive invariant, including default construction and failure.
+  Existing zero-iteration loops then make request/process safe without a new hot-loop branch.
+- B1-P1-02: renamed the C++ state member to relativeFormationAmplitudeScale, kept
+  identical pow(R/.002,1.5) arithmetic. Physical exponent, forcing proxy and2mm
+  engineering reference now have separate matrix rows. Renderer retains the old
+  readout only as a deprecated alias, so existing report parsing remains compatible.
+- B1-P1-03: renderer observes existing fixed-size lastEligible/lastStarted values.
+  Explicit first eligible, paired captured onset/due/id, actual initialization and
+  zero-current-frame counts replace unsafe interpretation of legacy silent aliases.
+  No new DSP value type, callback logging/history, allocation or source resampling.
+
+### Functional Validation
+
+Debug fresh configure/safe build and all32 CTest passed in150.60s. Remaining
+serial presets and exact-identity results are recorded below. New direct tests cover
+capacity0/1/16/32/256/257/SIZE_MAX, finite/nonfinite rate bounds and stale-state clearing.
+Independent amplitude ratio/reference tests and short-pulse delayed CLI tests separate
+physical relations, relative calibration and causal timing. Existing release oracle
+now checks the exact initialization transition and retained source/due metadata.
+
+### Code Quality Review
+
+Separate post-functional self-review checked cohesion, dependencies, naming, includes,
+resource ownership, globals/macros/dead code, callback allocation/I/O/locks and bounds.
+Failure makes capacity0 before any subsequent loop, clears stale voices and remains
+inactive across reset. Valid prepare stores the same rate/capacity and clears the same
+state. Audio evaluation order and all RNG consumption are unchanged. Renderer timing
+pairs values from captured events, never future input. Compatibility aliases preserve
+existing study parsing. No extra abstraction or alternate synthesis path is introduced.
+This is agent self-review, not independent approval.
+
+### Comment & Documentation Pass
+
+Updated B1 contract, this record, Water index, Module Index, Testing, Project Status
+and Core Guide. A1 execution records verified exact-head hosted run133 SUCCESS;
+A1 model contract, descriptors, lifetime proof, diagnostics and timing CSVs are unchanged.
+The nine shared classification concepts agree: Minnaert/damping/reference radius
+exponent PHYSICAL; audio substitution and physical-damping rise/sqrt2 cue REDUCED;
+persistence PRODUCT_MAPPING; normalization, bandwidth margin and resources ENGINEERING.
+A1 additionally has the unchanged P1 product-mapped rise. No implication of equal models.
+
+Reviewed without update: Architecture, Coding Plan, Parameters, accepted Water brief,
+Perceptual Contract, Developer Sound Tools, Code Standards, Document Governance,
+Physical Governance and Accepted ADRs. Their dependency, ownership, phase, acceptance,
+Host/state and production contracts are unchanged. A1 DSP/model/descriptor changes:
+none. The shared offline renderer and identity harness change only B1 observations
+and regression coverage/reference labels; A1 signal generation is untouched.
+
+### Final Validation
+
+Debug and Release fresh safe builds passed32/32 in150.60s and46.45s respectively.
+ASAN fresh safe build passed32/32 in240.67s on its first closeout attempt, with
+PYTHONFAULTHANDLER=1 enabled. No current native/Python failure; historical
+A1-GOV-ENV-001 stays OPEN / NOT REPRODUCED. Current sonic comparisons passed1224 study pairs plus405
+unique rate/partition/mode cells against preserved41a7a67. Historical pass separately
+passed840 A1 and72 legacy pairs against95be0de, plus312 repeated B1 pairs against41a7a67.
+Each report was independently audited for count, unique group/source/mode/block keys,
+reference labels and all PASS flags. No decoded audio tolerance or normalization.
+Both CLI descriptor snapshots and new diagnostics passed in all three presets.
+
+| Check | Result | Scope |
+| --- | --- | --- |
+| Debug configure / safe build / CTest | PASS | 32/32,150.60s |
+| Release configure / safe build / CTest | PASS | 32/32,46.45s |
+| ASAN configure / safe build / CTest | PASS | 32/32,240.67s; diagnostic instrumentation enabled from first run |
+| A1/B1 CLI and descriptor snapshots | PASS | Actual executables in every preset; snapshots unchanged |
+| B1 direct capacity/lifecycle, amplitude and timing tests | PASS | Includes rejected prepare, short pulse and bounded steal initialization |
+| B1 callback allocation instrumentation | PASS | Existing process/retarget/reset/steal observer; no new hot-loop allocation |
+| Current decoded identity | PASS | 1224 study +405 matrix comparisons against41a7a67 |
+| Historical decoded identity | PASS | A1840 +legacy72 against95be0de; B1312 repeated against41a7a67 |
+| Format / AST / whitespace | PASS | Changed C++ clang-format, both Python files, git diff check |
+| Markdown / portability | PASS | Repository scans and both scanner regression suites |
+| Prior hosted Windows Debug CI | PASS | Run133/36104661534, exact41a7a67; not the closeout head |
+| Human listening / Host / pluginval / merge | NOT RUN | Independent acceptance remains open |
+
+New hosted validation is attached to the published commit in GitHub; it is not inferred
+from the local table or the prior41a7a67 run. Final handoff must identify its exact
+head/run before claiming READY FOR A1+B1 BASELINE FREEZE.
+
+Actual serial configure/build/CTest commands use the existing documented
+MSVC environment, explicit discovered Python, research/Preview opt-ins and six-job
+`tools/build_safe.py`; never bypass resource refusal. Baseline executable copied
+before edits to ignored `build/ab-closeout/before-41a7a67.exe`; historical95be0de
+renderer retained from prior verified evidence, not rebuilt or replaced by current code.
+
+Performance remeasurement: N/A. Capacity/rate validation changes prepare only;
+renaming preserves arithmetic and offline observations do not alter DSP hot loops.
+Existing allocation test and source-path review still apply. Neither historical
+performance dataset is relabelled as a new measurement or formal realtime guarantee.
+
+### Retained closeout harness correction
+
+Initial current-baseline study comparisons passed all1224 pairs. The first added
+matrix invocation then failed before rendering: the harness supplied fractional
+`tail-seconds=0.3`, while the established renderer CLI accepts integer seconds only.
+Baseline returned2; this was a harness argument error, not decoded sonic drift.
+Preserved `build/ab-closeout/current` report/log. Corrected only the harness to1s;
+`--matrix-only` reruns those405 new checks in `current-matrix` without discarding
+completed study evidence. Renderer/DSP code and CLI contract were not changed.
+
+### Closeout regeneration and changed files
+
+Use the existing A1 identity harness with the same six authorized study inputs,
+`--a1-study build/bubble-a1/study-v3 --b1-study build/droplet-b1/study-v1`, and
+`--renderer <new Release renderer>`. Do not regenerate baseline executables from
+new source. Supply each authorized input with `--input`; paths use the same
+FRAZIL_LISTENING_INPUT_DIR/FRAZIL_B1_ENGINEERING_PAD variables shown below.
+
+| Pass | A1/legacy executable | B1 executable | Metadata / additional flags | Output |
+| --- | --- | --- | --- | --- |
+| Historical | `build/a1-governance/a1-95be0de-render.exe` | `build/ab-closeout/before-41a7a67.exe` | `--b1-reference 41a7a67c82f9be30cab6a184c7355ffa1b12155c` | `build/ab-closeout/historical` |
+| Current | `build/ab-closeout/before-41a7a67.exe` | same preserved executable | both `--a1-reference` and `--b1-reference` set to41a7a67; `--matrix` | `build/ab-closeout/current` |
+
+Executable flags are `--a1-baseline` and `--b1-baseline`. Output must be new. The
+optional matrix sequences dual mono, left/right only, anti-phase, quadrature/swap,
+unequal level and asymmetric transient segments. It compares15 required modes at
+3 rates and9 partitions. It is engineering input, not human listening evidence.
+The original study comparisons retain all21 A1 and26 B1 conditions, sources and
+full/residual variants. Each decoded pair uses `np.array_equal`, no tolerance.
+Reference commit arguments label preserved binaries; they do not verify provenance
+or permit using the current binary as its own reference. Local copies are recorded above.
+
+No created/deleted tracked files or abstractions. Modified files and purpose:
+
+| Files | Purpose |
+| --- | --- |
+| `dsp/DropletB1VoicePool.h`, `dsp/DropletB1.h` | Own and propagate prepare failure |
+| `dsp/DropletB1Model.h` | Relative-scale name/provenance; identical arithmetic |
+| `render/render_main.cpp` | Offline captured timing and deprecated aliases |
+| `render/a1_governance_identity.py` | Explicit reference labels and requested closeout matrix |
+| `tests/droplet_b1_tests.cpp` | Direct unsafe-domain, stale-state, delayed/steal timing regressions |
+| `tests/droplet_b1_physics_tests.cpp` | Separate exponent and reference-scale oracles |
+| `tests/droplet_b1_cli_test.py` | Actual renderer delayed-pulse and alias checks |
+| `experiments/water/EXP-W-DB-001.md` | Correct B1 safety, provenance and timing contract |
+| `docs/evidence/WATER_DROPLET_B1_EXECUTION.md` | Closeout stages, results, regeneration and retained findings |
+| `docs/evidence/WATER_BUBBLE_A1_EXECUTION.md` | Prior exact-head hosted CI success and closeout navigation |
+| `docs/MODULE_INDEX.md`, `docs/TESTING.md` | Module invariant and regression requirements |
+| `docs/PROJECT_STATUS.md`, `docs/CORE_IMPLEMENTATION_GUIDE.md`, `experiments/water/README.md` | Scoped status and consistent model/navigation |
+
+Code paths in the first eight entries are relative to `experiments/water/SPIKE-W-DSP-001`.
+
+### Open findings and stop boundary
+
+- A1-GOV-ENV-001: OPEN / NOT REPRODUCED; historical Python0xc0000005 is not fixed.
+- A1 dense96k/cap1024: P99 about1.66ms, worst3.02ms exceed1.333ms period.
+- B1-LISTEN-001: bass reference residuals around-75..-76dBFS remain a listening question.
+- B1 Size loudness confound: raw R^1.5 level variation and normalized ablation retained;
+  no product amplitude policy is selected.
+- B1-INTEGRATION-001, human listening, Host/pluginval and independent acceptance remain open.
+
+Stop after combined closeout. No D1/C1/A2, Preview/UI/Host/state or production work;
+no merge. Historical implementation observations and failures below are unchanged.
+
+## Historical B1 implementation at8f3b7ca
+
 Status: MODULE-LEVEL ENGINEERING COMPLETE / RESEARCH ONLY.
 Implementation: IMPLEMENTED. Engineering validation: PASS within the scope below.
 Human acceptance: NOT ASSESSED. Independent review and merge: NOT RUN.

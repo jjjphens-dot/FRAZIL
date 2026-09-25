@@ -7,7 +7,7 @@ does not accept a DSP implementation. Production Water remains NOT IMPLEMENTED.
 | Current question | Authoritative entry |
 | --- | --- |
 | Droplet B1 modular physics, descriptor and source-event contract | [EXP-W-DB-001](EXP-W-DB-001.md), [physical governance](../../docs/DSP_PHYSICAL_MODEL_GOVERNANCE.md) |
-| B1 actual tests, renders, performance and handoff | [B1 execution](../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md) |
+| A1+B1 closeout, B1 tests, exact preservation, open findings and handoff | [B1 execution](../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md) |
 | Bubble A1 candidate, physics provenance, P1/P0, v2 config and two named baselines | [EXP-W-BA-001](EXP-W-BA-001.md) |
 | A1 governance remediation, exact sonic comparisons, tracked timing and historical study-v3 | [Execution evidence](../../docs/evidence/WATER_BUBBLE_A1_EXECUTION.md) |
 | A0 legacy control, existing B/D/C and renderer commands | [Research module README](SPIKE-W-DSP-001/README.md) |

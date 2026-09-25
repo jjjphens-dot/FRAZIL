@@ -15,6 +15,20 @@ int main() {
     }
     check(std::abs(BubblePhysics::minnaertFrequency(.000355) / 8660 - 1) < .1,
           "Phillips scale anchor, not exact fit");
+    // Distinguish the physical exponent from the engineering reference calibration.
+    DropletB1Config referenceConfig;
+    referenceConfig[B1Parameter::radius] = 2;
+    check(DropletB1Model::make(referenceConfig).relativeFormationAmplitudeScale == 1,
+          "2mm engineering reference exactly one");
+    for (double first : {.2, 1., 2.})
+        for (double second : {2., 4., 7.}) {
+            referenceConfig[B1Parameter::radius] = first;
+            const auto a = DropletB1Model::make(referenceConfig).relativeFormationAmplitudeScale;
+            referenceConfig[B1Parameter::radius] = second;
+            const auto b = DropletB1Model::make(referenceConfig).relativeFormationAmplitudeScale;
+            const double ratio = second / first;
+            check(b1test::near(b / a, ratio * std::sqrt(ratio)), "physical radius exponent ratio");
+        }
     double lastFrequency = 1e10, lastDamping = 1e10;
     for (int i = 0; i <= 100; ++i) {
         const double r = (.2 + 6.8 * i / 100) * .001;
@@ -36,7 +50,8 @@ int main() {
                     c[B1Parameter::rise] = xi;
                     c[B1Parameter::tail] = -100;
                     auto e = b1test::event(rate, c);
-                    check(b1test::near(e.physics.physicalAmplitudeScale, std::pow(mm / 2, 1.5)),
+                    check(b1test::near(e.physics.relativeFormationAmplitudeScale,
+                                       std::pow(mm / 2, 1.5)),
                           "formation radius scaling");
                     DropletB1BubbleVoice voice;
                     voice.start(e, rate);

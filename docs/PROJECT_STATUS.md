@@ -1,5 +1,7 @@
 # FRAZIL 当前实现与差距
 
+A1+B1 closeout fixes B1 pool bounds, mixed amplitude provenance and captured-event diagnostics. Local Debug/Release/ASAN and current/historical decoded preservation pass; combined freeze also requires hosted CI on the published exact head. Scope and evidence: [B1 execution](evidence/WATER_DROPLET_B1_EXECUTION.md). Human NOT ASSESSED; product NOT ADOPTED; production Water NOT IMPLEMENTED.
+
 A1 governance remediation on B1 base `8f3b7ca`: classifications, typed v2 authority,
 strict descriptor snapshot and independent lifetime/seed properties are implemented
 for review. Final validation is recorded in [A1 execution](evidence/WATER_BUBBLE_A1_EXECUTION.md);

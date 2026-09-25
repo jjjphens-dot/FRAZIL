@@ -6,6 +6,41 @@
 using namespace frazil::water::research;
 int main() {
     b1test::Checks check;
+    // Direct module API: storage invariants cannot depend on public config validation.
+    {
+        auto pool = std::make_unique<DropletB1VoicePool>();
+        const auto event = b1test::event(48000, {});
+        check(!pool->request(event) && pool->process() == StereoFrame{}, "unprepared pool safe");
+        for (double rate :
+             {32000., 44100., 48000., 96000., 192000., std::numeric_limits<double>::quiet_NaN(),
+              std::numeric_limits<double>::infinity()})
+            for (std::size_t capacity :
+                 {std::size_t{0}, std::size_t{1}, std::size_t{16}, std::size_t{32},
+                  std::size_t{256}, std::size_t{257}, std::numeric_limits<std::size_t>::max()}) {
+                check(pool->prepare(48000, 1) && pool->request(event), "seed stale voice");
+                pool->process();
+                const bool valid = std::isfinite(rate) && rate >= 44100 && rate <= 96000 &&
+                                   capacity >= 1 && capacity <= 256;
+                check(pool->prepare(rate, capacity) == valid, "direct prepare domain");
+                check(pool->active() == 0 && pool->counters().started == 0 &&
+                          pool->lastStarted().eligibleId == 0,
+                      "prepare clears captured state");
+                if (!valid) {
+                    check(!pool->request(event), "invalid prepare rejects request");
+                    for (int n = 0; n < 300; ++n)
+                        check(pool->process() == StereoFrame{}, "invalid prepare silent finite");
+                    pool->reset();
+                    check(!pool->request(event), "reset cannot enable failed preparation");
+                } else {
+                    check(pool->request(event), "valid internal capacity usable");
+                    const auto y = pool->process();
+                    check(std::isfinite(y[0]) && std::isfinite(y[1]), "valid pool finite");
+                }
+            }
+        DropletB1Config publicConfig;
+        publicConfig[B1Parameter::capacity] = 1;
+        check(!publicConfig.valid(), "internal capacity1 is not a public choice");
+    }
     for (double rate : {44100., 48000., 96000.}) {
         const std::size_t frames = static_cast<std::size_t>(rate * 1.1);
         std::vector<StereoFrame> reference(frames);
@@ -147,6 +182,34 @@ int main() {
                       pool->counters().completed == cap * 2,
                   "retire all natural/stolen");
         }
+        // Captured onset -> due -> free-slot initialization, after the transient ended.
+        c[B1Parameter::delay] = 40;
+        a->prepare({rate, 42}, c);
+        std::uint64_t firstSource{}, due{};
+        bool capturedSource{}, observedStart{};
+        for (std::uint64_t n = 0; n < static_cast<std::uint64_t>(rate * .1); ++n) {
+            const StereoFrame x = n < static_cast<std::uint64_t>(rate * .002)
+                                      ? StereoFrame{.9f, -.3f}
+                                      : StereoFrame{};
+            a->process(x);
+            if (!capturedSource && a->counters().eligible) {
+                capturedSource = true;
+                firstSource = a->lastEligible().impact.sourceSample;
+                due = a->lastEligible().dueSample;
+                check(firstSource == n &&
+                          due == n + static_cast<std::uint64_t>(std::ceil(rate * .04)),
+                      "captured delay independently predicted");
+            }
+            if (!observedStart && a->pool().counters().started) {
+                observedStart = true;
+                const auto& started = a->pool().lastStarted();
+                check(x == StereoFrame{} && n == due && firstSource < due &&
+                          started.impact.sourceSample == firstSource && started.dueSample == due &&
+                          started.impact.sourceExcitation > 0,
+                      "delayed zero-current-frame start retains source causality");
+            }
+        }
+        check(capturedSource && observedStart, "delayed fixture exercised");
         DropletB1PendingQueue queue;
         // Independent release oracle: one victim, zero outgoing contribution at the
         // endpoint, then the fully captured replacement's first sample (no future input).
@@ -159,16 +222,26 @@ int main() {
         outgoing.process();
         auto replacement = e;
         replacement.eligibleId = 77;
+        replacement.impact.sourceSample = 0;
+        replacement.dueSample = 1; // Request on pool timeline sample1, after sample0 above.
         check(pool->request(replacement), "release request");
         const auto release = static_cast<int>(std::ceil(rate * e.releaseMs * .001));
         for (int n = 0; n < release; ++n) {
             const auto expected = outgoing.process();
             const auto actual = pool->process();
+            check(pool->counters().started == (n == release - 1 ? 2u : 1u),
+                  "replacement initializes only on final release frame");
             for (int ch = 0; ch < 2; ++ch)
                 check(actual[ch] ==
                           static_cast<float>(expected[ch] * (double(release - n - 1) / release)),
                       "release ramp and zero endpoint oracle");
         }
+        // Initialization occurs on the final release frame; emission starts next frame.
+        const auto initializationFrame = replacement.dueSample + release - 1;
+        check(pool->lastStarted().impact.sourceSample == 0 && pool->lastStarted().dueSample == 1 &&
+                  initializationFrame >= replacement.dueSample &&
+                  initializationFrame - replacement.dueSample < static_cast<std::uint64_t>(release),
+              "captured stealing source/due and bounded initialization delay");
         const auto expected = incoming.process();
         const auto actual = pool->process();
         check(actual[0] == static_cast<float>(expected[0]) && pool->lastStarted().eligibleId == 77,

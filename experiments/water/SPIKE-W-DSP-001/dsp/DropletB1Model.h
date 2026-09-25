@@ -8,9 +8,9 @@
 namespace frazil::water::research {
 struct DropletB1PhysicalState final {
     double equivalentRadiusMeters{}, frequencyHz{}, dampingPerSecond{}, naturalTauSeconds{};
-    double physicalAmplitudeScale{}, effectiveDamping{}, renderAmplitudeScale{};
+    double relativeFormationAmplitudeScale{}, effectiveDamping{}, renderAmplitudeScale{};
 };
-// Pure event-physics preparation. Source excitation is applied separately by the coupler.
+// Reference physics plus explicit relative calibration; source forcing is a separate proxy.
 struct DropletB1Model final {
     static constexpr double kReferenceRadiusMeters = .002;
     static constexpr double kMaximumLifetimeSeconds = 2;
@@ -20,10 +20,13 @@ struct DropletB1Model final {
         p.frequencyHz = BubblePhysics::minnaertFrequency(p.equivalentRadiusMeters);
         p.dampingPerSecond = BubblePhysics::damping(p.equivalentRadiusMeters);
         p.naturalTauSeconds = 1 / p.dampingPerSecond;
-        p.physicalAmplitudeScale = std::pow(p.equivalentRadiusMeters / kReferenceRadiusMeters, 1.5);
+        // PHYSICAL R^1.5 relation; ENGINEERING 2 mm reference normalization.
+        // Keep this evaluation order for decoded-exact historical audio. Not pressure/SPL.
+        p.relativeFormationAmplitudeScale =
+            std::pow(p.equivalentRadiusMeters / kReferenceRadiusMeters, 1.5);
         p.effectiveDamping = p.dampingPerSecond / config[B1Parameter::persistence];
         p.renderAmplitudeScale =
-            config[B1Parameter::amplitudePolicy] == 0 ? p.physicalAmplitudeScale : 1;
+            config[B1Parameter::amplitudePolicy] == 0 ? p.relativeFormationAmplitudeScale : 1;
         return p;
     }
 };
