@@ -2,16 +2,16 @@
 
 ## Research Preview core bridge
 
-独立 Preview 新增 runtime Legacy/Reworked core；默认 Legacy。Reworked 直接依赖现有 A1/B1/D1 typed defaults，
+独立 Preview 新增 runtime Legacy/Reworked core；默认 Legacy。Reworked 通过 canonical specs 驱动的 raw tuning 构造现有 A1/B1/D1 typed configs，
 复用 transport、monitor、A/B 和 bounded history。旧 Fluid 宏/engineering controls/Protect 不控制 Reworked DSP；
 C 保持原路径。无 production target、APVTS、Host automation、session v6 或 mapping v0.3。
-Reworked 导出禁用，session v5 导入仍恢复 Legacy。当前实现的验证状态及限制见
+Reworked Config 导入导出复用 renderer schema；导入仅修改 Draft。Reworked Session 导出禁用，v5 导入恢复 Legacy。当前实现的验证状态及限制见
 [bridge evidence](evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md)，操作见 [debug guide](DEV_UI_WATER_DEBUG_GUIDE.md)。
 
 
 Current [Water research index](../experiments/water/README.md): Legacy Preview uses A0;
-the runtime Reworked bridge uses A1 typed defaults (PHYS-REF, not MACRO-NEUTRAL).
-Session v5 and mapping v0.2 remain Legacy; no A1 raw controls, Host registry or production adoption.
+the runtime Reworked bridge uses editable raw configs; canonical defaults remain PHYS-REF, not MACRO-NEUTRAL.
+Session v5 and mapping v0.2 remain Legacy. Raw controls are research configuration, not product mapping, Host state or automation.
 
 > Document status: CURRENT/CONTROLLED; first established by v1.3 / [PR #23](https://github.com/jjjphens-dot/FRAZIL/pull/23). Decay candidate revision follows the [v1.4 activation rule](CODING_PLAN.md).<br>
 > Capability implementation status: tracked individually as CURRENT / PLANNED / CANDIDATE / DEFERRED below.<br>

@@ -3,6 +3,7 @@
 #include "DiagnosticMonitor.h"
 #include "PreviewSettings.h"
 #include "ProtectDiagnostics.h"
+#include "ResearchCoreParameterAdapter.h"
 #include "dsp/BubbleA1.h"
 #include "dsp/DropletB1.h"
 #include "dsp/FlowD1.h"
@@ -28,6 +29,8 @@ class PreviewEngine final {
         if (settings.mode < 0 || settings.mode >= static_cast<int>(kModes.size()) ||
             !std::isfinite(sampleRate) || sampleRate < 44100 || sampleRate > 96000)
             return false;
+        if (reworked_)
+            return prepareReworked(sampleRate, settings);
         research::FluidConfig fluidConfig;
         research::ModalConfig modalConfig;
         research::ProtectRenderConfig protectConfig;
@@ -49,22 +52,8 @@ class PreviewEngine final {
         research::ResearchConfig config;
         config.sampleRateHz = sampleRate;
         config.baseSeed = kSeed;
-        if (reworked_) {
-            // Match renderer composition and typed defaults. Large fixed voice pools live off
-            // the Windows stack, allocated only with the callback detached during prepare.
-            bubbleEnabled_ = fluidConfig.bubbleEnabled;
-            dropletEnabled_ = fluidConfig.dropletEnabled;
-            flowEnabled_ = fluidConfig.flowEnabled;
-            if (!a1_)
-                a1_ = std::make_unique<research::BubbleA1>();
-            if (!b1_)
-                b1_ = std::make_unique<research::DropletB1>();
-            ready_ = (!bubbleEnabled_ || a1_->prepare(config)) &&
-                     (!dropletEnabled_ || b1_->prepare(config)) &&
-                     (!flowEnabled_ || d1_.prepare(config));
-        } else
-            ready_ = baseline_ || (modalMode_ ? modal_.prepare(config, modalConfig)
-                                              : fluid_.prepare(config, fluidConfig));
+        ready_ = baseline_ || (modalMode_ ? modal_.prepare(config, modalConfig)
+                                          : fluid_.prepare(config, fluidConfig));
         reset();
         return ready_;
     }
@@ -136,6 +125,12 @@ class PreviewEngine final {
             activity.modalMotionDepth = modalConfig_.motionDepth;
             activity.modalMotionIntervalSeconds = modalConfig_.motionIntervalSeconds;
         } else if (reworked_) {
+            activity.reworked = true;
+            activity.bubbleRequested = bubbleEnabled_ ? a1_->requested() : 0;
+            activity.bubbleRequestedRate = bubbleEnabled_ ? a1_->requestedRate() : 0;
+            activity.dropletEligible = dropletEnabled_ ? b1_->counters().eligible : 0;
+            activity.dropletAdmitted = dropletEnabled_ ? b1_->counters().admitted : 0;
+            activity.flowPathMeters = flowEnabled_ ? d1_.pathMeters() : 0;
             activity.bubbleEvents = bubbleEnabled_ ? a1_->pool().counters().started : 0;
             activity.bubbleActive = bubbleEnabled_ ? a1_->pool().active() : 0;
             activity.bubbleSteals = bubbleEnabled_ ? a1_->pool().counters().steals : 0;
@@ -169,6 +164,31 @@ class PreviewEngine final {
     static constexpr std::uint32_t kSeed = 42;
 
   private:
+    bool prepareReworked(double sampleRate, const PreviewSettings& settings) {
+        using Adapter = ResearchCoreParameterAdapter;
+        if (!Adapter::validate(settings.tuning))
+            return false;
+        baseline_ = modalMode_ = false;
+        sampleRate_ = sampleRate;
+        const std::string_view mode(kModes[static_cast<std::size_t>(settings.mode)]);
+        bubbleEnabled_ = mode.find('a') != std::string_view::npos;
+        dropletEnabled_ = mode.find('b') != std::string_view::npos;
+        flowEnabled_ = mode.find('d') != std::string_view::npos;
+        // Allocate large fixed pools only with the callback detached. No Legacy JSON is read.
+        if (!a1_)
+            a1_ = std::make_unique<research::BubbleA1>();
+        if (!b1_)
+            b1_ = std::make_unique<research::DropletB1>();
+        const research::ResearchConfig config{sampleRate, kSeed};
+        ready_ = (!bubbleEnabled_ ||
+                  a1_->prepare(config, Adapter::makeBubbleA1Config(settings.tuning),
+                               Adapter::makeSharedExcitationConfig(settings.tuning))) &&
+                 (!dropletEnabled_ ||
+                  b1_->prepare(config, Adapter::makeDropletB1Config(settings.tuning))) &&
+                 (!flowEnabled_ || d1_.prepare(config, Adapter::makeFlowD1Config(settings.tuning)));
+        reset();
+        return ready_;
+    }
     research::StereoFrame reworkedResidual(const research::StereoFrame& input) noexcept {
         research::FluidResiduals parts;
         if (bubbleEnabled_) {

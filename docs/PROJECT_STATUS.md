@@ -1,6 +1,16 @@
 # FRAZIL 当前实现与差距
 
-## A1/B1/D1 Preview bridge
+## A1/B1/D1 raw tuning extension
+
+IMPLEMENTED / FOCUSED VALIDATION PASS on `codex/feat/water-reworked-parameter-tuning`, based on bridge
+`e8b88b9`. Generic canonical-spec UI, typed prepare, Draft/A-B/history/reset, strict renderer config
+import/export and bounded requested/eligible/admitted/path diagnostics. Release/ASAN full suites PASS 38/38;
+Debug full 37/38 retains an unresolved source-probe CRT assertion. No main/merge claim.
+HUMAN LISTENING NOT ASSESSED; PRODUCT NOT ADOPTED; PRODUCTION WATER NOT IMPLEMENTED.
+No Host/APVTS/mapping/session-v6/Protect coupling or D1 C6/C7 completion.
+Actual validation is recorded in [Raw Tuning Extension](evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md#raw-tuning-extension).
+
+## A1/B1/D1 Preview bridge (historical baseline)
 
 IMPLEMENTED with focused Preview regression validation on the bridge branch; full Debug/ASAN each retain
 one failure documented below. Default Legacy retained; Reworked typed-default
@@ -60,7 +70,7 @@ B1 branch work: [Droplet B1](../experiments/water/EXP-W-DB-001.md) is a separate
 
 Current Water distinction: EXP-W-001 Revision B is ACCEPTED for perceptual definition.
 A1 v2 is an engineering review candidate, HUMAN NOT ASSESSED, production NOT IMPLEMENTED.
-PHYS-REF and MACRO-NEUTRAL differ; Legacy Preview uses A0 and Reworked uses A1 typed defaults.
+PHYS-REF and MACRO-NEUTRAL differ; Legacy Preview uses A0; Reworked raw tuning starts from A1 canonical typed defaults.
 Legacy B/D/C and Protect behavior is unchanged. See [Water index](../experiments/water/README.md) for current versus historical evidence.
 
 2026-09-24 bounded research addition: [Bubble A1](../experiments/water/EXP-W-BA-001.md)

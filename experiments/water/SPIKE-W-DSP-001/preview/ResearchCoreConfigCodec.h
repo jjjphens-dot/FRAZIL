@@ -1,0 +1,103 @@
+#pragma once
+
+#include "ResearchSessionModel.h"
+#include "render/BubbleA1Descriptor.h"
+#include "render/DropletB1Descriptor.h"
+#include "render/FlowD1Descriptor.h"
+#include "render/ReadConfig.h"
+
+namespace frazil::water::preview {
+// Message-thread serialization adapter. Versions come from existing renderer descriptors;
+// this is the renderer's module schema, not a Preview session/preset schema.
+inline juce::var researchCoreDescriptor(ResearchModule module) {
+    if (module == ResearchModule::bubble)
+        return research::bubbleA1Descriptor();
+    if (module == ResearchModule::droplet)
+        return research::dropletB1Descriptor();
+    return research::flowD1Descriptor();
+}
+inline juce::String reworkedRendererMode(int composition) {
+    switch (composition) {
+    case 2:
+        return "a1";
+    case 3:
+        return "b1";
+    case 5:
+        return "a1b1";
+    case 6:
+        return "a1d1";
+    case 7:
+        return "b1d1";
+    case 0:
+        return "a1b1d1";
+    default:
+        return {};
+    }
+}
+inline juce::String encodeResearchConfig(const PreviewSettings& settings) {
+    if (!settings.reworkedFluid())
+        return settings.moduleJson();
+    using Adapter = ResearchCoreParameterAdapter;
+    if (reworkedRendererMode(settings.mode).isEmpty() || !Adapter::validate(settings.tuning))
+        return {};
+    juce::var root(new juce::DynamicObject());
+    for (std::size_t m = 0; m < kResearchModules.size(); ++m) {
+        if (!moduleActive(static_cast<ControlGroup>(m), settings.mode))
+            continue;
+        const auto module = kResearchModules[m];
+        juce::var object(new juce::DynamicObject());
+        object.getDynamicObject()->setProperty("version",
+                                               researchCoreDescriptor(module)["configVersion"]);
+        for (std::size_t i = 0; i < Adapter::parameterCount(module); ++i)
+            object.getDynamicObject()->setProperty(Adapter::parameter(module, i).name.data(),
+                                                   Adapter::getValue(settings.tuning, module, i));
+        root.getDynamicObject()->setProperty(Adapter::configKey(module), object);
+    }
+    return juce::JSON::toString(root, false, 17);
+}
+
+// Transactional import: strict renderer parser gates syntax/version/types first. Supplied
+// modules start at renderer defaults; absent modules retain Draft. No core/composition switch.
+inline juce::String decodeReworkedConfig(std::string_view text,
+                                         const ResearchCoreTuningState& current,
+                                         ResearchCoreTuningState& output) {
+    research::FluidConfig fluid;
+    research::ModalConfig modal;
+    research::BubbleA1RenderConfig a;
+    research::DropletB1RenderConfig b;
+    research::FlowD1RenderConfig d;
+    if (!research::readConfigText(text, fluid, modal, nullptr, &a, &b, &d))
+        return "Reworked config: invalid syntax, field, version or value.";
+    if (text.starts_with("\xef\xbb\xbf"))
+        text.remove_prefix(3);
+    const auto root =
+        juce::JSON::parse(juce::String::fromUTF8(text.data(), static_cast<int>(text.size())));
+    using Adapter = ResearchCoreParameterAdapter;
+    if (!a.supplied && !b.supplied && !d.supplied)
+        return "Reworked config: no research modules.";
+    for (const auto& property : root.getDynamicObject()->getProperties()) {
+        bool known{};
+        for (auto module : kResearchModules)
+            known |= property.name.toString() == Adapter::configKey(module);
+        if (!known)
+            return "Reworked config: only bubbleA1, dropletB1 and flowD1 are accepted.";
+    }
+    auto candidate = current;
+    for (auto module : kResearchModules) {
+        const auto object = root[Adapter::configKey(module)];
+        if (object.isVoid())
+            continue;
+        Adapter::resetModule(candidate, module);
+        for (std::size_t i = 0; i < Adapter::parameterCount(module); ++i) {
+            const auto name = Adapter::parameter(module, i).name.data();
+            if (object.hasProperty(name) &&
+                !Adapter::setValue(candidate, module, i, static_cast<double>(object[name])))
+                return "Reworked config: invalid " + juce::String(Adapter::key(module, i));
+        }
+    }
+    if (!Adapter::validate(candidate))
+        return "Reworked config: A1 requires radiusMinMm < radiusMaxMm.";
+    output = candidate;
+    return {};
+}
+} // namespace frazil::water::preview

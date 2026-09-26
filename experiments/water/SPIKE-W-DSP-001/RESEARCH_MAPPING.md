@@ -4,7 +4,7 @@
 
 `research-water-mapping-v0.2` applies to Legacy A0/B0/D0 and unchanged C only.
 A1/B1/D1 mapping is intentionally undefined in the Preview bridge. Reworked Fluid disables these macros;
-typed/default configs remain the only A1/B1/D1 parameter authority. No formula or mapping revision changes.
+canonical specs remain the only parameter authority; Preview raw tuning does not constitute product mapping. No formula or mapping revision changes.
 
 
 Audible bandwidth is unaccepted PRODUCT_MAPPING research; guard/filter coefficients are ENGINEERING. They do not map Motion/Size/Decay or infer source distance. See [latency study](../../../docs/evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
@@ -21,7 +21,7 @@ does not change any macro, source calibration or v1 sonic revision.
 B1 uses separate `droplet-b1-offline-v1` Size/Decay candidates documented in [EXP-W-DB-001](../EXP-W-DB-001.md). Its core accepts radius/persistence/admission, not product IDs. M0-A strict calm and M0-B onset-preserving calm remain unaccepted comparisons; no Motion curve is adopted. This v0.2 mapping and session v5 remain unchanged.
 
 [Bubble A1](../EXP-W-BA-001.md) has a separate explicit `bubble-a1-offline-v2` exporter
-candidate. It does not replace these curves or migrate session v5. UI integration is deferred.
+candidate. It does not replace these curves or migrate session v5. Product-macro UI integration is deferred; raw engineering tuning is separate.
 
 Status: research listening candidate; NOT PRODUCT FROZEN. No production parameter, Host state,
 algorithm adoption or perceptual acceptance is implied. Implementation lives only in the opt-in

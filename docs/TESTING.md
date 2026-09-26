@@ -1,5 +1,14 @@
 # FRAZIL 测试、听测与发布门槛
 
+## Reworked raw tuning regression
+
+`preview_reworked_parameter_tests.cpp` extends the existing device-free Preview executable:
+canonical metadata/default/choice/unit/classification parity, Draft/A-B/reset/history, invalid values,
+strict config round-trip, active-module exports, default identity and non-default direct-chain parity
+at 44.1/48/96 kHz. Existing bridge tests preserve default typed-reference identity for all six modes.
+Automated tests do not prove sound quality, human preference, product mapping or device acceptance.
+Results are recorded only in [bridge evidence](evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md#raw-tuning-extension).
+
 ## Reworked Preview bridge regression
 
 `preview_reworked_core_tests.cpp` joins existing `frazil_water_preview`: Legacy default, runtime core dirty/A/B/history/reset,

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ExactValueControl.h"
+#include "ResearchCoreTuningView.h"
 #include "ResearchOperationHistory.h"
 #include "ResearchPresentation.h"
 #include "ResearchSessionModel.h"
@@ -103,8 +104,9 @@ class WaterMacroView final : public juce::Component {
         const bool reworked = state.engineering.reworkedFluid();
         core_.setSelectedId(state.engineering.core == WaterResearchCore::reworked ? 2 : 1,
                             juce::dontSendNotification);
-        notice_.setText(reworked ? "Typed defaults | Protect coupling deferred for A1/B1/D1."
-                                 : "RESEARCH MAPPING v0.2 | C unchanged by core revision",
+        notice_.setText(reworked
+                            ? "Raw tuning: Engineering > Research Core Tuning | Protect deferred"
+                            : "RESEARCH MAPPING v0.2 | C unchanged by core revision",
                         juce::dontSendNotification);
         returnAll_.setEnabled(!reworked);
         for (std::size_t i = 0; i < knobs_.size(); ++i) {
@@ -176,7 +178,12 @@ class EngineeringView final : public juce::Component {
     std::function<void()> onLayoutChange;
     EngineeringView(ResearchSessionModel& session, ResearchOperations& operations)
         : session_(session), operations_(operations),
-          macros_(session, ChangeOrigin::engineeringUI, operations) {
+          macros_(session, ChangeOrigin::engineeringUI, operations), tuning_(session, operations) {
+        addAndMakeVisible(tuning_);
+        tuning_.onLayoutChange = [this] {
+            if (onLayoutChange)
+                onLayoutChange();
+        };
         addAndMakeVisible(macros_);
         for (std::size_t i = 0; i < kModes.size(); ++i)
             composition_.addItem(kModes[i], static_cast<int>(i) + 1);
@@ -225,24 +232,26 @@ class EngineeringView final : public juce::Component {
         refresh();
     }
     int preferredHeight() const noexcept {
-        int height = 394;
+        int height = 394 + tuning_.preferredHeight();
         for (std::size_t i = 0; i < headings_.size(); ++i)
             height += 36 + (expanded_[i] ? rows(i) * 72 : 0);
         return height;
     }
     void discardPendingText() {
+        tuning_.discardPendingText();
         for (auto& control : controls_)
             control.discardPendingText();
     }
     void refresh() {
         macros_.refresh();
+        tuning_.refresh();
         const auto& state = session_.draft();
         const bool reworked = state.engineering.core == WaterResearchCore::reworked;
         calibration_.setEnabled(!reworked || state.engineering.mode == 1);
         composition_.setSelectedId(state.engineering.mode + 1, juce::dontSendNotification);
         provenance_.setText(
             state.engineering.reworkedFluid()
-                ? "A1/B1/D1 typed defaults | Legacy listening calibration retained / INACTIVE"
+                ? "A1/B1/D1 raw tuning APPLY | Legacy calibration retained / INACTIVE"
                 : juce::String(ResearchListeningCalibration::revision) +
                       (state.listeningCalibration == MappingStatus::mapped ? " / MAPPED"
                                                                            : " / CUSTOM") +
@@ -296,6 +305,7 @@ class EngineeringView final : public juce::Component {
         composition_.setBounds(commands.removeFromLeft(240));
         calibration_.setBounds(commands.removeFromLeft(245).reduced(3, 0));
         provenance_.setBounds(area.removeFromTop(28));
+        tuning_.setBounds(area.removeFromTop(tuning_.preferredHeight()));
         for (std::size_t group = 0; group < headings_.size(); ++group) {
             headings_[group].setBounds(area.removeFromTop(36).reduced(2));
             if (!expanded_[group])
@@ -325,6 +335,7 @@ class EngineeringView final : public juce::Component {
     ResearchSessionModel& session_;
     ResearchOperations& operations_;
     WaterMacroView macros_;
+    ResearchCoreTuningView tuning_;
     juce::ComboBox composition_;
     juce::TextButton calibration_{"Restore Listening Calibration"};
     juce::Label provenance_;

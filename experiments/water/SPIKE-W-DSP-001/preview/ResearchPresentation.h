@@ -59,6 +59,12 @@ inline juce::String operationHistoryText(const ResearchOperationHistory& history
         if (op.before.engineering.core != op.after.engineering.core)
             text += juce::String("  Core Revision: ") + coreName(op.before.engineering.core) +
                     " -> " + coreName(op.after.engineering.core) + "\n";
+        for (auto module : kResearchModules)
+            for (std::size_t i = 0; i < ResearchCoreParameterAdapter::parameterCount(module); ++i)
+                delta(
+                    juce::String(ResearchCoreParameterAdapter::key(module, i)),
+                    ResearchCoreParameterAdapter::getValue(op.before.engineering.tuning, module, i),
+                    ResearchCoreParameterAdapter::getValue(op.after.engineering.tuning, module, i));
         delta("Size", op.before.water.size, op.after.water.size);
         delta("Motion", op.before.water.motion, op.after.water.motion);
         delta("Decay", op.before.water.decay, op.after.water.decay);

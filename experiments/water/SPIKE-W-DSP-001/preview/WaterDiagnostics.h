@@ -25,6 +25,10 @@ struct WaterFrameReadout final {
 };
 struct WaterActivity final {
     std::uint64_t bubbleEvents{}, dropletEvents{}, bubbleSteals{};
+    // Reworked counters since reset, rate/path latest; copied once per block through existing SPSC.
+    bool reworked{};
+    std::uint64_t bubbleRequested{}, dropletEligible{}, dropletAdmitted{};
+    double bubbleRequestedRate{}, flowPathMeters{};
     std::size_t bubbleActive{}, dropletActive{};
     double flowDelayMs{}, modalRootHz{}, modalDecaySeconds{}, modalMotionDepth{},
         modalMotionIntervalSeconds{};

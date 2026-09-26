@@ -201,8 +201,8 @@ dropDiameterMm, impactVelocityMps, cavityDepthMm, waterVelocityMps or pressurePa
 
 Explicit b1/b1-residual/a1b1/a1b1d modes only. Legacy b/bd/abd remain B0;
 A1/B0/D0/C, sessionv5, Host/state and production are unchanged.
-The separate [Preview bridge](../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md) consumes B1 typed defaults
-in runtime Reworked mode; no B1 raw parameter UI or macro mapping.
+The separate [Preview bridge](../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md) consumes B1 canonical raw configs
+in runtime Reworked mode; generic raw controls do not establish a macro mapping.
 BubblePhysics now also supplies the unchanged A1 reference equations. Consolidation
 requires exact decoded A1/B1 identity; see the A1 governance execution record for
 validation status. No A1/B1 tuning is permitted.

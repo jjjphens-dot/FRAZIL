@@ -1,5 +1,14 @@
 # FRAZIL Module Index
 
+## Research Core Tuning infrastructure
+
+Preview-only `ResearchCoreTuningState` owns numeric values; `ResearchCoreParameterAdapter` borrows
+canonical specs and builds typed configs; `ResearchCoreTuningView` renders generic collapsible cards.
+`ResearchCoreConfigCodec` adapts the existing strict renderer parser/descriptors for active-module
+export and Draft-only import. UI -> adapter -> research config/spec; DSP never depends on Preview UI.
+Draft/Applied/A/B/history remain owned by existing ResearchSessionModel/ResearchOperations.
+No new production target or Session schema. Validation pending; see [bridge evidence](evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md).
+
 ## Research Preview revision dependency
 
 Water Research Preview -> Legacy FluidCandidate / LiquidModalResonator；可选 Reworked -> BubbleA1 / DropletB1 / FlowD1。
@@ -31,9 +40,9 @@ and offline Fourier references, candidate comparisons and convergence evidence.
 These tools do not replace the rejected runtime kernel. See
 [remediation status](evidence/WATER_FLOW_D1_REMEDIATION.md).
 
-B1 closeout: the fixed pool owns finite-rate/internal storage validation; public capacity choices remain in config. Existing bounded captured events supply offline onset/due/start diagnostics, with no DSP history or UI adapter.
+B1 closeout: the fixed pool owns finite-rate/internal storage validation; public capacity choices remain in config. Existing bounded captured events supply offline onset/due/start diagnostics, with no DSP history; the Preview adapter is separate.
 
-B1 research addition: [EXP-W-DB-001](../experiments/water/EXP-W-DB-001.md) owns the separate onset → source coupler → entrainment → pending queue → bubble voice/emission → fixed pool chain. `physics/BubblePhysics.h` serves the same SI frequency/damping equations for A1 and B1; before/after validation is recorded in the A1 execution record. Explicit offline renderer/descriptor adapters are outside Preview and production; A1/B0/D0/C are retained. See the contract for responsibilities and independent test owners.
+B1 research addition: [EXP-W-DB-001](../experiments/water/EXP-W-DB-001.md) owns the separate onset → source coupler → entrainment → pending queue → bubble voice/emission → fixed pool chain. `physics/BubblePhysics.h` serves the same SI frequency/damping equations for A1 and B1; before/after validation is recorded in the A1 execution record. Explicit offline renderer/descriptor adapters remain outside production; Preview reuses their schema/spec authority; A1/B0/D0/C are retained. See the contract for responsibilities and independent test owners.
 
 Current authority: [Water research index](../experiments/water/README.md).
 SharedExcitationAnalyzer has no BubbleA1Model dependency; it owns linked power and

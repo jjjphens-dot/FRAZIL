@@ -26,6 +26,11 @@ inline juce::String draftSummary(const ResearchSessionModel& session) {
         text += juce::String("Composition: ") +
                 kModes[static_cast<std::size_t>(a.engineering.mode)] + " -> " +
                 kModes[static_cast<std::size_t>(d.engineering.mode)] + "\n";
+    for (auto module : kResearchModules)
+        for (std::size_t i = 0; i < ResearchCoreParameterAdapter::parameterCount(module); ++i)
+            line(juce::String(ResearchCoreParameterAdapter::key(module, i)),
+                 ResearchCoreParameterAdapter::getValue(a.engineering.tuning, module, i),
+                 ResearchCoreParameterAdapter::getValue(d.engineering.tuning, module, i));
     line("Size", a.water.size, d.water.size);
     line("Motion", a.water.motion, d.water.motion);
     line("Decay", a.water.decay, d.water.decay);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ResearchCoreParameterAdapter.h"
 #include "ResearchListeningCalibration.h"
 #include "ResearchMappingAdapter.h"
 #include "SessionMetadata.h"
@@ -47,7 +48,8 @@ struct ResearchSessionState final {
 };
 
 inline bool sameResearchContext(const ResearchSessionState& a, const ResearchSessionState& b) {
-    return a.engineering.core == b.engineering.core && a.water == b.water &&
+    return a.engineering.core == b.engineering.core &&
+           a.engineering.tuning == b.engineering.tuning && a.water == b.water &&
            a.monitor == b.monitor && a.monitorGainDb == b.monitorGainDb &&
            a.auditionETrimDb == b.auditionETrimDb && a.source == b.source &&
            a.mappingRevision == b.mappingRevision && a.macroMappings == b.macroMappings &&
@@ -111,6 +113,11 @@ class ResearchSessionModel final {
     std::size_t unappliedChanges() const noexcept {
         std::size_t count = draft_.engineering.mode != applied_.engineering.mode;
         count += draft_.engineering.core != applied_.engineering.core;
+        for (auto module : kResearchModules)
+            for (std::size_t i = 0; i < ResearchCoreParameterAdapter::parameterCount(module); ++i)
+                count +=
+                    ResearchCoreParameterAdapter::getValue(draft_.engineering.tuning, module, i) !=
+                    ResearchCoreParameterAdapter::getValue(applied_.engineering.tuning, module, i);
         for (std::size_t i = 0; i < kControls.size(); ++i)
             count += draft_.engineering.values[i] != applied_.engineering.values[i];
         count += draft_.water.size != applied_.water.size;
@@ -147,6 +154,7 @@ class ResearchSessionModel final {
         return draft_.engineering.mode != applied_.engineering.mode ||
                draft_.engineering.core != applied_.engineering.core ||
                draft_.engineering.values != applied_.engineering.values ||
+               draft_.engineering.tuning != applied_.engineering.tuning ||
                !sameProtect(pending, applied_.engineering.protect);
     }
     // Context checkpoint is the last Apply/Import/Recall, not a claim about saving to disk.
@@ -155,6 +163,41 @@ class ResearchSessionModel final {
         return !sameResearchContext(draft_, contextCheckpoint_);
     }
 
+    // Raw edits only mutate Draft; coupled constraints are checked atomically on Apply.
+    bool setReworkedParameter(ResearchModule module, std::size_t index, double value,
+                              ChangeOrigin origin) {
+        auto candidate = draft_.engineering.tuning;
+        if (!ResearchCoreParameterAdapter::setValue(candidate, module, index, value))
+            return false;
+        if (candidate != draft_.engineering.tuning) {
+            draft_.engineering.tuning = candidate;
+            changed(origin);
+        }
+        return true;
+    }
+    bool importReworkedTuning(const ResearchCoreTuningState& tuning) {
+        if (!ResearchCoreParameterAdapter::validate(tuning))
+            return false;
+        if (tuning != draft_.engineering.tuning) {
+            draft_.engineering.tuning = tuning;
+            changed(ChangeOrigin::sessionLoad);
+        }
+        return true;
+    }
+    void resetReworkedModule(ResearchModule module) {
+        auto next = draft_.engineering.tuning;
+        ResearchCoreParameterAdapter::resetModule(next, module);
+        if (next != draft_.engineering.tuning) {
+            draft_.engineering.tuning = next;
+            changed(ChangeOrigin::reset);
+        }
+    }
+    void resetReworkedDefaults() {
+        if (draft_.engineering.tuning != ResearchCoreTuningState{}) {
+            ResearchCoreParameterAdapter::resetAll(draft_.engineering.tuning);
+            changed(ChangeOrigin::reset);
+        }
+    }
     bool setEngineering(ControlId id, double value, ChangeOrigin origin) {
         const auto index = controlIndex(id);
         if (index >= kControls.size())

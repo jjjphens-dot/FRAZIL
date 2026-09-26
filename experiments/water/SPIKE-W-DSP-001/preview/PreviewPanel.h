@@ -4,6 +4,7 @@
 #include "PreviewController.h"
 #include "ProtectView.h"
 #include "ResearchAuditionWorkflow.h"
+#include "ResearchCoreConfigCodec.h"
 #include "ResearchViews.h"
 #include "SessionCodec.h"
 #include "WaterDiagnosticsText.h"
@@ -187,8 +188,14 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             });
         };
         copy_.onClick = [this] {
-            juce::SystemClipboard::copyTextToClipboard(session_.applied().engineering.moduleJson());
-            setStatus("Copied APPLIED module config; composition/seed/monitor are separate.");
+            juce::SystemClipboard::copyTextToClipboard(
+                encodeResearchConfig(session_.applied().engineering));
+            const auto& settings = session_.applied().engineering;
+            setStatus(settings.reworkedFluid()
+                          ? "Copied APPLIED config | renderer mode " +
+                                reworkedRendererMode(settings.mode) +
+                                " | seed 42 | same source WAV; monitor/trim excluded."
+                          : "Copied APPLIED module config; composition/seed/monitor are separate.");
         };
         export_.onClick = [this] { chooseExport(); };
         exportSession_.onClick = [this] { chooseExport(true); };
@@ -404,12 +411,14 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         protect_.refresh();
         const auto& state = session_.draft();
         const bool legacyExport = session_.applied().engineering.core == WaterResearchCore::legacy;
-        for (auto* button : {&copy_, &export_, &copySession_, &exportSession_}) {
+        for (auto* button : {&copySession_, &exportSession_}) {
             button->setEnabled(legacyExport);
-            button->setTooltip("Legacy export only: module JSON / session v5 cannot represent "
-                               "Reworked core. Use runtime Capture A/B; no session v6.");
+            button->setTooltip("Session v5 cannot represent Reworked tuning. Use Config export or "
+                               "runtime Capture A/B.");
         }
-        importModule_.setEnabled(state.engineering.core == WaterResearchCore::legacy);
+        copy_.setEnabled(true);
+        export_.setEnabled(true);
+        importModule_.setEnabled(true);
         gain_.setValue(state.monitorGainDb, juce::dontSendNotification);
         controller_.setMonitor(state.monitor, static_cast<float>(state.monitorGainDb));
         controller_.setAuditionTrim(state.auditionETrimDb);
@@ -439,24 +448,26 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         applyB_.setEnabled(session_.slot(1).has_value());
         refreshApplied();
         draftDetails_.setText(draftSummary(session_), false);
+        updateLayout();
     }
     void refreshApplied() {
         const auto& applied = session_.applied().engineering;
         const auto& values = applied.values;
         const auto carrier = static_cast<research::ModalExcitation>(
             static_cast<int>(values[controlIndex(ControlId::modalExcitation)]));
-        note_.setText(
-            applied.mode == 1
-                ? juce::String("RESEARCH C | ") + research::modalExcitationName(carrier) +
-                      (values[controlIndex(ControlId::modalNormalization)] == 1 ? " / C3"
-                                                                                : " / C0") +
-                      (values[controlIndex(ControlId::modalMotionModel)] == 1
-                           ? " / structured Motion"
-                           : " / independent Motion") +
-                      " | seed 42 | no Host automation"
-                : juce::String(coreName(applied.core)) +
-                      " | research only | seed 42 | Reworked export unavailable (session v5)",
-            juce::dontSendNotification);
+        note_.setText(applied.mode == 1
+                          ? juce::String("RESEARCH C | ") + research::modalExcitationName(carrier) +
+                                (values[controlIndex(ControlId::modalNormalization)] == 1
+                                     ? " / C3"
+                                     : " / C0") +
+                                (values[controlIndex(ControlId::modalMotionModel)] == 1
+                                     ? " / structured Motion"
+                                     : " / independent Motion") +
+                                " | seed 42 | no Host automation"
+                          : juce::String(coreName(applied.core)) +
+                                " | research only | seed 42 | Config export available; Reworked "
+                                "Session v5 unavailable",
+                      juce::dontSendNotification);
 
         appliedLabel_.setText(
             juce::String(session_.dspDirty() ? "DSP DIRTY | " : "DSP APPLIED | ") +
@@ -514,6 +525,23 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                 ResearchSessionState candidate;
                 const std::string_view text{static_cast<const char*>(bytes.getData()),
                                             bytes.getSize()};
+                if (!session &&
+                    safe->session_.draft().engineering.core == WaterResearchCore::reworked) {
+                    auto tuning = safe->session_.draft().engineering.tuning;
+                    const auto error = decodeReworkedConfig(text, tuning, tuning);
+                    if (error.isNotEmpty()) {
+                        safe->setStatus(error);
+                        return;
+                    }
+                    safe->operations_.action("Import Reworked Config", ChangeOrigin::sessionLoad,
+                                             true, false, [&] {
+                                                 safe->session_.importReworkedTuning(tuning);
+                                                 safe->discardPendingText();
+                                             });
+                    safe->setStatus("Imported Reworked tuning into Draft. Apply then Play; "
+                                    "core/composition retained.");
+                    return;
+                }
                 auto error = session ? decodeSession(text, candidate)
                                      : decodeModuleConfig(text, safe->session_.draft(), candidate);
                 if (error.isEmpty())
@@ -545,19 +573,24 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                                                                           : "water-research.json"),
             "*.json");
         const auto json = session ? encodeSession(session_.applied())
-                                  : session_.applied().engineering.moduleJson();
+                                  : encodeResearchConfig(session_.applied().engineering);
+        const auto rendererMode = reworkedRendererMode(session_.applied().engineering.mode);
+        const bool reworkedConfig = !session && session_.applied().engineering.reworkedFluid();
         chooser_->launchAsync(
             juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles |
                 juce::FileBrowserComponent::warnAboutOverwriting,
-            [safe = juce::Component::SafePointer<PreviewPanel>(this), json,
-             session](const juce::FileChooser& result) {
+            [safe = juce::Component::SafePointer<PreviewPanel>(this), json, rendererMode,
+             reworkedConfig, session](const juce::FileChooser& result) {
                 if (!safe || result.getResult() == juce::File{})
                     return;
                 safe->setStatus(
                     result.getResult().replaceWithText(json)
                         ? (session ? "Exported APPLIED research session; source audio is separate."
-                                   : "Exported APPLIED module JSON; supply composition and seed "
-                                     "separately.")
+                           : reworkedConfig
+                               ? "Exported APPLIED config | renderer mode " + rendererMode +
+                                     " | seed 42 | same WAV; monitor/trim excluded."
+                               : "Exported APPLIED module JSON; supply composition and seed "
+                                 "separately.")
                         : "Export failed.");
             });
     }

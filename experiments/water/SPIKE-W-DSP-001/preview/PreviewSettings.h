@@ -2,6 +2,7 @@
 
 #include "ControlDescriptor.h"
 #include "ProtectControls.h"
+#include "ResearchCoreTuningState.h"
 
 #include <array>
 #include <juce_core/juce_core.h>
@@ -20,8 +21,9 @@ struct PreviewSettings final {
     std::array<double, kControls.size()> values{};
     int mode{}; // Index into kModes; independent of Host routing or Water product model IDs.
     ProtectSettings protect;
-    // Runtime draft/applied/A/B only; session v5 and module JSON remain legacy formats.
+    // Core and raw tuning are runtime Draft/Applied/A/B values; session v5 remains Legacy.
     WaterResearchCore core{WaterResearchCore::legacy};
+    ResearchCoreTuningState tuning;
 
     bool reworkedFluid() const noexcept {
         return core == WaterResearchCore::reworked && mode != 1 && mode != 8;
@@ -66,7 +68,7 @@ struct PreviewSettings final {
         protect = protection;
     }
 
-    // Message-thread serialization, identical module keys/units to the existing renderer.
+    // Legacy/C serialization. Reworked renderer export uses ResearchCoreConfigCodec instead.
     juce::String moduleJson() const {
         juce::var root(new juce::DynamicObject());
         for (std::size_t i = 0; i < values.size(); ++i) {

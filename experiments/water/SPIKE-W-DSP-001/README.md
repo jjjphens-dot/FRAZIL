@@ -1,11 +1,19 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+## A1/B1/D1 Preview raw parameter tuning
+
+The standalone Engineering view now edits canonical raw research configs through generic cards,
+explicit Apply/Play and existing A/B/history. Config export/import uses the strict renderer schema;
+Reworked Session export remains unavailable. Raw research controls are not product macros.
+Implementation validation pending: [evidence](../../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md#raw-tuning-extension).
+
+
 ## Preview core revision bridge
 
 Legacy Preview core = A0/B0/D0/C (default). Reworked Preview core = A1/B1/D1 plus unchanged C;
 A/B/AB are emission, AD/BD/ABD are transferred emission, D-only rejects.
-A1/B1/D1 parameters use research typed defaults, not product macros; legacy Fluid controls and Protect are inactive.
-Runtime A/B retains core; session v5 does not. Reworked Copy/Export is disabled; v5 import restores Legacy.
+A1/B1/D1 parameters use editable canonical raw configs, not product macros; legacy Fluid controls and Protect are inactive.
+Runtime A/B retains core; session v5 does not. Reworked Config import/export is supported; Session export is disabled; v5 import restores Legacy.
 [Bridge evidence](../../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md) records validation and human/production limits.
 
 
@@ -18,14 +26,14 @@ Flow D1: [canonical contract](../EXP-W-FD-001.md) and
 [execution](../../../docs/evidence/WATER_FLOW_D1_EXECUTION.md). Use explicit
 `a1d1`, `b1d1`, `a1b1d1` or their `-residual` variants; `--describe-flow-d1`
 emits version1 specs. Root `flowD1` requires version1 and rejects elsewhere,
-including Preview imports. D1 consumes source residual only; no raw carrier delay,
-feedback, gain knob, UI/session or product mapping. High-frequency interpolation
+including Legacy Preview imports. Reworked Config import accepts it. D1 consumes source residual only;
+no raw carrier delay, feedback, gain knob, persistent session or product mapping. High-frequency interpolation
 accuracy fails source-aware acceptance; D1-NUM-001 remains OPEN. Offline numerical
 tools and reproducible commands are in the
 [remediation finding](../../../docs/evidence/WATER_FLOW_D1_REMEDIATION.md).
 Numerical-tool test success is not physical or human acceptance.
 
-[Droplet B1](../EXP-W-DB-001.md) is an independent causal entrained-bubble research candidate. `b1`, `b1-residual`, `a1b1`, `a1b1d` select it; legacy `b/bd/abd` remain B0. `--describe-droplet-b1` emits the code-generated v1 contract. Configuration, sources, commands and actual validation: [B1 execution](../../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md). Preview runtime uses typed defaults; no session schema or production adoption.
+[Droplet B1](../EXP-W-DB-001.md) is an independent causal entrained-bubble research candidate. `b1`, `b1-residual`, `a1b1`, `a1b1d` select it; legacy `b/bd/abd` remain B0. `--describe-droplet-b1` emits the code-generated v1 contract. Configuration, sources, commands and actual validation: [B1 execution](../../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md). Preview runtime accepts raw tuning; no session schema or production adoption.
 
 Current navigation: [Water research index](../README.md). Legacy Preview/Fluid retain A0;
 B/D/C and Protect keep their existing research behavior. Production Water is NOT IMPLEMENTED.
@@ -440,7 +448,7 @@ never enters either schema; see the debug guide for DSP/context dirty and checkp
 Optional `modal.motionDepth` defaults to 0 (range 0..0.35), preserving exact historical sample
 arithmetic when omitted. `modal.motionIntervalSeconds` defaults to .7 s (range .02..10 s).
 The research macro maps depth=.35m and interval=.7*2.8^(1-2m). A/B/D and existing three Modal
-fields retain their defaults/ranges. Together with the Droplet scheduling/probability gates and C policy options, preview raw controls now total 28.
+fields retain their defaults/ranges. Together with the Droplet scheduling/probability gates and C policy options, Legacy preview raw controls total 28; separate Reworked tuning exposes 40 writable fields.
 
 Six positive random targets are normalized to sum six, then interpolated with smoothstep between
 normalized endpoints. Only excitation distribution changes: poles, decay and output gain are

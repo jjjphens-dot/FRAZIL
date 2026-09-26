@@ -9,7 +9,7 @@ positive/negative/must-preserve/reject conditions, not DSP approval. Follow
 [physical-model governance](../../docs/DSP_PHYSICAL_MODEL_GOVERNANCE.md).
 ADR-0006 stays Proposed; Legacy Preview/session v5 remains A0/B0/D0.
 The separately authorized [Preview bridge](../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md)
-consumes typed defaults in runtime Reworked mode; no new mapping or raw parameter UI. No Host/state/production adoption.
+consumes canonical raw configs in runtime Reworked mode through a generic parameter adapter; no new product mapping. No Host/state/production adoption.
 
 ## Scope and model limits
 
@@ -222,7 +222,7 @@ The macro neutral is intentionally different. Neither is an accepted product def
 
 Explicit a1-residual returns E; a1 returns x+E; a1b/a1d/a1bd replace only A in legacy
 composition. B1 combinations are separate explicit modes. A1 rejects enabled Protect;
-there is no hidden normalization/limiter. Other modes/Preview reject bubbleA1 fields.
+there is no hidden normalization/limiter. Other renderer modes/Legacy Preview reject bubbleA1 fields; Reworked Config import accepts them.
 Omitted configuration never upgrades legacy a to A1. Nine Host parameters, schema1,
 Preview sessionv5, legacy DSP and production paths remain outside this contract.
 

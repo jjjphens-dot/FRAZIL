@@ -35,6 +35,11 @@ inline juce::String waterDiagnosticsText(const ProtectDiagnosticsSnapshot& snaps
             " / steals " + count(a.bubbleSteals) + " | B events " + count(a.dropletEvents) +
             " / active " + count(a.dropletActive) + " | D delay " + juce::String(a.flowDelayMs, 3) +
             " ms\n";
+    if (a.reworked)
+        text += "A1 requested " + count(a.bubbleRequested) + " / requestedRate " +
+                juce::String(a.bubbleRequestedRate, 3) + " Hz | B1 eligible " +
+                count(a.dropletEligible) + " / admitted " + count(a.dropletAdmitted) +
+                " | D1 path " + juce::String(a.flowPathMeters, 6) + " m\n";
     text += "C root " + juce::String(a.modalRootHz, 1) + " Hz | decay " +
             time(a.modalDecaySeconds) + " | motion " + juce::String(a.modalMotionDepth, 3) + " / " +
             time(a.modalMotionIntervalSeconds) + " | Protect GR " +

@@ -149,3 +149,161 @@ ctest --preset windows-asan -R frazil_water_preview --output-on-failure
 Logs: ignored `build/bridge-validation/final-windows-debug.log`, `final-windows-release.log`,
 `final-windows-asan.log`. Full suites were not repeated for the label-only change.
 Pluginval, DAW matrix, native-device playback and human listening were NOT RUN.
+
+
+## Raw Tuning Extension
+
+Base branch: origin/codex/feat/water-preview-a1-b1-d1-bridge.
+Base SHA: e8b88b91d4c6ca8338ce4f9629c4fda730dc88f6, verified after fetch.
+Working branch: codex/feat/water-reworked-parameter-tuning; scope Preview-only raw research tuning.
+Implementation: ResearchCoreTuningState, ResearchCoreParameterAdapter, ResearchCoreTuningView,
+ResearchCoreConfigCodec; existing settings/engine/session/views/panel/controller, draft/history text
+and WaterDiagnostics numeric payload. Specs own all values/ranges/defaults/units/classifications.
+This extension supersedes historical typed-default-only, config-export-disabled and deferred
+requested/eligible/admitted/path statements above; original bridge validation remains historical.
+
+Status: IMPLEMENTED / FOCUSED VALIDATION PASS (Debug, Release, ASAN).
+Full Debug retains the unresolved source-probe assertion detailed below; no blanket full-suite PASS.
+No product mapping, Host integration, APVTS, DAW automation, Session v6, Protect coupling,
+A2/B2/D2 implementation, D1 C6/C7 completion or human listening acceptance.
+
+
+### Debug assertion incident (raw-tuning validation)
+
+Full `ctest --preset windows-debug --output-on-failure`: FAIL, exit1,37/38 in400.89s.
+`frazil_water_flow_d1_convergence::test_native_event_provenance` timed out after120s.
+The user observed the source-probe Debug Assertion dialog: UCRT
+`corecrt_internal_big_integer.h:731`, `("Division by zero", false)`.
+A minidump was captured while blocked. LLDB resolved the application frame to unchanged
+`tests/flow_d1_source_probe.cpp:111`, CSV output of `bv[1]`, via ostream float insertion,
+`std::num_put` and `__stdio_common_vsprintf_s` into the debug CRT report/dialog path.
+At that frame: rate96000, profile0, n10287, t0.10715625; B1 left1.97569264e-7,
+right-9.8784632e-8; A1 and source zero; D1 left8.397331178185694e-7 and
+right-4.198665589092847e-7. All these inspected values are finite.
+This localizes the assertion trigger to decimal text conversion, not a proven cause of corruption
+or an identified DSP division. No runtime, algorithm or numerical-acceptance repair is claimed.
+The probe does not include/link the new Preview tuning classes; its source was unchanged.
+
+Loaded debug runtimes: system MSVCP140D14.42.34438.0, UCRT debug10.0.22621.3233;
+compiler MSVC19.43.34809. These are observations, not proof of version incompatibility.
+Existing D1-VAL-001/002/003 incidents remain separate; common cause is unproven.
+The repeated native probe under LLDB with `_CrtDbgReportW` breakpoint completed all profiles,
+process exit0, with no assertion stop. LLDB's subsequent `thread backtrace all` returned an error
+because the process had already exited; debugger shell exit1 is not a probe failure.
+
+Local ignored evidence: `build/tuning-work/debug-full.log`, `probe-assert.dmp`, `probe-stack.txt`,
+`probe-values.txt`, `probe-disassembly.txt`, `probe-modules.txt`, `probe-debugger-repeat.log`.
+The exact failing command is retained in debug-full.log; portable form:
+`frazil_water_flow_d1_source_probe <repo-root>/build/convergence-events-<temporary>/sources`.
+The native repetition used `build/tuning-work/probe-debugger-repeat` as its new output directory.
+The source-probe incident is OPEN / ROOT CAUSE UNRESOLVED. No focused/repeat PASS replaces the failed full run.
+
+### Implementation and review scope
+
+Contract Review -> Implementation -> Functional Validation -> Code Quality Review ->
+Comment & Documentation Pass -> Final Validation are tracked for this extension.
+The four new headers each have one requirement: canonical numeric state, canonical metadata and
+config adapter, generic editing cards, and existing-renderer-schema serialization. No second
+parameter schema or production DSP path was introduced.
+
+Coverage: A1 has 7 Primary / 15 Advanced fields; B1 has 7 Primary / 8 Advanced writable fields;
+D1 has 3 Primary / 0 Advanced fields. There are 33 numeric controls and 7 canonical-choice lists.
+Typed prepare receives BubbleA1Config plus SharedExcitationConfig, DropletB1Config and FlowD1Config.
+The existing A1/B1/D1 algorithms and renderer remain unchanged.
+
+Independent code review checked cohesion, borrowed UI lifetime, canonical reference lifetime,
+validated integer conversions, notification-free refresh, atomic import, Apply failure retention,
+fixed-size diagnostic transport, and absence of added callback allocation/locks/I/O.
+A1 config construction uses named assignments instead of relying on aggregate member order.
+Default and nondefault renderer parity, deterministic reset/reprepare, channel isolation, strict
+codec failures, actual widgets, dirty state/history/A-B/reset and numeric diagnostics are covered
+by the existing Preview executable and the new preview_reworked_parameter_tests.cpp source.
+
+Documentation Impact Review: UI documented behavior and module/status facts trigger synchronization.
+Updated DEV_UI_WATER_DEBUG_GUIDE, DEVELOPER_SOUND_TOOLS, MODULE_INDEX, PROJECT_STATUS, TESTING,
+this evidence, Water README, SPIKE README, RESEARCH_MAPPING, EXP-W-BA-001, EXP-W-DB-001 and
+EXP-W-FD-001. The three model documents only change Preview integration wording.
+Reviewed without contract changes: Architecture, CODING_PLAN, PARAMETERS, CODE_STANDARDS,
+DOCUMENT_GOVERNANCE, COLLABORATION_ROLES, ADR-0007 and EXP-W-FD-003.
+Architecture/production parameters/state/routing/latency/random persistence/performance contracts:
+N/A to this Preview-only extension. Existing seed42 restart semantics are retained.
+Product mapping, Session v6, Protect coupling, A2/B2/D2 and D1 C6/C7 acceptance remain deferred.
+Pluginval, DAW matrix, native-device playback, native file-dialog interaction and human listening
+are NOT RUN; automated widget/render evidence does not replace those checks.
+
+### Config reproduction example
+
+Automated real-widget callbacks set A1.radiusMinMm=0.6 and B1.riseXi=0.05. The optional
+FRAZIL_TUNING_QA_PATH test capture writes the displayed numeric state through the same
+encodeResearchConfig used by Copy/Export Config, with ABD composition. This exercises widgets
+and the export codec; it does not claim native file-dialog interaction. The inspected offscreen
+image includes the intentional invalid-input message from rejecting `nan`, retaining 0.6.
+Artifacts are ignored `build/tuning-work/tuning-all.png` and `tuning-all.json`.
+
+Actual renderer command (PASS, exit0):
+
+```powershell
+& './build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_experiment_render_artefacts/Release/frazil_water_experiment_render.exe' build/tuning-work/tuning-input.wav build/tuning-work/tuning-export-render.wav a1b1d1 128 42 build/tuning-work/tuning-all.json 1
+```
+
+Input: generated 1-second stereo PCM16, 48000 Hz; left 220 Hz sine at 12000/32768 amplitude,
+on for the first 3000 samples of each 12000-sample cycle, right zero. Config carries bubbleA1 v2,
+dropletB1 v1, flowD1 v1 and the two edited values. Block128, seed42, 1-second tail.
+RIFF data decoded as float32: 96000 stereo frames, all finite, right exactly zero;
+left peak0.37093105912208557. Renderer log confirms A1 requested/started32 and B1
+eligible/admitted/started1. This is a reproducibility/engineering example, not a listening verdict.
+Scripts/logs: `build/tuning-work/make_input.py`, `check_render.py`, `tuning-render.log`,
+`tuning-render-check.log` (local, ignored). No content hashes were computed.
+
+### Validation commands and provenance
+
+Executed serially from an initialized MSVC developer shell, with Python3.12.4 and MSVC19.43.34809.
+Each preset used these commands (no parallel pipelines):
+
+```powershell
+cmake --preset <preset> -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=ON -DPython3_EXECUTABLE=python
+python tools/build_safe.py --preset <preset>
+ctest --preset <preset> -R frazil_water_preview --output-on-failure
+ctest --preset <preset> --output-on-failure
+```
+
+The local validate.cmd initialized tools/vscode_msvc_env.cmd before configure/build/focused tests.
+Build wrapper resource checks passed with 6 jobs. Builds tested the uncommitted implementation
+on base e8b88b9; no claim that historical bridge commit alone contains the raw-tuning changes.
+Final documentation-only result updates do not alter compiled code. Full Debug ran before the
+review's named A1 assignments/export-status/QA-image changes; final focused Debug rebuilt those
+changes. Release and ASAN use the final code.
+
+Repository checks (all PASS, exit0):
+
+```powershell
+python tools/check_markdown_links.py
+python tools/test_check_markdown_links.py
+python tools/check_portability.py
+python tools/test_check_portability.py
+python tools/check_vscode_tasks.py
+clang-format --dry-run --Werror <changed-and-new-C++-files>
+git diff --check
+```
+
+Cross-document consistency: removed current typed-default-only/export-disabled claims while
+preserving historical bridge evidence. The canonical parameter and numerical-model ranges,
+choices, defaults and D1 acceptance gates are unchanged. Final code review found no remaining
+Preview-specific blocker. The full-Debug source-probe incident remains an open validation limit.
+
+Final results (all configure and safe-build commands PASS):
+
+| Preset | Final focused Preview | Full suite | Full-suite duration |
+| --- | --- | --- | --- |
+| windows-debug | PASS 1/1, 9.71s | FAIL 37/38; source-probe assertion/120s timeout | 400.89s |
+| windows-release | PASS 1/1, 1.61s | PASS 38/38 | 82.79s |
+| windows-asan | PASS 1/1, 32.47s | PASS 38/38 | 676.13s |
+
+ASAN full convergence passed in98.49s and Preview in26.29s; no ASAN error was reported.
+These passes did not reproduce the Debug assertion and do not establish its root cause or fix.
+Logs: ignored `build/tuning-work/debug-final-focused.log`, `debug-full.log`,
+`release-focused.log`, `release-full.log`, `asan-focused.log`, `asan-full.log`.
+Full build logs are `build/safe-build/windows-{debug,release,asan}.log`.
+All six engineering phases were performed; validation completion is not an all-green exit:
+the Debug incident and unexecuted native/Host/human checks remain explicit handoff limits.
+No push, PR creation, merge or production adoption is included in this work.
