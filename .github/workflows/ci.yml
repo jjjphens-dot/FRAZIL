@@ -5,6 +5,12 @@ on:
     branches: [ main ]
   pull_request:
   workflow_dispatch:
+    inputs:
+      flow_d1_latency:
+        description: Run the full synthetic D1 latency study on an independent Release runner
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -105,3 +111,86 @@ jobs:
 
       - name: Test
         run: ctest --preset ci-windows-debug
+
+  flow-d1-latency:
+    name: Optional D1 numerical and native resource study
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.flow_d1_latency }}
+    needs: windows-debug
+    runs-on: windows-latest
+    timeout-minutes: 90
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      PYTHONFAULTHANDLER: '1'
+      PYTHONNOUSERSITE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          # Match the failing local baseline for an independent-machine comparison.
+          # This pin is diagnostic, not a new project-wide Python requirement.
+          python-version: '3.12.4'
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Cache pinned JUCE checkout
+        uses: actions/cache@v4
+        with:
+          path: external/JUCE
+          key: juce-9.0.1-e18f7f506c0b96f2c738a0bcd7fe6467a5005ad8-${{ runner.os }}
+      - name: Prepare controlled diagnostic environment
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build/flow-d1-latency | Out-Null
+          ./tools/bootstrap_dependencies.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $studyPython = python -c "import sys; print(sys.executable)"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "FRAZIL_D1_PYTHON=$studyPython" >> $env:GITHUB_ENV
+          & $studyPython -m pip install numpy==2.3.4 scipy==1.17.1 soundfile==0.13.1 matplotlib==3.10.8
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "Commit: $env:GITHUB_SHA" > build/flow-d1-latency/provenance.txt
+          & $studyPython -c "import sys,numpy,scipy; print(sys.version); print(numpy.__version__,scipy.__version__)" >> build/flow-d1-latency/provenance.txt
+          Get-CimInstance Win32_Processor | Select-Object Name,NumberOfCores,NumberOfLogicalProcessors | Format-List >> build/flow-d1-latency/provenance.txt
+          cmake --preset windows-release -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=OFF "-DPython3_EXECUTABLE:FILEPATH=$studyPython"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Safe Release build and full device-free tests
+        shell: pwsh
+        run: |
+          & $env:FRAZIL_D1_PYTHON tools/build_safe.py --preset windows-release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ctest --preset windows-release --output-on-failure > build/flow-d1-latency/ctest.log 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            Get-Content build/flow-d1-latency/ctest.log -Tail 100
+            exit 1
+          }
+      - name: Generate synthetic native sources and complete numerical screen
+        shell: pwsh
+        run: |
+          & build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_source_probe.exe build/flow-d1-latency/sources
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $env:FRAZIL_D1_PYTHON experiments/water/SPIKE-W-DSP-001/render/flow_d1_latency_study.py --sources build/flow-d1-latency/sources --output build/flow-d1-latency/study > build/flow-d1-latency/study.log 2>&1
+          $studyExit = $LASTEXITCODE
+          Get-Content build/flow-d1-latency/study.log -Tail 30
+          exit $studyExit
+      - name: Measure all minimum-guard native combinations
+        shell: pwsh
+        run: |
+          & $env:FRAZIL_D1_PYTHON experiments/water/SPIKE-W-DSP-001/render/flow_d1_latency_native_study.py --native build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_latency_native.exe --sources build/flow-d1-latency/sources --selection build/flow-d1-latency/study/SELECTION.csv --output build/flow-d1-latency/native > build/flow-d1-latency/native.log 2>&1
+          $studyExit = $LASTEXITCODE
+          Get-Content build/flow-d1-latency/native.log -Tail 30
+          exit $studyExit
+      - name: Preserve summary evidence and failure logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flow-d1-latency-${{ github.sha }}
+          retention-days: 30
+          path: |
+            build/flow-d1-latency/provenance.txt
+            build/flow-d1-latency/*.log
+            build/flow-d1-latency/sources/authority.json
+            build/flow-d1-latency/study/*.csv
+            build/flow-d1-latency/study/report.json
+            build/flow-d1-latency/native/NATIVE.csv
+            build/flow-d1-latency/native/RESOURCES.csv
+            build/safe-build/windows-release.log

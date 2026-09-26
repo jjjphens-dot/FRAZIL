@@ -1,5 +1,7 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+EXP-W-FD-002 adds offline IIR/FIR conditioning and 0/8/16/32/64-sample guard studies, actual overlapping sources and causal/comb tests. Existing D1 runtime remains the rejected historical baseline. See [latency study](../../../docs/evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
+
 Flow D1: [canonical contract](../EXP-W-FD-001.md) and
 [execution](../../../docs/evidence/WATER_FLOW_D1_EXECUTION.md). Use explicit
 `a1d1`, `b1d1`, `a1b1d1` or their `-residual` variants; `--describe-flow-d1`

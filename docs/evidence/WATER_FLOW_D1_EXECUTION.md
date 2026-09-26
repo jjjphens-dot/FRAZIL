@@ -1,5 +1,7 @@
 # Flow D1 execution record
 
+Subsequent low-latency research does not rewrite this historical runtime evidence. See [latency study](WATER_FLOW_D1_LATENCY_STUDY.md).
+
 Historical PRE-REMEDIATION record for 3c95fe9. The original 0..0.2*fs kernel
 selection is **SUPERSEDED** by the source-aware contract and
 [remediation finding](WATER_FLOW_D1_REMEDIATION.md); its PASS is not current

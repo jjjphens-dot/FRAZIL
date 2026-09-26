@@ -1,5 +1,13 @@
 # FRAZIL 测试、听测与发布门槛
 
+## Latency policy revision
+
+[ADR-0007](adr/0007-minimum-practical-processing-latency.md) proposes minimum
+practical declared processing latency; independent Joint Gate is pending. Current
+plugin/accepted M1 zero-sample evidence remains unchanged. The authorized offline
+[D1 study](../experiments/water/EXP-W-FD-002.md) is separate from production activation.
+
+
 Flow D1 research tests cover independent SI and interpolation oracles, path/speed
 bounds, domains1..10, finite-float extremes, zero history, exact U0/A0, reset,
 channel isolation and partitions1/7/32/64/128/256/257/512/1024 at three rates.
@@ -155,7 +163,7 @@ real DAW/Host evidence. Current observations and remaining acceptance limits are
 
 - `input.gain=0 dB`、`output.gain=0 dB` 为 unity；
 - `global.mix=0` 返回 post-input dry reference，`1` 返回完整 wet；
-- routing/mixing infrastructure 不得引入额外未声明 processing latency；v1 Host-reported processing latency 为 0 samples；Water/Ice intentional effect delay/tail 可以存在并由算法 ADR/tests 描述；
+- routing/mixing infrastructure 不得引入额外未声明 processing latency；当前 artifact 的 Host-reported processing latency 为 0 samples，后续与 Accepted latency ADR/实测对齐；Water/Ice intentional effect delay/tail 可以存在并由算法 ADR/tests 描述；
 - Parallel 端点与中心符合当前 crossfade law；
 - 两个 serial 顺序的 0/0、100/0、0/100、100/100；
 - enable 四组合；
@@ -442,8 +450,7 @@ Resonant，并分别记录：
 - `water.enabled` transition 继续单独验证 pass-through、macro value retention 和 click-free behavior；
 - 相对 `PERF-BASE-001` 分别记录 Fluid、Resonant 和 transition 的 mean/P95/P99/worst；M2 只做增量
   regression tracking，不提前冻结最终 performance budget；
-- plugin `getLatencySamples()` 仍为 0，Water 不引入需要 lookahead/FFT block latency/linear-phase/
-  convolution/Host PDC 的 production dependency；intentional effect delay/tail 单独描述和测试。
+- 当前 plugin `getLatencySamples()`=0 的 baseline test 保留。未来非零方案在 ADR-0007 Joint Gate 后验证 measured/reported latency、dry/wet/carrier/bypass/Parallel/Serial alignment、DAW PDC 与 offline render；intentional effect delay/tail 单独测试。
 
 #### Motion × Decay separation and dynamic-state evidence (planned)
 
@@ -635,7 +642,7 @@ Water/Ice candidate 至少在以下任一情况发生时 reject 或退回 experi
 - 随机行为失控；
 - 无法通过 automation stress；
 - 相对 `PERF-BASE-001` baseline 出现未解释的严重 realtime regression；正式硬阈值由后续 `PERF-001`/Beta 阶段锁定；
-- routing infrastructure 引入未声明 processing latency，或 plugin-reported latency 不是 0 samples；intentional Water/Ice delay/tail 本身不构成 latency violation。
+- routing infrastructure 引入未声明 processing latency，或 plugin-reported latency 与 Accepted ADR 声明不符（当前 artifact 为0）；intentional Water/Ice delay/tail 本身不构成 latency violation。
 
 ## 5. 支持矩阵
 
@@ -793,7 +800,7 @@ pluginval 路径与完整 MSVC 环境初始化见 `docs/ENVIRONMENT.md`。CI 命
   property/render、qualitative non-quality-switch review、Size/Motion/Decay semantic consistency、normal setting 与
   代表性 `global.mix=100%` input recognizability、click-free mode
   transition、state/automation、performance increment、Water rubric/Reject Criteria 和 pluginval PASS；
-  引用 `TESTDATA-001`、`LISTENING-001` 与 `PERF-BASE-001`，且 Host-reported processing latency 保持 0。
+  引用 `TESTDATA-001`、`LISTENING-001` 与 `PERF-BASE-001`，且 Host-reported processing latency 与 Accepted latency ADR/实测对齐；当前 artifact 保持0。
 - M3：Ice vertical slice 的 property/render/listening rubric/Reject Criteria/pluginval PASS，并引用同一 reference corpus 与 performance baseline；本次 Water revision 不改变 Ice gate。
 - M4：`PARAM-FREEZE-001` 已完成，`ADR-R-001` Accepted，`ROUTE-011` 的 routing infrastructure latency 检查通过；inactive-control routing invariants、完整 routing matrix、mode retention、click-free automation、loudness A/B PASS。
 - M5：UI attachment、gesture/history、resize/accessibility 基线 PASS。
@@ -964,3 +971,29 @@ Historical95be0de A1 and current pre-closeout41a7a67 references remain separate;
 using the newly built renderer as both sides never establishes preservation.
 Debug/Release/ASAN and exact-head hosted CI are separate results. Existing environment,
 A1 stress and B1 listening findings stay open. See the B1 execution record.
+
+## D1 low-latency research validation (EXP-W-FD-002)
+
+The [preregistered contract](../experiments/water/EXP-W-FD-002.md) owns independent
+conditioner, guard and joint numerical gates. New CTest `frazil_water_flow_d1_latency`
+checks analytic guard causality/path-clock, polynomial/Butterworth/comb equations,
+FIR timing and aligned OFF/ON identity. The native source probe adds mandatory
+actual overlap-reference at every rate; sustained-edge overlap is measured, not
+assumed. Full study runs remain manual evidence, separate from fast CTest.
+[Study evidence](evidence/WATER_FLOW_D1_LATENCY_STUDY.md) must report core16 kHz,
+extended20 kHz, all guards, actual overlap, reference convergence, native resources,
+full ASAN and remaining listening/Host gaps without substituting one for another.
+
+The separate `frazil_water_flow_d1_latency_native` CTest covers 24 rate/filter/guard
+combinations against the untabulated Python model. Each checks seven block sizes,
+reset/reprepare equality, finite output (including float-range stress) and observed C++ allocation count. This is a
+test-only coefficient-import prototype, not runtime D1 replacement. Manual native
+resource evidence uses full warmed measurements only on overlap-reference; short
+CTest timings are not performance evidence. See EXP-W-FD-002 and the linked study.
+
+An explicitly dispatched independent-machine D1 study is available through CI's
+`flow_d1_latency=true` input. It runs after standard Debug validation and generates
+fresh synthetic sources and a complete Release numerical/native matrix. Summary
+artifacts preserve failed attempts; no private listening material is used. This is
+manual research evidence, not an added default PR gate, human acceptance or a fix for
+local environment faults. Environment/provenance details are in ENVIRONMENT.md.

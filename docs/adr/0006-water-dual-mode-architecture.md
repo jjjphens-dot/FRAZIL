@@ -13,6 +13,12 @@ changes must follow the repository ADR supersession policy.
 
 ## Context
 
+Latency follow-up: [ADR-0007](0007-minimum-practical-processing-latency.md) proposes
+minimum practical declared processing latency. References to ADR-0005/zero latency
+below describe the current baseline pending that separate Joint Gate; Water adoption
+must use the accepted latency policy and measured branch/Host alignment at that time.
+The offline D1 study does not accept this Water architecture or implement Host PDC.
+
 The previous M2 plan treated Bubble, Droplet, Flow, Liquid Resonator, and related mechanisms as candidates from
 which one Water vertical slice would be selected. The product direction is now a dual-mode material processor:
 
@@ -170,7 +176,7 @@ existing Joint Gate; user-control adoption separately requires parameter/state c
 - finite output, extreme parameters, DC/peak/tail, reset/prepare, 44.1/48/96 kHz, representative block-size,
   rapid mode automation, click/zipper, and instance-isolation evidence;
 - performance increments relative to `PERF-BASE-001`, including mode-transition peak cost;
-- confirmation that Host-reported processing latency remains 0 samples;
+- confirmation that Host-reported processing latency matches the Accepted latency ADR and measured alignment; the current artifact remains zero samples, and ADR-0007 activation requires its independent Joint Gate;
 - parameter/state compatibility plan and fixtures before any new Host registration;
 - Engineering and Sound/Host Joint Gate review evidence.
 

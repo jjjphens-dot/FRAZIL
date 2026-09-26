@@ -18,6 +18,17 @@ foreach(module IN ITEMS baseline features modal excitation normalization motion 
     list(APPEND water_test_targets ${target})
     list(APPEND water_test_names "frazil_water_${module}")
 endforeach()
+target_sources(frazil_water_droplet_b1_allocation_tests PRIVATE tests/AllocationObserver.cpp)
+
+add_executable(frazil_water_flow_d1_latency_native tests/flow_d1_latency_native.cpp
+    tests/AllocationObserver.cpp)
+target_link_libraries(frazil_water_flow_d1_latency_native PRIVATE frazil_water_research)
+add_dependencies(frazil_smoke frazil_water_flow_d1_latency_native)
+list(APPEND water_test_targets frazil_water_flow_d1_latency_native)
+add_test(NAME frazil_water_flow_d1_latency_native
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_latency_native_test.py"
+            $<TARGET_FILE:frazil_water_flow_d1_latency_native>)
+list(APPEND water_test_names frazil_water_flow_d1_latency_native)
 
 juce_add_console_app(frazil_water_experiment_render PRODUCT_NAME "FRAZIL Water Research Render")
 target_sources(frazil_water_experiment_render PRIVATE render/render_main.cpp)
@@ -43,10 +54,13 @@ add_test(NAME frazil_water_droplet_b1_cli
 
 add_test(NAME frazil_water_flow_d1_cli
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_cli_test.py"
-            $<TARGET_FILE:frazil_water_experiment_render>)
+            $<TARGET_FILE:frazil_water_experiment_render>
+            $<TARGET_FILE:frazil_water_flow_d1_source_probe>)
 add_test(NAME frazil_water_flow_d1_remediation
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_remediation_test.py"
             $<TARGET_FILE:frazil_water_flow_d1_source_probe>)
+add_test(NAME frazil_water_flow_d1_latency
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_latency_test.py")
 
 add_executable(frazil_water_performance tests/performance.cpp
     ../../../src/app/AudioEngine.cpp ../../../src/dsp/DryWetMixer.cpp

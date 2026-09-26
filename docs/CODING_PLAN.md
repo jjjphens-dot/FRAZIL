@@ -1,5 +1,20 @@
 # FRAZIL 分阶段 Coding Plan
 
+## Proposed minimum-practical latency policy (ARCH-LAT-002)
+
+The user-authorized [ADR-0007](adr/0007-minimum-practical-processing-latency.md)
+proposes replacing the universal zero-latency requirement with minimum practical,
+deterministic, measured and Host-declared processing latency. Independent Joint
+Gate acceptance is pending. Current plugin/accepted M1 evidence remains zero samples;
+references below to ADR-0005/ARCH-LAT-001 describe that current baseline, not a
+constraint on the separately authorized offline D1 guard study.
+Future WATER-005/ICE-005/ROUTE-011 acceptance follows ADR-0007 upon acceptance:
+dry/wet, carrier, bypass and parallel paths align; serial latencies add; routing
+must introduce no undeclared/uncompensated latency. Ordinary automation cannot
+change Host latency. Engineering guard is never a physical propagation distance.
+No production Host/routing implementation or support claim changes in this revision.
+Research protocol: [EXP-W-FD-002](../experiments/water/EXP-W-FD-002.md).
+
 Physical-model implementation work additionally follows [DSP Physical Model Governance](DSP_PHYSICAL_MODEL_GOVERNANCE.md). This traceability rule adds no milestone, changes no sequencing/acceptance gate, and does not promote research algorithms.
 
 > 版本：1.4（Water Decay candidate revision）<br>
@@ -562,7 +577,7 @@ Joint Gate, ADR-W-001 and compatibility review remain required at the existing a
 | WATER-002 | P0 | Fluid + Resonant cores | Fluid 实现经采纳的 A+B+D 有界组合，Resonant 实现经采纳的 C；固定 test seed 可复现；component ablation、输入驱动、参数极值和 source-preserving output 有证据 | render + finite + ablation + recognizability evidence |
 | WATER-003 | P0 | shared product macros | 评估 candidate `water.model`、`water.size`、`water.motion`、`water.decay`；ParameterMapper 只准备 normalized WaterProductValues；Water domain 的 WaterMacroMapper 唯一负责 mode-specific bounded DSP targets，独立于 JUCE/APVTS/UI/DSP state；完整语义链、自动化/平滑、state evolution 和兼容性证据齐备后才可正式注册；不得增加 `water.dryWet` | application/domain mapping boundary、automation/listening/state compatibility tests |
 | WATER-004 | P0 | click-free enable | disabled=pass-through；重新开启保留 macro；过渡无异常峰值 | transient automation render |
-| WATER-005 | P0 | dual-mode performance/tail | 分别记录 Fluid、Resonant 和 mode-transition 相对 `PERF-BASE-001` 的 mean/P95/P99/worst；不引入非零 Host-reported processing latency；intentional effect delay/tail 由 Water ADR/tests 描述；M2 不预设最终硬预算 | benchmark + plugin metadata |
+| WATER-005 | P0 | dual-mode performance/tail | 分别记录 Fluid、Resonant 和 mode-transition 相对 `PERF-BASE-001` 的 mean/P95/P99/worst；依 ADR-0007 proposed policy 研究满足 fidelity gate 的最小确定 processing latency，生产启用前须 Joint Gate/Host reporting/alignment 验证；当前 artifact 仍为 0；intentional delay/tail 独立描述；M2 不预设最终硬预算 | benchmark + plugin metadata/alignment |
 | WATER-006 | P0 | dual-mode listening pack | 使用 `LISTENING-001` 做 dry/baseline/Fluid/Resonant loudness-matched review；验证 Water identity、模式区分、Size/Motion/Decay 方向、正常设置及 `global.mix=100%` 下 input recognizability；工程诊断仍由 `TESTDATA-001` 提供 | rubric accepted；未触发 Reject Criteria |
 | WATER-007 | P0 | parameter/state/integration | Water-only AudioEngine 临时路径；如正式采纳新 Host controls，先完成静态注册、choice ordering、automation、inactive retention、state compatibility/evolution fixtures；不引入 routing 语义 | pluginval + DAW automation + state compatibility |
 | WATER-008 | P0 | Water model transition | 在 `ADR-W-001` Accepted 后实现 Fluid/Resonant click-free bounded transition；定义 dual-engine execution、state/tail/random progression、rapid automation、reset/prepare/restore 和 CPU upper bound；不预设 transition duration | automation stress + render + property + performance |
@@ -659,7 +674,7 @@ M1 只负责 `core contract stabilization`：建立静态参数、Snapshot、map
 | ROUTE-008 | P0 | Global integration | Input Gain -> Routing -> Global Mix -> Output Gain 顺序固定 | impulse/reference test |
 | ROUTE-009 | P0 | Host/state matrix | mode 切换、inactive automation、save/reopen、多实例 | integration + DAW |
 | ROUTE-010 | P0 | loudness review | Parallel law、Serial stage law、routing 切换的响度与偏好 | A/B notes + ADR update |
-| ROUTE-011 | P0 | verify routing infrastructure latency and reporting | 验证 RoutingEngine、branch copies、scratch buffers、Parallel/Serial topology 和 Global Mix infrastructure 不额外引入非预期时间偏移或未声明 processing latency；bypass/identity impulse 不被无故平移；v1 report 0 samples；Water/Ice intentional delay/tail 由算法 ADR/tests 单独描述 | infrastructure impulse/render + plugin metadata/Host check |
+| ROUTE-011 | P0 | verify routing infrastructure latency and reporting | 验证 RoutingEngine、branch copies、scratch buffers、Parallel/Serial topology 和 Global Mix infrastructure 不额外引入非预期时间偏移或未声明 processing latency；bypass/identity impulse 与声明的 engineering latency 对齐；当前 artifact report 0，后续依 Accepted latency ADR 声明；Water/Ice intentional delay/tail 由算法 ADR/tests 单独描述 | infrastructure impulse/render + plugin metadata/Host check |
 
 `ADR-R-001` 不预设最终实现。允许比较完整 old/new topology 双运行、复制/双 graph、以及 `old routing -> neutral/dry -> switch topology -> new routing` 的两阶段 transition；必须用测量和确定性测试说明 state、random、tail 和 CPU 后再选择。
 
@@ -669,7 +684,7 @@ M1 只负责 `core contract stabilization`：建立静态参数、Snapshot、map
 - `parallel.balance` 永不充当 serial amount；
 - amount 属于 StageMixer，不进入 Water/Ice 内部算法；
 - Input Gain 同时改变 dry reference 和 wet input；Output Gain 只在末端；
-- `ARCH-LAT-001` 的 v1 Host-reported latency=0 与 `ROUTE-011` 的 routing infrastructure latency 检查必须成立；intentional Water/Ice delay/tail 不被误判为 plugin processing latency；
+- 当前 `ARCH-LAT-001` 的0-sample基线保持；ADR-0007获 Joint Gate 后以 measured/reported latency 与 branch alignment 验收 `ROUTE-011`；intentional Water/Ice delay/tail 不被误判为 plugin processing latency；
 - routing/enable 改变不重新注册 Host 参数、不清除 inactive values；
 - v1 不增加内部 Water->Ice 时间线。
 
@@ -798,7 +813,7 @@ P2 只有在用户研究/真实声音问题证明价值、且通过新的 ADR �
 | 性能预算过晚 | vertical slice 已复杂且无法降级 | M2/M3 每 slice 报 avg/peak，再集成 |
 | reference 音频版权/仓库膨胀 | 来源不明、大 WAV 入 Git | manifest/许可审计，artifact/LFS 决策 |
 | routing state ownership 不明确 | transition 同 block 推进同一 Processor 两次、random/tail 不一致 | `ROUTE-006` 阻断至 `ADR-R-001` Accepted；比较双 graph 与两阶段 transition |
-| routing infrastructure 引入未预期 latency | identity impulse 被平移、Parallel/Serial branch 错位、Global Mix 隐藏 delay | `ARCH-LAT-001` 要求 Host-reported latency=0；`ROUTE-011` 验收 infrastructure；intentional effect delay/tail 由算法 ADR/tests 描述 |
+| routing infrastructure 引入未预期 latency | identity impulse 被平移、Parallel/Serial branch 错位、Global Mix 隐藏 delay | 当前 `ARCH-LAT-001` 保持0-sample基线；后续 ADR-0007/`ROUTE-011` 验收声明延迟与 infrastructure alignment；intentional effect delay/tail 由算法 ADR/tests 描述 |
 | production random 同步 | 多实例输出完全相同或 save/reopen 语义不明 | 区分测试 fixed seed 与 production instance seed；由 Water/Ice ADR 定义 persistent/offline 语义 |
 
 ## 15. Bootstrap Issue Map

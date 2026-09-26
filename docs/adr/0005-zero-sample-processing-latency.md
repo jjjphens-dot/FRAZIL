@@ -3,6 +3,9 @@
 - Status: Accepted
 - Date: 2026-09-09
 
+Proposed successor: [ADR-0007](0007-minimum-practical-processing-latency.md).
+The historical Accepted Decision below remains unchanged until independent Joint Gate acceptance.
+
 ## Modification Policy
 
 本 ADR 的 Accepted Decision 是 v1 latency contract。若未来算法需要 Host 可见的非零

@@ -1,5 +1,13 @@
 # FRAZIL 项目开发与架构规范
 
+## Latency policy revision
+
+[ADR-0007](adr/0007-minimum-practical-processing-latency.md) proposes minimum
+practical declared processing latency; independent Joint Gate is pending. Current
+plugin/accepted M1 zero-sample evidence remains unchanged. The authorized offline
+[D1 study](../experiments/water/EXP-W-FD-002.md) is separate from production activation.
+
+
 > 文档状态：Draft v0.3；Development baseline accepted<br>
 > 适用阶段：项目初始化 → v1.0  
 > 团队规模：2 人  

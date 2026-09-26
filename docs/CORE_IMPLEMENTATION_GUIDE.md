@@ -1,5 +1,13 @@
 # FRAZIL 核心功能具体实现与算法指南
 
+## Latency policy revision
+
+[ADR-0007](adr/0007-minimum-practical-processing-latency.md) proposes minimum
+practical declared processing latency; independent Joint Gate is pending. Current
+plugin/accepted M1 zero-sample evidence remains unchanged. The authorized offline
+[D1 study](../experiments/water/EXP-W-FD-002.md) is separate from production activation.
+
+
 Flow D1 is a separate [EXP-W-FD-001](../experiments/water/EXP-W-FD-001.md)
 offline reduced source-advection/transfer candidate. It consumes A1+B1 residual,
 returns H(E)-E correction and composes via H(E); the original carrier is added once.
@@ -178,8 +186,11 @@ y[n] = g_{out}[n]m[n]
 - Input Gain 同时影响 Global Mix 的 dry reference 和 wet processing input；
 - Output Gain 只作用于 Global Mix 之后；
 - Water/Ice 不读取 APVTS，也不知道自身位于 Parallel 或 Serial；
-- v1 Host-reported processing latency 为 0 samples；
+- 当前 artifact 的 Host-reported processing latency 为 0 samples；后续依 Accepted latency ADR 验证声明值；ADR-0007 仍为 Proposed；
 - 声音设计用 micro-delay、comb、modal ringing 或 natural tail 不等同于 Host processing latency。
+
+若后续采纳非零 processing latency，上述 mix 公式的 dry/wet 输入须先按 Accepted latency ADR
+完成 engineering alignment；物理 excess delay 不被消除。本轮未实现该生产对齐路径。
 
 ### 2.2 dB 到线性增益
 

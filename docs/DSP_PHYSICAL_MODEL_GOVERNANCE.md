@@ -58,3 +58,14 @@ it does not retroactively rewrite historical evidence or authorize deferred modu
 Production adoption still follows [Perceptual Contract](PERCEPTUAL_CONTRACT.md),
 [Coding Plan](CODING_PLAN.md), Joint Gate and applicable ADR/compatibility requirements.
 Governance changes use the [Documentation Gate](DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate).
+
+## D1 numerical fidelity classification example
+
+[EXP-W-FD-002](../experiments/water/EXP-W-FD-002.md) distinguishes virtual excess
+path/time-of-flight from engineering guard support. Guard samples must never be
+relabelled a physical propagation distance. Audible-band choice has primary
+PRODUCT_MAPPING classification; its filter implementation has primary ENGINEERING
+classification. Commercial latency/filter precedents are engineering context only.
+Each cited source records SOURCE SUPPORTS and SOURCE DOES NOT SUPPORT. Pure delay,
+direct+delayed interference and interpolation error require separate ablations.
+This example clarifies existing classification rules; it does not accept a mapping.

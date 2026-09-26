@@ -11,6 +11,7 @@ from bubble_a1_cli_test import run
 
 def main():
     renderer = Path(sys.argv[1]).resolve()
+    probe = Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else None
     descriptor = json.loads(subprocess.run([str(renderer),'--describe-flow-d1'],check=True,capture_output=True,text=True).stdout)
     assert descriptor == json.loads((Path(__file__).resolve().parents[2]/'contracts/flow-d1-v1.json').read_text(encoding='utf-8'))
     build = Path(__file__).resolve().parents[4]/'build/flow-d1'
@@ -64,6 +65,24 @@ def main():
         for badmode in ('d1','d1-residual','ad1','bd1'):
             render(badmode,{},ok=False)
         render('a1b1d1',{'protect':{'depth':.5}},ok=False)
+        if probe is not None:
+            native = root/'native'
+            subprocess.run([str(probe), str(native)], check=True, capture_output=True, text=True)
+            for rate in (44100,48000,96000):
+                audit=np.loadtxt(native/f'{rate}-overlap-reference-audit.csv',delimiter=',',skiprows=1)
+                raw=np.loadtxt(native/f'{rate}-overlap-reference.csv',delimiter=',',skiprows=1)
+                assert np.any((raw[:,1]!=0)&(raw[:,3]!=0))
+                sf.write(source,audit[:,:2],rate,subtype='FLOAT')
+                values={'flowD1':{'version':1,'velocityScaleMps':1,
+                                  'virtualStructureLengthMeters':.005,'maxExcessPathMeters':.05}}
+                residual,_=render('a1b1d1-residual',values)
+                expected=audit[:,4:6].astype(np.float32)
+                # Independent native source/transfer harness, not another renderer mode:
+                # duplicate direct AB in both full/residual must fail this comparison.
+                assert np.array_equal(residual[:rate],expected)
+                full,_=render('a1b1d1',values)
+                combined=(audit[:,:2].astype(np.float32)+expected).astype(np.float32)
+                assert np.array_equal(full[:rate],combined)
     print('D1 actual renderer schema, composition, rate/partition and legacy isolation PASS')
 
 if __name__=='__main__':

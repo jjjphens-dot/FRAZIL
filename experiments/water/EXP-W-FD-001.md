@@ -15,6 +15,15 @@ and [accepted Water definition](EXP-W-001_PERCEPTUAL_BRIEF.md). Definition accep
 is not algorithm acceptance. Engineering implementation/self-review belongs to this
 research task; independent engineering review and Sound Lead decisions remain separate.
 
+## Subsequent authorized numerical research
+
+[EXP-W-FD-002](EXP-W-FD-002.md) now owns the preregistered guard/bandwidth study.
+Its explicit engineering latency and independent conditioning experiments supersede
+the no-guard/no-filter restriction for that offline study only. All source, path,
+trajectory and current runtime invariants below remain unchanged. Historical raw
+U=0 identity still tests v1; future candidate identity compares equally conditioned,
+equally guard-aligned OFF/ON. No runtime replacement or product bandwidth is accepted.
+
 ## Contract Review and physical reduction
 
 Fluid must retain input identity, rhythm, major attacks and pitch centre. Continuous

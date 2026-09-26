@@ -1,5 +1,13 @@
 # FRAZIL 参数与状态合同
 
+## Latency policy revision
+
+[ADR-0007](adr/0007-minimum-practical-processing-latency.md) proposes minimum
+practical declared processing latency; independent Joint Gate is pending. Current
+plugin/accepted M1 zero-sample evidence remains unchanged. The authorized offline
+[D1 study](../experiments/water/EXP-W-FD-002.md) is separate from production activation.
+
+
 > 状态：M1 core contract draft；v1 Host API freeze 由 `PARAM-FREEZE-001` 完成<br>
 > 适用：M1 至 v1.0  
 > 变更规则：任何 ID、范围、默认值、单位、routing 语义或 state schema 变更必须同步测试与 ADR。
@@ -201,7 +209,10 @@ RoutingEngine -> Water/Ice -> wet path ─────────────�
                                                     output
 ```
 
-v1 Material DSP 采用 `ARCH-LAT-001` 的 processing-latency 合同：Host-reported processing latency 必须为 0 samples；Water/Ice 不得依赖 lookahead、FFT block latency、linear-phase、convolution 或 Host PDC 才能正确工作。Water/Ice 内部允许属于声音设计的 intentional effect delay/tail，例如 micro-delay、resonant ringing、comb/modal structure 或 natural decay；`intentional effect delay/tail != plugin processing latency`。`ROUTE-011` 只验证 routing/mixing infrastructure 不引入额外未声明 latency，不要求处理后的 Water/Ice waveform 与 dry waveform 逐样本对齐。
+当前 Material DSP artifact 的 `ARCH-LAT-001` / ADR-0005 合同仍为 Host-reported 0 samples。
+新的 latency policy 见 ADR-0007 proposed supersession：未来在 Joint Gate 后允许满足 fidelity gate 的最小确定 processing latency，显式测量并报告 Host；dry/wet、carrier、bypass、Parallel 与 Serial 路径必须补偿 engineering alignment。普通参数自动化不得改变 Host latency。本轮只实施离线研究与政策提案，不修改当前九参数、schema 或 Host reporting。
+Water/Ice intentional effect delay/tail 由算法合同描述；它与 processing latency 不同，不被 branch compensation 消除。`ROUTE-011` 验证无未声明/未补偿 infrastructure latency，不要求 Water/Ice 的物理响应波形等同 dry waveform。
+
 
 ### Parallel
 

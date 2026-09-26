@@ -1,5 +1,7 @@
 # Flow D1 physical/numerical remediation
 
+Subsequent user plan authorizes an independent guard/bandwidth study. This no-guard comparison and its failures remain historical evidence; no finding is silently closed. See [latency study](WATER_FLOW_D1_LATENCY_STUDY.md).
+
 Status: **D1-NUM-001 OPEN / BLOCKED; no replacement selected**. This is a
 reviewable research finding, not a completed kernel fix. The six causal candidates
 tested do not satisfy the source-aware gates together. No evidence here proves

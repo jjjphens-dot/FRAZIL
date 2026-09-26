@@ -161,7 +161,7 @@ requested; details are in [the research README](../experiments/water/SPIKE-W-DSP
 
 Hosted CI captures `sys.executable` once, installs dependencies with it and passes that exact executable through
 `FRAZIL_CI_PYTHON` to CMake. Configure checks the cache and generated listening-test command against the captured
-path, failing on mismatch or missing test registration, and logs all three paths. No interpreter version or
+path, failing on mismatch or missing test registration, and logs all three paths. In this standard Debug job no interpreter version or
 machine-specific path is hardcoded; the unchanged listening regression still executes in the full CTest suite.
 
 ci-windows-debug 不引用个人盘符、用户名或工具安装目录。CI 在 configure 前运行 portability scan。
@@ -192,3 +192,21 @@ OFF; preview without the experiment option is a configure error. The output is
 It uses the default stereo output at the loaded WAV sample rate, with no microphone or resampling.
 See the [debugging guide](DEV_UI_WATER_DEBUG_GUIDE.md). CI opts in to the preview and its device-free test;
 it does not claim physical-device or GUI acceptance.
+
+## Optional D1 independent-machine research run
+
+The existing CI workflow accepts explicit `workflow_dispatch` input
+`flow_d1_latency=true`. Default push/PR/manual CI stays unchanged. After the standard
+Debug job passes, an independent Windows runner performs a safe six-job Release
+build, full device-free CTest with Preview OFF, synthetic source export, the complete
+EXP-W-FD-002 numerical screen and native resource matrix. It uploads summary CSVs,
+provenance and failure logs for30 days; generated audio/NPZ and per-case output files
+are excluded. No private listening sources or credentials are uploaded.
+
+This diagnostic job pins Python3.12.4, NumPy2.3.4 and SciPy1.17.1 to compare with the
+failing local baseline; these are not new project-wide version requirements. The
+same captured interpreter installs dependencies, configures CMake and runs studies.
+Manual trigger: `gh workflow run ci.yml --ref <review-branch> -f flow_d1_latency=true`.
+Hosted measurements must be identified separately from local reference-machine
+measurements. A successful independent run does not establish the cause or repair of
+local Python/native failures; see the [D1 study](evidence/WATER_FLOW_D1_LATENCY_STUDY.md).

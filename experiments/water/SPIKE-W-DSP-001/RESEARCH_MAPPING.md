@@ -1,5 +1,7 @@
 # Research Water Mapping v0.2
 
+Audible bandwidth is unaccepted PRODUCT_MAPPING research; guard/filter coefficients are ENGINEERING. They do not map Motion/Size/Decay or infer source distance. See [latency study](../../../docs/evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
+
 Flow D1 has no product macro mapping. Its independent offline version1 accepts
 virtual velocity, structure length and excess path only; Size/Decay and the existing
 v0.2/sessionv5 destinations stay unchanged. U0 is exact identity, not a decision

@@ -1,5 +1,7 @@
 # Water research index
 
+Authorized next research is EXP-W-FD-002: separate comb, audible-band and guard-latency evidence; no UI/product/runtime adoption. See [latency study](../../docs/evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
+
 Current Flow research: [EXP-W-FD-001 canonical model](EXP-W-FD-001.md),
 [D1 execution and branch lineage](../../docs/evidence/WATER_FLOW_D1_EXECUTION.md).
 New offline a1d1/b1d1/a1b1d1 modes use reduced emission transfer. A1/B1 and D0

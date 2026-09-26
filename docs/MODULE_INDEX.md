@@ -1,5 +1,7 @@
 # FRAZIL Module Index
 
+Research tools `render/flow_d1_latency_models.py` and `render/flow_d1_latency_study.py` separate conditioning, guard interpolation and comb/bandwidth audits; `tests/flow_d1_latency_test.py` checks independent analytic cases. Native source probe adds overlap and actual D0/D1 traces. Test-only `LatencyCandidate.h` and `flow_d1_latency_native_study.py` measure the streaming realization; `AllocationObserver.cpp` is shared only by isolated test executables. No new production module. See [latency study](evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
+
 [Flow D1](../experiments/water/EXP-W-FD-001.md) adds research-only FlowD1Config
 (typed SI proxy values), FlowD1Model (pure derivation), FlowD1Trajectory (domain10
 waypoints), FlowD1FractionalDelay (fixed separate stereo memory) and FlowD1

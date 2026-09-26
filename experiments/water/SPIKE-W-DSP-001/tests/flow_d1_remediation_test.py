@@ -24,18 +24,22 @@ class NumericalEvidenceTests(unittest.TestCase):
 
     @unittest.skipUnless(PROBE, 'source probe executable supplied by CTest')
     def test_actual_source_probe(self):
-        with tempfile.TemporaryDirectory(prefix='frazil-d1-numerical-') as temp:
+        local = Path(__file__).resolve().parents[4] / 'build' / 'flow-d1-latency'
+        local.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=local, prefix='numerical-') as temp:
             root = Path(temp) / 'sources'
             subprocess.run([PROBE, str(root)],check=True,capture_output=True,text=True)
             authority = json.loads((root/'authority.json').read_text())
             self.assertGreater(source_envelope(authority),23000)
             for rate in (44100,48000,96000):
-                for profile in ('reference','edge'):
+                for profile in ('reference','edge','overlap-reference','sustained-edge'):
                     data = np.loadtxt(root/f'{rate}-{profile}.csv',delimiter=',',skiprows=1)
                     self.assertEqual(data.shape,(rate,5))
                     self.assertTrue(np.isfinite(data).all())
                     self.assertGreater(np.linalg.norm(data[:,1]),0)
                     self.assertGreater(np.linalg.norm(data[:,3]),0)
+                    if profile.startswith('overlap'):
+                        self.assertGreater(np.count_nonzero((data[:,1] != 0) & (data[:,3] != 0)),0)
                     self.assertLessEqual(max(abs(np.diff(data[:,0])))*rate,1+1e-9)
                     np.testing.assert_array_equal(data[:,2],-.5*data[:,1])
                     np.testing.assert_array_equal(data[:,4],-.5*data[:,3])
