@@ -7,6 +7,12 @@ waypoints), FlowD1FractionalDelay (fixed separate stereo memory) and FlowD1
 prepare/reset/process are JUCE-free and instance-owned; wide result fields preserve
 finite-float extremes. Offline descriptor, renderer/study and tests do not add a
 Preview or production dependency. D0/A1/B1 source responsibilities remain unchanged.
+`tests/flow_d1_source_probe.cpp` exports actual A1/B1 emissions, typed physics inputs
+and D1 trajectory for `render/flow_d1_remediation_study.py`; the latter owns analytic
+and offline Fourier references, candidate comparisons and convergence evidence.
+`tests/flow_d1_remediation_test.py` checks that evidence machinery independently.
+These tools do not replace the rejected runtime kernel. See
+[remediation status](evidence/WATER_FLOW_D1_REMEDIATION.md).
 
 B1 closeout: the fixed pool owns finite-rate/internal storage validation; public capacity choices remain in config. Existing bounded captured events supply offline onset/due/start diagnostics, with no DSP history or UI adapter.
 

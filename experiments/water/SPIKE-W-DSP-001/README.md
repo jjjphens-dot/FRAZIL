@@ -6,7 +6,10 @@ Flow D1: [canonical contract](../EXP-W-FD-001.md) and
 emits version1 specs. Root `flowD1` requires version1 and rejects elsewhere,
 including Preview imports. D1 consumes source residual only; no raw carrier delay,
 feedback, gain knob, UI/session or product mapping. High-frequency interpolation
-accuracy is limited; numerical success is not physical or human acceptance.
+accuracy fails source-aware acceptance; D1-NUM-001 remains OPEN. Offline numerical
+tools and reproducible commands are in the
+[remediation finding](../../../docs/evidence/WATER_FLOW_D1_REMEDIATION.md).
+Numerical-tool test success is not physical or human acceptance.
 
 [Droplet B1](../EXP-W-DB-001.md) is an explicit offline-only causal entrained-bubble candidate. `b1`, `b1-residual`, `a1b1`, `a1b1d` select it; legacy `b/bd/abd` remain B0. `--describe-droplet-b1` emits the code-generated v1 contract. Configuration, sources, commands and actual validation: [B1 execution](../../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md). No Preview/session or production adoption.
 

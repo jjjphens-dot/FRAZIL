@@ -4,7 +4,11 @@ Flow D1 is a separate [EXP-W-FD-001](../experiments/water/EXP-W-FD-001.md)
 offline reduced source-advection/transfer candidate. It consumes A1+B1 residual,
 returns H(E)-E correction and composes via H(E); the original carrier is added once.
 Virtual path and L/U are reduced state, not measured flow. Cubic causal interpolation
-is engineering; high-frequency accuracy remains limited. D0 and Preview are unchanged.
+is engineering and fails source-aware numerical acceptance (D1-NUM-001). D1.0
+uses receive-time virtual path for one co-located source cluster; exact retarded
+positions and per-emitter Green functions are absent. Numerical remediation and
+its independent offline oracles are recorded in the
+[remediation study](evidence/WATER_FLOW_D1_REMEDIATION.md). D0 and Preview are unchanged.
 
 Current research implementation note: [Bubble A1](../experiments/water/EXP-W-BA-001.md)
 is an opt-in offline independent population with shared-frame stereo excitation and

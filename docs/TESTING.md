@@ -8,6 +8,15 @@ The existing isolated B1 allocation observer also exercises D1 process/reset.
 explicit mode isolation and carrier-once composition. Independent kernel comparison,
 preserved30186b8 decoded legacy regression, performance and fixed-source study are
 separate from human listening. See [D1 execution](evidence/WATER_FLOW_D1_EXECUTION.md).
+The older product-form moving test checks the existing polynomial implementation,
+not ideal acoustic transfer. D1 selection now requires the source-derived Hz band,
+fixed-Hz cross-rate comparisons, magnitude/phase/group-delay and actual-source
+error gates in [EXP-W-FD-001](../experiments/water/EXP-W-FD-001.md). The offline
+remediation study uses analytic signals and a converged oversampled Fourier oracle;
+its CTest checks integer/half-sample identities, sinc reference, actual source
+export, cross-rate time alignment and preservation of measured gain errors.
+No numerical or listening acceptance follows from that CTest passing. Results:
+[D1 remediation](evidence/WATER_FLOW_D1_REMEDIATION.md).
 
 A1 governance regression requires the actual `--describe-bubble-a1` output to equal
 `experiments/water/contracts/bubble-a1-v2.json` (22 writable fields), with unchanged

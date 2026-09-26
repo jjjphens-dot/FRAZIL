@@ -6,6 +6,16 @@ validation status and open numerical/listening limits are in
 Host/state or production readiness. The older PR40 “conditional Flow not triggered”
 statements below retain their historical campaign scope; the new user plan independently
 authorizes EXP-W-FD-001. Human acceptance remains NOT ASSESSED.
+The original limited-band kernel PASS is superseded: D1-NUM-001 remains OPEN /
+BLOCKED. Source-aware remediation adds independent numerical research and explicit
+reduction limits; it does not establish an accepted replacement. See the
+[remediation finding](evidence/WATER_FLOW_D1_REMEDIATION.md). Representative musical
+pad listening is deferred to later human review by user instruction.
+Current remediation validation also records D1-VAL-001: an ASAN full-suite native
+access violation on the unchanged A1 baseline render. It remains unresolved;
+baseline/hosted success does not supersede that local failure.
+The first preservation harness also terminated with Python/VCRUNTIME access
+violation after1152 exact pairs (D1-VAL-002); repeat evidence is kept separate.
 
 A1+B1 closeout fixes B1 pool bounds, mixed amplitude provenance and captured-event diagnostics. Local Debug/Release/ASAN and current/historical decoded preservation pass; combined freeze also requires hosted CI on the published exact head. Scope and evidence: [B1 execution](evidence/WATER_DROPLET_B1_EXECUTION.md). Human NOT ASSESSED; product NOT ADOPTED; production Water NOT IMPLEMENTED.
 

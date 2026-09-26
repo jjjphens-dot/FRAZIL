@@ -4,6 +4,10 @@ Flow D1 has no product macro mapping. Its independent offline version1 accepts
 virtual velocity, structure length and excess path only; Size/Decay and the existing
 v0.2/sessionv5 destinations stay unchanged. U0 is exact identity, not a decision
 about A1/B1 minimum-Motion admission. See [D1 contract](../EXP-W-FD-001.md).
+`velocityScaleMps` means maximum virtual projected path-motion speed, not measured
+fluid velocity. All emitters share one co-located cluster transfer. D1-NUM-001
+blocks product mapping; [numerical remediation](../../../docs/evidence/WATER_FLOW_D1_REMEDIATION.md)
+does not change any macro, source calibration or v1 sonic revision.
 
 B1 uses separate `droplet-b1-offline-v1` Size/Decay candidates documented in [EXP-W-DB-001](../EXP-W-DB-001.md). Its core accepts radius/persistence/admission, not product IDs. M0-A strict calm and M0-B onset-preserving calm remain unaccepted comparisons; no Motion curve is adopted. This v0.2 mapping and session v5 remain unchanged.
 

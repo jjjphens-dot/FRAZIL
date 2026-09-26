@@ -1,0 +1,22 @@
+rate,candidate,taps,stereo_float_history_bytes,coefficient_bytes,native_callback_timing
+44100,lagrange3,4,48,0,NOT RUN - offline candidate research
+44100,lagrange7,8,80,0,NOT RUN - offline candidate research
+44100,lagrange15,16,144,0,NOT RUN - offline candidate research
+44100,farrow7-fir32,32,272,2048,NOT RUN - offline candidate research
+44100,vfd-ls32,32,272,131328,NOT RUN - offline candidate research
+44100,vfd-ls64,64,528,262656,NOT RUN - offline candidate research
+44100,sinc129-noncausal-control,129,1048,0,NOT RUN - offline candidate research
+48000,lagrange3,4,48,0,NOT RUN - offline candidate research
+48000,lagrange7,8,80,0,NOT RUN - offline candidate research
+48000,lagrange15,16,144,0,NOT RUN - offline candidate research
+48000,farrow7-fir32,32,272,2048,NOT RUN - offline candidate research
+48000,vfd-ls32,32,272,131328,NOT RUN - offline candidate research
+48000,vfd-ls64,64,528,262656,NOT RUN - offline candidate research
+48000,sinc129-noncausal-control,129,1048,0,NOT RUN - offline candidate research
+96000,lagrange3,4,64,0,NOT RUN - offline candidate research
+96000,lagrange7,8,96,0,NOT RUN - offline candidate research
+96000,lagrange15,16,160,0,NOT RUN - offline candidate research
+96000,farrow7-fir32,32,288,2048,NOT RUN - offline candidate research
+96000,vfd-ls32,32,288,131328,NOT RUN - offline candidate research
+96000,vfd-ls64,64,544,262656,NOT RUN - offline candidate research
+96000,sinc129-noncausal-control,129,1064,0,NOT RUN - offline candidate research

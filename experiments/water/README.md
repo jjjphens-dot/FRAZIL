@@ -4,6 +4,8 @@ Current Flow research: [EXP-W-FD-001 canonical model](EXP-W-FD-001.md),
 [D1 execution and branch lineage](../../docs/evidence/WATER_FLOW_D1_EXECUTION.md).
 New offline a1d1/b1d1/a1b1d1 modes use reduced emission transfer. A1/B1 and D0
 remain preserved references. No Preview/UI or production adoption; human NOT ASSESSED.
+Source-aware numerical remediation and the still-open D1-NUM-001 finding:
+[remediation evidence](../../docs/evidence/WATER_FLOW_D1_REMEDIATION.md).
 
 Navigation only. Product authority remains Architecture, Coding Plan, Parameters and
 the accepted [EXP-W-001 definition](EXP-W-001_PERCEPTUAL_BRIEF.md). Definition acceptance
@@ -37,6 +39,7 @@ Historical engineering: [original spike](SPIKE-W-DSP-001/EVIDENCE.md),
 [Decay revision](../../docs/planning/WATER_DECAY_CANDIDATE_REVISION.md),
 [Protect proposal](../../docs/planning/WATER_PROTECT_CANDIDATE_REVISION.md).
 
-Deferred: A1/B1 UI/session/Host integration; Flow/Resonant redesign; A2 geometry,
+Deferred: A1/B1 UI/session/Host integration; further Flow refinement / D1.1+ and
+Resonant redesign; A2 geometry,
 radiation/coupling; product adoption and Ice. A1/B1 work stops at Sound Lead review with
 two independent blank forms; no numeric result supplies a listening decision.

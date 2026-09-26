@@ -1,5 +1,11 @@
 # Flow D1 execution record
 
+Historical PRE-REMEDIATION record for 3c95fe9. The original 0..0.2*fs kernel
+selection is **SUPERSEDED** by the source-aware contract and
+[remediation finding](WATER_FLOW_D1_REMEDIATION.md); its PASS is not current
+physical/numerical acceptance. Original kernel/study/performance/preservation CSVs
+and local study-v1 listening pack are retained unchanged. D1-NUM-001 remains OPEN.
+
 ## Contract Review
 
 User Flow D1 plan, 2026-09-26. Baseline 30186b83466352b9e800de52dad40f1c17ab9770,

@@ -44,6 +44,9 @@ add_test(NAME frazil_water_droplet_b1_cli
 add_test(NAME frazil_water_flow_d1_cli
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_cli_test.py"
             $<TARGET_FILE:frazil_water_experiment_render>)
+add_test(NAME frazil_water_flow_d1_remediation
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_remediation_test.py"
+            $<TARGET_FILE:frazil_water_flow_d1_source_probe>)
 
 add_executable(frazil_water_performance tests/performance.cpp
     ../../../src/app/AudioEngine.cpp ../../../src/dsp/DryWetMixer.cpp
@@ -56,6 +59,9 @@ target_link_libraries(frazil_water_droplet_b1_performance PRIVATE frazil_water_r
 
 add_executable(frazil_water_flow_d1_performance tests/flow_d1_performance.cpp)
 target_link_libraries(frazil_water_flow_d1_performance PRIVATE frazil_water_research)
+add_executable(frazil_water_flow_d1_source_probe tests/flow_d1_source_probe.cpp)
+target_link_libraries(frazil_water_flow_d1_source_probe PRIVATE frazil_water_research)
+add_dependencies(frazil_smoke frazil_water_flow_d1_source_probe)
 
 # Separate research application. It is never linked into FRAZIL or registered as a Host plugin.
 if(FRAZIL_BUILD_WATER_PREVIEW)
@@ -101,7 +107,7 @@ if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
         add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${water_msvc_bin}/clang_rt.asan_dynamic-x86_64.dll" "$<TARGET_FILE_DIR:${target}>" VERBATIM)
     endforeach()
-    foreach(target IN ITEMS frazil_water_experiment_render frazil_water_performance frazil_water_research_cases frazil_water_bubble_a1_performance frazil_water_droplet_b1_performance frazil_water_flow_d1_performance)
+    foreach(target IN ITEMS frazil_water_experiment_render frazil_water_performance frazil_water_research_cases frazil_water_bubble_a1_performance frazil_water_droplet_b1_performance frazil_water_flow_d1_performance frazil_water_flow_d1_source_probe)
         add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${water_msvc_bin}/clang_rt.asan_dynamic-x86_64.dll" "$<TARGET_FILE_DIR:${target}>" VERBATIM)
     endforeach()
