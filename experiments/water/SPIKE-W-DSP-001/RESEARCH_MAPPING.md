@@ -99,3 +99,13 @@ Motion factor.25, persistence1. They are not interchangeable defaults. A1 config
 requires version2, uses P1 effective-damping rise by default, and permits explicit
 P0 offline comparison. Legacyv1 exact reproduction stays at1bc6947.
 See EXP-W-BA-001 for the canonical provenance/ranges; Preview mappingv0.2 remains A0.
+
+
+## FD-003 sample-rate-aware convergence
+
+[FD-003](../EXP-W-FD-003.md) bounds the next comparison to S0 raw control, S1
+rate-aware conditioning with raw96 preferred, and S2 common-band comparison.
+The fixed-character registry and kernel/native/cross-rate tooling are offline
+ENGINEERING research; effective bandwidth remains unaccepted PRODUCT_MAPPING.
+No macro remapping, source-model changes, quality controls or production consumers.
+Same-seed cross-rate event streams are measured, not assumed identical.

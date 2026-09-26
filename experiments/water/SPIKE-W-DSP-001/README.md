@@ -1,5 +1,8 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+Current bounded research: [FD-003](../EXP-W-FD-003.md), S1 sample-rate-aware management with
+96 kHz raw preference; S0/S2 controls and strict core gates. No product or runtime adoption.
+
 EXP-W-FD-002 adds offline IIR/FIR conditioning and 0/8/16/32/64-sample guard studies, actual overlapping sources and causal/comb tests. Existing D1 runtime remains the rejected historical baseline. See [latency study](../../../docs/evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
 
 Flow D1: [canonical contract](../EXP-W-FD-001.md) and

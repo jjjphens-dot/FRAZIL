@@ -59,6 +59,10 @@ add_test(NAME frazil_water_flow_d1_cli
 add_test(NAME frazil_water_flow_d1_remediation
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_remediation_test.py"
             $<TARGET_FILE:frazil_water_flow_d1_source_probe>)
+add_test(NAME frazil_water_flow_d1_convergence
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_convergence_test.py"
+            --probe $<TARGET_FILE:frazil_water_flow_d1_source_probe>)
+
 add_test(NAME frazil_water_flow_d1_latency
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_latency_test.py")
 

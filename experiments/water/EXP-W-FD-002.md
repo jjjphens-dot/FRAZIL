@@ -1,6 +1,8 @@
 # EXP-W-FD-002 — D1 guard latency and audible-band study
 
-Status: preregistered research contract, established before new candidate results.
+Status: completed historical preregistered screen; original gates/results retained.
+Current convergence policy is [EXP-W-FD-003](EXP-W-FD-003.md), which supersedes
+the broad candidate search and defines sample-rate-aware ultrasonic management.
 Authority: user's 2026-09-26 physical-model/low-latency plan. Physical authority
 remains [EXP-W-FD-001](EXP-W-FD-001.md); proposed processing policy is
 [ADR-0007](../../docs/adr/0007-minimum-practical-processing-latency.md).
@@ -10,7 +12,8 @@ No runtime replacement, production adoption, final bandwidth mapping or human PA
 
 This contract is frozen for this study before kernel PASS/FAIL is inspected.
 The user's protected core is 0–16 kHz; 16–20 kHz is explicitly evaluated; >20 kHz
-is a candidate attenuation region. These are research/product choices, not water
+was a candidate attenuation region for this historical screen. Current FD-003 policy
+is reduced-perceptual-priority / ultrasonic-management, without mandatory removal. These are research/product choices, not water
 absorption or universal human hearing limits. Conditioner design and qualification
 must be independent of the D1 kernel. No source-model or trajectory retuning.
 

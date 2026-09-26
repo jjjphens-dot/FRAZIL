@@ -1,5 +1,8 @@
 # Water research index
 
+Current bounded research: [FD-003](EXP-W-FD-003.md), S1 sample-rate-aware management with
+96 kHz raw preference; S0/S2 controls and strict core gates. No product or runtime adoption.
+
 Authorized next research is EXP-W-FD-002: separate comb, audible-band and guard-latency evidence; no UI/product/runtime adoption. See [latency study](../../docs/evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
 
 Current Flow research: [EXP-W-FD-001 canonical model](EXP-W-FD-001.md),

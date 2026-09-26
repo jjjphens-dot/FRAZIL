@@ -68,7 +68,8 @@ evaluation is a future alternative requiring a separate source-interface contrac
 
 ## Verification and activation
 
-The [preregistered D1 study](../../experiments/water/EXP-W-FD-002.md) supplies offline
+The [completed feasibility study](../../experiments/water/EXP-W-FD-002.md) and
+[current convergence contract](../../experiments/water/EXP-W-FD-003.md) supply offline
 evidence. Numerical success alone cannot activate this ADR or replace runtime:
 native resource evidence, full Debug/Release/ASAN, historical exact preservation,
 independent review and human listening remain required. The current native faults

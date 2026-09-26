@@ -98,6 +98,44 @@ def comb_study(root, output):
     csv_write(output/'NOTCHES.csv', notches)
 
 
+def nonlinear_filter_probe(conditioner):
+    """Shared 96 kHz synthetic nonlinear stress; not a source or Ice model."""
+    rate = conditioner.rate
+    if rate != 96000:
+        raise ValueError('This probe requires 96 kHz')
+    nonlinear = []
+    # Deliberate stress input, not a predicted playback-chain distortion.
+    t = np.arange(rate)/rate
+    tones = np.array([22000., 25000., 37000.])
+    x = sum(.25*np.sin(2*np.pi*f*t) for f in tones)
+    y = conditioner.apply(x)
+    cut = slice(rate//4, 3*rate//4)
+    dense_t = np.arange(8*rate)/(8*rate)
+    gains = conditioner.response(tones)
+    dense_x = sum(.25*np.sin(2*np.pi*f*dense_t) for f in tones)
+    dense_y = sum(.25*np.imag(g*np.exp(2j*np.pi*f*dense_t))
+                  for f, g in zip(tones, gains))
+    for order in (2, 3):
+        raw_spec = np.fft.rfft(x[cut]**order)
+        conditioned_spec = np.fft.rfft(y[cut]**order)
+        hz = np.fft.rfftfreq(len(x[cut]), 1/rate)
+        band = (hz > 0) & (hz <= 20000)
+        # Periodic spectral truncation of8x analytic steady state:
+        # nonlinear bandwidth<=111 kHz <384 kHz Nyquist. This separates
+        # true audible IMD from audio-rate foldback, without Ice claims.
+        raw_oracle = np.fft.irfft(np.fft.rfft(dense_x**order)[:rate//2+1], n=rate)/8
+        conditioned_oracle = np.fft.irfft(np.fft.rfft(dense_y**order)[:rate//2+1], n=rate)/8
+        raw_alias = np.fft.rfft(x[cut]**order-raw_oracle[cut])
+        conditioned_alias = np.fft.rfft(y[cut]**order-conditioned_oracle[cut])
+        nonlinear.append(dict(rate=rate, conditioner=conditioner.name, nonlinearity=f'x^{order}',
+                              audible_raw_energy=float(np.sum(abs(raw_spec[band])**2)),
+                              audible_conditioned_energy=float(np.sum(abs(conditioned_spec[band])**2)),
+                              audible_raw_alias_energy=float(np.sum(abs(raw_alias[band])**2)),
+                              audible_conditioned_alias_energy=float(np.sum(abs(conditioned_alias[band])**2)),
+                              scope='synthetic IMD/alias stress; not implemented Ice or measured playback'))
+    return nonlinear
+
+
 def filter_study(root, output):
     rows, actual, nonlinear, selected = [], [], [], {}
     for rate in RATES:
@@ -157,35 +195,7 @@ def filter_study(root, output):
                                    first_nonzero_shift_samples=first_out-first_in,
                                    engineering_latency_removed=conditioner.latency))
             if rate == 96000:
-                # Deliberate stress input, not a predicted playback-chain distortion.
-                t = np.arange(rate)/rate
-                tones = np.array([22000., 25000., 37000.])
-                x = sum(.25*np.sin(2*np.pi*f*t) for f in tones)
-                y = conditioner.apply(x)
-                cut = slice(rate//4, 3*rate//4)
-                dense_t = np.arange(8*rate)/(8*rate)
-                gains = conditioner.response(tones)
-                dense_x = sum(.25*np.sin(2*np.pi*f*dense_t) for f in tones)
-                dense_y = sum(.25*np.imag(g*np.exp(2j*np.pi*f*dense_t))
-                              for f, g in zip(tones, gains))
-                for order in (2, 3):
-                    raw_spec = np.fft.rfft(x[cut]**order)
-                    conditioned_spec = np.fft.rfft(y[cut]**order)
-                    hz = np.fft.rfftfreq(len(x[cut]), 1/rate)
-                    band = (hz > 0) & (hz <= 20000)
-                    # Periodic spectral truncation of8x analytic steady state:
-                    # nonlinear bandwidth<=111 kHz <384 kHz Nyquist. This separates
-                    # true audible IMD from audio-rate foldback, without Ice claims.
-                    raw_oracle = np.fft.irfft(np.fft.rfft(dense_x**order)[:rate//2+1], n=rate)/8
-                    conditioned_oracle = np.fft.irfft(np.fft.rfft(dense_y**order)[:rate//2+1], n=rate)/8
-                    raw_alias = np.fft.rfft(x[cut]**order-raw_oracle[cut])
-                    conditioned_alias = np.fft.rfft(y[cut]**order-conditioned_oracle[cut])
-                    nonlinear.append(dict(rate=rate, conditioner=conditioner.name, nonlinearity=f'x^{order}',
-                                          audible_raw_energy=float(np.sum(abs(raw_spec[band])**2)),
-                                          audible_conditioned_energy=float(np.sum(abs(conditioned_spec[band])**2)),
-                                          audible_raw_alias_energy=float(np.sum(abs(raw_alias[band])**2)),
-                                          audible_conditioned_alias_energy=float(np.sum(abs(conditioned_alias[band])**2)),
-                                          scope='synthetic IMD/alias stress; not implemented Ice or measured playback'))
+                nonlinear.extend(nonlinear_filter_probe(conditioner))
         print('filters', rate, 'qualified', len(selected[rate]), flush=True)
     csv_write(output/'FILTERS.csv', rows)
     csv_write(output/'FILTER_ACTUAL.csv', actual)

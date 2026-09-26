@@ -17,7 +17,9 @@ research task; independent engineering review and Sound Lead decisions remain se
 
 ## Subsequent authorized numerical research
 
-[EXP-W-FD-002](EXP-W-FD-002.md) now owns the preregistered guard/bandwidth study.
+[EXP-W-FD-002](EXP-W-FD-002.md) preserves the completed guard/bandwidth screen.
+[EXP-W-FD-003](EXP-W-FD-003.md) owns current sample-rate-aware convergence;
+physical source/cluster/path authority remains here.
 Its explicit engineering latency and independent conditioning experiments supersede
 the no-guard/no-filter restriction for that offline study only. All source, path,
 trajectory and current runtime invariants below remain unchanged. Historical raw

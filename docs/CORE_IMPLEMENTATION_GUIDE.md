@@ -5,7 +5,11 @@
 [ADR-0007](adr/0007-minimum-practical-processing-latency.md) proposes minimum
 practical declared processing latency; independent Joint Gate is pending. Current
 plugin/accepted M1 zero-sample evidence remains unchanged. The authorized offline
-[D1 study](../experiments/water/EXP-W-FD-002.md) is separate from production activation.
+[D1 convergence](../experiments/water/EXP-W-FD-003.md) is separate from production activation.
+It compares S0 raw, S1 rate-aware management (96 kHz raw preferred) and S2 common-band
+control. >20 kHz is an ultrasonic-management region, not a mandatory cutoff.
+Conditioning is engineering/product mapping, not water absorption; nonlinear stages
+will require their own anti-alias contract. No global oversampling or Ice implementation follows.
 
 
 Flow D1 is a separate [EXP-W-FD-001](../experiments/water/EXP-W-FD-001.md)

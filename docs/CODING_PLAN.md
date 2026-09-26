@@ -13,7 +13,10 @@ dry/wet, carrier, bypass and parallel paths align; serial latencies add; routing
 must introduce no undeclared/uncompensated latency. Ordinary automation cannot
 change Host latency. Engineering guard is never a physical propagation distance.
 No production Host/routing implementation or support claim changes in this revision.
-Research protocol: [EXP-W-FD-002](../experiments/water/EXP-W-FD-002.md).
+Historical feasibility protocol: [EXP-W-FD-002](../experiments/water/EXP-W-FD-002.md).
+Current research convergence: [EXP-W-FD-003](../experiments/water/EXP-W-FD-003.md),
+C0–C7, bounded S0/S1/S2 and fixed-character filters. Runtime remains gated by
+independent numerical/native/preservation, cross-rate listening and ADR-0007 Joint Gate.
 
 Physical-model implementation work additionally follows [DSP Physical Model Governance](DSP_PHYSICAL_MODEL_GOVERNANCE.md). This traceability rule adds no milestone, changes no sequencing/acceptance gate, and does not promote research algorithms.
 

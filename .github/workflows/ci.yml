@@ -12,6 +12,12 @@ on:
         required: false
         default: false
 
+      flow_d1_convergence:
+        description: Run the bounded FD-003 shortlist and cross-rate study
+        type: boolean
+        required: false
+        default: false
+
 permissions:
   contents: read
 
@@ -114,11 +120,12 @@ jobs:
 
   flow-d1-latency:
     name: Optional D1 numerical and native resource study
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.flow_d1_latency }}
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.flow_d1_latency || inputs.flow_d1_convergence) }}
     needs: windows-debug
     runs-on: windows-latest
     timeout-minutes: 90
     env:
+      FRAZIL_D1_STUDY_ROOT: ${{ inputs.flow_d1_convergence && 'build/flow-d1-convergence' || 'build/flow-d1-latency' }}
       OPENBLAS_NUM_THREADS: '1'
       PYTHONFAULTHANDLER: '1'
       PYTHONNOUSERSITE: '1'
@@ -140,7 +147,8 @@ jobs:
       - name: Prepare controlled diagnostic environment
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force build/flow-d1-latency | Out-Null
+          if ("${{ inputs.flow_d1_latency && inputs.flow_d1_convergence }}" -eq "true") { throw 'Choose one D1 study per dispatch' }
+          New-Item -ItemType Directory -Force $env:FRAZIL_D1_STUDY_ROOT | Out-Null
           ./tools/bootstrap_dependencies.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $studyPython = python -c "import sys; print(sys.executable)"
@@ -148,9 +156,9 @@ jobs:
           "FRAZIL_D1_PYTHON=$studyPython" >> $env:GITHUB_ENV
           & $studyPython -m pip install numpy==2.3.4 scipy==1.17.1 soundfile==0.13.1 matplotlib==3.10.8
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          "Commit: $env:GITHUB_SHA" > build/flow-d1-latency/provenance.txt
-          & $studyPython -c "import sys,numpy,scipy; print(sys.version); print(numpy.__version__,scipy.__version__)" >> build/flow-d1-latency/provenance.txt
-          Get-CimInstance Win32_Processor | Select-Object Name,NumberOfCores,NumberOfLogicalProcessors | Format-List >> build/flow-d1-latency/provenance.txt
+          "Commit: $env:GITHUB_SHA" > $env:FRAZIL_D1_STUDY_ROOT/provenance.txt
+          & $studyPython -c "import sys,numpy,scipy; print(sys.version); print(numpy.__version__,scipy.__version__)" >> $env:FRAZIL_D1_STUDY_ROOT/provenance.txt
+          Get-CimInstance Win32_Processor | Select-Object Name,NumberOfCores,NumberOfLogicalProcessors | Format-List >> $env:FRAZIL_D1_STUDY_ROOT/provenance.txt
           cmake --preset windows-release -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=OFF "-DPython3_EXECUTABLE:FILEPATH=$studyPython"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Safe Release build and full device-free tests
@@ -158,39 +166,54 @@ jobs:
         run: |
           & $env:FRAZIL_D1_PYTHON tools/build_safe.py --preset windows-release
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          ctest --preset windows-release --output-on-failure > build/flow-d1-latency/ctest.log 2>&1
+          ctest --preset windows-release --output-on-failure > $env:FRAZIL_D1_STUDY_ROOT/ctest.log 2>&1
           if ($LASTEXITCODE -ne 0) {
-            Get-Content build/flow-d1-latency/ctest.log -Tail 100
+            Get-Content $env:FRAZIL_D1_STUDY_ROOT/ctest.log -Tail 100
             exit 1
           }
       - name: Generate synthetic native sources and complete numerical screen
         shell: pwsh
         run: |
-          & build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_source_probe.exe build/flow-d1-latency/sources
+          & build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_source_probe.exe $env:FRAZIL_D1_STUDY_ROOT/sources
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & $env:FRAZIL_D1_PYTHON experiments/water/SPIKE-W-DSP-001/render/flow_d1_latency_study.py --sources build/flow-d1-latency/sources --output build/flow-d1-latency/study > build/flow-d1-latency/study.log 2>&1
+          $script = if ("${{ inputs.flow_d1_convergence }}" -eq "true") { 'flow_d1_convergence_study.py' } else { 'flow_d1_latency_study.py' }
+          & $env:FRAZIL_D1_PYTHON "experiments/water/SPIKE-W-DSP-001/render/$script" --sources $env:FRAZIL_D1_STUDY_ROOT/sources --output $env:FRAZIL_D1_STUDY_ROOT/study > $env:FRAZIL_D1_STUDY_ROOT/study.log 2>&1
           $studyExit = $LASTEXITCODE
-          Get-Content build/flow-d1-latency/study.log -Tail 30
+          Get-Content $env:FRAZIL_D1_STUDY_ROOT/study.log -Tail 30
           exit $studyExit
       - name: Measure all minimum-guard native combinations
         shell: pwsh
         run: |
-          & $env:FRAZIL_D1_PYTHON experiments/water/SPIKE-W-DSP-001/render/flow_d1_latency_native_study.py --native build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_latency_native.exe --sources build/flow-d1-latency/sources --selection build/flow-d1-latency/study/SELECTION.csv --output build/flow-d1-latency/native > build/flow-d1-latency/native.log 2>&1
+          if ("${{ inputs.flow_d1_convergence }}" -eq "true") {
+            & $env:FRAZIL_D1_PYTHON experiments/water/SPIKE-W-DSP-001/render/flow_d1_convergence_native.py --native build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_latency_native.exe --sources $env:FRAZIL_D1_STUDY_ROOT/sources --study $env:FRAZIL_D1_STUDY_ROOT/study --output $env:FRAZIL_D1_STUDY_ROOT/native > $env:FRAZIL_D1_STUDY_ROOT/native.log 2>&1
+          } else {
+            & $env:FRAZIL_D1_PYTHON experiments/water/SPIKE-W-DSP-001/render/flow_d1_latency_native_study.py --native build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_latency_native.exe --sources $env:FRAZIL_D1_STUDY_ROOT/sources --selection $env:FRAZIL_D1_STUDY_ROOT/study/SELECTION.csv --output $env:FRAZIL_D1_STUDY_ROOT/native > $env:FRAZIL_D1_STUDY_ROOT/native.log 2>&1
+          }
           $studyExit = $LASTEXITCODE
-          Get-Content build/flow-d1-latency/native.log -Tail 30
+          Get-Content $env:FRAZIL_D1_STUDY_ROOT/native.log -Tail 30
+          exit $studyExit
+      - name: Cross-rate and event diagnostics
+        if: ${{ inputs.flow_d1_convergence }}
+        shell: pwsh
+        run: |
+          & $env:FRAZIL_D1_PYTHON experiments/water/SPIKE-W-DSP-001/render/flow_d1_convergence_cross_rate.py --sources $env:FRAZIL_D1_STUDY_ROOT/sources --study $env:FRAZIL_D1_STUDY_ROOT/study --output $env:FRAZIL_D1_STUDY_ROOT/cross-rate > $env:FRAZIL_D1_STUDY_ROOT/cross-rate.log 2>&1
+          $studyExit = $LASTEXITCODE
+          Get-Content $env:FRAZIL_D1_STUDY_ROOT/cross-rate.log -Tail 30
           exit $studyExit
       - name: Preserve summary evidence and failure logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: flow-d1-latency-${{ github.sha }}
+          name: ${{ inputs.flow_d1_convergence && 'flow-d1-convergence' || 'flow-d1-latency' }}-${{ github.sha }}
           retention-days: 30
           path: |
-            build/flow-d1-latency/provenance.txt
-            build/flow-d1-latency/*.log
-            build/flow-d1-latency/sources/authority.json
-            build/flow-d1-latency/study/*.csv
-            build/flow-d1-latency/study/report.json
-            build/flow-d1-latency/native/NATIVE.csv
-            build/flow-d1-latency/native/RESOURCES.csv
+            ${{ env.FRAZIL_D1_STUDY_ROOT }}/provenance.txt
+            ${{ env.FRAZIL_D1_STUDY_ROOT }}/*.log
+            ${{ env.FRAZIL_D1_STUDY_ROOT }}/sources/authority.json
+            ${{ env.FRAZIL_D1_STUDY_ROOT }}/study/*.csv
+            ${{ env.FRAZIL_D1_STUDY_ROOT }}/study/report.json
+            ${{ env.FRAZIL_D1_STUDY_ROOT }}/native/NATIVE.csv
+            ${{ env.FRAZIL_D1_STUDY_ROOT }}/native/RESOURCES.csv
             build/safe-build/windows-release.log
+            ${{ env.FRAZIL_D1_STUDY_ROOT }}/cross-rate/*.csv
+            ${{ env.FRAZIL_D1_STUDY_ROOT }}/sources/*-events.csv

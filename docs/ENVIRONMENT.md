@@ -210,3 +210,13 @@ Manual trigger: `gh workflow run ci.yml --ref <review-branch> -f flow_d1_latency
 Hosted measurements must be identified separately from local reference-machine
 measurements. A successful independent run does not establish the cause or repair of
 local Python/native failures; see the [D1 study](evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
+
+
+The same optional job accepts `flow_d1_convergence=true` for the bounded
+[FD-003](../experiments/water/EXP-W-FD-003.md) registry, minimum-guard search,
+shortlist-only native measurements and cross-rate/event diagnostics. Choose exactly
+one research input per dispatch; both defaults are false. Example:
+`gh workflow run ci.yml --ref <review-branch> -f flow_d1_convergence=true`.
+The convergence artifact is `flow-d1-convergence-<code-commit>` and adds synthetic
+event CSVs and cross-rate summaries, still excluding audio/NPZ/private sources.
+Generated directories are separate from the historical FD-002 run.

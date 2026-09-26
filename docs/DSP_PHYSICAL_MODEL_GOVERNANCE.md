@@ -69,3 +69,11 @@ classification. Commercial latency/filter precedents are engineering context onl
 Each cited source records SOURCE SUPPORTS and SOURCE DOES NOT SUPPORT. Pure delay,
 direct+delayed interference and interpolation error require separate ablations.
 This example clarifies existing classification rules; it does not accept a mapping.
+
+
+[FD-003](../experiments/water/EXP-W-FD-003.md) applies the same distinction to
+sample-rate-aware high-frequency management. >20 kHz is a reduced-perceptual-priority /
+ultrasonic-management region, not an asserted water-absorption law or mandatory
+cutoff. Source/cluster/trajectory physics remains unchanged. Internal DSP bandwidth
+and preserved product bandwidth are distinct. Future nonlinear-stage anti-aliasing
+needs its own deferred contract; D1 conditioning is not global anti-alias infrastructure.

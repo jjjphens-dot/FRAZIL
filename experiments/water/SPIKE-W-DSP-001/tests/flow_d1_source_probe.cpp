@@ -67,6 +67,9 @@ int main(int argc, char** argv) {
             output << std::setprecision(17) << "path_m,a_left,a_right,b_left,b_right\n";
             audit << std::setprecision(17)
                   << "input_left,input_right,d0_left,d0_right,d1_left,d1_right\n";
+            std::ofstream events(root / (std::to_string(rate) + label + "-events.csv"));
+            events << std::setprecision(17)
+                   << "source,id,time_s,radius_m,frequency_hz,identity_token,admitted,due_time_s\n";
             std::size_t simultaneous{};
             // Same physical gated source at each rate; synthetic engineering fixture,
             // never presented as a recording or musical-pad listening evidence.
@@ -80,8 +83,26 @@ int main(int argc, char** argv) {
                     overlap && t >= .05 && t < .85 ? (gate ? .9 : .4) : (gate ? .4 : 0.);
                 const float x = float(level * std::sin(2 * std::numbers::pi * 997 * t));
                 const StereoFrame input{x, -.5f * x};
+                const auto oldA = a.requested();
+                const auto oldAAccepted = a.pool().counters().accepted;
+                const auto oldEligible = b.counters().eligible;
+                const auto oldAdmitted = b.counters().admitted;
                 const auto av = a.process(input);
                 const auto bv = b.process(input);
+                // Read-only event provenance; no extra RNG draws or source updates.
+                if (a.requested() != oldA) {
+                    const auto& e = a.lastRequestedEvent();
+                    events << "A1," << a.requested() << ',' << t << ',' << e.physics.radiusMeters
+                           << ',' << e.physics.frequencyHz << ',' << e.bin << ','
+                           << (a.pool().counters().accepted != oldAAccepted) << ",\n";
+                }
+                if (b.counters().eligible != oldEligible) {
+                    const auto& e = b.lastEligible();
+                    events << "B1," << e.eligibleId << ',' << t << ','
+                           << e.physics.equivalentRadiusMeters << ',' << e.physics.frequencyHz
+                           << ',' << e.randomRank << ',' << (b.counters().admitted != oldAdmitted)
+                           << ',' << double(e.dueSample) / rate << '\n';
+                }
                 const StereoFrame cluster{float(double(av[0]) + bv[0] + 0.),
                                           float(double(av[1]) + bv[1] + 0.)};
                 const auto dv = transfer.process(cluster).transferred;
@@ -92,7 +113,7 @@ int main(int argc, char** argv) {
                 audit << input[0] << ',' << input[1] << ',' << d0[0] << ',' << d0[1] << ',' << dv[0]
                       << ',' << dv[1] << '\n';
             }
-            if (!output || !audit || a.requested() == 0 || b.counters().admitted == 0 ||
+            if (!output || !audit || !events || a.requested() == 0 || b.counters().admitted == 0 ||
                 (overlap && !edge && simultaneous == 0))
                 return 1;
         }

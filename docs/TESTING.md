@@ -997,3 +997,20 @@ fresh synthetic sources and a complete Release numerical/native matrix. Summary
 artifacts preserve failed attempts; no private listening material is used. This is
 manual research evidence, not an added default PR gate, human acceptance or a fix for
 local environment faults. Environment/provenance details are in ENVIRONMENT.md.
+
+
+## D1 convergence validation (EXP-W-FD-003)
+
+[FD-003](../experiments/water/EXP-W-FD-003.md) owns the bounded fixed-character
+registry and S0/S1/S2 comparison, retaining strict Tier A transfer gates. CTest
+`frazil_water_flow_d1_convergence` checks independent Butterworth/Bessel mathematics,
+causal/FIR alignment, registry bounds, policy rejection and frozen kernel coverage.
+The source probe adds read-only event identities; compare its original audio/path
+columns exactly with the prior exporter before interpreting cross-rate results.
+No same-seed cross-rate event equality is assumed. Conditioner/whole-chain changes
+relative to raw remain separate from propagation error relative to conditioned input.
+
+Only unique shortlist cells enter the existing native prototype. Cross-rate spectra,
+envelopes, event IDs and trajectory differences are diagnostics, not human timbre
+acceptance. Source antialiasing and future nonlinear-stage antialiasing are not
+certified by D1. Musical-pad/human listening remains deferred; no synthetic substitute.
