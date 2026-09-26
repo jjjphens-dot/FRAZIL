@@ -9,12 +9,19 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'render'))
-from flow_d1_remediation_study import Candidate, continuous_path, fourier_reference, metrics, source_envelope
+from flow_d1_remediation_study import Candidate, continuous_path, fourier_reference, metrics, native_cluster_signal, source_envelope
 
 PROBE = sys.argv.pop(1) if len(sys.argv) > 1 else None
 
 
 class NumericalEvidenceTests(unittest.TestCase):
+    def test_cluster_uses_native_float_rounding(self):
+        a = np.array([[1.,-1.]])
+        b = np.array([[2.**-25,-2.**-25]])
+        # The contribution is below half a float ULP, but survives double addition.
+        np.testing.assert_array_equal(native_cluster_signal(a,b),a)
+        self.assertFalse(np.array_equal(a+b,a))
+
     @unittest.skipUnless(PROBE, 'source probe executable supplied by CTest')
     def test_actual_source_probe(self):
         with tempfile.TemporaryDirectory(prefix='frazil-d1-numerical-') as temp:

@@ -139,6 +139,11 @@ def metrics(output, reference):
             'finite': bool(np.isfinite(output).all())}
 
 
+def native_cluster_signal(a1, b1):
+    """Match FluidComponents::sum: double sum including zero D0, then float output."""
+    return (a1.astype(np.float64) + b1.astype(np.float64) + 0.).astype(np.float32).astype(np.float64)
+
+
 def fourier_reference(signal, delays, padding=4, oversampling=8):
     """Offline bandlimited Fourier oracle with zero-padded periodic extension.
 
@@ -300,7 +305,8 @@ def run(args):
         for profile in ('reference','edge'):
             raw = np.loadtxt(args.sources/f'{rate}-{profile}.csv', delimiter=',', skiprows=1)
             delay = raw[:,0]/c*rate
-            for name, signal in [('A1',raw[:,1:3]),('B1',raw[:,3:5]),('AB',raw[:,1:3]+raw[:,3:5])]:
+            for name, signal in [('A1',raw[:,1:3]),('B1',raw[:,3:5]),
+                                 ('AB',native_cluster_signal(raw[:,1:3],raw[:,3:5]))]:
                 ideal = fourier_reference(signal,delay,8,16)
                 convergence = metrics(fourier_reference(signal,delay,4,8),ideal)['relative_rms_error']
                 spectrum = np.fft.rfft(signal,axis=0)

@@ -111,6 +111,12 @@ use exact common sample times spaced 1/300 s; there is no resampling in that tes
 Actual A1/B1/AB comparisons instead use the unchanged native D1 trajectory. Actual
 populations differ across sample rates, so those outputs are compared to their
 own ideal transfer, not falsely asserted to be identical acoustic sources.
+AB composition follows the renderer's double intermediate sum (zero D0) and final
+float conversion before the D1 input. These six gated fixtures contain no frames
+where A1 and B1 are both nonzero: AB evidence covers their temporal mixture, not
+simultaneously active populations. An overlapping actual-source fixture remains
+necessary before any future kernel acceptance; the synthetic multitone does not
+replace that coverage. The present rejection does not depend on claiming it.
 
 ### Independent reference qualification
 
@@ -263,7 +269,8 @@ All three safe builds passed with six jobs, serially. Debug CTest passed35/35 in
 143.08 s; Release passed35/35 in40.27 s. The initial Release34/34 run (42.48 s)
 preceded registration of the new test and is not the final suite. The later
 closed-form two-tap LS/Farrow check was additionally run through the focused
-numerical CTest for each preset. Final numerical CTest contains nine checks.
+numerical CTest for each preset. Final numerical CTest contains ten checks after
+the native cluster-rounding regression described below.
 
 **D1-VAL-001 OPEN:** full ASAN CTest passed34/35 and failed the D1 renderer CLI
 in285.25 s. ASAN reported an access violation while reading inside
@@ -312,6 +319,15 @@ are3.39e-11 dB,6.84e-12 rad,1.16e-6 ns and3.82e-12 complex error; these do not c
 the finding. Regenerating that supplement with the matching thread setting exactly
 reproduced all336 study-v3 rows. Both full study processes exited0. Published tables
 remain study-v2; no content hashes were used.
+
+A final renderer audit added the explicit float output conversion to the Python
+AB sum and a regression that distinguishes float from double rounding. Study-v4
+reran the complete study using the same native source traces. All non-timing data
+matches study-v3: the current gated fixtures have no simultaneous A1/B1 samples,
+so this correction does not change their values or any candidate decision. The
+closed-form rounding test protects the formerly uncovered superposition case.
+Final ten-check numerical CTests passed Debug/Release/ASAN in4.86/1.27/25.03 s.
+These are focused checks, not a replacement full ASAN pass.
 
 Final quality checks: Python AST parsing, C++ clang-format dry-run, Git whitespace
 checks, Markdown internal links, portability and both scanner regression suites
