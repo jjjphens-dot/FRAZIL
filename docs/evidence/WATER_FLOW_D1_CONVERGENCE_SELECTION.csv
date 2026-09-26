@@ -1,0 +1,25 @@
+rate,conditioner,core_magnitude_pass,numerical_pass,kernel,guard_samples,filter_latency_samples,total_latency_samples,acceptance,kernel_max_gain_db,ultrasonic_core_error,ultrasonic_reference_convergence,tier_c_probe_pass
+44100,raw-control,True,False,,,0,,engineering screen only; filter phase/transient/human acceptance pending,,,,False
+44100,butter4-fc18000,False,True,kaiser-g16,16,0,16,engineering screen only; filter phase/transient/human acceptance pending,0.0018762540533029497,1.179343746396082e-09,2.2394259442351548e-06,True
+44100,butter4-fc20000,True,True,kaiser-g32,32,0,32,engineering screen only; filter phase/transient/human acceptance pending,0.0017087617048709485,1.9705428619261308e-10,1.4959462274687565e-06,True
+44100,butter6-fc18000,True,True,kaiser-g16,16,0,16,engineering screen only; filter phase/transient/human acceptance pending,0.0018762540533029497,1.1313112872682191e-09,3.3935921738492164e-07,True
+44100,butter6-fc20000,True,True,kaiser-g32,32,0,32,engineering screen only; filter phase/transient/human acceptance pending,0.0017087617048709485,2.4851928659008066e-10,2.32123056894244e-06,True
+44100,bessel4-fc18000,False,True,kaiser-g16,16,0,16,engineering screen only; filter phase/transient/human acceptance pending,0.0018762540533029497,1.0409596167237223e-09,9.245018327082882e-07,True
+44100,bessel4-fc20000,False,True,kaiser-g32,32,0,32,engineering screen only; filter phase/transient/human acceptance pending,0.0017087617048709485,2.735364921466177e-10,5.389934582892486e-06,True
+44100,fir33-fc18000,False,True,kaiser-g16,16,16,32,engineering screen only; filter phase/transient/human acceptance pending,0.0018762540533029497,1.2533315086996179e-09,2.8697689195052607e-05,True
+44100,fir33-fc20000,True,True,kaiser-g32,32,16,48,engineering screen only; filter phase/transient/human acceptance pending,0.0017087617048709485,2.608190735026594e-10,4.038605035917635e-06,True
+44100,fir65-fc18000,True,True,kaiser-g16,16,32,48,engineering screen only; filter phase/transient/human acceptance pending,0.0018762540533029497,1.2375050782506745e-09,3.1427966396891224e-05,True
+44100,fir65-fc20000,True,True,kaiser-g32,32,32,64,engineering screen only; filter phase/transient/human acceptance pending,0.0017087617048709485,2.6059418943062566e-10,3.8062270074409606e-06,True
+48000,raw-control,True,False,,,0,,engineering screen only; filter phase/transient/human acceptance pending,,,,False
+48000,butter4-fc18000,False,True,kaiser-g16,16,0,16,engineering screen only; filter phase/transient/human acceptance pending,0.0018760698606006202,4.695217709606348e-10,2.085860627122896e-06,True
+48000,butter4-fc20000,True,True,kaiser-g16,16,0,16,engineering screen only; filter phase/transient/human acceptance pending,0.0018760698606006202,5.446752311057465e-10,1.9241573265481334e-06,True
+48000,butter6-fc18000,True,True,kaiser-g16,16,0,16,engineering screen only; filter phase/transient/human acceptance pending,0.0018760698606006202,5.325407639358102e-10,7.164003982137093e-07,True
+48000,butter6-fc20000,True,True,kaiser-g16,16,0,16,engineering screen only; filter phase/transient/human acceptance pending,0.0018760698606006202,6.34248501720006e-10,1.8922623823383268e-06,True
+48000,bessel4-fc18000,False,True,kaiser-g16,16,0,16,engineering screen only; filter phase/transient/human acceptance pending,0.0018760698606006202,5.799137086471598e-10,2.2601313708434422e-06,True
+48000,bessel4-fc20000,False,True,kaiser-g16,16,0,16,engineering screen only; filter phase/transient/human acceptance pending,0.0018760698606006202,6.6394427708903e-10,2.340396934201906e-06,True
+48000,fir33-fc18000,False,True,kaiser-g16,16,16,32,engineering screen only; filter phase/transient/human acceptance pending,0.0018760698606006202,4.3148921052482813e-10,2.5327878579078664e-05,True
+48000,fir33-fc20000,True,True,kaiser-g16,16,16,32,engineering screen only; filter phase/transient/human acceptance pending,0.0018760698606006202,4.43206090862467e-10,1.0416424641175821e-05,True
+48000,fir65-fc18000,True,True,kaiser-g8,8,32,40,engineering screen only; filter phase/transient/human acceptance pending,0.0017706347545045026,1.4042016702614236e-09,2.324477446646989e-05,True
+48000,fir65-fc20000,True,True,kaiser-g16,16,32,48,engineering screen only; filter phase/transient/human acceptance pending,0.0018760698606006202,4.4636505612313227e-10,2.0592884619855997e-05,True
+96000,raw-control,True,True,kaiser-g64,64,0,64,engineering screen only; filter phase/transient/human acceptance pending,0.00160789014046526,6.661588966226197e-12,3.257767531504265e-06,True
+96000,butter4-fc20000,False,True,kaiser-g8,8,0,8,engineering screen only; filter phase/transient/human acceptance pending,0.0017707635823964625,1.4278020653420174e-09,2.748549239106646e-07,True

@@ -1,6 +1,9 @@
 # EXP-W-FD-003 — Sample-rate-aware D1 convergence
 
-Status: preregistered C1/C2 contract, before new fixed-character candidate results.
+Status: C1/C2 contract was preregistered before new fixed-character candidate results.
+C0–C5 engineering execution is now recorded in the
+[convergence evidence](../../docs/evidence/WATER_FLOW_D1_CONVERGENCE.md).
+C6 listening and C7 acceptance remain pending; the thresholds below are unchanged.
 Authority: user's next-stage convergence plan, reviewed baseline `7723c29`.
 C0 closure: [FD-002 measurements](../../docs/evidence/WATER_FLOW_D1_LATENCY_STUDY.md)
 now include independent Hosted completion; local validation fault causes remain open.
@@ -74,11 +77,11 @@ FIR=(N-1)/2, IIR=0 fixed lookahead with dispersion separately measured.
 ## C4–C6 convergence, resources and cross-rate evidence
 
 S0 raw is a control at every rate, including failures. S1 is primary architecture:
-managed 44.1/48, raw 96. S2 is common-intention Butterworth4 at20 kHz at every rate;
+managed 44.1/48, raw 96. S2 is common-intention Butterworth4 at 20 kHz at every rate;
 it is a comparison even if core tests fail, not an automatic fallback to adoption.
 Shortlist up to three S1 character variants from Butterworth4, Butterworth6, FIR65,
-using20 kHz first and18 only if20 fails mandatory numerical/core-magnitude criteria.
-Each must qualify at both low rates; raw96 must qualify. This caps the final policy
+using 20 kHz first and 18 only if 20 fails mandatory numerical/core-magnitude criteria.
+Each must qualify at both low rates; raw 96 must qualify. This caps the final policy
 comparisons at five including S0/S2. Do not native-benchmark every passing registry
 row. Bessel/FIR33 stay documented comparisons; revise the contract explicitly before
 substituting them if the bounded shortlist is empty. S1 primary + S0 raw reference
@@ -87,7 +90,7 @@ is an architectural research recommendation only; no final product filter chosen
 Native shortlist cases reuse the existing C++ prototype: <=1e-6 error against the
 untabulated model, unchanged Fourier-reference gate, zero observed allocations,
 reset/reprepare/partition checks, state bytes and P95/P99/peak timings. Record code,
-machine and smoke versus500-block measurement separately. No formal CPU budget claim.
+machine and smoke versus 500-block measurement separately. No formal CPU budget claim.
 
 Cross-rate uses the same native physical/config preset and seed at each rate, all
 four profiles, A1/B1/AB/D OFF/D ON. Report 0–16/16–20 kHz band/spectral differences,
@@ -115,11 +118,11 @@ not permission to synthesize substitute listening acceptance.
 - [Zheng & James, Harmonic Fluids](https://www.cs.cornell.edu/projects/HarmonicFluids/): bubble dynamics/advection and acoustic transfer; not our cutoff/guard or shared-cluster calibration. Author abstract retrieved.
 - [van den Doel manuscript](https://www.persianney.com/kvdoelcsubc/publications/tap05.pdf): bubble emission as a liquid-sound basis; fresh manuscript retrieved. Does not specify D1 conditioning.
 - [Smith fractional-delay text](https://www.dsprelated.com/freebooks/pasp/Lagrange_Interpolation.html): interpolation mathematics, not automatic near-Nyquist accuracy. Author text retrieved.
-- [SciPy Bessel documentation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.bessel.html): bilinear phase limitation above roughly fs/4, `norm=mag` definition. Links Thomson1949; original Thomson paper not claimed read.
+- [SciPy Bessel documentation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.bessel.html): bilinear phase limitation above roughly fs/4, `norm=mag` definition. Links Thomson 1949; original Thomson paper not claimed read.
 - [Pro-Q modes](https://prod.fabfilter.com/help/pro-q/using/processingmode): near-Nyquist/phase/pre-ringing engineering tradeoffs; no FRAZIL algorithm or numeric requirement.
 - [Kirchhoff author explanation](https://blog.threebodytech.com/127.html): Nyquist-matched linear modeling precedent, not water physics.
 - [NOVA GE manual](https://docs.tokyodawn.net/nova-ge-manual/): internal processing quality/anti-alias management; internal bandwidth is distinct from product bandwidth. No imported internal-rate target.
-- [Pro-L oversampling](https://www.fabfilter.com/help/pro-l/using/oversampling) and [Saturn release](https://prod.fabfilter.com/press/1589878800/fabfilter-releases-fabfilter-saturn-2-distortion-and-saturation-plug-in): nonlinear stages manage their own aliasing; no8x/32x requirement for linear D1.
+- [Pro-L oversampling](https://www.fabfilter.com/help/pro-l/using/oversampling) and [Saturn release](https://prod.fabfilter.com/press/1589878800/fabfilter-releases-fabfilter-saturn-2-distortion-and-saturation-plug-in): nonlinear stages manage their own aliasing; no 8x/32x requirement for linear D1.
 
 Future ICE-ANTI-ALIAS-001 is DEFERRED until Ice is authorized: no implementation now.
 D1 conditioner is not global anti-alias infrastructure. Before runtime replacement:
@@ -132,6 +135,6 @@ must be <=1e-12. This engineering closure check is not an audibility criterion.
 Failure requires extending the reference; do not truncate a meaningful filter tail.
 
 Different per-rate kernels are additionally compared on exact common times with
-closed-form sinusoidal transfer, using the unchanged2*eps16 core pair budget.
+closed-form sinusoidal transfer, using the unchanged 2*eps16 core pair budget.
 Whole-chain conditioner differences remain in a separate column; do not subtract
 them away and call the complete chain transparent. Tier B is reported, not accepted.

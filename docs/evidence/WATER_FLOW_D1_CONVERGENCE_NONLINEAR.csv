@@ -1,0 +1,5 @@
+rate,conditioner,nonlinearity,audible_raw_energy,audible_conditioned_energy,audible_raw_alias_energy,audible_conditioned_alias_energy,scope
+96000,raw-control,x^2,6750000.000000035,6750000.000000035,4.0472510406044326e-16,4.0472510406044326e-16,synthetic IMD/alias stress; not implemented Ice or measured playback
+96000,raw-control,x^3,1063476.562500022,1063476.562500022,509765.6250000027,509765.6250000027,synthetic IMD/alias stress; not implemented Ice or measured playback
+96000,butter4-fc20000,x^2,6750000.000000035,38256.70760513812,4.0472510406044326e-16,3.4661819722470806e-17,synthetic IMD/alias stress; not implemented Ice or measured playback
+96000,butter4-fc20000,x^3,1063476.562500022,344.62111899083214,509765.6250000027,0.5272684920239031,synthetic IMD/alias stress; not implemented Ice or measured playback

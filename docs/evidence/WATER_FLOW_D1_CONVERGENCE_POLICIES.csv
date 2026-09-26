@@ -1,0 +1,16 @@
+policy,role,rate,conditioner,kernel,qualified,total_latency_samples
+S0,raw numerical control; failures retained,44100,raw-control,,False,
+S0,raw numerical control; failures retained,48000,raw-control,,False,
+S0,raw numerical control; failures retained,96000,raw-control,kaiser-g64,True,64
+S1-butter4,primary architecture variant; human review pending,44100,butter4-fc20000,kaiser-g32,True,32
+S1-butter4,primary architecture variant; human review pending,48000,butter4-fc20000,kaiser-g16,True,16
+S1-butter4,primary architecture variant; human review pending,96000,raw-control,kaiser-g64,True,64
+S1-butter6,primary architecture variant; human review pending,44100,butter6-fc20000,kaiser-g32,True,32
+S1-butter6,primary architecture variant; human review pending,48000,butter6-fc20000,kaiser-g16,True,16
+S1-butter6,primary architecture variant; human review pending,96000,raw-control,kaiser-g64,True,64
+S1-fir65,primary architecture variant; human review pending,44100,fir65-fc20000,kaiser-g32,True,64
+S1-fir65,primary architecture variant; human review pending,48000,fir65-fc20000,kaiser-g16,True,48
+S1-fir65,primary architecture variant; human review pending,96000,raw-control,kaiser-g64,True,64
+S2,common intention comparison; core rejection retained,44100,butter4-fc20000,kaiser-g32,True,32
+S2,common intention comparison; core rejection retained,48000,butter4-fc20000,kaiser-g16,True,16
+S2,common intention comparison; core rejection retained,96000,butter4-fc20000,kaiser-g8,False,8

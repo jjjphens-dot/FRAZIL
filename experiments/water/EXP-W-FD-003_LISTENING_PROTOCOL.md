@@ -10,7 +10,7 @@ Keep at most five strategy combinations: S0 raw control, up to three qualified S
 character variants, and S2 common-band comparison. A numerically rejected cell must
 be labelled in the private engineering key and cannot become a production candidate.
 S0 at a rate with no qualifying kernel provides raw/historical references only.
-S2 at96 kHz remains a comparison if its conditioner fails the core magnitude gate.
+S2 at 96 kHz remains a comparison if its conditioner fails the core magnitude gate.
 
 Required source classes: authorized bass, drums, representative musical pad, and
 guitar/piano creative material. Track source permission, duration, channels and

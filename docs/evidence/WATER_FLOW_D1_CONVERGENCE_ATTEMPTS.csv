@@ -1,0 +1,196 @@
+rate,conditioner,kernel,stage,passed,worst_error,kernel_max_gain_db,ultrasonic_core_error,ultrasonic_reference_convergence,tier_c_probe_pass
+44100,raw-control,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+44100,raw-control,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,raw-control,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,raw-control,kaiser-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,raw-control,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,raw-control,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,raw-control,kaiser-g16,actual and Tier C,False,0.09140128779473165,0.0018762540533029497,1.2496045119672797e-09,6.77900803787314e-06,True
+44100,raw-control,lagrange-g32,frozen Tier A kernel rejection,False,,,,,False
+44100,raw-control,hann-g32,actual and Tier C,False,0.058385330959220286,0.10959161993795494,5.244446083685421e-11,6.77900803787314e-06,False
+44100,raw-control,kaiser-g32,actual and Tier C,False,0.06320693865008584,0.0017087617048709485,2.6033041594613245e-10,6.77900803787314e-06,True
+44100,raw-control,lagrange-g64,actual and Tier C,False,0.09171055849133615,3.85730986621314e-14,3.127679785750267e-07,6.77900803787314e-06,True
+44100,raw-control,hann-g64,actual and Tier C,False,0.04004999146318309,0.10963659579114715,1.0289547410983208e-11,6.77900803787314e-06,False
+44100,raw-control,kaiser-g64,actual and Tier C,False,0.043470317301709714,0.0016079218646378405,1.272808021069768e-10,6.77900803787314e-06,True
+44100,butter4-fc18000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc18000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc18000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc18000,kaiser-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc18000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc18000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc18000,kaiser-g16,actual and Tier C,True,0.0016392181788229372,0.0018762540533029497,1.179343746396082e-09,2.2394259442351548e-06,True
+44100,butter4-fc20000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc20000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc20000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc20000,kaiser-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc20000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc20000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc20000,kaiser-g16,actual and Tier C,False,0.014551163702817217,0.0018762540533029497,9.395145029841136e-10,1.4959462274687565e-06,True
+44100,butter4-fc20000,lagrange-g32,frozen Tier A kernel rejection,False,,,,,False
+44100,butter4-fc20000,hann-g32,actual and Tier C,False,0.0006426430999665381,0.10959161993795494,3.426319216872083e-11,1.4959462274687565e-06,False
+44100,butter4-fc20000,kaiser-g32,actual and Tier C,True,0.0004598524613216814,0.0017087617048709485,1.9705428619261308e-10,1.4959462274687565e-06,True
+44100,butter6-fc18000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc18000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc18000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc18000,kaiser-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc18000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc18000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc18000,kaiser-g16,actual and Tier C,True,0.000494346062231019,0.0018762540533029497,1.1313112872682191e-09,3.3935921738492164e-07,True
+44100,butter6-fc20000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc20000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc20000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc20000,kaiser-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc20000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc20000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc20000,kaiser-g16,actual and Tier C,False,0.013153281929657258,0.0018762540533029497,1.0809916628314487e-09,2.32123056894244e-06,True
+44100,butter6-fc20000,lagrange-g32,frozen Tier A kernel rejection,False,,,,,False
+44100,butter6-fc20000,hann-g32,actual and Tier C,False,0.0005922060385984261,0.10959161993795494,3.765478899287189e-11,2.32123056894244e-06,False
+44100,butter6-fc20000,kaiser-g32,actual and Tier C,True,0.00013556470097112196,0.0017087617048709485,2.4851928659008066e-10,2.32123056894244e-06,True
+44100,bessel4-fc18000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc18000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc18000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc18000,kaiser-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc18000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc18000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc18000,kaiser-g16,actual and Tier C,True,0.005771649238603054,0.0018762540533029497,1.0409596167237223e-09,9.245018327082882e-07,True
+44100,bessel4-fc20000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc20000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc20000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc20000,kaiser-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc20000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc20000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc20000,kaiser-g16,actual and Tier C,False,0.019398665801991597,0.0018762540533029497,1.2553224417075757e-09,5.389934582892486e-06,True
+44100,bessel4-fc20000,lagrange-g32,frozen Tier A kernel rejection,False,,,,,False
+44100,bessel4-fc20000,hann-g32,actual and Tier C,False,0.001151134619487419,0.10959161993795494,4.93018756449028e-11,5.389934582892486e-06,False
+44100,bessel4-fc20000,kaiser-g32,actual and Tier C,True,0.0017684816313828823,0.0017087617048709485,2.735364921466177e-10,5.389934582892486e-06,True
+44100,fir33-fc18000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc18000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc18000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc18000,kaiser-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc18000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc18000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc18000,kaiser-g16,actual and Tier C,True,0.0006773328162399485,0.0018762540533029497,1.2533315086996179e-09,2.8697689195052607e-05,True
+44100,fir33-fc20000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc20000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc20000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc20000,kaiser-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc20000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc20000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc20000,kaiser-g16,actual and Tier C,False,0.013646013368254906,0.0018762540533029497,1.2501180741532061e-09,4.038605035917635e-06,True
+44100,fir33-fc20000,lagrange-g32,frozen Tier A kernel rejection,False,,,,,False
+44100,fir33-fc20000,hann-g32,actual and Tier C,False,0.0027229988644868613,0.10959161993795494,5.29878987453233e-11,4.038605035917635e-06,False
+44100,fir33-fc20000,kaiser-g32,actual and Tier C,True,0.003250511068500235,0.0017087617048709485,2.608190735026594e-10,4.038605035917635e-06,True
+44100,fir65-fc18000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc18000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc18000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc18000,kaiser-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc18000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc18000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc18000,kaiser-g16,actual and Tier C,True,0.00010115830664686485,0.0018762540533029497,1.2375050782506745e-09,3.1427966396891224e-05,True
+44100,fir65-fc20000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc20000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc20000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc20000,kaiser-g8,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc20000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc20000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc20000,kaiser-g16,actual and Tier C,False,0.009947542076672979,0.0018762540533029497,1.2498794667035438e-09,3.8062270074409606e-06,True
+44100,fir65-fc20000,lagrange-g32,frozen Tier A kernel rejection,False,,,,,False
+44100,fir65-fc20000,hann-g32,actual and Tier C,False,0.0005049192239811994,0.10959161993795494,5.27473748272138e-11,3.8062270074409606e-06,False
+44100,fir65-fc20000,kaiser-g32,actual and Tier C,True,0.0001413880477294721,0.0017087617048709485,2.6059418943062566e-10,3.8062270074409606e-06,True
+48000,raw-control,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+48000,raw-control,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,raw-control,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,raw-control,kaiser-g8,actual and Tier C,False,0.10830183403788561,0.0017706347545045026,1.4094516674665376e-09,5.875706535327571e-06,True
+48000,raw-control,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,raw-control,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,raw-control,kaiser-g16,actual and Tier C,False,0.067038821744438,0.0018760698606006202,4.4365756046039325e-10,5.875706535327571e-06,True
+48000,raw-control,lagrange-g32,actual and Tier C,False,0.08307813971990673,1.735789439795915e-14,2.0436394283696495e-07,5.875706535327571e-06,True
+48000,raw-control,hann-g32,actual and Tier C,False,0.042825745657913535,0.10957902061567623,1.7079500106904722e-11,5.875706535327571e-06,False
+48000,raw-control,kaiser-g32,actual and Tier C,False,0.046379663094056736,0.001708582859253701,2.8168957787244795e-11,5.875706535327571e-06,True
+48000,raw-control,lagrange-g64,actual and Tier C,False,0.06715785888966866,3.664444372902484e-14,1.084955701448074e-07,5.875706535327571e-06,True
+48000,raw-control,hann-g64,actual and Tier C,False,0.029499388376900044,0.10962399073981262,5.3049238125822444e-12,5.875706535327571e-06,False
+48000,raw-control,kaiser-g64,actual and Tier C,False,0.03197068776029661,0.0016077453011944637,6.169925349533337e-12,5.875706535327571e-06,True
+48000,butter4-fc18000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+48000,butter4-fc18000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,butter4-fc18000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,butter4-fc18000,kaiser-g8,actual and Tier C,False,0.014286116208450878,0.0017706347545045026,1.5513484795153738e-09,2.085860627122896e-06,True
+48000,butter4-fc18000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,butter4-fc18000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,butter4-fc18000,kaiser-g16,actual and Tier C,True,0.0002612237184019712,0.0018760698606006202,4.695217709606348e-10,2.085860627122896e-06,True
+48000,butter4-fc20000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+48000,butter4-fc20000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,butter4-fc20000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,butter4-fc20000,kaiser-g8,actual and Tier C,False,0.029569963694254645,0.0017706347545045026,1.221447319090724e-09,1.9241573265481334e-06,True
+48000,butter4-fc20000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,butter4-fc20000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,butter4-fc20000,kaiser-g16,actual and Tier C,True,0.001121292676140579,0.0018760698606006202,5.446752311057465e-10,1.9241573265481334e-06,True
+48000,butter6-fc18000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+48000,butter6-fc18000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,butter6-fc18000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,butter6-fc18000,kaiser-g8,actual and Tier C,False,0.011242702531609859,0.0017706347545045026,1.3005648407352738e-09,7.164003982137093e-07,True
+48000,butter6-fc18000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,butter6-fc18000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,butter6-fc18000,kaiser-g16,actual and Tier C,True,8.670275201809505e-05,0.0018760698606006202,5.325407639358102e-10,7.164003982137093e-07,True
+48000,butter6-fc20000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+48000,butter6-fc20000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,butter6-fc20000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,butter6-fc20000,kaiser-g8,actual and Tier C,False,0.027550286290703982,0.0017706347545045026,1.4097082736729305e-09,1.8922623823383268e-06,True
+48000,butter6-fc20000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,butter6-fc20000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,butter6-fc20000,kaiser-g16,actual and Tier C,True,0.0004349904626332328,0.0018760698606006202,6.34248501720006e-10,1.8922623823383268e-06,True
+48000,bessel4-fc18000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+48000,bessel4-fc18000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,bessel4-fc18000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,bessel4-fc18000,kaiser-g8,actual and Tier C,False,0.02415387753408699,0.0017706347545045026,1.1923239956476857e-09,2.2601313708434422e-06,True
+48000,bessel4-fc18000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,bessel4-fc18000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,bessel4-fc18000,kaiser-g16,actual and Tier C,True,0.0011013045472667358,0.0018760698606006202,5.799137086471598e-10,2.2601313708434422e-06,True
+48000,bessel4-fc20000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+48000,bessel4-fc20000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,bessel4-fc20000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,bessel4-fc20000,kaiser-g8,actual and Tier C,False,0.03820737115569819,0.0017706347545045026,1.5446831931271623e-09,2.340396934201906e-06,True
+48000,bessel4-fc20000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,bessel4-fc20000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,bessel4-fc20000,kaiser-g16,actual and Tier C,True,0.003527371616952527,0.0018760698606006202,6.6394427708903e-10,2.340396934201906e-06,True
+48000,fir33-fc18000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+48000,fir33-fc18000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,fir33-fc18000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,fir33-fc18000,kaiser-g8,actual and Tier C,False,0.00898670901897921,0.0017706347545045026,1.411170028799367e-09,2.5327878579078664e-05,True
+48000,fir33-fc18000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,fir33-fc18000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,fir33-fc18000,kaiser-g16,actual and Tier C,True,7.283212924306381e-05,0.0018760698606006202,4.3148921052482813e-10,2.5327878579078664e-05,True
+48000,fir33-fc20000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+48000,fir33-fc20000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,fir33-fc20000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,fir33-fc20000,kaiser-g8,actual and Tier C,False,0.023710013058747138,0.0017706347545045026,1.4094812149134787e-09,1.0416424641175821e-05,True
+48000,fir33-fc20000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,fir33-fc20000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,fir33-fc20000,kaiser-g16,actual and Tier C,True,0.0006815741228518729,0.0018760698606006202,4.43206090862467e-10,1.0416424641175821e-05,True
+48000,fir65-fc18000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+48000,fir65-fc18000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,fir65-fc18000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,fir65-fc18000,kaiser-g8,actual and Tier C,True,0.006504008232761387,0.0017706347545045026,1.4042016702614236e-09,2.324477446646989e-05,True
+48000,fir65-fc20000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+48000,fir65-fc20000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,fir65-fc20000,hann-g8,frozen Tier A kernel rejection,False,,,,,False
+48000,fir65-fc20000,kaiser-g8,actual and Tier C,False,0.02286428757118022,0.0017706347545045026,1.409416208399938e-09,2.0592884619855997e-05,True
+48000,fir65-fc20000,lagrange-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,fir65-fc20000,hann-g16,frozen Tier A kernel rejection,False,,,,,False
+48000,fir65-fc20000,kaiser-g16,actual and Tier C,True,0.00011054581642115607,0.0018760698606006202,4.4636505612313227e-10,2.0592884619855997e-05,True
+96000,raw-control,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+96000,raw-control,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+96000,raw-control,hann-g8,actual and Tier C,False,0.013701483557744306,0.10647969268438637,2.615761197370658e-11,3.257767531504265e-06,False
+96000,raw-control,kaiser-g8,actual and Tier C,False,0.014801793549224274,0.0017707635823964625,1.4077112849646001e-09,3.257767531504265e-06,True
+96000,raw-control,lagrange-g16,actual and Tier C,False,0.014771474732030923,7.714619732426294e-15,6.511850500508993e-08,3.257767531504265e-06,True
+96000,raw-control,hann-g16,actual and Tier C,False,0.009644966996786485,0.10923434099875824,1.1655063402926631e-11,3.257767531504265e-06,False
+96000,raw-control,kaiser-g16,actual and Tier C,False,0.010396033688598481,0.0018762209583905497,1.4038103835599541e-09,3.257767531504265e-06,True
+96000,raw-control,lagrange-g32,actual and Tier C,False,0.012364907084528788,1.735789439795915e-14,3.978124136761184e-08,3.257767531504265e-06,True
+96000,raw-control,hann-g32,actual and Tier C,False,0.006826209432828903,0.10958935614455322,6.632656373865755e-12,3.257767531504265e-06,False
+96000,raw-control,kaiser-g32,actual and Tier C,False,0.007353488130515472,0.0017087295707122782,6.70866324934197e-12,3.257767531504265e-06,True
+96000,raw-control,lagrange-g64,actual and Tier C,False,0.010379473617559396,3.664444372902484e-14,2.111959701145074e-08,3.257767531504265e-06,True
+96000,raw-control,hann-g64,actual and Tier C,False,0.00483531188012941,0.10963433096840727,6.612106779070748e-12,3.257767531504265e-06,False
+96000,raw-control,kaiser-g64,actual and Tier C,True,0.005208393801141997,0.00160789014046526,6.661588966226197e-12,3.257767531504265e-06,True
+96000,butter4-fc20000,lagrange-g0,frozen Tier A kernel rejection,False,,,,,False
+96000,butter4-fc20000,lagrange-g8,frozen Tier A kernel rejection,False,,,,,False
+96000,butter4-fc20000,hann-g8,actual and Tier C,False,0.0005865591727138826,0.10647969268438637,4.3965530570814066e-11,2.748549239106646e-07,False
+96000,butter4-fc20000,kaiser-g8,actual and Tier C,True,5.772250905050848e-05,0.0017707635823964625,1.4278020653420174e-09,2.748549239106646e-07,True

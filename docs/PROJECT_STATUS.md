@@ -2,13 +2,24 @@
 
 Current next-stage work is [FD-003](../experiments/water/EXP-W-FD-003.md) research
 convergence: S0/S1/S2, fixed-character filters and event-aware cross-rate evidence.
-C0 baseline/FD-002 evidence is closed; C1/C2 implemented, C3 local screen completed
-with final validation pending. C4/C5 and independent current-code evidence remain
-in progress. Initial FD-003 Debug is 37/38 after a source-probe access violation
-(D1-VAL-003, root cause unknown); failure evidence is preserved. Human listening
-and ADR-0007 acceptance remain pending.
+C0–C5 engineering evidence is complete: 24 filter configurations, three S1 variants
+plus S0/S2 controls, 32 native comparisons and 64 analytic cross-rate comparisons.
+Independent [Hosted validation](https://github.com/jjjphens-dot/FRAZIL/actions/runs/36242885134)
+passed on code `299badb` (Debug 38/38, Release 37/37 with Preview disabled).
+Local Release, ASAN and bounded Debug repeat passed 38/38. Initial Debug was 37/38
+after a source-probe access violation (D1-VAL-003, root cause unknown); failure
+evidence remains preserved and open. C6 listening protocol is ready; audio generation,
+human cross-rate interpretation and C7 ADR-0007 acceptance remain pending. See the
+[convergence evidence](evidence/WATER_FLOW_D1_CONVERGENCE.md). No runtime replacement
+or final filter/latency adoption is claimed.
 
-D1 low-latency follow-up is in progress under EXP-W-FD-002. ADR-0007 is Proposed, not Accepted; current plugin remains zero-latency. The complete offline screen has conditional numerical solutions; local Debug/Release/ASAN full repeats pass 37/37. Independent Hosted numerical/native validation passed (220 comparisons, 1540 resource rows); historical preservation passed 1707/1707. Local export-fault root cause remains open. No runtime replacement. See [latency study](evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
+The preceding EXP-W-FD-002 feasibility study is archived as engineering evidence;
+FD-003 now governs convergence. ADR-0007 remains Proposed, not Accepted; the current
+plugin remains zero-latency. FD-002 local Debug/Release/ASAN full repeats passed 37/37;
+its independent Hosted validation passed 220 numerical comparisons and 1540 resource
+rows, with historical preservation 1707/1707. These are historical results, not
+FD-003 validation. Local export-fault causes remain open. No runtime replacement.
+See the [latency study](evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
 
 Flow D1 is implemented as a separate offline reduced-transfer research candidate;
 validation status and open numerical/listening limits are in
