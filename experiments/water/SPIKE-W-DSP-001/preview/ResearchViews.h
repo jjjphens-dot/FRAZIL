@@ -241,9 +241,12 @@ class EngineeringView final : public juce::Component {
         calibration_.setEnabled(!reworked || state.engineering.mode == 1);
         composition_.setSelectedId(state.engineering.mode + 1, juce::dontSendNotification);
         provenance_.setText(
-            juce::String(ResearchListeningCalibration::revision) +
-                (state.listeningCalibration == MappingStatus::mapped ? " / MAPPED" : " / CUSTOM") +
-                " | A .26 / B .24 / D .06 / C .30 | independent of macros",
+            state.engineering.reworkedFluid()
+                ? "A1/B1/D1 typed defaults | Legacy listening calibration retained / INACTIVE"
+                : juce::String(ResearchListeningCalibration::revision) +
+                      (state.listeningCalibration == MappingStatus::mapped ? " / MAPPED"
+                                                                           : " / CUSTOM") +
+                      " | A .26 / B .24 / D .06 / C .30 | independent of macros",
             juce::dontSendNotification);
         for (std::size_t i = 0; i < kControls.size(); ++i) {
             const auto& spec = kControls[i];

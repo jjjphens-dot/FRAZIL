@@ -8,7 +8,7 @@ A/B/AB 分别为 A1/B1/A1+B1；AD/BD/ABD 是 D1(A1)、D1(B1)、D1(A1+B1)，不�
 Reworked D-only 明确拒绝并提示改用 AD/BD/ABD；baseline 仍是零 residual。
 
 Reworked Fluid 的 Size/Motion/Decay 显示 NOT MAPPED TO REWORKED CORE；旧 A/B/D engineering controls
-禁用并保留值，C controls 保持原义。Protect coupling deferred for A1/B1/D1：控件保留但不处理 Protect。
+禁用并保留值；Engineering 校准说明明确 Legacy calibration INACTIVE，C controls 保持原义。Protect coupling deferred for A1/B1/D1：控件保留但不处理 Protect。
 切回 Legacy 恢复原值。D1 使用当前 renderer 的历史四点 Lagrange 实现，不是 FD-003 conditioner/kernel shortlist。
 
 试听：加载同一授权 WAV，在 Engineering 选 A + Legacy，Apply/Play 后 Capture A；切 Reworked，

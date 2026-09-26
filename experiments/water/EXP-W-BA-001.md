@@ -135,7 +135,7 @@ The pool accepts immediately into a free slot or reserves a releasing replacemen
 All-releasing requests drop. Capacity downshift preserves existing tails and can
 cancel pending starts that cannot fit. Accepted and later dropped counters are
 transitions, not mutually exclusive totals. Completed-lifetime bins include stolen
-tails, and report approximate lower edges. No UI transport or growing event log.
+tails, and report approximate lower edges. No UI transport for these histograms or growing event log.
 
 Offline diagnostic definitions:
 
