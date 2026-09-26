@@ -1,6 +1,6 @@
 # FRAZIL 当前实现与差距
 
-D1 low-latency follow-up is in progress under EXP-W-FD-002. ADR-0007 is Proposed, not Accepted; current plugin remains zero-latency. The complete offline screen has conditional numerical solutions; local Debug/Release/ASAN full repeats pass37/37. Native export faults recurred, so full native resources are pending an independent Hosted Windows study. No runtime replacement. See [latency study](evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
+D1 low-latency follow-up is in progress under EXP-W-FD-002. ADR-0007 is Proposed, not Accepted; current plugin remains zero-latency. The complete offline screen has conditional numerical solutions; local Debug/Release/ASAN full repeats pass 37/37. Independent Hosted numerical/native validation passed (220 comparisons, 1540 resource rows); historical preservation passed 1707/1707. Local export-fault root cause remains open. No runtime replacement. See [latency study](evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
 
 Flow D1 is implemented as a separate offline reduced-transfer research candidate;
 validation status and open numerical/listening limits are in

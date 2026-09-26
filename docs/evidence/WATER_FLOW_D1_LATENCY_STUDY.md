@@ -1,6 +1,7 @@
 # Water D1 latency, bandwidth and comb research
 
-Status: numerical study COMPLETE; native resources/preservation IN PROGRESS.
+Status: numerical study, independent native resource matrix and preservation COMPLETE.
+This closes the EXP-W-FD-002 measurement round, not D1 adoption.
 No runtime replacement or acceptance.
 Baseline: c0188182d86a991b58addfe29e817141d8683bed, branch
 `codex/experiment/water-flow-d1`; `git fetch --all --prune` found no divergence.
@@ -11,7 +12,7 @@ Predecessor: [source-aware remediation](WATER_FLOW_D1_REMEDIATION.md), retained.
 ## Completed numerical screen
 
 Corrected `study-v2` exited 0. It contains 105 filter candidates, 117 static-band rows,
-312 moving-tone rows,208 cross-rate rows and4152 actual-source joint comparisons.
+312 moving-tone rows, 208 cross-rate rows and 4152 actual-source joint comparisons.
 335 combinations pass the complete numerical screen; 55 retain the smallest passing
 guard for their conditioner. These are numerical candidates, not 55 product choices.
 
@@ -22,11 +23,11 @@ counts are 787/731/2918 frames at 44.1/48/96 kHz; overlap energy is reported sep
 
 Unfiltered actual-source control fails at 44.1 and 48 kHz throughout this bounded
 search. At 96 kHz its minimum passing guard is 32 (Hann). No zero-guard candidate
-qualifies. Conditioned minimum guards range 16–32 at44.1 kHz, 8–16 at48 kHz and 8 at
+qualifies. Conditioned minimum guards range 16–32 at 44.1 kHz, 8–16 at 48 kHz and 8 at
 96 kHz. Adding FIR latency changes the total; no common instance/Host latency is
 chosen in this research.
 
-Illustrative 18 kHz-pass /Nyquist-safe-stop alternatives (all minimum guards):
+Illustrative 18 kHz-pass / Nyquist-safe-stop alternatives (all minimum guards):
 
 | Rate Hz | Conditioner | Order | Guard | Total samples / ms | 20 kHz gain dB |
 | --- | --- | --- | --- | --- | --- |
@@ -78,7 +79,7 @@ decisions. No cited work calibrates them or proves a FRAZIL candidate accurate.
 | [Laakso et al. 1996 university record](https://research.aalto.fi/en/publications/splitting-the-unit-delay-tools-for-fractional-delay-filter-design/) | Fractional-delay FIR/allpass design families | Accuracy of our coefficients or a physical flow model | Bibliography/keywords retrieved; full text unavailable, not claimed read |
 | [Smith, Lagrange interpolation](https://www.dsprelated.com/freebooks/pasp/Lagrange_Interpolation.html) | Polynomial interpolation and centred-delay design mathematics | Near-Nyquist fidelity without measurement | Author textbook page retrieved; product and barycentric implementations cross-checked analytically |
 | [Vesma/Saramaki author notes](https://homepages.tuni.fi/tapio.saramaki/part3multi.pdf) | Two-sided interpolation and Farrow structure | A guaranteed accurate short kernel | Fresh fetch timed out; prior remediation access identified separately |
-| [Wang et al. 2021, extended-high-frequency audiometry](https://pmc.ncbi.nlm.nih.gov/articles/PMC8394048/) | In this 162-person study, under-30 group responded through 16 kHz; 52.2% responded at 20 kHz; age/frequency dependence | Universal16/20 kHz cutoff, our 0.1 dB gate or music audibility for every listener | Indexed primary full-text result retrieved; direct page challenge prevented fresh full-page access |
+| [Wang et al. 2021, extended-high-frequency audiometry](https://pmc.ncbi.nlm.nih.gov/articles/PMC8394048/) | In this 162-person study, under-30 group responded through 16 kHz; 52.2% responded at 20 kHz; age/frequency dependence | Universal 16/20 kHz cutoff, our 0.1 dB gate or music audibility for every listener | Indexed primary full-text result retrieved; direct page challenge prevented fresh full-page access |
 | [Hearing-aid delay study 2022](https://pubmed.ncbi.nlm.nih.gov/35297723/) | Direct+processed sound interference; coloration-pitch discrimination 0.3–1 ms depending on condition | Pure delay being metallic, a universal 0.1 ms FRAZIL threshold | Primary abstract retrieved; publisher full page403. Prior detection thresholds cited inside that paper are not treated as this experiment's result |
 | [Stuart et al. 2019 AES study](https://secure.aes.org/forum/pubs/journal/?ID=971) | Ultrasonic IMD can be measured and matters in some threshold experiments | Universal audible harm from high-resolution music or a justified FRAZIL cutoff | Publisher abstract retrieved; it explicitly limits relevance to ordinary recordings |
 | [FabFilter processing modes](https://prod.fabfilter.com/help/pro-q/using/processingmode) and [bypass](https://www.fabfilter.com/help/pro-q/using/output) | Commercial latency/phase/pre-ringing and bypass-compensation precedent | Water physics or our guard value | Official documentation retrieved |
@@ -129,26 +130,34 @@ All local configure/build operations used the existing MSVC environment and
 
 | Preset | First complete run | Complete repeat | Final affected-target validation |
 | --- | --- | --- | --- |
-| windows-release |36/37, Python export access violation |37/37,63.28 s |2/2 after final namespace/constants/input-bound edits |
-| windows-debug |37/37,216.86 s |Not needed |2/2 after those same edits |
-| windows-asan |36/37, existing CLI Python exception |37/37,485.28 s |Full repeat uses final C++ implementation |
+| windows-release | 36/37, Python export access violation | 37/37, 63.28 s | 2/2 after final namespace/constants/input-bound edits |
+| windows-debug | 37/37, 216.86 s |Not needed | 2/2 after those same edits |
+| windows-asan | 36/37, existing CLI Python exception | 37/37, 485.28 s |Full repeat uses final C++ implementation |
 
 Affected-target commands rebuild through the same safe wrapper, then run
 `ctest --preset <preset> --output-on-failure -R "^frazil_water_(flow_d1_latency_native|droplet_b1_allocation)$"`.
 Full commands use `ctest --preset <preset> --output-on-failure` with the experiment
 and Preview enabled. Twelve independent analytical Python checks also passed.
-Each native CTest executes24 IIR/FIR/rate/guard cases, including moving/integer
+Each native CTest executes 24 IIR/FIR/rate/guard cases, including moving/integer
 boundaries, float-range stress, seven block sizes, reset/reprepare and allocation.
 
-The complete native resource matrix is pending the independent Hosted run after
-local export failures; current preservation remains pending at this checkpoint. Musical-pad/listening, pluginval, DAW, Host PDC, production integration,
+The complete native resource matrix passed on the independent Hosted run after
+local export failures; see the provenance and scope below. Current preservation passed 1707/1707 decoded pairs against
+the preserved 3c95fe9 Release renderer: 840 A1, 96 legacy, 312 B1 and 459
+rate/partition/stereo cases. The unchanged `a1_governance_identity.py --matrix` used
+the same six previously authorized local sources and prior A1/B1 study records;
+Python 3.12.14/NumPy 2.3.4/SoundFile 0.13.1, seed 42, default block 128, tail 3 s.
+[Preservation summary](WATER_FLOW_D1_LATENCY_PRESERVATION.csv) contains no private
+audio. The synthesized engineering-pad regression fixture does not satisfy the
+deferred representative musical-pad listening requirement. Musical-pad/listening,
+pluginval, DAW, Host PDC, production integration,
 final bandwidth mapping and merge are NOT RUN. No subjective or Host result is
 inferred from CTest. Exact-head hosted CI is a separate publication-time check.
 
-D1-NUM-001 remainsOPEN/BLOCKED for runtime replacement: bounded offline solutions
+D1-NUM-001 remains OPEN/BLOCKED for runtime replacement: bounded offline solutions
 now exist, but no final source bandwidth/filter/kernel is adopted. D1-VAL-001 has a
 clean full ASAN repeat in this revision; historical native-fault root cause remains
-unresolved. D1-VAL-002 recurred during Python data export and remainsOPEN. The new
+unresolved. D1-VAL-002 recurred during Python data export and remains OPEN. The new
 Python generator exception is separately retained below; a clean repeat is not a
 root-cause repair or evidence that these failures share a cause.
 
@@ -170,9 +179,10 @@ change).
 
 Consistency checks keep proposed policy distinct from current zero-latency
 artifact and failed historical kernel. Markdown/portability and scanner regressions
-passed during implementation; final repeat follows measured-result synchronization.
+passed after measured-result synchronization. The follow-up changes evidence/docs
+only; executable validation belongs to the explicitly identified study commit.
 
-Earlier attempts retained: an ASAN invocation was interrupted after33/36 tests,
+Earlier attempts retained: an ASAN invocation was interrupted after 33/36 tests,
 and numerical study-v1 was deliberately stopped to correct FIR-delay/physical-clock
 separation. Neither incomplete attempt establishes a PASS. Complete study-v2
 supersedes the interim numerical observations; its gates were not relaxed.
@@ -182,6 +192,10 @@ coefficients and uses bounded stereo/path history. Its table interpolation is ch
 against the untabulated model, then independently against the Fourier oracle. The
 shared AllocationObserver extraction is required by two isolated test executables;
 no instrumentation enters the renderer or plugin. Numerical gates are unchanged.
+Reported state bytes cover processor-owned storage, excluding harness fixtures and
+saved preparation copies. Timings include frame lookup, wraparound indexing and
+observable accumulation in the benchmark loop. They exclude A1/B1 generation and
+are not an end-to-end plugin callback budget.
 
 Boundary audit: all twelve native source fixtures end with at least 128 exact-zero
 AB frames. Across all candidate conditioners, the largest next 128-frame filtered
@@ -201,7 +215,7 @@ current interpolation error, intentional interference and filter ringing remain
 separate mechanisms; none receives a human timbral label from these plots/numbers.
 
 IIR's zero fixed lookahead is not zero phase delay. For example, the independently
-screened 18 kHz-pass /Nyquist-safe-stop IIR has four poles at 44.1/48 kHz but 22 at 96 kHz;
+screened 18 kHz-pass / Nyquist-safe-stop IIR has four poles at 44.1/48 kHz but 22 at 96 kHz;
 its 20 kHz attenuation also differs materially. FIR alternatives retain different
 extended-band content and add deterministic delay/pre-ringing. These differences
 must remain visible in filter and cross-rate tables before any bandwidth choice.
@@ -219,7 +233,7 @@ D1-VAL-002 remains OPEN/recurred. A later successful run must not erase this fai
 
 ## Code Quality Review
 
-Independent post-functional inspection checked cohesion, dependencies, ownership,
+A separate post-functional self-review checked cohesion, dependencies, ownership,
 naming/constants, globals, includes and realtime operations. The streaming resource
 prototype is isolated in a test namespace, with named table/history limits and
 float-range input validation. Its filter, path FIFO and audio history belong to one
@@ -235,10 +249,11 @@ allocation and clock sampling stay outside the sample-processing loop. This audi
 supports the tested prototype path; it does not certify future renderer integration.
 
 Reference-machine metadata for this revision: Windows 11 build 22631; Intel Core
- i9-14900HX (24 cores/32 logical processors); MSVC 19.43.34809.0; CMake 4.3.2.
-Native resource results use the Release preset and this machine only. They do not
-establish a portable hard budget. Local paths, binaries and generated audio are not
-tracked; Git commit identity supplies repository provenance without content hashes.
+i9-14900HX (24 cores/32 logical processors); MSVC 19.43.34809.0; CMake 4.3.2.
+Local partial resource results use this machine only and do not constitute a
+complete matrix. Hosted resource evidence has its own machine provenance below;
+neither establishes a portable hard budget. Local paths, binaries and generated
+audio are not tracked; Git commit identity supplies repository provenance without content hashes.
 
 The first complete ASAN attempt also encountered a separate existing CLI-driver
 exception at `render_cli_test.py:145`: `TypeError: tuple indices must be integers
@@ -254,15 +269,53 @@ already present in generated source audio. The synthetic downstream square/cubic
 audit separates its own IMD from foldback; it is not a complete source anti-alias
 certification, playback-chain measurement or implementation of Ice.
 
-Further isolation: the first native matrix terminated after59 completed, passing AB
-rows, again during NumPy text export. This event identifies Python3.12.4's
-python312.dll, offset0x15974, exception0xc0000005. An ignored isolated Python3.12.14
-venv with the same NumPy2.3.4/SciPy1.17.1 also failed in the24-case native driver.
+Further isolation: the first native matrix terminated after 59 completed, passing AB
+rows, again during NumPy text export. This event identifies Python 3.12.4's
+python312.dll, offset 0x15974, exception 0xc0000005. An ignored isolated Python 3.12.14
+venv with the same NumPy 2.3.4/SciPy 1.17.1 also failed in the 24-case native driver.
 A reduced coefficient-generation/export loop with no C++ child, filtering or error
-metrics failed after four complete24-export cycles. A trial standard-Python writer
-passed exact-value round trips but then failed with0xc0000409 after five cycles.
+metrics failed after four complete 24-export cycles. A trial standard-Python writer
+passed exact-value round trips but then failed with 0xc0000409 after five cycles.
 That unproven workaround was withdrawn. These observations do not isolate the
 underlying NumPy, interpreter, runtime or machine cause; no dependency or hardware
 repair is claimed. Failed logs and partial results remain separate, never pooled
-into a complete matrix. The independent Hosted Windows study is now prepared to
-complete and cross-check evidence outside this local environment.
+into a complete matrix. The independent Hosted Windows study completed successfully outside this local
+environment. That success does not resolve the local root cause.
+
+
+## Independent-machine completion
+
+[Hosted run 36233389815](https://github.com/jjjphens-dot/FRAZIL/actions/runs/36233389815)
+completed on code commit `7723c29c001bf84c292ab938b92f6bc43d3d837d`.
+Standard Debug passed 37/37; study Release passed 36/36 (Preview disabled), 86.29 s.
+Both builds used the six-job safe wrapper. The study runner was Windows Server 2025,
+AMD EPYC 7763 virtual allocation (2 cores/4 logical processors), MSVC toolset
+14.51.36231; Python 3.12.4, NumPy 2.3.4, SciPy 1.17.1.
+
+All 55 minimum-guard combinations completed all four AB profiles:
+[220 native comparisons](WATER_FLOW_D1_LATENCY_NATIVE.csv) PASS and
+[1540 resource rows](WATER_FLOW_D1_LATENCY_RESOURCES.csv) report zero observed
+allocations and exact reset/partition output. Reprepare is checked by each native
+invocation before success. Only the 385 overlap-reference rows use 500 measured
+blocks; other rows are five-block functional smoke, not performance evidence.
+Maximum native/model NRMS is 2.238e-8 and peak error 4.039e-8 (limit 1e-6).
+Maximum independent-oracle NRMS is 0.00682621 and peak error 0.00367415,
+both below eps16. Reference convergence is at most 2.973e-6.
+
+| Rate | Processor state bytes, min–max | Worst mean / block duration | Worst P99 / block duration | Worst observed peak / block duration |
+| --- | --- | --- | --- | --- |
+| 44100 | 1087320–2136152 | 1.368% | 2.417% | 8.354% |
+| 48000 | 563224–1089000 | 1.577% | 2.723% | 10.943% |
+| 96000 | 563264–2136000 | 2.519% | 4.935% | 11.400% |
+
+Each column is a separate worst case across full-measurement candidates/block sizes;
+it is not one configuration or a full plugin budget. Table memory is substantial
+and remains an implementation tradeoff, not an accepted production allocation.
+
+Independent numerical CSV row counts, ordering and qualification/selection labels
+match the local study. All tables except NONLINEAR match cell values exactly;
+24 NONLINEAR cells differ, with largest absolute delta scaled by max(1,|a|,|b|)
+1.106e-17. This comparison is diagnostic, not a new relaxed acceptance gate.
+The complete Hosted run is kept separate from the failed local 59-row matrix.
+The ephemeral artifact is `flow-d1-latency-7723c29c001bf84c292ab938b92f6bc43d3d837d`;
+tracked CSVs preserve the relevant results after its 30-day retention expires.
