@@ -4,7 +4,9 @@ Current next-stage work is [FD-003](../experiments/water/EXP-W-FD-003.md) resear
 convergence: S0/S1/S2, fixed-character filters and event-aware cross-rate evidence.
 C0 baseline/FD-002 evidence is closed; C1/C2 implemented, C3 local screen completed
 with final validation pending. C4/C5 and independent current-code evidence remain
-in progress. Human listening and ADR-0007 acceptance remain pending.
+in progress. Initial FD-003 Debug is 37/38 after a source-probe access violation
+(D1-VAL-003, root cause unknown); failure evidence is preserved. Human listening
+and ADR-0007 acceptance remain pending.
 
 D1 low-latency follow-up is in progress under EXP-W-FD-002. ADR-0007 is Proposed, not Accepted; current plugin remains zero-latency. The complete offline screen has conditional numerical solutions; local Debug/Release/ASAN full repeats pass 37/37. Independent Hosted numerical/native validation passed (220 comparisons, 1540 resource rows); historical preservation passed 1707/1707. Local export-fault root cause remains open. No runtime replacement. See [latency study](evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
 

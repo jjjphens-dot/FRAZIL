@@ -92,8 +92,14 @@ cross-rate timbre acceptance is pending Sound Lead review.
 Local Windows Release configure + six-job safe build + full CTest passed 38/38,
 92.40 s. After the event-token naming clarification and shared nonlinear regression,
 a safe Release rebuild and affected convergence/remediation tests passed 2/2, 10.91 s.
-Nine focused analytical/event tests are registered inside the convergence CTest.
-Debug/ASAN and independent FD-003 numerical/native completion remain pending here.
+Ten focused analytical/event tests are registered inside the convergence CTest.
+The initial Debug full run passed 37/38, 244.92 s; the existing D1 CLI's source
+probe exited0xc0000005. Windows event1000 identifies ntdll.dll10.0.22621.6060,
+offset0x33ffa. A stack/root cause is not available from this event. The subsequent
+remediation and convergence tests each used the same probe successfully in that
+suite; this does not repair the failure. The full failure log is retained separately.
+Track this as D1-VAL-003 (new incident, relationship to001/002 unproven). ASAN and
+independent FD-003 numerical/native completion remain pending here.
 No direct CMake build, unconstrained jobs, concurrent local heavy pipelines or hashes.
 
 Commands (repository root, generated outputs ignored):
@@ -139,3 +145,12 @@ is deferred; authorized guitar/piano intake is also required. Pluginval, DAW/PDC
 Host/state/routing/production/UI changes, final quality controls, Joint Gate and merge
 are not performed. S1 is the primary research architecture and S0 a raw control;
 no final product filter, guard, processing latency or production acceptance is selected.
+
+
+Final cross-rate coverage adds exact common-clock sinusoidal comparisons for the
+actual different-kernel policy pairs, retaining the2*eps16 core budget. Whole-chain
+conditioner differences are reported alongside intrinsic propagation error. Ten
+focused tests, including this independent ideal comparison, passed with the Release
+source probe. This supersedes the first dispatched5035244 workflow, which was
+cancelled intentionally before its full research result; cancellation is not PASS
+or a diagnosed test failure. The replacement run will use the final code commit.

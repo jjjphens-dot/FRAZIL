@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "render"))
 from flow_d1_convergence_models import FixedConditioner, registry
 from flow_d1_latency_models import GuardKernel, Conditioner
 from flow_d1_latency_study import nonlinear_filter_probe
+from flow_d1_convergence_cross_rate import analytic_policy_pairs
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument("--probe", type=Path)
@@ -163,6 +164,26 @@ class ConvergenceTests(unittest.TestCase):
                 self.assertAlmostEqual(
                     row[key], expected, delta=max(1.0, abs(expected)) * 1e-12
                 )
+
+    def test_mixed_kernel_cross_rate_against_ideal(self):
+        cells = [
+            dict(policy="control", rate=rate, conditioner="raw-control", kernel=kernel)
+            for rate, kernel in (
+                (44100, "kaiser-g32"),
+                (48000, "kaiser-g16"),
+                (96000, "kaiser-g64"),
+            )
+        ]
+        rows = analytic_policy_pairs(cells)
+        self.assertEqual(len(rows), 16)
+        core = [r for r in rows if r["frequency_hz"] <= 16000]
+        self.assertEqual(len(core), 12)
+        self.assertTrue(all(r["tier_a_pair_pass"] for r in core))
+        for r in rows:
+            # Identity conditioning: entire chain difference equals kernel error.
+            self.assertAlmostEqual(
+                r["kernel_pair_error_rms"], r["whole_chain_difference_rms"], places=13
+            )
 
     def test_frozen_kernel_coverage(self):
         root = Path(__file__).resolve().parents[4] / "docs/evidence"

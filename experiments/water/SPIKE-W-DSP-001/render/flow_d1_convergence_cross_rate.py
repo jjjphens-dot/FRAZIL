@@ -5,9 +5,9 @@ from pathlib import Path
 import numpy as np
 from flow_d1_convergence_models import registry
 from flow_d1_convergence_study import records
-from flow_d1_latency_models import GuardKernel, RATES
+from flow_d1_latency_models import GuardKernel, RATES, EPSILON
 from flow_d1_latency_study import sources, PROFILES, nonlinear_filter_probe
-from flow_d1_remediation_study import csv_write, metrics
+from flow_d1_remediation_study import csv_write, metrics, continuous_path
 
 
 def envelope(x, rate):
@@ -86,6 +86,66 @@ def event_comparison(root):
     return rows
 
 
+def analytic_policy_pairs(policies):
+    """Compare different per-rate kernels on the same continuous path/clock.
+
+    A steady sinusoid is an independent closed-form reference. Conditioner phase
+    remains in whole-chain differences; intrinsic kernel error is reported apart.
+    No stochastic source events enter this controlled propagation comparison.
+    """
+    rows = []
+    times = np.arange(30, 121) / 300
+    path_seconds = continuous_path(times) / 1484
+    for policy in sorted({r["policy"] for r in policies}):
+        cells = {int(r["rate"]): r for r in policies if r["policy"] == policy}
+        for frequency in (1000, 2000, 4000, 8000, 12000, 16000, 18000, 20000):
+            values = {}
+            ideal = np.exp(-2j * np.pi * frequency * path_seconds)
+            for rate, cell in cells.items():
+                if not cell["kernel"]:
+                    continue
+                c = next(c for c in registry(rate) if c.name == cell["conditioner"])
+                family, g = cell["kernel"].split("-g")
+                taps, weights = GuardKernel(family, int(g)).coefficients(
+                    path_seconds * rate
+                )
+                numeric = np.sum(
+                    weights * np.exp(-2j * np.pi * frequency / rate * taps), axis=1
+                )
+                conditioner = c.response(np.array([float(frequency)]))[0] * np.exp(
+                    2j * np.pi * frequency * c.latency / rate
+                )
+                values[rate] = (numeric - ideal, conditioner * numeric)
+            if 96000 not in values:
+                continue
+            for rate in RATES[:2]:
+                if rate not in values:
+                    continue
+                error = values[rate][0] - values[96000][0]
+                chain = values[rate][1] - values[96000][1]
+                finite = bool(np.isfinite(error).all() and np.isfinite(chain).all())
+                rows.append(
+                    dict(
+                        policy=policy,
+                        rate=rate,
+                        reference_rate=96000,
+                        frequency_hz=frequency,
+                        kernel_pair_error_rms=float(np.sqrt(np.mean(abs(error) ** 2))),
+                        kernel_pair_error_peak=float(max(abs(error))),
+                        whole_chain_difference_rms=float(
+                            np.sqrt(np.mean(abs(chain) ** 2))
+                        ),
+                        tier_a_pair_pass=(
+                            bool(finite and max(abs(error)) <= 2 * EPSILON)
+                            if frequency <= 16000
+                            else ""
+                        ),
+                        scope="common clock analytic transfer; whole-chain filter change not accepted",
+                    )
+                )
+    return rows
+
+
 def boundary_audit(fixtures):
     rows = []
     for rate in RATES:
@@ -125,6 +185,10 @@ def main():
         }
         for rate in RATES
     }
+    analytic = analytic_policy_pairs(policies)
+    csv_write(a.output / "ANALYTIC_CROSS_RATE.csv", analytic)
+    if not analytic or any(r["tier_a_pair_pass"] is False for r in analytic):
+        raise ValueError("Different-kernel Tier A cross-rate gate failed")
     boundary = boundary_audit(fixtures)
     csv_write(a.output / "BOUNDARY.csv", boundary)
     if not all(r["finite_window_pass"] for r in boundary):

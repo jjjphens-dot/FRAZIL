@@ -130,3 +130,8 @@ Finite-window validation additionally measures 128 post-fixture zero-input frame
 for every conditioner/source/profile; tail peak relative to complete filtered peak
 must be <=1e-12. This engineering closure check is not an audibility criterion.
 Failure requires extending the reference; do not truncate a meaningful filter tail.
+
+Different per-rate kernels are additionally compared on exact common times with
+closed-form sinusoidal transfer, using the unchanged2*eps16 core pair budget.
+Whole-chain conditioner differences remain in a separate column; do not subtract
+them away and call the complete chain transparent. Tier B is reported, not accepted.
