@@ -56,6 +56,9 @@ inline juce::String operationHistoryText(const ResearchOperationHistory& history
                 text += "  " + name + ": " + number(a) + " -> " + number(b) + "\n";
         };
         delta("Composition", op.before.engineering.mode, op.after.engineering.mode);
+        if (op.before.engineering.core != op.after.engineering.core)
+            text += juce::String("  Core Revision: ") + coreName(op.before.engineering.core) +
+                    " -> " + coreName(op.after.engineering.core) + "\n";
         delta("Size", op.before.water.size, op.after.water.size);
         delta("Motion", op.before.water.motion, op.after.water.motion);
         delta("Decay", op.before.water.decay, op.after.water.decay);

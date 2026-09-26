@@ -1,5 +1,12 @@
 # Water research index
 
+## Preview bridge
+
+[Water Preview A1/B1/D1 bridge](../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md):
+IMPLEMENTED / VALIDATION PENDING; typed-default runtime revision selection, existing A/B, no production adoption.
+Human listening NOT ASSESSED. D1 C6/C7 and ADR-0007 remain unchanged.
+
+
 Current bounded research: [FD-003](EXP-W-FD-003.md), S1 sample-rate-aware management with
 96 kHz raw preference; S0/S2 controls and strict core gates. No product or runtime adoption.
 
@@ -8,7 +15,8 @@ Authorized next research is EXP-W-FD-002: separate comb, audible-band and guard-
 Current Flow research: [EXP-W-FD-001 canonical model](EXP-W-FD-001.md),
 [D1 execution and branch lineage](../../docs/evidence/WATER_FLOW_D1_EXECUTION.md).
 New offline a1d1/b1d1/a1b1d1 modes use reduced emission transfer. A1/B1 and D0
-remain preserved references. No Preview/UI or production adoption; human NOT ASSESSED.
+remain preserved references. Preview runtime now uses these defaults through the bridge above;
+no production adoption; human NOT ASSESSED.
 Source-aware numerical remediation and the still-open D1-NUM-001 finding:
 [remediation evidence](../../docs/evidence/WATER_FLOW_D1_REMEDIATION.md).
 
@@ -23,7 +31,7 @@ does not accept a DSP implementation. Production Water remains NOT IMPLEMENTED.
 | Bubble A1 candidate, physics provenance, P1/P0, v2 config and two named baselines | [EXP-W-BA-001](EXP-W-BA-001.md) |
 | A1 governance remediation, exact sonic comparisons, tracked timing and historical study-v3 | [Execution evidence](../../docs/evidence/WATER_BUBBLE_A1_EXECUTION.md) |
 | A0 legacy control, existing B/D/C and renderer commands | [Research module README](SPIKE-W-DSP-001/README.md) |
-| Preview v0.2/sessionv5 uses Bubble A0; offline A1 mapping is separate | [Mapping](SPIKE-W-DSP-001/RESEARCH_MAPPING.md), [Preview guide](../../docs/DEV_UI_WATER_DEBUG_GUIDE.md) |
+| Legacy v0.2/sessionv5 uses A0; Reworked runtime uses typed defaults, not offline macro mapping | [Mapping](SPIKE-W-DSP-001/RESEARCH_MAPPING.md), [Preview guide](../../docs/DEV_UI_WATER_DEBUG_GUIDE.md) |
 | Current B/D/C listening packs and retained v0.1 evidence | [v0.2 handoff](../../docs/evidence/WATER_LISTENING_HANDOFF_V02.md) |
 | Reference IDs, intake/closeout validation and source limitations | [Reference index](REFERENCE_INDEX.md), [machine registry](REFERENCE_INDEX.csv) |
 | Original human intent, corrections and accepted definition attribution | [Listening log](LISTENING_LOG.md), [initial Round01](ROUND_01_COMMON_WATER.md) |

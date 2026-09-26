@@ -7,7 +7,9 @@ commands, measurements, failures and review history belong to the
 The accepted [Revision B definition](EXP-W-001_PERCEPTUAL_BRIEF.md) supplies the
 positive/negative/must-preserve/reject conditions, not DSP approval. Follow
 [physical-model governance](../../docs/DSP_PHYSICAL_MODEL_GOVERNANCE.md).
-ADR-0006 stays Proposed; Preview/session v5 remains A0/B0/D0. No Host/state/production adoption.
+ADR-0006 stays Proposed; Legacy Preview/session v5 remains A0/B0/D0.
+The separately authorized [Preview bridge](../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md)
+consumes typed defaults in runtime Reworked mode; no new mapping or raw parameter UI. No Host/state/production adoption.
 
 ## Scope and model limits
 

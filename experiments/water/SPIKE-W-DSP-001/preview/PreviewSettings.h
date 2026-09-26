@@ -8,6 +8,11 @@
 
 namespace frazil::water::preview {
 
+enum class WaterResearchCore { legacy, reworked };
+constexpr const char* coreName(WaterResearchCore core) noexcept {
+    return core == WaterResearchCore::reworked ? "Reworked A1/B1/D1" : "Legacy A0/B0/D0";
+}
+
 inline constexpr std::array<const char*, 9> kModes{"abd", "c",  "a",  "b",       "d",
                                                    "ab",  "ad", "bd", "baseline"};
 
@@ -15,6 +20,12 @@ struct PreviewSettings final {
     std::array<double, kControls.size()> values{};
     int mode{}; // Index into kModes; independent of Host routing or Water product model IDs.
     ProtectSettings protect;
+    // Runtime draft/applied/A/B only; session v5 and module JSON remain legacy formats.
+    WaterResearchCore core{WaterResearchCore::legacy};
+
+    bool reworkedFluid() const noexcept {
+        return core == WaterResearchCore::reworked && mode != 1 && mode != 8;
+    }
 
     PreviewSettings() {
         for (std::size_t i = 0; i < values.size(); ++i)

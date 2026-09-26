@@ -142,9 +142,17 @@ class ProtectView final : public juce::Component {
             controls_[i].setVisible(spec.visibility == ControlVisibility::primary ||
                                     advanced_.getToggleState());
         }
-        note_.setText("Depth 0 = OFF after finite transition. GR is residual attenuation, not "
+        const bool active = !session_.draft().engineering.reworkedFluid();
+        enabled_.setEnabled(active);
+        detector_.setEnabled(active);
+        topology_.setEnabled(active);
+        for (auto& control : controls_)
+            control.setEnabled(active);
+        note_.setText(
+            !active ? "INACTIVE: Protect coupling deferred for A1/B1/D1. Settings retained."
+                    : "Depth 0 = OFF after finite transition. GR is residual attenuation, not "
                       "output level reduction. D0/D1 are research candidates.",
-                      juce::dontSendNotification);
+            juce::dontSendNotification);
         resized();
     }
     void resized() override {

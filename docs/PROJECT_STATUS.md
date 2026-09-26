@@ -1,5 +1,14 @@
 # FRAZIL 当前实现与差距
 
+## A1/B1/D1 Preview bridge
+
+IMPLEMENTED / VALIDATION PENDING on the bridge branch. Default Legacy retained; Reworked typed-default
+A1/B1/D1 integrates with existing runtime A/B and transport. No session schema upgrade.
+HUMAN LISTENING NOT ASSESSED; PRODUCT NOT ADOPTED; PRODUCTION WATER NOT IMPLEMENTED.
+D1 C6 pending, C7 Joint Gate NOT RECORDED; ADR-0007 Proposed. Not a main/merge claim.
+[Commands, results and limitations](evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md).
+
+
 Current next-stage work is [FD-003](../experiments/water/EXP-W-FD-003.md) research
 convergence: S0/S1/S2, fixed-character filters and event-aware cross-rate evidence.
 C0–C5 engineering evidence is complete: 24 filter configurations, three S1 variants
@@ -23,7 +32,7 @@ See the [latency study](evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
 
 Flow D1 is implemented as a separate offline reduced-transfer research candidate;
 validation status and open numerical/listening limits are in
-[D1 execution](evidence/WATER_FLOW_D1_EXECUTION.md). It does not change Preview,
+[D1 execution](evidence/WATER_FLOW_D1_EXECUTION.md). The separate Preview bridge above consumes its existing defaults; it does not change
 Host/state or production readiness. The older PR40 “conditional Flow not triggered”
 statements below retain their historical campaign scope; the new user plan independently
 authorizes EXP-W-FD-001. Human acceptance remains NOT ASSESSED.
@@ -46,16 +55,16 @@ for review. Final validation is recorded in [A1 execution](evidence/WATER_BUBBLE
 do not infer a PASS from this status entry. No sonic tuning or new B1 behavior is intended.
 
 
-B1 branch work: [Droplet B1](../experiments/water/EXP-W-DB-001.md) is a separate offline research candidate. Validation and limitations are recorded only in [B1 execution](evidence/WATER_DROPLET_B1_EXECUTION.md). Human listening and product adoption remain NOT ASSESSED; Preview/session v5 still uses A0/B0/D0. Historical B0 evidence below is not B1 evidence.
+B1 branch work: [Droplet B1](../experiments/water/EXP-W-DB-001.md) is a separate offline research candidate. Validation and limitations are recorded only in [B1 execution](evidence/WATER_DROPLET_B1_EXECUTION.md). Human listening and product adoption remain NOT ASSESSED; Legacy Preview/session v5 uses A0/B0/D0; Reworked runtime now uses A1/B1/D1. Historical B0 evidence below is not B1 evidence.
 
 Current Water distinction: EXP-W-001 Revision B is ACCEPTED for perceptual definition.
 A1 v2 is an engineering review candidate, HUMAN NOT ASSESSED, production NOT IMPLEMENTED.
-PHYS-REF and MACRO-NEUTRAL differ; Preview uses A0. B/D/C and Protect research behavior
-is unchanged. See [Water index](../experiments/water/README.md) for current versus historical evidence.
+PHYS-REF and MACRO-NEUTRAL differ; Legacy Preview uses A0 and Reworked uses A1 typed defaults.
+Legacy B/D/C and Protect behavior is unchanged. See [Water index](../experiments/water/README.md) for current versus historical evidence.
 
 2026-09-24 bounded research addition: [Bubble A1](../experiments/water/EXP-W-BA-001.md)
 implements an explicit offline independent-bubble candidate; validation state is in
-its [execution record](evidence/WATER_BUBBLE_A1_EXECUTION.md). UI integration, human
+its [execution record](evidence/WATER_BUBBLE_A1_EXECUTION.md). Preview runtime integration is recorded above; human
 listening acceptance and production adoption remain pending. This does not reopen
 or close a milestone, change Host support, or replace A0/B/D/C evidence below.
 

@@ -3,7 +3,12 @@
 #include "DiagnosticMonitor.h"
 #include "PreviewSettings.h"
 #include "ProtectDiagnostics.h"
+#include "dsp/BubbleA1.h"
+#include "dsp/DropletB1.h"
+#include "dsp/FlowD1.h"
 #include "render/ReadConfig.h"
+
+#include <memory>
 
 namespace frazil::water::preview {
 
@@ -15,6 +20,11 @@ class PreviewEngine final {
         ready_ = false;
         readout_ = {};
         diagnostic_ = {};
+        reworked_ = settings.reworkedFluid();
+        if ((settings.core != WaterResearchCore::legacy &&
+             settings.core != WaterResearchCore::reworked) ||
+            (reworked_ && settings.mode == 4))
+            return false;
         if (settings.mode < 0 || settings.mode >= static_cast<int>(kModes.size()) ||
             !std::isfinite(sampleRate) || sampleRate < 44100 || sampleRate > 96000)
             return false;
@@ -28,7 +38,7 @@ class PreviewEngine final {
         baseline_ = mode == "baseline";
         modalMode_ = mode == "c";
         if ((modalMode_ && protectConfig.topology != research::FluidProtectTopology::whole) ||
-            !protect_.prepare(sampleRate, protectConfig.gain, protectConfig.depth))
+            (!reworked_ && !protect_.prepare(sampleRate, protectConfig.gain, protectConfig.depth)))
             return false;
         topology_ = protectConfig.topology;
         sampleRate_ = sampleRate;
@@ -39,8 +49,22 @@ class PreviewEngine final {
         research::ResearchConfig config;
         config.sampleRateHz = sampleRate;
         config.baseSeed = kSeed;
-        ready_ = baseline_ || (modalMode_ ? modal_.prepare(config, modalConfig)
-                                          : fluid_.prepare(config, fluidConfig));
+        if (reworked_) {
+            // Match renderer composition and typed defaults. Large fixed voice pools live off
+            // the Windows stack, allocated only with the callback detached during prepare.
+            bubbleEnabled_ = fluidConfig.bubbleEnabled;
+            dropletEnabled_ = fluidConfig.dropletEnabled;
+            flowEnabled_ = fluidConfig.flowEnabled;
+            if (!a1_)
+                a1_ = std::make_unique<research::BubbleA1>();
+            if (!b1_)
+                b1_ = std::make_unique<research::DropletB1>();
+            ready_ = (!bubbleEnabled_ || a1_->prepare(config)) &&
+                     (!dropletEnabled_ || b1_->prepare(config)) &&
+                     (!flowEnabled_ || d1_.prepare(config));
+        } else
+            ready_ = baseline_ || (modalMode_ ? modal_.prepare(config, modalConfig)
+                                              : fluid_.prepare(config, fluidConfig));
         reset();
         return ready_;
     }
@@ -49,6 +73,11 @@ class PreviewEngine final {
         fluid_.reset();
         modal_.reset();
         protect_.reset();
+        if (a1_)
+            a1_->reset();
+        if (b1_)
+            b1_->reset();
+        d1_.reset();
         readout_ = {};
         diagnostic_ = {};
     }
@@ -57,6 +86,8 @@ class PreviewEngine final {
         diagnostic_ = {};
         if (!ready_)
             return {};
+        if (reworked_)
+            return reworkedResidual(input);
         const auto gain = protect_.processSource(input);
         if (baseline_)
             return {};
@@ -104,6 +135,14 @@ class PreviewEngine final {
             activity.modalDecaySeconds = modalConfig_.decaySeconds;
             activity.modalMotionDepth = modalConfig_.motionDepth;
             activity.modalMotionIntervalSeconds = modalConfig_.motionIntervalSeconds;
+        } else if (reworked_) {
+            activity.bubbleEvents = bubbleEnabled_ ? a1_->pool().counters().started : 0;
+            activity.bubbleActive = bubbleEnabled_ ? a1_->pool().active() : 0;
+            activity.bubbleSteals = bubbleEnabled_ ? a1_->pool().counters().steals : 0;
+            activity.dropletEvents = dropletEnabled_ ? b1_->pool().counters().started : 0;
+            activity.dropletActive = dropletEnabled_ ? b1_->pool().active() : 0;
+            activity.flowDelayMs =
+                flowEnabled_ ? 1000 * research::FlowD1Model::delaySeconds(d1_.pathMeters()) : 0;
         } else {
             activity.bubbleEvents = fluid_.bubbleEvents();
             activity.dropletEvents = fluid_.dropletEvents();
@@ -117,9 +156,11 @@ class PreviewEngine final {
 
     // Audio-owner command, called only at callback/sample boundaries by PreviewController.
     bool setProtectDepth(double depth) noexcept {
-        return ready_ && protect_.setDepth(depth);
+        return ready_ && !reworked_ && protect_.setDepth(depth);
     }
     ProtectReadout protectReadout() const noexcept {
+        if (reworked_)
+            return {};
         const auto detection = protect_.detection();
         return {detection.fast, detection.slow, detection.difference, detection.logRatioDb,
                 protect_.reductionDb()};
@@ -128,6 +169,35 @@ class PreviewEngine final {
     static constexpr std::uint32_t kSeed = 42;
 
   private:
+    research::StereoFrame reworkedResidual(const research::StereoFrame& input) noexcept {
+        research::FluidResiduals parts;
+        if (bubbleEnabled_) {
+            parts.bubble = a1_->process(input);
+            diagnostic_.at(DiagnosticSignal::bubbleDriver) = a1_->excitationFrame();
+        }
+        if (dropletEnabled_)
+            parts.droplet = b1_->process(input);
+        auto effect = parts.sum(); // Same float summation boundary as render_main.cpp.
+        if (flowEnabled_) {
+            const auto transferred = d1_.process(effect);
+            for (std::size_t ch = 0; ch < effect.size(); ++ch)
+                effect[ch] = static_cast<float>(transferred.transferred[ch]);
+        }
+        diagnostic_.at(DiagnosticSignal::bubble) = parts.bubble;
+        diagnostic_.at(DiagnosticSignal::droplet) = parts.droplet;
+        // D1 is the transferred emission, never an additive D0 carrier residual.
+        diagnostic_.at(DiagnosticSignal::flow) = flowEnabled_ ? effect : research::StereoFrame{};
+        readout_.at(WaterSignal::bubble) = parts.bubble;
+        readout_.at(WaterSignal::droplet) = parts.droplet;
+        readout_.at(WaterSignal::flow) = diagnostic_.at(DiagnosticSignal::flow);
+        readout_.at(WaterSignal::totalPreProtect) = effect;
+        readout_.at(WaterSignal::postProtect) = effect;
+        return effect;
+    }
+    std::unique_ptr<research::BubbleA1> a1_;
+    std::unique_ptr<research::DropletB1> b1_;
+    research::FlowD1 d1_;
+    bool reworked_{}, bubbleEnabled_{}, dropletEnabled_{}, flowEnabled_{};
     // Lifecycle/audio owner only. No UI access or runtime config mutation of these DSP objects.
     research::FluidCandidate fluid_;
     research::LiquidModalResonator modal_;

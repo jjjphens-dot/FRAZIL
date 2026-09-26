@@ -1,5 +1,12 @@
 # Research Water Mapping v0.2
 
+## Core applicability
+
+`research-water-mapping-v0.2` applies to Legacy A0/B0/D0 and unchanged C only.
+A1/B1/D1 mapping is intentionally undefined in the Preview bridge. Reworked Fluid disables these macros;
+typed/default configs remain the only A1/B1/D1 parameter authority. No formula or mapping revision changes.
+
+
 Audible bandwidth is unaccepted PRODUCT_MAPPING research; guard/filter coefficients are ENGINEERING. They do not map Motion/Size/Decay or infer source distance. See [latency study](../../../docs/evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
 
 Flow D1 has no product macro mapping. Its independent offline version1 accepts

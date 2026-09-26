@@ -292,8 +292,15 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         const std::string_view mode(
             kModes[static_cast<std::size_t>(session_.applied().engineering.mode)]);
         const auto available = [&](int id) {
+            if (session_.applied().engineering.reworkedFluid() &&
+                id == static_cast<int>(DiagnosticSignal::dropletDriver) + 1)
+                return false; // B1 has no equivalent public trigger frame; do not fake one.
             return id > 0 && diagnosticAvailable(mode, static_cast<DiagnosticSignal>(id - 1));
         };
+        diagnostic_.changeItemText(static_cast<int>(DiagnosticSignal::flow) + 1,
+                                   session_.applied().engineering.reworkedFluid()
+                                       ? "Solo D1 transferred emission"
+                                       : "Solo Flow (pre-Protect)");
         for (std::size_t i = 1; i < kDiagnosticLabels.size(); ++i)
             diagnostic_.setItemEnabled(static_cast<int>(i) + 1, available(static_cast<int>(i) + 1));
         diagnostic_.setEnabled(engineering && mode != "baseline");
@@ -396,6 +403,13 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
         updateExcitationAudition();
         protect_.refresh();
         const auto& state = session_.draft();
+        const bool legacyExport = session_.applied().engineering.core == WaterResearchCore::legacy;
+        for (auto* button : {&copy_, &export_, &copySession_, &exportSession_}) {
+            button->setEnabled(legacyExport);
+            button->setTooltip("Legacy export only: module JSON / session v5 cannot represent "
+                               "Reworked core. Use runtime Capture A/B; no session v6.");
+        }
+        importModule_.setEnabled(state.engineering.core == WaterResearchCore::legacy);
         gain_.setValue(state.monitorGainDb, juce::dontSendNotification);
         controller_.setMonitor(state.monitor, static_cast<float>(state.monitorGainDb));
         controller_.setAuditionTrim(state.auditionETrimDb);
@@ -440,14 +454,15 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                            ? " / structured Motion"
                            : " / independent Motion") +
                       " | seed 42 | no Host automation"
-                : "Research only | shared experiment state | no Host automation | seed 42",
+                : juce::String(coreName(applied.core)) +
+                      " | research only | seed 42 | Reworked export unavailable (session v5)",
             juce::dontSendNotification);
 
         appliedLabel_.setText(
             juce::String(session_.dspDirty() ? "DSP DIRTY | " : "DSP APPLIED | ") +
                 (session_.sessionDirty() ? "SESSION DIRTY | " : "SESSION APPLIED | ") +
                 juce::String(static_cast<int>(session_.unappliedChanges())) +
-                " unapplied changes | applied " +
+                " unapplied changes | " + coreName(applied.core) + " | applied " +
                 kModes[static_cast<std::size_t>(session_.applied().engineering.mode)] + " | rev " +
                 juce::String(static_cast<juce::int64>(session_.revision())) + " / " +
                 originName(session_.draft().lastChange.origin) + " | " +

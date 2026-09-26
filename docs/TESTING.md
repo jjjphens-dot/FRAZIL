@@ -1,5 +1,15 @@
 # FRAZIL 测试、听测与发布门槛
 
+## Reworked Preview bridge regression
+
+`preview_reworked_core_tests.cpp` joins existing `frazil_water_preview`: Legacy default, runtime core dirty/A/B/history/reset,
+v5 import to Legacy, D-only rejection, six direct-reference chains at44.1/48/96kHz, deterministic reset,
+finite/channel isolation, Protect inactivity and unchanged C/baseline. Reference comparisons exclude monitor gain/trim/transition.
+Existing Preview, v1-v5 session, mapping, Protect and audition regressions remain registered.
+These checks do not prove device playback, human listening, C6/C7 or production adoption.
+Actual validation: [bridge evidence](evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md).
+
+
 ## Latency policy revision
 
 [ADR-0007](adr/0007-minimum-practical-processing-latency.md) proposes minimum

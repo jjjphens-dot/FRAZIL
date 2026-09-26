@@ -174,6 +174,10 @@ juce::String PreviewController::validate(const PreviewSettings& settings, double
         return {};
     if (settings.mode < 0 || settings.mode >= static_cast<int>(kModes.size()))
         return "Composition: unknown mode.";
+    if (settings.reworkedFluid() && settings.mode == 4)
+        return "D1 requires A1 and/or B1 emission. Use AD, BD or ABD.";
+    if (settings.reworkedFluid())
+        return "Reworked core: typed-default preparation failed or retained config is invalid.";
     research::FluidConfig fluid;
     research::ModalConfig modal;
     ProtectSettings protect;

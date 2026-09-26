@@ -1,9 +1,36 @@
 # Debug UI 与 Water 研究预览联调指南
 
-当前 Preview 的 Bubble 是 A0；A1 v2 的 PHYS-REF / MACRO-NEUTRAL、P0/P1 比较仅在离线工具中使用。
+## A1/B1/D1 Preview bridge (implementation; validation pending)
 
-当前 [Bubble A1](../experiments/water/EXP-W-BA-001.md) 仅提供显式离线 DSP/渲染路径，
-尚未接入本指南的 UI、session v5 或 mapping v0.2。旧 A0 控件不代表 A1 物理参数。
+Core 默认 Legacy A0/B0/D0；两页共用 Core 选择，完成后按既有 AUTO AUDITION / Apply + Play 流程处理。
+Reworked 使用现有 BubbleA1、DropletB1、FlowD1 typed defaults；C 仍是原 LiquidModalResonator。
+A/B/AB 分别为 A1/B1/A1+B1；AD/BD/ABD 是 D1(A1)、D1(B1)、D1(A1+B1)，不重复加入原 emission。
+Reworked D-only 明确拒绝并提示改用 AD/BD/ABD；baseline 仍是零 residual。
+
+Reworked Fluid 的 Size/Motion/Decay 显示 NOT MAPPED TO REWORKED CORE；旧 A/B/D engineering controls
+禁用并保留值，C controls 保持原义。Protect coupling deferred for A1/B1/D1：控件保留但不处理 Protect。
+切回 Legacy 恢复原值。D1 使用当前 renderer 的历史四点 Lagrange 实现，不是 FD-003 conditioner/kernel shortlist。
+
+试听：加载同一授权 WAV，在 Engineering 选 A + Legacy，Apply/Play 后 Capture A；切 Reworked，
+Apply/Play 后 Capture B。Apply A/B 各自恢复 core 和已应用配置，再 Play 从同一起点/seed42 比较。
+以同样方式比较 B、AB 与 ABD；保持 Source/Full/Residual、E Trim 和 Monitor Output 一致。
+Reset 返回 Legacy。Core 参与 draft/applied、dirty 和一条完整 operation history，容量50/250ms不变。
+
+Core 仅在运行时和 A/B 中保留。session v5/schema、mapping v0.2 不升级；Reworked 已应用时
+Copy/Export config/session 禁用，防止把 legacy JSON 当成 Reworked 复现配置。
+Import Session 仍可用且恢复 Legacy；Reworked draft 下 Import Module Config 禁用。
+离线复现使用原 renderer 的 a1/b1/a1b1/a1d1/b1d1/a1b1d1 modes、缺省 config、seed42 和相同 WAV。
+导出的 legacy module config 不含 A1/B1/D1 typed defaults，不能作为该路径配置。
+
+诊断复用现有 meter、finite、started/active 和 D delay；Reworked 的 Solo D1 是 transferred emission，
+A/B solos 是 transfer 前的 emission，不可将三者相加。A1 trigger 可用；B1 trigger 未提供，选项禁用。
+requested/eligible/admitted/pathMeters/drainSamples 扩展读数本轮 DEFERRED。
+D1-NUM-001 仍 OPEN；与历史 renderer 一致不表示该 kernel 已通过数值验收。
+Reworked Core 不代表 production adoption、Host integration 或 C6/C7 验收；human listening NOT ASSESSED。
+验证与限制见 [bridge evidence](evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md)。
+
+
+以下原有参数表/导出说明适用于 Legacy；Reworked 差异以上节为准。
 
 ## 1. 两个入口及当前连接状态
 

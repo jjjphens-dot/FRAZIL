@@ -47,7 +47,8 @@ struct ResearchSessionState final {
 };
 
 inline bool sameResearchContext(const ResearchSessionState& a, const ResearchSessionState& b) {
-    return a.water == b.water && a.monitor == b.monitor && a.monitorGainDb == b.monitorGainDb &&
+    return a.engineering.core == b.engineering.core && a.water == b.water &&
+           a.monitor == b.monitor && a.monitorGainDb == b.monitorGainDb &&
            a.auditionETrimDb == b.auditionETrimDb && a.source == b.source &&
            a.mappingRevision == b.mappingRevision && a.macroMappings == b.macroMappings &&
            a.listeningCalibration == b.listeningCalibration && a.modelMapping == b.modelMapping &&
@@ -109,6 +110,7 @@ class ResearchSessionModel final {
 
     std::size_t unappliedChanges() const noexcept {
         std::size_t count = draft_.engineering.mode != applied_.engineering.mode;
+        count += draft_.engineering.core != applied_.engineering.core;
         for (std::size_t i = 0; i < kControls.size(); ++i)
             count += draft_.engineering.values[i] != applied_.engineering.values[i];
         count += draft_.water.size != applied_.water.size;
@@ -143,6 +145,7 @@ class ResearchSessionModel final {
         auto pending = draft_.engineering.protect;
         pending.depth = applied_.engineering.protect.depth; // Live target, never requires prepare.
         return draft_.engineering.mode != applied_.engineering.mode ||
+               draft_.engineering.core != applied_.engineering.core ||
                draft_.engineering.values != applied_.engineering.values ||
                !sameProtect(pending, applied_.engineering.protect);
     }
@@ -185,6 +188,15 @@ class ResearchSessionModel final {
         if (draft_.mappingRevision == ResearchWaterMacroMapper::revision.data())
             mapMacro(id, origin);
         changed(origin); // Legacy-unmapped sessions retain raw DSP until explicit adoption.
+        return true;
+    }
+    bool setCore(WaterResearchCore core, ChangeOrigin origin) {
+        if (core != WaterResearchCore::legacy && core != WaterResearchCore::reworked)
+            return false;
+        if (draft_.engineering.core == core)
+            return true;
+        draft_.engineering.core = core;
+        changed(origin);
         return true;
     }
     bool setComposition(int mode, ChangeOrigin origin) {

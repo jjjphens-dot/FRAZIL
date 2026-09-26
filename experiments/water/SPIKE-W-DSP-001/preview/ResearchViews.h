@@ -22,6 +22,17 @@ class WaterMacroView final : public juce::Component {
     WaterMacroView(ResearchSessionModel& session, ChangeOrigin origin,
                    ResearchOperations& operations)
         : session_(session), origin_(origin), operations_(operations) {
+        core_.addItem("Core: Legacy A0/B0/D0", 1);
+        core_.addItem("Core: Reworked A1/B1/D1", 2);
+        core_.setTitle("Research core revision");
+        core_.setTooltip("Runtime A/B only. Session v5 cannot save this revision. C is unchanged.");
+        addAndMakeVisible(core_);
+        core_.onChange = [this] {
+            const auto core = core_.getSelectedId() == 2 ? WaterResearchCore::reworked
+                                                         : WaterResearchCore::legacy;
+            operations_.action("Core Revision", origin_, true, true,
+                               [this, core] { session_.setCore(core, origin_); });
+        };
         model_.addItem("Fluid", 1);
         model_.addItem("Resonant", 2);
         addAndMakeVisible(model_);
@@ -89,6 +100,17 @@ class WaterMacroView final : public juce::Component {
     }
     void refresh() {
         const auto& state = session_.draft();
+        const bool reworked = state.engineering.reworkedFluid();
+        core_.setSelectedId(state.engineering.core == WaterResearchCore::reworked ? 2 : 1,
+                            juce::dontSendNotification);
+        notice_.setText(reworked ? "Typed defaults | Protect coupling deferred for A1/B1/D1."
+                                 : "RESEARCH MAPPING v0.2 | C unchanged by core revision",
+                        juce::dontSendNotification);
+        returnAll_.setEnabled(!reworked);
+        for (std::size_t i = 0; i < knobs_.size(); ++i) {
+            knobs_[i].setEnabled(!reworked);
+            returnMacro_[i].setEnabled(!reworked);
+        }
         model_.setSelectedId(state.water.model == WaterModel::fluid ? 1 : 2,
                              juce::dontSendNotification);
         knobs_[0].setValue(state.water.size, juce::dontSendNotification);
@@ -100,12 +122,14 @@ class WaterMacroView final : public juce::Component {
         returnMapped_.setEnabled(state.modelMapping == MappingStatus::custom);
         for (std::size_t i = 0; i < names_.size(); ++i)
             names_[i].setText(juce::String(macroKey(i)) +
-                                  (state.macroMappings[i] == MappingStatus::mapped
+                                  (reworked ? " / NOT MAPPED"
+                                   : state.macroMappings[i] == MappingStatus::mapped
                                        ? " / RESEARCH_MAPPED"
                                        : " / CUSTOM"),
                               juce::dontSendNotification);
         for (std::size_t i = 0; i < targets_.size(); ++i)
-            targets_[i].setText(macroTargetsText(state, static_cast<MacroId>(i)),
+            targets_[i].setText(reworked ? "NOT MAPPED TO REWORKED CORE"
+                                         : macroTargetsText(state, static_cast<MacroId>(i)),
                                 juce::dontSendNotification);
         returnAll_.setButtonText(state.mappingRevision != ResearchWaterMacroMapper::revision.data()
                                      ? "Adopt Research Mapping v0.2"
@@ -115,6 +139,7 @@ class WaterMacroView final : public juce::Component {
         auto area = getLocalBounds().reduced(8);
         notice_.setBounds(area.removeFromBottom(28));
         auto left = area.removeFromLeft(250);
+        core_.setBounds(left.removeFromTop(32));
         model_.setBounds(left.removeFromTop(32));
         mapping_.setBounds(left.removeFromTop(32));
         returnMapped_.setBounds(left.removeFromTop(30));
@@ -136,7 +161,7 @@ class WaterMacroView final : public juce::Component {
     ResearchSessionModel& session_; // Borrowed message-thread owner outlives the view.
     ChangeOrigin origin_;
     ResearchOperations& operations_;
-    juce::ComboBox model_;
+    juce::ComboBox model_, core_;
     std::array<ResearchSlider, 3> knobs_;
     std::array<juce::Label, 3> names_;
     std::array<juce::Label, 3> targets_;
@@ -212,6 +237,8 @@ class EngineeringView final : public juce::Component {
     void refresh() {
         macros_.refresh();
         const auto& state = session_.draft();
+        const bool reworked = state.engineering.core == WaterResearchCore::reworked;
+        calibration_.setEnabled(!reworked || state.engineering.mode == 1);
         composition_.setSelectedId(state.engineering.mode + 1, juce::dontSendNotification);
         provenance_.setText(
             juce::String(ResearchListeningCalibration::revision) +
@@ -221,7 +248,9 @@ class EngineeringView final : public juce::Component {
         for (std::size_t i = 0; i < kControls.size(); ++i) {
             const auto& spec = kControls[i];
             const auto group = static_cast<std::size_t>(spec.group);
-            const bool active = moduleActive(spec.group, state.engineering.mode);
+            const bool legacyOnly = reworked && spec.group != ControlGroup::modal;
+            const bool active = !legacyOnly && moduleActive(spec.group, state.engineering.mode);
+            controls_[i].setEnabled(!legacyOnly);
             controls_[i].refreshValue(state.engineering.values[i]);
             controls_[i].setAlpha(active ? 1.0f : .55f);
             controls_[i].setVisible(expanded_[group]);
@@ -239,7 +268,9 @@ class EngineeringView final : public juce::Component {
             controls_[i].setHelp(juce::String("Owner: ") + ownerText + " | " +
                                  juce::String(spec.stableId()) + " | APPLY | baseline " + baseline +
                                  " | SPIKE-W-DSP-001 | " +
-                                 (active ? "ACTIVE" : "INACTIVE / retained") +
+                                 (legacyOnly ? "LEGACY CORE ONLY"
+                                  : active   ? "ACTIVE"
+                                             : "INACTIVE / retained") +
                                  " | origin: " + originName(state.ownership[i].origin));
         }
         constexpr std::array<const char*, 4> names{"A / BUBBLE", "B / DROPLET", "D / FLOW",
@@ -247,7 +278,9 @@ class EngineeringView final : public juce::Component {
         for (std::size_t i = 0; i < headings_.size(); ++i)
             headings_[i].setButtonText(
                 juce::String(expanded_[i] ? "[-] " : "[+] ") + names[i] +
-                (moduleActive(static_cast<ControlGroup>(i), state.engineering.mode)
+                (reworked && i != static_cast<std::size_t>(ControlGroup::modal)
+                     ? " / LEGACY CORE ONLY"
+                 : moduleActive(static_cast<ControlGroup>(i), state.engineering.mode)
                      ? " / ACTIVE"
                      : " / INACTIVE - retained") +
                 " / APPLY");

@@ -120,7 +120,9 @@ allocation/finite tests and integrated timing. If none passes, preserve the
 current explicitly rejected kernel and submit a finding rather than promote an
 unsupported replacement. This is not a proof that all causal designs are impossible.
 
-The v1 configuration is research-unfrozen and has no production/Preview consumer.
+The v1 configuration is research-unfrozen. The separately authorized
+[Preview bridge](../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md) consumes typed defaults only;
+there is no production consumer or Preview raw config import.
 If a replacement is selected, record old/new numerical revision and before/after
 evidence under option A; any discovered frozen external consumer requires review
 of version compatibility first. Documentation/study changes alone do not change
@@ -268,7 +270,8 @@ spatial widening, per-voice position or turbulence-noise source is implemented.
 Legacy FlowModulator/FluidCandidate remains D0, an ENGINEERING carrier delay-minus-
 input mechanism. Explicit new modes a1d1/b1d1/a1b1d1 and their -residual variants
 alone enable D1. Old a/b/d/ab/ad/bd/abd/c and A1/B1 combinations remain exact.
-Preview/sessionv5 retains A0/B0/D0; no mapping adapter, Size/Decay destination,
-Motion curve, UI, Host/schema, production or Ice work. Protect remains off here.
+Legacy Preview/sessionv5 retains A0/B0/D0. The separate bridge provides a runtime core selector,
+without a mapping adapter, Size/Decay destination, Motion curve, raw parameter UI,
+Host/schema, production or Ice work. Protect remains off here.
 This independently authorized task does not rewrite historical PR40 conditional
 Flow decisions. No human approval, EXP-W-002 completion or M2 exit is implied.

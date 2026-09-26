@@ -9,6 +9,9 @@ inline juce::String draftSummary(const ResearchSessionModel& session) {
     const auto& a = session.applied();
     const auto& d = session.draft();
     juce::String text;
+    if (a.engineering.core != d.engineering.core)
+        text += juce::String("Core Revision: ") + coreName(a.engineering.core) + " -> " +
+                coreName(d.engineering.core) + "\n";
     const auto line = [&](const juce::String& name, double oldValue, double value,
                           bool time = false) {
         if (oldValue == value)

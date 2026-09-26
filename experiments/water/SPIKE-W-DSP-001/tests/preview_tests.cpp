@@ -17,13 +17,14 @@ int runWorkflowTests();
 int runOperationTests();
 int runAuditionTests();
 int runAuditionWorkflowTests();
+int runReworkedCoreTests();
 
 int main() {
     juce::ScopedJuceInitialiser_GUI gui;
     int failures = runTimeValueTests() + runDescriptorTests() + runSessionTests() +
                    runSessionCodecTests() + runPreviewProtectTests() +
                    runProtectDiagnosticsTests() + runWorkflowTests() + runOperationTests() +
-                   runAuditionTests() + runAuditionWorkflowTests();
+                   runAuditionTests() + runAuditionWorkflowTests() + runReworkedCoreTests();
     const auto check = [&](bool result, const char* name) {
         if (!result) {
             std::cerr << "FAIL " << name << '\n';

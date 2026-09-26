@@ -1,5 +1,13 @@
 # FRAZIL Module Index
 
+## Research Preview revision dependency
+
+Water Research Preview -> Legacy FluidCandidate / LiquidModalResonator；可选 Reworked -> BubbleA1 / DropletB1 / FlowD1。
+这些均是 opt-in research-only dependencies；production dependency graph 不变。PreviewSettings 的 core
+只属于 runtime draft/applied/A/B，不属于 Host 或 session v5 文件。详见
+[bridge evidence](evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md)。
+
+
 FD-003 adds offline `flow_d1_convergence_models.py`, `flow_d1_convergence_study.py`,
 `flow_d1_convergence_native.py` and `flow_d1_convergence_cross_rate.py` to bound the
 candidate registry, reuse guard/native machinery and report cross-rate/event evidence.
@@ -14,7 +22,8 @@ waypoints), FlowD1FractionalDelay (fixed separate stereo memory) and FlowD1
 (emission transfer/correction). All live under the existing spike dsp directory.
 prepare/reset/process are JUCE-free and instance-owned; wide result fields preserve
 finite-float extremes. Offline descriptor, renderer/study and tests do not add a
-Preview or production dependency. D0/A1/B1 source responsibilities remain unchanged.
+production dependency. Preview now consumes the existing D1 through the runtime bridge above.
+D0/A1/B1 source responsibilities remain unchanged.
 `tests/flow_d1_source_probe.cpp` exports actual A1/B1 emissions, typed physics inputs
 and D1 trajectory for `render/flow_d1_remediation_study.py`; the latter owns analytic
 and offline Fourier references, candidate comparisons and convergence evidence.
@@ -30,7 +39,7 @@ Current authority: [Water research index](../experiments/water/README.md).
 SharedExcitationAnalyzer has no BubbleA1Model dependency; it owns linked power and
 one joint-peak stereo frame. A1 model/pool own P1/P0 event trajectories. A0 is the
 legacy Preview/control; B/D/C remain existing research candidates. Production Water
-remains NOT IMPLEMENTED; no A1 UI/session dependency is introduced.
+remains NOT IMPLEMENTED; only the research Preview runtime consumes A1; session v5 stays Legacy.
 
 A1 numeric authority: `BubbleA1ConfigSpec.h` references the independent shared-analysis
 specs in `SharedExcitationConfig.h`; both use immutable `ResearchParameterSpec` values.
@@ -43,7 +52,7 @@ Research-only [Bubble A1](../experiments/water/EXP-W-BA-001.md):
 existing spike `dsp/` own linked energy analysis, physical table, bounded voices and
 population scheduling respectively. JUCE-free prepare/reset/process; offline-only
 renderer/config/export/performance adapters. Tests: `frazil_water_bubble_a1` and
-`frazil_water_bubble_a1_cli`. No production, preview/session, A0/B/D/C responsibility change.
+`frazil_water_bubble_a1_cli`. No production, session schema or A0/B/D/C responsibility change; Preview runtime integration is described above.
 
 本索引是模块边界、公共接口、依赖、线程和证据的快速入口。`Planned` 只表示计划合同，不表示当前源码已经存在；实现前必须先关联对应的 [Coding Plan](CODING_PLAN.md) work item。
 

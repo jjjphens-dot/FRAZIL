@@ -1,5 +1,14 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+## Preview core revision bridge
+
+Legacy Preview core = A0/B0/D0/C (default). Reworked Preview core = A1/B1/D1 plus unchanged C;
+A/B/AB are emission, AD/BD/ABD are transferred emission, D-only rejects.
+A1/B1/D1 parameters use research typed defaults, not product macros; legacy Fluid controls and Protect are inactive.
+Runtime A/B retains core; session v5 does not. Reworked Copy/Export is disabled; v5 import restores Legacy.
+[Bridge evidence](../../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md) records validation and human/production limits.
+
+
 Current bounded research: [FD-003](../EXP-W-FD-003.md), S1 sample-rate-aware management with
 96 kHz raw preference; S0/S2 controls and strict core gates. No product or runtime adoption.
 
@@ -16,16 +25,16 @@ tools and reproducible commands are in the
 [remediation finding](../../../docs/evidence/WATER_FLOW_D1_REMEDIATION.md).
 Numerical-tool test success is not physical or human acceptance.
 
-[Droplet B1](../EXP-W-DB-001.md) is an explicit offline-only causal entrained-bubble candidate. `b1`, `b1-residual`, `a1b1`, `a1b1d` select it; legacy `b/bd/abd` remain B0. `--describe-droplet-b1` emits the code-generated v1 contract. Configuration, sources, commands and actual validation: [B1 execution](../../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md). No Preview/session or production adoption.
+[Droplet B1](../EXP-W-DB-001.md) is an independent causal entrained-bubble research candidate. `b1`, `b1-residual`, `a1b1`, `a1b1d` select it; legacy `b/bd/abd` remain B0. `--describe-droplet-b1` emits the code-generated v1 contract. Configuration, sources, commands and actual validation: [B1 execution](../../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md). Preview runtime uses typed defaults; no session schema or production adoption.
 
-Current navigation: [Water research index](../README.md). Preview/Fluid retain A0;
+Current navigation: [Water research index](../README.md). Legacy Preview/Fluid retain A0;
 B/D/C and Protect keep their existing research behavior. Production Water is NOT IMPLEMENTED.
 
-The separate [Bubble A1 experiment](../EXP-W-BA-001.md) adds an explicit offline-only
+The separate [Bubble A1 experiment](../EXP-W-BA-001.md) adds an explicit research
 independent population and shared excitation candidate. Physical equations, reduced
 source/population hypotheses, product mappings and engineering policies are classified
 separately; `--describe-bubble-a1` exports the typed v2 research contract. Legacy A0/B/D/C and
-preview/session v5 remain unchanged. A1 is not connected to UI or accepted for production.
+session v5 remains unchanged. Preview runtime integration is described above; A1 is not accepted for production.
 
 Research-only A/B/D/C mechanisms; local Debug/Release/ASAN 16/16 each, 138 core + 4 supplemental smoke renders
 and 80 corpus renders PASS. Exact-head Hosted CI is separately recorded in PR #30.
