@@ -2,7 +2,8 @@
 
 ## A1/B1/D1 Preview bridge
 
-IMPLEMENTED / VALIDATION PENDING on the bridge branch. Default Legacy retained; Reworked typed-default
+IMPLEMENTED with focused Preview regression validation on the bridge branch; full Debug/ASAN each retain
+one failure documented below. Default Legacy retained; Reworked typed-default
 A1/B1/D1 integrates with existing runtime A/B and transport. No session schema upgrade.
 HUMAN LISTENING NOT ASSESSED; PRODUCT NOT ADOPTED; PRODUCTION WATER NOT IMPLEMENTED.
 D1 C6 pending, C7 Joint Gate NOT RECORDED; ADR-0007 Proposed. Not a main/merge claim.

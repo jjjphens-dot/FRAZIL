@@ -3,7 +3,8 @@
 ## Preview bridge
 
 [Water Preview A1/B1/D1 bridge](../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md):
-IMPLEMENTED / VALIDATION PENDING; typed-default runtime revision selection, existing A/B, no production adoption.
+IMPLEMENTED; focused Preview regression validated, full Debug/ASAN each retain one failure in the linked evidence.
+Typed-default runtime revision selection, existing A/B, no production adoption.
 Human listening NOT ASSESSED. D1 C6/C7 and ADR-0007 remain unchanged.
 
 

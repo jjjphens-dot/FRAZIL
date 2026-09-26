@@ -1,6 +1,8 @@
 # Debug UI 与 Water 研究预览联调指南
 
-## A1/B1/D1 Preview bridge (implementation; validation pending)
+## A1/B1/D1 Preview bridge
+
+Preview 回归通过；完整 Debug/ASAN 各保留一项失败，详见下方验证证据。人工试听尚未评估。
 
 Core 默认 Legacy A0/B0/D0；两页共用 Core 选择，完成后按既有 AUTO AUDITION / Apply + Play 流程处理。
 Reworked 使用现有 BubbleA1、DropletB1、FlowD1 typed defaults；C 仍是原 LiquidModalResonator。
