@@ -106,6 +106,46 @@ int runReworkedParameterTests() {
     check(preview::decodeReworkedConfig(complete.toStdString(), imported, imported).isEmpty() &&
               imported == settings.tuning,
           "full renderer config exact round trip");
+    // Exercise the same import dispatch used by PreviewPanel, not a test-only branch.
+    for (int mode : {1, 8}) { // C and baseline, with Reworked still selected.
+        preview::ResearchSessionState original;
+        original.engineering.core = preview::WaterResearchCore::reworked;
+        original.engineering.mode = mode;
+        original.engineering.tuning = settings.tuning;
+        original.engineering.values[preview::controlIndex(preview::ControlId::modalGain)] = .13;
+        original.source.name = "retained-source.wav";
+        const auto exported = preview::encodeResearchConfig(original.engineering);
+        auto beforeImport = original;
+        beforeImport.engineering.values[preview::controlIndex(preview::ControlId::modalGain)] = .17;
+        preview::ResearchSessionState restored;
+        auto rejectedTuning = settings.tuning;
+        check(!original.engineering.reworkedFluid() &&
+                  preview::decodeReworkedConfig(exported.toStdString(), rejectedTuning,
+                                                rejectedTuning)
+                      .isNotEmpty(),
+              "C/baseline export is not raw tuning config");
+        check(preview::decodePreviewModuleConfig(exported.toStdString(), beforeImport, restored)
+                  .isEmpty(),
+              "Reworked C/baseline config import dispatch succeeds");
+        check(restored.engineering.values == original.engineering.values &&
+                  preview::encodeResearchConfig(restored.engineering) == exported &&
+                  restored.customEngineering && restored.source == original.source,
+              "C/baseline existing module round trip and CUSTOM semantics");
+        preview::ResearchSessionModel restoredSession;
+        restoredSession.restoreValidated(restored);
+        check(restoredSession.draft().engineering.core == preview::WaterResearchCore::reworked &&
+                  restoredSession.draft().engineering.mode == mode &&
+                  restoredSession.draft().engineering.tuning == settings.tuning &&
+                  restoredSession.applied().engineering.tuning == settings.tuning,
+              "C/baseline import retains core composition and inactive tuning");
+    }
+    preview::ResearchSessionState fluidImport, fluidOutput;
+    fluidImport.engineering.core = preview::WaterResearchCore::reworked;
+    check(preview::decodePreviewModuleConfig(complete.toStdString(), fluidImport, fluidOutput)
+                  .isEmpty() &&
+              fluidOutput.engineering.tuning == settings.tuning &&
+              fluidOutput.engineering.values == fluidImport.engineering.values,
+          "Reworked Fluid dispatch still imports raw tuning only");
     for (const auto* bad : {"{}", "{\"unknown\":{}}", "{\"bubbleA1\":{\"version\":3}}",
                             "{\"bubbleA1\":{\"version\":2,\"unknown\":1}}",
                             "{\"bubbleA1\":{\"version\":2,\"radiusMinMm\":10,\"radiusMaxMm\":2}}",

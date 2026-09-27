@@ -4,8 +4,11 @@
 
 IMPLEMENTED / FOCUSED VALIDATION PASS on `codex/feat/water-reworked-parameter-tuning`, based on bridge
 `e8b88b9`. Generic canonical-spec UI, typed prepare, Draft/A-B/history/reset, strict renderer config
-import/export and bounded requested/eligible/admitted/path diagnostics. Release/ASAN full suites PASS 38/38;
-Debug full 37/38 retains an unresolved source-probe CRT assertion. No main/merge claim.
+import/export and bounded requested/eligible/admitted/path diagnostics. C/baseline config import now
+uses the existing module path even under Reworked Core; only Reworked Fluid uses the raw decoder.
+Latest-code Debug full FAIL 37/38: latency_native SegFault; one focused repeat PASS. The historical
+source-probe CRT assertion remains unresolved (convergence passed this run). Earlier Release/ASAN
+full 38/38 results belong to bdf1eb2; this correction reruns focused Preview only. No main/merge claim.
 HUMAN LISTENING NOT ASSESSED; PRODUCT NOT ADOPTED; PRODUCTION WATER NOT IMPLEMENTED.
 No Host/APVTS/mapping/session-v6/Protect coupling or D1 C6/C7 completion.
 Actual validation is recorded in [Raw Tuning Extension](evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md#raw-tuning-extension).

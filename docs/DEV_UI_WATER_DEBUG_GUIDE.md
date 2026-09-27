@@ -3,7 +3,7 @@
 ## Reworked Core Tuning
 
 IMPLEMENTED with Debug/Release/ASAN focused Preview validation on the raw-tuning branch.
-Full Debug retains an unresolved source-probe CRT assertion; see
+Full Debug retains a latency_native SegFault; the earlier source-probe CRT assertion also remains unresolved. See
 [raw-tuning evidence](evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md#raw-tuning-extension).
 Engineering > Research Core Tuning exposes canonical A1 (22), B1 (15 writable), D1 (3) values.
 Cards and Advanced sections collapse; units/classifications are preserved in labels/tooltips.
@@ -25,11 +25,13 @@ C uses its existing controls; raw A1/B1/D1 tuning is inactive there and in Legac
 Copy/Export Config uses APPLIED values in existing bubbleA1 v2 / dropletB1 v1 / flowD1 v1 schema,
 including active modules only. Pass the corresponding a1/b1/a1b1/a1d1/b1d1/a1b1d1 renderer mode,
 the same WAV and seed42 separately. Monitor output/E Trim are not renderer module fields.
-Import Module Config in Reworked strictly validates renderer JSON and updates tuning Draft only;
+Import Module Config in Reworked Fluid strictly validates A1/B1/D1 renderer JSON and updates tuning Draft only;
 core/composition/source/monitor stay unchanged. Supplied modules use canonical defaults for omitted
 fields; omitted modules retain Draft. Unknown fields/modules/versions, nonfinite/range/choice and
 coupled-invalid values reject atomically. Reworked Copy/Export Session stays disabled; no session v6.
 Session v5 import still restores Legacy. Runtime A/B and renderer config are separate facilities.
+Reworked C/baseline uses the existing module config import path, matching its existing export format;
+Core and inactive A1/B1/D1 tuning are retained, and engineering values are marked CUSTOM.
 
 Diagnostics add A1 requested/requestedRate (Hz), B1 eligible/admitted and D1 pathMeters through
 existing fixed block summaries; counters are cumulative since restart, rate/path are latest.

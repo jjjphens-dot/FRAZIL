@@ -6,6 +6,9 @@
 canonical metadata/default/choice/unit/classification parity, Draft/A-B/reset/history, invalid values,
 strict config round-trip, active-module exports, default identity and non-default direct-chain parity
 at 44.1/48/96 kHz. Existing bridge tests preserve default typed-reference identity for all six modes.
+The panel-shared import dispatcher also covers Reworked C/baseline Export -> Import round trips,
+existing CUSTOM semantics, Core/composition/source retention and unchanged inactive raw tuning.
+Only Reworked Fluid uses the A1/B1/D1 decoder; Session v5 decoding is unchanged.
 Automated tests do not prove sound quality, human preference, product mapping or device acceptance.
 Results are recorded only in [bridge evidence](evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md#raw-tuning-extension).
 

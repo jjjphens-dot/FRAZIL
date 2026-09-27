@@ -1,10 +1,13 @@
 #pragma once
 
 #include "ResearchSessionModel.h"
+#include "SessionCodec.h"
 #include "render/BubbleA1Descriptor.h"
 #include "render/DropletB1Descriptor.h"
 #include "render/FlowD1Descriptor.h"
 #include "render/ReadConfig.h"
+
+#include <utility>
 
 namespace frazil::water::preview {
 // Message-thread serialization adapter. Versions come from existing renderer descriptors;
@@ -99,5 +102,19 @@ inline juce::String decodeReworkedConfig(std::string_view text,
         return "Reworked config: A1 requires radiusMinMm < radiusMaxMm.";
     output = candidate;
     return {};
+}
+// Shared by the panel and device-free regression tests. C/baseline retain the existing
+// module import semantics even while Core is Reworked; only Fluid decodes raw tuning.
+inline juce::String decodePreviewModuleConfig(std::string_view text,
+                                              const ResearchSessionState& current,
+                                              ResearchSessionState& output) {
+    if (!current.engineering.reworkedFluid())
+        return decodeModuleConfig(text, current, output);
+    auto candidate = current;
+    const auto error =
+        decodeReworkedConfig(text, current.engineering.tuning, candidate.engineering.tuning);
+    if (error.isEmpty())
+        output = std::move(candidate);
+    return error;
 }
 } // namespace frazil::water::preview

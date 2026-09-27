@@ -307,3 +307,87 @@ Full build logs are `build/safe-build/windows-{debug,release,asan}.log`.
 All six engineering phases were performed; validation completion is not an all-green exit:
 the Debug incident and unexecuted native/Host/human checks remain explicit handoff limits.
 No push, PR creation, merge or production adoption is included in this work.
+
+## C/baseline config import correction
+
+Base: bdf1eb27e5faa8f04eaf5bbb788a1b79d70b7338 on
+codex/feat/water-reworked-parameter-tuning; fetched remote matched before editing.
+This bounded follow-up fixes the panel's Core-only import dispatch:
+Reworked Fluid uses decodeReworkedConfig; Reworked C/baseline uses the existing
+module config path. Both the panel transaction guard and shared decoder use
+PreviewSettings::reworkedFluid(). Session v5 decoding/schema is unchanged.
+
+The small decodePreviewModuleConfig function lives in the existing research codec,
+so the device-free regression calls the same dispatch as the panel. No new test
+infrastructure. C/baseline tests export non-default Modal values, import over different
+values, check exact re-export and existing CUSTOM semantics, then check retained
+Core/composition/source and non-default A1/B1/D1 tuning through restoreValidated.
+The exported legacy-module JSON is explicitly rejected by the raw decoder, making
+wrong-path dispatch observable. A positive Fluid case checks raw-only import remains.
+Optional enum-order cleanup is DEFERRED to keep this correction focused.
+
+Contract Review and Implementation are complete. Independent Code Quality Review
+checked error-path atomicity, input/output aliasing, unchanged import transactions,
+header dependencies and absence of DSP/callback changes. Comment & Documentation Pass
+updates only Debug Guide, Testing, Project Status and this evidence. MODULE_INDEX and
+existing module/parameter/model contracts require no edits: ownership/schema/ranges,
+DSP, macro mapping, Protect and D1 acceptance boundaries are unchanged.
+
+First Debug configure PASS, but safe build REFUSED (exit1): available physical memory
+2.85 GiB, required3 GiB for6 jobs. No bypass or reduced job limit was used. After the user
+released memory, the same configure/safe-build pipeline PASS at6 jobs. The original
+refusal is retained in ignored build/tuning-work/import-fix-debug-focused.log;
+the successful retry is import-fix-debug-focused-retry.log.
+Final validation results follow after the serial pipelines finish.
+
+Latest-code Debug validation: focused Preview PASS1/1 (9.46s); full suite FAIL37/38,
+CTest exit1,225.37s. Failure: frazil_water_flow_d1_latency_native, reported
+"***Exception: SegFault" after11.42s with no captured diagnostic output/traceback.
+The test command runs flow_d1_latency_native_test.py with the existing native executable;
+the available log does not identify the crashing frame/root cause. No relationship to the
+historical UCRT assertion is established. frazil_water_flow_d1_convergence PASS23.28s;
+Preview in the full run PASS9.02s. No D1 source or Python study code was changed.
+Original logs retained: build/tuning-work/import-fix-debug-full.log and
+import-fix-debug-full-LastTest.log. A single focused reproduction is recorded separately;
+it cannot replace this full-suite failure. The older source-probe UCRT incident remains open.
+
+Final Validation (all commands below executed on the final C++ changes):
+
+| Check | Result |
+| --- | --- |
+| Debug configure / safe build (retry after memory release) | PASS / PASS6 jobs |
+| Debug focused Preview | PASS1/1,9.46s |
+| Debug full suite | FAIL37/38,exit1,225.37s; latency_native SegFault |
+| One Debug latency_native reproduction | PASS1/1,exit0,27.77s; does not replace full failure |
+| Release configure / safe build / focused Preview | PASS / PASS6 jobs / PASS1/1,1.21s |
+| ASAN configure / safe build / focused Preview | PASS / PASS6 jobs / PASS1/1,25.69s |
+
+Commands, in the existing MSVC developer environment, serially for windows-debug,
+windows-release and windows-asan:
+
+```powershell
+cmake --preset <preset> -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=ON -DPython3_EXECUTABLE=python
+python tools/build_safe.py --preset <preset>
+ctest --preset <preset> -R frazil_water_preview --output-on-failure
+```
+
+After Debug focused, before Release/ASAN:
+
+```powershell
+ctest --preset windows-debug --output-on-failure
+ctest --preset windows-debug -R '^frazil_water_flow_d1_latency_native$' --output-on-failure
+```
+
+No Release/ASAN full suites repeated for this small correction. Ignored logs:
+`build/tuning-work/import-fix-{debug-focused-retry,debug-full,debug-latency-repeat,release-focused,asan-focused}.log`.
+The full-run LastTest.log was copied before reproduction. No subsequent source edits were made.
+
+Repository checks all PASS (exit0): check_markdown_links.py, test_check_markdown_links.py,
+check_portability.py, test_check_portability.py, check_vscode_tasks.py under tools/;
+clang-format --dry-run --Werror on all three changed C++ files; git diff --check.
+Documentation consistency checked across the four changed docs; earlier validation is explicitly
+historical, not attributed to this correction. All six engineering phases were performed.
+Native file-dialog/device playback, pluginval/DAW and human listening NOT RUN.
+Human listening NOT ASSESSED; Product mapping NOT ADOPTED; D1 C6/C7 pending.
+Stop gate: after this correction's commit/push, no further UI/DSP engineering changes;
+Sound Lead takes actual-material A1/B1/D1 tuning, A/B and AB-versus-ABD listening next.

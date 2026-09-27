@@ -525,25 +525,23 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                 ResearchSessionState candidate;
                 const std::string_view text{static_cast<const char*>(bytes.getData()),
                                             bytes.getSize()};
-                if (!session &&
-                    safe->session_.draft().engineering.core == WaterResearchCore::reworked) {
-                    auto tuning = safe->session_.draft().engineering.tuning;
-                    const auto error = decodeReworkedConfig(text, tuning, tuning);
+                auto error =
+                    session ? decodeSession(text, candidate)
+                            : decodePreviewModuleConfig(text, safe->session_.draft(), candidate);
+                if (!session && safe->session_.draft().engineering.reworkedFluid()) {
                     if (error.isNotEmpty()) {
                         safe->setStatus(error);
                         return;
                     }
-                    safe->operations_.action("Import Reworked Config", ChangeOrigin::sessionLoad,
-                                             true, false, [&] {
-                                                 safe->session_.importReworkedTuning(tuning);
-                                                 safe->discardPendingText();
-                                             });
+                    safe->operations_.action(
+                        "Import Reworked Config", ChangeOrigin::sessionLoad, true, false, [&] {
+                            safe->session_.importReworkedTuning(candidate.engineering.tuning);
+                            safe->discardPendingText();
+                        });
                     safe->setStatus("Imported Reworked tuning into Draft. Apply then Play; "
                                     "core/composition retained.");
                     return;
                 }
-                auto error = session ? decodeSession(text, candidate)
-                                     : decodeModuleConfig(text, safe->session_.draft(), candidate);
                 if (error.isEmpty())
                     error = session ? safe->controller_.validate(candidate.engineering,
                                                                  candidate.source.sampleRate > 0
