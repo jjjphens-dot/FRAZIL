@@ -65,7 +65,13 @@ def main():
     parser.add_argument("--sources", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--section", choices=("a1", "b2", "c6"), required=True)
+    parser.add_argument("--c6-input-gain-db", type=float, default=0,
+                        help="Declared common source attenuation for every C6 source/rate, never per variant")
     args = parser.parse_args()
+    if not math.isfinite(args.c6_input_gain_db) or not -60 <= args.c6_input_gain_db <= 0:
+        parser.error("C6 source gain must be finite and between -60 and 0 dB")
+    if args.section != "c6" and args.c6_input_gain_db != 0:
+        parser.error("C6 source gain is only valid for C6")
     repo = Path(__file__).resolve().parents[4]
     scope = "experiments/water/SPIKE-W-DSP-001"
     if subprocess.check_output(["git", "status", "--porcelain", "--", scope], cwd=repo, text=True).strip():
@@ -200,7 +206,8 @@ def main():
         for sid, _, data, original_rate in inputs:
             for rate in (44100, 48000, 96000):
                 divisor = math.gcd(rate, original_rate)
-                converted = signal.resample_poly(data, rate//divisor, original_rate//divisor).astype(np.float32)
+                converted = (signal.resample_poly(data, rate//divisor, original_rate//divisor) *
+                             10**(args.c6_input_gain_db/20)).astype(np.float32)
                 source = args.output / f"{sid}-{rate}-source.wav"
                 sf.write(source, converted, rate, subtype="FLOAT")
                 raw = render(source, args.output / f"{sid}-{rate}-AB.wav", "a1b1-residual")
@@ -229,9 +236,11 @@ def main():
                     rows.append(dict(source=sid, rate=rate, policy=row["policy"], qualified=row["qualified"],
                                      conditioner=row["conditioner"], kernel=row["kernel"], latency_samples=latency,
                                      input_conversion=f"scipy.resample_poly {original_rate}->{rate}; canonical stereo before DSP",
+                                     source_gain_db=args.c6_input_gain_db,
                                      trailing_raw_peak=float(np.max(np.abs(raw[-128:])))))
     csv_write(args.output / "MEASUREMENTS.csv", rows)
     write_json(args.output / "CONTEXT.json", dict(section=args.section, study_revision=revision, renderer_revision=renderer_revision, seed=42,
+               source_gain_db=args.c6_input_gain_db if args.section == "c6" else 0,
                monitor_output_db=0, e_trim_db=0, human_acceptance="NOT ASSESSED",
                fixed_scale="Primary preservation", rms_matched="Preference only; target -23 dBFS; never pooled",
                generated_sources=len(inputs)))
