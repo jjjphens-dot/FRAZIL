@@ -2,7 +2,7 @@
 
 ## Round 01 research components
 
-PreviewMonitorResampler owns monitor interpolation/anti-alias state; PreviewSessionLogger owns message-thread files; PreviewEventTrace owns a 512-record SPSC transport. B2 separates config, onset, impact descriptor, radius, spatial renderer, voice, queue and pool. B1 depends on none of these. B2 reuses frozen B1 physical/capture/emission helpers; independent queue/pool storage preserves B1 historical lifecycle source while supporting richer B2 events. A1 v3 separates audible/lifecycle amplitudes. Offline A1BinningStudy and listening_round01.py serve ablations/C6. See [B2 contract](../experiments/water/EXP-W-DB-002.md) and [Round 01](evidence/WATER_LISTENING_ROUND_01.md).
+PreviewMonitorResampler owns monitor interpolation/anti-alias state; PreviewSessionLogger owns message-thread files; PreviewEventTrace owns a 512-record SPSC transport. B2 separates config, onset, impact descriptor, radius, spatial renderer, voice, queue and pool. B1 depends on none of these. B2 reuses frozen B1 physical/capture/emission helpers; independent queue/pool storage preserves B1 historical lifecycle source while supporting richer B2 events. A1 v3 separates audible/lifecycle amplitudes. Offline A1BinningStudy and listening_round01.py serve ablations/C6; inspect_listening_round01.py verifies generated audio/headroom and derives event-frequency histograms. See [B2 contract](../experiments/water/EXP-W-DB-002.md) and [Round 01](evidence/WATER_LISTENING_ROUND_01.md).
 
 ## Research Core Tuning infrastructure
 

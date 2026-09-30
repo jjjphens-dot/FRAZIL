@@ -22,6 +22,17 @@ python experiments/water/SPIKE-W-DSP-001/render/listening_round01.py `
 Commit study code before generation; the helper records study and renderer revisions,
 configs, source metadata, event traces, primary fixed-scale and secondary RMS-preference
 outputs. Generated WAVs remain local. Source redistribution requires separate permission.
+For the executed C6 pack, use `--section c6 --c6-input-gain-db -6` and a fresh
+output directory. This common source gain is explicit and affects every candidate's
+analysis equally. Inspect completed packs before listening:
+
+```powershell
+python experiments/water/SPIKE-W-DSP-001/render/inspect_listening_round01.py `
+  build/listening-round01/a1 build/listening-round01/b2 build/listening-round01/c6-headroom
+```
+
+The inspector verifies finite stereo WAVs, reports original peaks, checks common
+-18 dB playback headroom and derives A1 frequency histograms. It writes no human scores.
 See [Round 01](../../../docs/evidence/WATER_LISTENING_ROUND_01.md).
 
 ## A1/B1/D1 Preview raw parameter tuning

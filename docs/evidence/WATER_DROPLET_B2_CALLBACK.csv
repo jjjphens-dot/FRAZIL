@@ -1,0 +1,13 @@
+preset,rate,fixture,eligible,mean_callback_us,peak_callback_us,callback_budget_us
+Debug,44100,sine440,1,322.862,406.1,5804.99
+Debug,44100,uniform_noise,1,322.725,439.2,5804.99
+Debug,48000,sine440,1,335.781,649,5333.33
+Debug,48000,uniform_noise,1,335.388,611,5333.33
+Debug,96000,sine440,1,336.385,655.8,2666.67
+Debug,96000,uniform_noise,1,334.098,728.8,2666.67
+Release,44100,sine440,1,34.0954,134.7,5804.99
+Release,44100,uniform_noise,1,27.2821,29,5804.99
+Release,48000,sine440,1,31.541,64.9,5333.33
+Release,48000,uniform_noise,1,26.1154,28.3,5333.33
+Release,96000,sine440,1,31.4773,76.3,2666.67
+Release,96000,uniform_noise,1,27.1139,50.2,2666.67

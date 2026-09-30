@@ -1,6 +1,6 @@
 # EXP-W-DB-002 — Droplet / Impact B2
 
-Status: RESEARCH-CANDIDATE; engineering implementation in progress; human acceptance
+Status: RESEARCH-CANDIDATE; engineering implementation validated with open findings; human acceptance
 NOT ASSESSED; NOT PRODUCT DEFAULT / NOT ADOPTED. Engineering agent implements and
 self-reviews; Sound Lead owns ACCEPT / REVISE / REJECT. Authority: user Round 01
 task, [accepted Water intent](EXP-W-001_PERCEPTUAL_BRIEF.md) and
@@ -70,3 +70,5 @@ monitor mode/output and E Trim. Save config and event traces. Separate fixed-sca
 preservation and RMS-matched preference. Require headphone, speaker and mono review;
 L/R correlation, M/S energy and mono delta do not decide width quality.
 Execution and unresolved findings: [B2 execution](../../docs/evidence/WATER_DROPLET_B2_EXECUTION.md).
+
+Canonical research schema: [dropletB2 v1](contracts/droplet-b2-v1.json). Musical hybrid retrigger sensitivity remains an open finding; see the execution record before selecting FULL for listening.

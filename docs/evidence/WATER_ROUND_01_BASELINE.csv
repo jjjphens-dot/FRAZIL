@@ -1,0 +1,16 @@
+rate,mode,exact,maximum_delta
+44100,a1-residual,True,0.0
+44100,b1-residual,True,0.0
+44100,a1b1d1-residual,True,0.0
+44100,abd-residual,True,0.0
+44100,c-residual,True,0.0
+48000,a1-residual,True,0.0
+48000,b1-residual,True,0.0
+48000,a1b1d1-residual,True,0.0
+48000,abd-residual,True,0.0
+48000,c-residual,True,0.0
+96000,a1-residual,True,0.0
+96000,b1-residual,True,0.0
+96000,a1b1d1-residual,True,0.0
+96000,abd-residual,True,0.0
+96000,c-residual,True,0.0

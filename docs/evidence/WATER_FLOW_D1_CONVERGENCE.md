@@ -2,7 +2,7 @@
 
 Status: C0–C5 engineering implementation and independent-machine evidence complete.
 C5 perceptual interpretation remains pending; numerical completion is not timbre acceptance.
-C6 protocol ready/audio not generated; C7 Joint Gate NOT RECORDED. No D1 completion,
+C6 first local Round 01 pack generated, incomplete source classes/human review pending; C7 Joint Gate NOT RECORDED. No D1 completion,
 runtime replacement, final product filter/latency or human acceptance is claimed.
 
 Baseline: `7723c29c001bf84c292ab938b92f6bc43d3d837d`, fetched matching upstream;
@@ -237,3 +237,5 @@ The first dispatched `5035244` workflow was intentionally cancelled before its f
 research result so the final mixed-kernel comparison could be included. Cancellation
 is not PASS or a diagnosed test failure. The completed replacement run below tests
 the final implementation; subsequent evidence/wording commits do not change code.
+
+Round 01 local handoff uses the unchanged policy registry and historical runtime backend. See [Round 01 evidence](WATER_LISTENING_ROUND_01.md) for common source gain, neutral-label packs, validation and remaining gates.

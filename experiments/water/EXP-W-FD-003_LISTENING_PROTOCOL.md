@@ -1,8 +1,9 @@
 # FD-003 listening handoff protocol
 
-Status: protocol ready; audio pack NOT GENERATED; human assessment NOT ASSESSED.
+Status: first local Round 01 pack GENERATED with incomplete source-class coverage;
+human assessment NOT ASSESSED.
 Authority: [FD-003](EXP-W-FD-003.md) and the accepted Water perceptual brief.
-This is a future handoff, not evidence of listening or a request to adopt a filter.
+This handoff is not evidence of listening or a request to adopt a filter.
 
 ## Scope and materials
 
@@ -15,8 +16,8 @@ S2 at 96 kHz remains a comparison if its conditioner fails the core magnitude ga
 Required source classes: authorized bass, drums, representative musical pad, and
 guitar/piano creative material. Track source permission, duration, channels and
 rate/conversion method in an ignored local manifest. Do not commit private paths or
-material. The user deferred musical-pad/human review; guitar/piano material also
-needs authorized intake. Engineering synthetic fixtures are not substitutes.
+material. Representative musical-pad and guitar/piano coverage still needs confirmed intake;
+human review is pending. Engineering synthetic fixtures are not substitutes.
 
 For each rate (44.1/48/96 kHz), present Source, raw AB, conditioned AB, historical
 AB+D, and qualified candidate AB+D. Shared references need not be duplicated for
@@ -57,3 +58,17 @@ Before audio generation, freeze the final code/candidate manifest and verify all
 source permissions. Before runtime adoption, complete Sound Lead + Engineering
 review of bandwidth/filter/guard/total latency, cross-rate behavior, open validation
 findings and ADR-0007. Current plugin/Host/UI remain unchanged until that gate.
+
+## Round 01 execution
+
+Six user-provided local sources, three rates and the existing five-policy shortlist
+produced 90 engineering cells. The successful `c6-headroom` pack uses explicitly
+recorded common -6 dB input gain after input-rate conversion, before all DSP. Original
+0 dB conversion of one fill exceeded full scale and was rejected; the partial first
+attempt is retained, not presented as a completed pack. Fixed and RMS-preference
+files are separate. Use the inspected common -18 dB playback bus before conversion
+to device samples. Source preservation conclusions stay within a fixed-gain set.
+
+Listener directories have neutral labels; the shuffle key and rejected-cell flags
+are separate. No scores were populated. C6 human completion and C7 remain pending.
+Reproduction, numeric tables and validation findings: [Round 01](../../docs/evidence/WATER_LISTENING_ROUND_01.md).
