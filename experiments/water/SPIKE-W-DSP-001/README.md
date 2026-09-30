@@ -2,14 +2,34 @@
 
 ## Listening Remediation Round 01
 
-Preview uses source-rate DSP followed by monitor-only SRC and explicit anti-alias FIR, retaining both processed channels. B1 stays selectable; B2 uses independent v1 config and b2/b2-residual/a1b2/b2d1/a1b2d1 modes. A1 v3 adds depthAmplitudeGamma without changing v2. Offline --a1-binning source.wav output.wav events.csv bins radiusMin gamma checks its 128-bin case sample-exact against runtime A1. --d1-path rate frames seed output.bin exports unchanged default paths as little-endian doubles for existing FD-003 kernels. listening_round01.py --renderer ... --sources ... --output build/... --section a1|b2|c6 creates local evidence. Do not redistribute audio without permission. See [Round 01](../../../docs/evidence/WATER_LISTENING_ROUND_01.md).
+Preview uses source-rate DSP followed by monitor-only SRC and an explicit anti-alias
+FIR, retaining both processed channels. B1 stays selectable; B2 uses independent v1
+config and `b2` / `b2-residual` / `a1b2` / `b2d1` / `a1b2d1` modes. A1 v3 adds
+`depthAmplitudeGamma` without changing v2.
+
+Offline `--a1-binning source.wav output.wav events.csv bins radiusMin gamma` checks
+its 128-bin case sample-exact against runtime A1. `--d1-path rate frames seed output.bin`
+exports unchanged default paths as little-endian doubles for existing FD-003 kernels.
+
+Generate each local study into a new ignored directory (repeat for `b2` and `c6`):
+
+```powershell
+python experiments/water/SPIKE-W-DSP-001/render/listening_round01.py `
+  --renderer <research-renderer-executable> --renderer-revision <renderer-commit> `
+  --sources <authorized-source-directory> --output build/listening-round01/a1 --section a1
+```
+
+Commit study code before generation; the helper records study and renderer revisions,
+configs, source metadata, event traces, primary fixed-scale and secondary RMS-preference
+outputs. Generated WAVs remain local. Source redistribution requires separate permission.
+See [Round 01](../../../docs/evidence/WATER_LISTENING_ROUND_01.md).
 
 ## A1/B1/D1 Preview raw parameter tuning
 
 The standalone Engineering view now edits canonical raw research configs through generic cards,
 explicit Apply/Play and existing A/B/history. Config export/import uses the strict renderer schema;
 Reworked Session export remains unavailable. Raw research controls are not product macros.
-Implementation validation pending: [evidence](../../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md#raw-tuning-extension).
+Historical raw-tuning validation (focused PASS, unresolved full-suite findings): [evidence](../../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md#raw-tuning-extension).
 
 
 ## Preview core revision bridge
