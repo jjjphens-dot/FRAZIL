@@ -145,7 +145,8 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback, privat
     }
     void timerCallback() override {
         PreviewEventRecord r;
-        while (eventTrace.pop(r)) {
+        // Bound each message-thread drain even if a busy producer keeps refilling it.
+        for (std::size_t n = 0; n < PreviewEventTrace::kCapacity && eventTrace.pop(r); ++n) {
             auto* fields = new juce::DynamicObject;
             fields->setProperty("module", r.module == 1 ? "A1" : "B2");
             fields->setProperty("frame", static_cast<juce::int64>(r.frame));

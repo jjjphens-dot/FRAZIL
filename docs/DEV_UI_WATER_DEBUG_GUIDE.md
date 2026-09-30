@@ -25,6 +25,9 @@ records into a 512-record SPSC queue; overflow counts are explicit. A1 requests 
 actual starts are separate records (deferred starts have no inferred request ID).
 Start records carry the last-start payload and explicit startCount if multiple starts
 coalesce in one DSP frame; this diagnostic stream is not a lossless event archive.
+Each timer tick drains at most 512 records to keep message-thread work bounded.
+The historical B1 CLI retains its channel-count behavior; the new listening helper
+canonicalizes mono inputs before all A1/B1/B2 comparisons.
 D1 remains **Historical Lagrange3 / NUMERICAL / HUMAN ACCEPTANCE PENDING**.
 See [Round 01 evidence](evidence/WATER_LISTENING_ROUND_01.md).
 
