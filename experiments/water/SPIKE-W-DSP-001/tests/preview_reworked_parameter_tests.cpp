@@ -92,6 +92,7 @@ int runReworkedParameterTests() {
                                                                         : spec.choices.front();
             check(Adapter::setValue(settings.tuning, module, i, value), "nondefault setup");
         }
+    settings.tuning.dropletB2 = defaults.dropletB2; // Inactive B2 is not exported in B1 mode.
     check(Adapter::validate(settings.tuning), "nondefault valid");
     const auto complete = preview::encodeResearchConfig(settings);
     research::FluidConfig unusedFluid;
@@ -146,7 +147,7 @@ int runReworkedParameterTests() {
               fluidOutput.engineering.tuning == settings.tuning &&
               fluidOutput.engineering.values == fluidImport.engineering.values,
           "Reworked Fluid dispatch still imports raw tuning only");
-    for (const auto* bad : {"{}", "{\"unknown\":{}}", "{\"bubbleA1\":{\"version\":3}}",
+    for (const auto* bad : {"{}", "{\"unknown\":{}}", "{\"bubbleA1\":{\"version\":4}}",
                             "{\"bubbleA1\":{\"version\":2,\"unknown\":1}}",
                             "{\"bubbleA1\":{\"version\":2,\"radiusMinMm\":10,\"radiusMaxMm\":2}}",
                             "{\"bubbleA1\":{\"version\":2,\"motionFactor\":-1}}",
@@ -344,7 +345,7 @@ int runReworkedParameterTests() {
             if (auto* choice = dynamic_cast<juce::ComboBox*>(child))
                 ++choices;
         }
-        check(exact == 33 && choices == 7 && visible == 17,
+        check(exact == 50 && choices == 13 && visible == 25,
               "generic coverage, Primary only initially");
         for (auto* child : view.getChildren())
             if (auto* button = dynamic_cast<juce::TextButton*>(child);
@@ -410,6 +411,55 @@ int runReworkedParameterTests() {
         ui.setCore(preview::WaterResearchCore::legacy, origin);
         check(!view.isVisible() && view.preferredHeight() == 0, "Legacy hides raw tuning");
         ui.onChange = {};
+    }
+    {
+        preview::ResearchSessionModel candidate;
+        candidate.setCore(preview::WaterResearchCore::reworked,
+                          preview::ChangeOrigin::engineeringUI);
+        candidate.applyValidated();
+        candidate.setRemediation(true, .75);
+        check(candidate.dirty() && !candidate.applied().engineering.tuning.useB2,
+              "revision/gamma edits stay Draft");
+        candidate.applyValidated();
+        candidate.capture(0);
+        const auto exported = preview::encodeResearchConfig(candidate.applied().engineering);
+        preview::ResearchCoreTuningState decoded;
+        check(preview::decodeReworkedConfig(exported.toStdString(), decoded, decoded).isEmpty() &&
+                  decoded == candidate.applied().engineering.tuning,
+              "B2 and A1 v3 roundtrip");
+        check(exported.contains("dropletB2") && !exported.contains("dropletB1"),
+              "independent B2 schema");
+        candidate.setRemediation(false, 1);
+        candidate.applyValidated();
+        candidate.restoreValidated(*candidate.slot(0));
+        check(candidate.applied().engineering.tuning.useB2 &&
+                  candidate.applied().engineering.tuning.depthAmplitudeGamma == .75,
+              "A/B preserves revision and gamma");
+        auto engine = std::make_unique<preview::PreviewEngine>();
+        auto direct = std::make_unique<research::DropletB2>();
+        auto settings = candidate.applied().engineering;
+        settings.mode = 3;
+        check(engine->prepare(44100, settings) &&
+                  direct->prepare({44100, 42}, {settings.tuning.dropletB2}),
+              "Preview B2 prepare");
+        bool exact = true;
+        for (int n = 0; n < 12000; ++n) {
+            const auto input = sourceFrame(n);
+            const auto x = engine->residual(input), y = direct->process(input);
+            exact &= x == y;
+        }
+        check(exact, "Preview B2 direct parity");
+        candidate.resetReworkedDefaults();
+        check(!candidate.draft().engineering.tuning.useB2 &&
+                  candidate.draft().engineering.tuning.depthAmplitudeGamma == 1,
+              "reset restores B1/A1 baseline");
+        const auto before = decoded;
+        for (const auto* bad : {"{\"dropletB2\":{\"version\":2}}",
+                                "{\"dropletB2\":{\"version\":1,\"eventRadiusSpreadPct\":6}}",
+                                "{\"bubbleA1\":{\"version\":2,\"depthAmplitudeGamma\":1}}"})
+            check(preview::decodeReworkedConfig(bad, decoded, decoded).isNotEmpty() &&
+                      decoded == before,
+                  "strict new-schema failures atomic");
     }
     return failures;
 }

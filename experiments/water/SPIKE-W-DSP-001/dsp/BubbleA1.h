@@ -47,8 +47,16 @@ class BubbleA1 final {
             e.riseXi = e.depthExcitationProxy > config_.riseCutoff ? config_.riseXi : 0;
             e.riseModel = config_.riseModel;
             e.amplitude = analyzer_.eventCarrier(config_.sourceEnergyAmplitude);
-            for (auto& a : e.amplitude)
+            e.lifecycleAmplitude = e.amplitude;
+            for (auto& a : e.lifecycleAmplitude)
                 a *= e.physics.amplitude * e.depthExcitationProxy * config_.residualGain;
+            e.separateAmplitudeRole = config_.depthAmplitudeGamma != 1;
+            const double audibleDepth =
+                config_.depthAmplitudeGamma == 1
+                    ? e.depthExcitationProxy
+                    : std::pow(e.depthExcitationProxy, config_.depthAmplitudeGamma);
+            for (auto& a : e.amplitude)
+                a *= e.physics.amplitude * audibleDepth * config_.residualGain;
             lastRequestedEvent_ = e;
             if (pool_.trigger(e))
                 driver_ = {static_cast<float>(e.amplitude[0]), static_cast<float>(e.amplitude[1])};

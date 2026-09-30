@@ -59,6 +59,10 @@ inline juce::String operationHistoryText(const ResearchOperationHistory& history
         if (op.before.engineering.core != op.after.engineering.core)
             text += juce::String("  Core Revision: ") + coreName(op.before.engineering.core) +
                     " -> " + coreName(op.after.engineering.core) + "\n";
+        delta("Droplet revision", op.before.engineering.tuning.useB2,
+              op.after.engineering.tuning.useB2);
+        delta("A1 depthAmplitudeGamma", op.before.engineering.tuning.depthAmplitudeGamma,
+              op.after.engineering.tuning.depthAmplitudeGamma);
         for (auto module : kResearchModules)
             for (std::size_t i = 0; i < ResearchCoreParameterAdapter::parameterCount(module); ++i)
                 delta(

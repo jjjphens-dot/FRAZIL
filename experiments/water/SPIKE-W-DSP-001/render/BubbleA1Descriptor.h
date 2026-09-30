@@ -32,4 +32,20 @@ inline juce::var bubbleA1Descriptor() {
     root->setProperty("constraint", "radiusMinMm < radiusMaxMm");
     return juce::var(root.release());
 }
+// Explicit v3 extension; v2 descriptor and defaults remain byte-identical.
+inline juce::var bubbleA1V3Descriptor() {
+    auto root = bubbleA1Descriptor();
+    root.getDynamicObject()->setProperty("modelVersion", 3);
+    root.getDynamicObject()->setProperty("configVersion", 3);
+    auto* p = new juce::DynamicObject;
+    p->setProperty("name", "depthAmplitudeGamma");
+    p->setProperty("unit", "dimensionless");
+    p->setProperty("classification", "PRODUCT_MAPPING");
+    p->setProperty("minimum", .5);
+    p->setProperty("maximum", 1.);
+    p->setProperty("default", 1.);
+    p->setProperty("writable", true);
+    root["parameters"].getArray()->add(juce::var(p));
+    return root;
+}
 } // namespace frazil::water::research

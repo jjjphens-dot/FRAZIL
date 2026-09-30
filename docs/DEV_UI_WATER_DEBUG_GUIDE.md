@@ -1,6 +1,36 @@
 # Debug UI 与 Water 研究预览联调指南
 
-## Reworked Core Tuning
+## Round 01 research remediation
+
+Source rate equals DSP rate. The device retains its current/default rate. Dry/Full/Residual
+are formed at source rate, followed by monitor-only SRC. SOURCE / DSP / DEVICE rates are
+visible. Equal rates use an exact direct path. Downsampling adds an explicit 129-tap
+Blackman anti-alias FIR (cutoff 0.45 times device rate); JUCE WindowedSinc handles
+interpolation with separate channel state. Full FIR/interpolator support is zero-drained
+after the existing 30-second research tail. This is not product latency or offline DSP.
+
+Mono metadata stays one channel; DSP receives {x,x}, output preserves both processed
+channels and meters measure canonical stereo. B2 can create spatial output from mono.
+
+The Apply-only revision selector preserves B1 and adds B2 with its own 21-field card.
+A1 depthAmplitudeGamma maps only audible amplitude; gamma1 exports v2 and nonidentity
+gamma exports v3. Imported v3 gamma1 may export the equivalent v2 baseline. B2 uses
+independent dropletB2 v1, with b2/b2-residual/a1b2/b2d1/a1b2d1 renderer modes. Revision
+and gamma join Draft/Applied/A/B/history/reset, not Host or session v5. Reset A1 restores gamma1.
+
+JSONL logs use JUCE user-application-data / FRAZIL/Logs/WaterPreview. The diagnostics
+panel shows the actual local log location or error. Build/source/config/device/lifecycle
+and A/B records are written on the message thread. Audio only pushes trivially-copyable
+records into a 512-record SPSC queue; overflow counts are explicit. A1 requests and
+actual starts are separate records (deferred starts have no inferred request ID).
+Start records carry the last-start payload and explicit startCount if multiple starts
+coalesce in one DSP frame; this diagnostic stream is not a lossless event archive.
+D1 remains **Historical Lagrange3 / NUMERICAL / HUMAN ACCEPTANCE PENDING**.
+See [Round 01 evidence](evidence/WATER_LISTENING_ROUND_01.md).
+
+## Reworked Core Tuning — preserved raw-tuning baseline
+
+The following describes the original A1/B1/D1 slice; Round 01 additions above extend it.
 
 IMPLEMENTED with Debug/Release/ASAN focused Preview validation on the raw-tuning branch.
 Full Debug retains a latency_native SegFault; the earlier source-probe CRT assertion also remains unresolved. See

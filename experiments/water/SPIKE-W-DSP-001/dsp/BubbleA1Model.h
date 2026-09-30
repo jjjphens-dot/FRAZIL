@@ -25,6 +25,8 @@ struct BubbleA1Config final {
     double populationGamma{kA1PopulationGamma.initial};
     double amplitudeRadiusExponent{kA1AmplitudeRadiusExponent.initial};
     double depthExponent{kA1DepthExponent.initial};
+    double depthAmplitudeGamma{
+        kA1DepthAmplitudeGamma.initial}; // PRODUCT_MAPPING, v3 only; v2 remains exactly 1.
     double persistenceScale{kA1PersistenceScale.initial};
     double maxEventRateHz{kA1MaxEventRateHz.initial};
     double motionFactor{kA1MotionFactor.initial};
@@ -66,6 +68,7 @@ class BubbleA1Model final {
             !kA1PopulationGamma.accepts(c.populationGamma) ||
             !kA1AmplitudeRadiusExponent.accepts(c.amplitudeRadiusExponent) ||
             !kA1DepthExponent.accepts(c.depthExponent) ||
+            !kA1DepthAmplitudeGamma.accepts(c.depthAmplitudeGamma) ||
             !kA1PersistenceScale.accepts(c.persistenceScale) ||
             !kA1MaxEventRateHz.accepts(c.maxEventRateHz) ||
             !kA1MotionFactor.accepts(c.motionFactor) || !kA1RiseXi.accepts(c.riseXi) ||

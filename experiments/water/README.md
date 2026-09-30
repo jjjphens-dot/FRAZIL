@@ -1,5 +1,9 @@
 # Water research index
 
+## Listening Remediation Round 01
+
+[EXP-W-DB-002](EXP-W-DB-002.md) adds separate B2 while preserving B1. A1 v3 amplitude mapping, 128/512-bin offline study and monitor-rate/mono remediation are bounded research. D1 remains historical Lagrange3 pending C6/C7. See [execution](../../docs/evidence/WATER_LISTENING_ROUND_01.md).
+
 ## Preview bridge
 
 [Water Preview A1/B1/D1 bridge](../../docs/evidence/WATER_PREVIEW_A1_B1_D1_BRIDGE.md):

@@ -1,5 +1,9 @@
 # FRAZIL 当前实现与差距
 
+## Water Listening Round 01
+
+Research branch work is in final engineering validation: monitor-rate/mono remediation, persistent diagnostics, A1 v3 amplitude-role separation and independent B2 candidate. This is not main/production adoption or human acceptance. D1 model/trajectory/historical backend are unchanged; C6/C7 remain pending. Current results and source coverage: [Round 01](evidence/WATER_LISTENING_ROUND_01.md). Earlier branch failures below remain historical evidence, not current-run results.
+
 ## A1/B1/D1 raw tuning extension
 
 IMPLEMENTED / FOCUSED VALIDATION PASS on `codex/feat/water-reworked-parameter-tuning`, based on bridge

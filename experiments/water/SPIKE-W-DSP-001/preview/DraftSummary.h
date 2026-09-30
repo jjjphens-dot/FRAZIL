@@ -31,6 +31,9 @@ inline juce::String draftSummary(const ResearchSessionModel& session) {
             line(juce::String(ResearchCoreParameterAdapter::key(module, i)),
                  ResearchCoreParameterAdapter::getValue(a.engineering.tuning, module, i),
                  ResearchCoreParameterAdapter::getValue(d.engineering.tuning, module, i));
+    line("Droplet revision (0=B1,1=B2)", a.engineering.tuning.useB2, d.engineering.tuning.useB2);
+    line("A1 depthAmplitudeGamma", a.engineering.tuning.depthAmplitudeGamma,
+         d.engineering.tuning.depthAmplitudeGamma);
     line("Size", a.water.size, d.water.size);
     line("Motion", a.water.motion, d.water.motion);
     line("Decay", a.water.decay, d.water.decay);

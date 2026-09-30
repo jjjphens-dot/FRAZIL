@@ -20,6 +20,25 @@ class ResearchCoreTuningView final : public juce::Component {
                        juce::dontSendNotification);
         addAndMakeVisible(title_);
         addAndMakeVisible(resetAll_);
+        addAndMakeVisible(revision_);
+        revision_.addItem("B1 Fixed-Radius Baseline", 1);
+        revision_.addItem("B2 Variable-Radius Candidate", 2);
+        revision_.onChange = [this] {
+            operations_.action("Droplet revision", ChangeOrigin::engineeringUI, true, false,
+                               [this] {
+                                   session_.setRemediation(
+                                       revision_.getSelectedId() == 2,
+                                       session_.draft().engineering.tuning.depthAmplitudeGamma);
+                               });
+        };
+        addAndMakeVisible(gamma_);
+        gamma_.configure("A1 v3 depth amplitude gamma (PRODUCT_MAPPING)", .5, 1, 1, false);
+        gamma_.onEdit = [this](double value) {
+            operations_.edit("A1 depthAmplitudeGamma", ChangeOrigin::engineeringUI, true);
+            session_.setRemediation(session_.draft().engineering.tuning.useB2, value);
+            return true;
+        };
+        gamma_.onGestureEnd = [this] { operations_.finish(); };
         resetAll_.onClick = [this] {
             operations_.action("Reset Reworked Defaults", ChangeOrigin::reset, true, false, [this] {
                 session_.resetReworkedDefaults();
@@ -103,7 +122,7 @@ class ResearchCoreTuningView final : public juce::Component {
     int preferredHeight() const {
         if (!session_.draft().engineering.reworkedFluid())
             return 0;
-        int height = 36;
+        int height = 108;
         for (std::size_t m = 0; m < cards_.size(); ++m) {
             height += 36;
             if (!cards_[m].expanded)
@@ -116,6 +135,7 @@ class ResearchCoreTuningView final : public juce::Component {
         return height;
     }
     void discardPendingText() {
+        gamma_.discardPendingText();
         for (auto& card : cards_)
             for (auto& row : card.rows)
                 row->number.discardPendingText();
@@ -123,10 +143,15 @@ class ResearchCoreTuningView final : public juce::Component {
     void refresh() {
         const auto& settings = session_.draft().engineering;
         setVisible(settings.reworkedFluid());
+        revision_.setSelectedId(settings.tuning.useB2 ? 2 : 1, juce::dontSendNotification);
+        gamma_.refreshValue(settings.tuning.depthAmplitudeGamma);
         for (std::size_t m = 0; m < cards_.size(); ++m) {
             auto& card = cards_[m];
             const auto module = kResearchModules[m];
-            const bool active = moduleActive(static_cast<ControlGroup>(m), settings.mode);
+            const bool active =
+                moduleActive(m == 3 ? ControlGroup::droplet : static_cast<ControlGroup>(m),
+                             settings.mode) &&
+                (m != 1 || !settings.tuning.useB2) && (m != 3 || settings.tuning.useB2);
             card.heading.setButtonText(juce::String(card.expanded ? "[-] " : "[+] ") +
                                        Adapter::displayName(module) +
                                        (active ? " / ACTIVE" : " / INACTIVE - retained"));
@@ -157,6 +182,9 @@ class ResearchCoreTuningView final : public juce::Component {
         auto top = area.removeFromTop(36);
         resetAll_.setBounds(top.removeFromRight(220).reduced(2));
         title_.setBounds(top);
+        auto remediation = area.removeFromTop(72);
+        revision_.setBounds(remediation.removeFromLeft(area.getWidth() / 2).reduced(8, 16));
+        gamma_.setBounds(remediation.reduced(8, 2));
         for (std::size_t m = 0; m < cards_.size(); ++m) {
             auto& card = cards_[m];
             auto heading = area.removeFromTop(36);
@@ -217,6 +245,8 @@ class ResearchCoreTuningView final : public juce::Component {
     ResearchOperations& operations_;
     std::array<Card, kResearchModules.size()> cards_;
     juce::Label title_;
+    juce::ComboBox revision_;
+    ExactValueControl gamma_;
     juce::TextButton resetAll_{"Reset Reworked Defaults"};
 };
 } // namespace frazil::water::preview

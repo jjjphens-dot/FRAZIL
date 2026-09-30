@@ -1,9 +1,12 @@
+#include "A1BinningStudy.h"
 #include "BubbleA1Descriptor.h"
 #include "DropletB1Descriptor.h"
+#include "DropletB2Descriptor.h"
 #include "FlowD1Descriptor.h"
 #include "ReadConfig.h"
 #include "dsp/BubbleA1.h"
 #include "dsp/DropletB1.h"
+#include "dsp/DropletB2.h"
 #include "dsp/FlowD1.h"
 #include "dsp/ResearchBaseline.h"
 
@@ -23,8 +26,47 @@ template <typename Integer> bool parse(std::string_view text, Integer& value) {
 }
 
 int render(int argc, char** argv) {
+    if (argc == 8 && std::string_view(argv[1]) == "--a1-binning") {
+        int bins{};
+        double minimum{}, gamma{};
+        if (!parse(argv[5], bins) || !parse(argv[6], minimum) || !parse(argv[7], gamma))
+            return 2;
+        const auto cwd = juce::File::getCurrentWorkingDirectory();
+        return a1BinningStudy(cwd.getChildFile(argv[2]), cwd.getChildFile(argv[3]),
+                              cwd.getChildFile(argv[4]), bins, minimum, gamma);
+    }
+    if (argc == 2 && std::string_view(argv[1]) == "--describe-bubble-a1-v3") {
+        std::cout << juce::JSON::toString(bubbleA1V3Descriptor()).toStdString() << '\n';
+        return 0;
+    }
+    if (argc == 6 && std::string_view(argv[1]) == "--d1-path") {
+        int rate{}, frames{};
+        ResearchConfig c;
+        if (!parse(argv[2], rate) || !parse(argv[3], frames) || frames < 1 ||
+            frames > 150 * 96000 || !parse(argv[4], c.baseSeed))
+            return 2;
+        c.sampleRateHz = rate;
+        FlowD1Trajectory path;
+        if (!path.prepare(c, {}))
+            return 2;
+        const auto file = juce::File::getCurrentWorkingDirectory().getChildFile(argv[5]);
+        if (file.exists())
+            return 2;
+        const auto stream = file.createOutputStream();
+        if (!stream)
+            return 1;
+        for (int i = 0; i < frames; ++i)
+            if (!stream->writeDouble(path.process()))
+                return 1;
+        stream->flush();
+        return stream->getStatus().wasOk() ? 0 : 1;
+    }
     if (argc == 2 && std::string_view(argv[1]) == "--describe-bubble-a1") {
         std::cout << juce::JSON::toString(bubbleA1Descriptor()).toStdString() << '\n';
+        return 0;
+    }
+    if (argc == 2 && std::string_view(argv[1]) == "--describe-droplet-b2") {
+        std::cout << juce::JSON::toString(dropletB2Descriptor()).toStdString() << '\n';
         return 0;
     }
     if (argc == 2 && std::string_view(argv[1]) == "--describe-droplet-b1") {
@@ -52,13 +94,17 @@ int render(int argc, char** argv) {
         mode.remove_suffix(9);
     }
     const bool baselineMode = mode == "baseline" || mode == "residual";
-    const bool d1Mode = mode == "a1d1" || mode == "b1d1" || mode == "a1b1d1";
+    const bool b2Mode = mode == "b2" || mode == "a1b2" || mode == "b2d1" || mode == "a1b2d1";
+    const bool d1Mode =
+        mode == "b2d1" || mode == "a1b2d1" || mode == "a1d1" || mode == "b1d1" || mode == "a1b1d1";
     const bool b1Mode =
         mode == "b1" || mode == "a1b1" || mode == "a1b1d" || mode == "b1d1" || mode == "a1b1d1";
-    const bool a1Mode = mode == "a1" || mode == "a1b" || mode == "a1d" || mode == "a1bd" ||
-                        mode == "a1b1" || mode == "a1b1d" || mode == "a1d1" || mode == "a1b1d1";
+    const bool a1Mode = mode == "a1b2" || mode == "a1b2d1" || mode == "a1" || mode == "a1b" ||
+                        mode == "a1d" || mode == "a1bd" || mode == "a1b1" || mode == "a1b1d" ||
+                        mode == "a1d1" || mode == "a1b1d1";
     if (!baselineMode && mode != "a" && mode != "b" && mode != "d" && mode != "ab" &&
-        mode != "ad" && mode != "bd" && mode != "abd" && mode != "c" && !a1Mode && !b1Mode)
+        mode != "ad" && mode != "bd" && mode != "abd" && mode != "c" && !a1Mode && !b1Mode &&
+        !b2Mode)
         return 2;
     ModalExcitation excitationMode{ModalExcitation::raw};
     if (argc >= 10 && (mode != "c" || !parseModalExcitation(argv[9], excitationMode)))
@@ -104,18 +150,20 @@ int render(int argc, char** argv) {
     ProtectRenderConfig protectConfig;
     BubbleA1RenderConfig a1Config;
     DropletB1RenderConfig b1Config;
+    DropletB2RenderConfig b2Config;
     FlowD1RenderConfig d1Config;
     if (argc >= 7 && std::string_view(argv[6]) != "-" &&
         !readConfig(cwd.getChildFile(argv[6]), fluidConfig, modalConfig, &protectConfig, &a1Config,
-                    &b1Config, d1Mode ? &d1Config : nullptr)) {
+                    &b1Config, d1Mode ? &d1Config : nullptr, &b2Config)) {
         std::cerr << "Invalid research config\n";
         return 2;
     }
-    if ((!a1Mode && a1Config.supplied) || (!b1Mode && b1Config.supplied) ||
-        ((a1Mode || b1Mode) && protectConfig.depth != 0))
+    if ((!b2Mode && b2Config.supplied) || (!a1Mode && a1Config.supplied) ||
+        (!b1Mode && b1Config.supplied) ||
+        ((a1Mode || b1Mode || b2Mode) && protectConfig.depth != 0))
         return 2; // Explicit research model selection; Protect coupling remains deferred.
     fluidConfig.bubbleEnabled = !a1Mode && mode.find('a') != std::string_view::npos;
-    fluidConfig.dropletEnabled = !b1Mode && mode.find('b') != std::string_view::npos;
+    fluidConfig.dropletEnabled = !b1Mode && !b2Mode && mode.find('b') != std::string_view::npos;
     fluidConfig.flowEnabled = !d1Mode && mode.find('d') != std::string_view::npos;
     auto inputStream = input.createInputStream();
     if (!inputStream)
@@ -132,6 +180,7 @@ int render(int argc, char** argv) {
     // Fixed DSP storage is allocated once here, outside the processing loop and Windows stack.
     auto a1 = a1Mode ? std::make_unique<BubbleA1>() : nullptr;
     auto b1 = b1Mode ? std::make_unique<DropletB1>() : nullptr;
+    auto b2 = b2Mode ? std::make_unique<DropletB2>() : nullptr;
     FlowD1 d1;
     LiquidModalResonator modal;
     // Explicit CLI comparison options override module fields; omission preserves typed config.
@@ -150,6 +199,7 @@ int render(int argc, char** argv) {
                                         : fluid.prepare(config, fluidConfig);
     if (!prepared || (a1 && !a1->prepare(config, a1Config.bubble, a1Config.analysis)) ||
         (b1 && !b1->prepare(config, b1Config.droplet)) ||
+        (b2 && !b2->prepare(config, b2Config.droplet)) ||
         (d1Mode && !d1.prepare(config, d1Config.flow)))
         return 2;
     // Optional diagnostic trace is offline-only, outside DSP and timing; refuse any overwrite.
@@ -160,10 +210,10 @@ int render(int argc, char** argv) {
             (captureExcitation && traceFile == cwd.getChildFile(argv[10])))
             return 2;
         trace = traceFile.createOutputStream();
-        if (!trace || !trace->writeText("frame,d0,d1_db,gr_db\n", false, false, "\n"))
+        if (!trace || (!b2Mode && !trace->writeText("frame,d0,d1_db,gr_db\n", false, false, "\n")))
             return 1;
     }
-    const auto channels = static_cast<int>(reader->numChannels);
+    const auto channels = b2Mode ? 2 : static_cast<int>(reader->numChannels);
     const auto totalFrames =
         reader->lengthInSamples + static_cast<juce::int64>(tailSeconds * config.sampleRateHz);
     juce::AudioBuffer<float> buffer(channels, blockSize), excitationBuffer(channels, blockSize);
@@ -217,12 +267,17 @@ int render(int argc, char** argv) {
             return 1;
         for (int sample = 0; sample < count; ++sample) {
             StereoFrame frame{buffer.getSample(0, sample),
-                              channels == 2 ? buffer.getSample(1, sample) : 0.0f};
+                              b2Mode && reader->numChannels == 1
+                                  ? buffer.getSample(0, sample)
+                                  : (channels == 2 ? buffer.getSample(1, sample) : 0.0f)};
             for (float value : frame)
                 if (!std::isfinite(value) || std::abs(value) > 1.0f)
                     return 1;
             StereoFrame effect{};
             const double gain = protect.processSource(frame);
+            const auto beforeB2Eligible = b2 ? b2->counters().eligible : 0;
+            const auto beforeB2Admitted = b2 ? b2->counters().admitted : 0;
+            const auto beforeB2Started = b2 ? b2->pool().counters().started : 0;
             const auto beforeA1Requested = a1 ? a1->requested() : 0;
             const auto beforeBubble = a1 ? a1->pool().counters().started : fluid.bubbleEvents();
             const auto beforeDroplet = b1 ? b1->pool().counters().started : fluid.dropletEvents();
@@ -247,6 +302,8 @@ int render(int argc, char** argv) {
                     b1ActiveSum += b1->pool().active();
                     b1PeakActive = std::max(b1PeakActive, b1->pool().active());
                 }
+                if (b2)
+                    components.droplet = b2->process(frame);
                 if (d1Mode) {
                     const auto transferred = d1.process(components.sum());
                     const double path = d1.pathMeters();
@@ -286,7 +343,49 @@ int render(int argc, char** argv) {
                 }
                 previousFlowDelay = delay;
             }
-            if (trace) {
+            if (trace && b2) {
+                const auto writeEvent = [&](const DropletB2Event& e, bool eligible, bool started) {
+                    auto* row = new juce::DynamicObject;
+                    row->setProperty("frame", start + sample);
+                    row->setProperty("eligible", eligible);
+                    row->setProperty("admitted",
+                                     started || b2->counters().admitted != beforeB2Admitted);
+                    row->setProperty("started", started);
+                    row->setProperty("eligibleId", static_cast<juce::int64>(e.center.eligibleId));
+                    row->setProperty("noveltyDb", e.center.impact.onsetStrength);
+                    row->setProperty("positiveSlope", e.positiveSlope);
+                    row->setProperty("sourceExcitation", e.sourceExcitation);
+                    row->setProperty("mappedExcitation", e.mappedExcitation);
+                    row->setProperty("radiusMm", 1000 * e.center.physics.equivalentRadiusMeters);
+                    const auto frequency = e.center.physics.frequencyHz;
+                    const auto maxFrequency =
+                        e.center.riseXi > 0
+                            ? std::min(std::sqrt(2.) * frequency, .45 * config.sampleRateHz)
+                            : frequency;
+                    const auto cents = DropletB2SpatialRenderer::boundedCents(
+                        maxFrequency, e.detuneCents, e.maximumBeatHz);
+                    const auto pair =
+                        DropletB2SpatialRenderer::frequencies(frequency, cents, e.polarity);
+                    row->setProperty("centerFrequencyHz", frequency);
+                    row->setProperty("detuneLeftCents", -e.polarity * cents);
+                    row->setProperty("detuneRightCents", e.polarity * cents);
+                    row->setProperty("renderFrequencyL", pair[0]);
+                    row->setProperty("renderFrequencyR", pair[1]);
+                    const auto amplitude =
+                        e.center.physics.renderAmplitudeScale * e.mappedExcitation * e.center.gain;
+                    row->setProperty("renderAmplitudeL", amplitude * e.center.impact.carrier[0]);
+                    row->setProperty("renderAmplitudeR", amplitude * e.center.impact.carrier[1]);
+                    return trace->writeText(juce::JSON::toString(juce::var(row), true, 17) + "\n",
+                                            false, false, "\n");
+                };
+                if (b2->counters().eligible != beforeB2Eligible &&
+                    !writeEvent(b2->lastEligible(), true, false))
+                    return 1;
+                if (b2->pool().counters().started != beforeB2Started &&
+                    !writeEvent(b2->pool().lastStarted(), false, true))
+                    return 1;
+            }
+            if (trace && !b2) {
                 const auto detection = protect.detection();
                 const auto line = juce::String(start + sample) + "," +
                                   juce::String(detection.difference, 12) + "," +
@@ -404,6 +503,10 @@ int render(int argc, char** argv) {
             std::cout << (i ? "," : "") << counters.lifetimeHistogram[i];
         std::cout << '\n';
     }
+    if (b2)
+        std::cout << "b2_eligible=" << b2->counters().eligible
+                  << " b2_admitted=" << b2->counters().admitted
+                  << " b2_started=" << b2->pool().counters().started << '\n';
     if (b1) {
         const auto& c = b1->counters();
         const auto& v = b1->pool().counters();

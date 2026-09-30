@@ -210,3 +210,5 @@ Descriptor version1 and tracked JSON snapshot own the numeric parameter contract
 Study must preserve separate fixed-source and RMS-matched questions and two blank
 human forms. Engineering results and regeneration commands belong to
 [B1 execution](../../docs/evidence/WATER_DROPLET_B1_EXECUTION.md).
+
+B1 remains the preserved fixed-radius baseline. Subsequent perceptual remediation is tracked by [EXP-W-DB-002](EXP-W-DB-002.md).

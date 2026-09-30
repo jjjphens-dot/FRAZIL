@@ -8,7 +8,8 @@
 namespace frazil::water::research {
 struct BubbleA1Event final {
     BubbleA1Bin physics;
-    std::array<double, 2> amplitude{};
+    std::array<double, 2> amplitude{}, lifecycleAmplitude{};
+    bool separateAmplitudeRole{}; // v3 mapping must not alter retirement/stealing decisions.
     double depthExcitationProxy{}, riseXi{};
     std::size_t bin{};
     BubbleA1RiseModel riseModel{BubbleA1RiseModel::effectiveDampingP1};
@@ -76,7 +77,9 @@ class BubbleA1Voice final {
         releaseLeft = releaseTotal_ = samples;
     }
     double audibleEnvelope() const noexcept {
-        return envelope_ * std::max(std::abs(event.amplitude[0]), std::abs(event.amplitude[1]));
+        const auto& amplitude =
+            event.separateAmplitudeRole ? event.lifecycleAmplitude : event.amplitude;
+        return envelope_ * std::max(std::abs(amplitude[0]), std::abs(amplitude[1]));
     }
     bool done() const noexcept {
         return audibleEnvelope() <= floor_ || age >= maxAge_ || (pending && releaseLeft == 0);
@@ -124,6 +127,7 @@ class BubbleA1VoicePool final {
         activeCount_ = 0;
         freeCount_ = kStorage;
         counters_ = {};
+        lastStarted_ = {};
         for (std::size_t i = 0; i < kStorage; ++i)
             free_[i] = kStorage - i - 1;
     }
@@ -207,6 +211,9 @@ class BubbleA1VoicePool final {
     std::size_t capacity() const noexcept {
         return capacity_;
     }
+    const BubbleA1Event& lastStarted() const noexcept {
+        return lastStarted_;
+    }
     const BubbleA1PoolCounters& counters() const noexcept {
         return counters_;
     }
@@ -214,6 +221,7 @@ class BubbleA1VoicePool final {
   private:
     void start(std::size_t slot, const BubbleA1Event& e) noexcept {
         voices_[slot].start(e, rate_, floorDb_);
+        lastStarted_ = e;
         ++counters_.started;
         ++counters_.radiusHistogram[e.bin];
         counters_.rising += e.riseXi > 0 ? 1u : 0u;
@@ -224,6 +232,7 @@ class BubbleA1VoicePool final {
     double rate_{48000}, floorDb_{-80};
     std::uint32_t releaseSamples_{72};
     BubbleA1PoolCounters counters_{};
+    BubbleA1Event lastStarted_{};
     bool ready_{};
 };
 } // namespace frazil::water::research

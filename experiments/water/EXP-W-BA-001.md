@@ -231,3 +231,14 @@ A0 gap analysis and regeneration commands live only in the execution record. Hum
 Water identity, source preservation, stereo width, audibility and useful mappings
 remain NOT ASSESSED. No voice count proves coupling or low-frequency cloud behavior.
 Stop at governance handoff; no A2/D1/C1/UI work follows without separate instruction.
+
+## Optional Round 01 amplitude-role candidate
+
+Version3 adds PRODUCT_MAPPING depthAmplitudeGamma (.5..1, initial1): D remains
+U^depthExponent for rise; audible depth becomes D^gamma. Gamma1 follows the exact
+v2 arithmetic path. Request times, RNG draw order, radius/bin, rise, retirement and
+stealing stay tied to baseline amplitudes. No limiter/LPF/makeup is added to A1.
+Existing v2 JSON rejects the new field; v3 is explicit. The [v3 descriptor](contracts/bubble-a1-v3.json)
+records it. The .2/.3/.4/.55 mm and 128/512-bin comparisons are offline diagnostics;
+runtime defaults are unchanged. Human review and production adoption remain pending.
+See [Round 01](../../docs/evidence/WATER_LISTENING_ROUND_01.md).

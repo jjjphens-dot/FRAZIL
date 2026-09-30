@@ -3,16 +3,24 @@
 #include "AuditionMonitor.h"
 #include "MonitorOverRange.h"
 #include "PreviewEngine.h"
+#include "PreviewMonitorResampler.h"
+#include "PreviewSessionLogger.h"
+#include "ResearchCoreConfigCodec.h"
 
 #include <algorithm>
 #include <atomic>
 #include <cmath>
 
 namespace frazil::water::preview {
-class PreviewController::Impl final : public juce::AudioIODeviceCallback {
+class PreviewController::Impl final : public juce::AudioIODeviceCallback, private juce::Timer {
   public:
+    Impl() {
+        startTimer(100);
+    }
     ~Impl() override {
+        stopTimer();
         stop();
+        timerCallback();
     }
 
     void stop() {
@@ -22,19 +30,21 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         callbackAttached = false;
         isPlaying.store(false);
         protectMetrics.clear();
+        timerCallback();
     }
 
     void audioDeviceAboutToStart(juce::AudioIODevice* audioDevice) override {
         const auto rate = audioDevice->getCurrentSampleRate();
-        mismatch.store(std::abs(rate - sourceRate) > .5);
+        deviceRate.store(rate);
+        mismatch.store(!resampler.prepare(sourceRate, rate));
         engine.reset();
         frame = 0;
         position.store(0);
         ended.store(false);
-        audition.prepareDiagnostics(rate, monitor.load(), auditionGain.load(),
+        audition.prepareDiagnostics(sourceRate, monitor.load(), auditionGain.load(),
                                     diagnosticSelection.load());
         metrics.setPrepared(static_cast<float>(rate), audioDevice->getCurrentBufferSizeSamples(),
-                            source.getNumChannels());
+                            2);
     }
 
     void audioDeviceStopped() override {
@@ -55,53 +65,120 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback {
         audition.setDiagnosticTargets(mode, outputGain.load(), auditionGain.load(),
                                       diagnosticSelection.load());
         engine.setProtectDepth(protectDepth.load(std::memory_order_relaxed));
-        const int channels = source.getNumChannels();
+        constexpr int channels = 2;
+        int dspFrames{};
         float inputPeak{}, outputPeak{};
         double inputSquares{}, outputSquares{};
         bool finite = true;
         ProtectBlockReadout protectBlock;
         const auto endFrame = static_cast<std::uint64_t>(source.getNumSamples()) +
                               static_cast<std::uint64_t>(30.0 * sourceRate);
-        for (int sample = 0; sample < count; ++sample) {
-            if (frame >= endFrame) {
-                ended.store(true);
-                break;
-            }
-            research::StereoFrame input{};
-            if (frame < static_cast<std::uint64_t>(source.getNumSamples()))
-                for (int channel = 0; channel < channels; ++channel)
-                    input[static_cast<std::size_t>(channel)] =
-                        source.getSample(channel, static_cast<int>(frame));
-            // DSP always advances during Dry monitoring. Replaying, not toggling Dry, resets seed.
-            const auto residual = engine.residual(input);
-            protectBlock.water.include(engine.waterReadout(), channels);
-            protectBlock.latest = engine.protectReadout();
-            protectBlock.peak.includePeak(protectBlock.latest);
-            const auto output =
-                audition.processDiagnostics(input, residual, engine.diagnosticFrames());
-            for (int channel = 0; channel < channels; ++channel) {
-                const auto i = static_cast<std::size_t>(channel);
-                finite = finite && std::isfinite(output[i]);
-                inputPeak = std::max(inputPeak, std::abs(input[i]));
-                outputPeak = std::max(outputPeak, std::abs(output[i]));
-                inputSquares += static_cast<double>(input[i]) * input[i];
-                outputSquares += static_cast<double>(output[i]) * output[i];
-            }
-            for (int channel = 0; channel < std::min(2, outputChannels); ++channel)
-                if (outputs[channel] != nullptr)
-                    outputs[channel][sample] = output[channels == 1 ? 0 : channel];
-            ++frame;
-        }
+        resampler.render(
+            outputs, outputChannels, count, [&](research::StereoFrame& output) noexcept {
+                if (frame >= endFrame)
+                    return false;
+                research::StereoFrame input{};
+                if (frame < static_cast<std::uint64_t>(source.getNumSamples())) {
+                    const auto n = static_cast<int>(frame);
+                    input =
+                        canonicalStereo(source.getSample(0, n),
+                                        source.getSample(source.getNumChannels() == 1 ? 0 : 1, n),
+                                        source.getNumChannels());
+                }
+                // DSP always advances during Dry monitoring. Replaying, not toggling Dry, resets
+                // seed.
+                const auto residual = engine.residual(input);
+                engine.traceEvents(eventTrace, frame);
+                protectBlock.water.include(engine.waterReadout(), channels);
+                protectBlock.latest = engine.protectReadout();
+                protectBlock.peak.includePeak(protectBlock.latest);
+                output = audition.processDiagnostics(input, residual, engine.diagnosticFrames());
+                for (int channel = 0; channel < channels; ++channel) {
+                    const auto i = static_cast<std::size_t>(channel);
+                    finite = finite && std::isfinite(output[i]);
+                    inputPeak = std::max(inputPeak, std::abs(input[i]));
+
+                    inputSquares += static_cast<double>(input[i]) * input[i];
+                }
+                ++frame;
+                ++dspFrames;
+                return true;
+            });
+        ended.store(resampler.finished());
+        for (int c = 0; c < std::min(2, outputChannels); ++c)
+            if (outputs[c])
+                for (int n = 0; n < count; ++n) {
+                    const float value = outputs[c][n];
+                    finite = finite && std::isfinite(value);
+                    outputPeak = std::max(outputPeak, std::abs(value));
+                    outputSquares += static_cast<double>(value) * value;
+                }
         position.store(frame);
         protectBlock.water.latest = engine.waterActivity();
         protectMetrics.publish(protectBlock);
         const auto denominator = static_cast<double>(std::max(1, channels * count));
         overRange.observe(outputPeak);
-        metrics.publish(count, channels, inputPeak, outputPeak,
-                        static_cast<float>(std::sqrt(inputSquares / denominator)),
-                        static_cast<float>(std::sqrt(outputSquares / denominator)), finite);
+        metrics.publish(
+            count, channels, inputPeak, outputPeak,
+            static_cast<float>(std::sqrt(inputSquares / std::max(1, channels * dspFrames))),
+            static_cast<float>(std::sqrt(outputSquares / denominator)), finite);
     }
 
+    juce::var rateFields() const {
+        auto* fields = new juce::DynamicObject;
+        const auto rate = deviceRate.load();
+        fields->setProperty("sourceRate", sourceRate);
+        fields->setProperty("dspRate", preparedRate);
+        fields->setProperty("deviceRate", rate);
+        fields->setProperty("resamplingActive", rate > 0 && std::abs(rate - preparedRate) > .5);
+        fields->setProperty("resampleRatio", rate > 0 ? preparedRate / rate : 0);
+        fields->setProperty("originalSourceChannels", source.getNumChannels());
+        fields->setProperty("dspChannels", 2);
+        return juce::var(fields);
+    }
+    juce::String failure(const char* stage, const juce::String& message) {
+        auto fields = rateFields();
+        fields.getDynamicObject()->setProperty("stage", stage);
+        fields.getDynamicObject()->setProperty("message", message);
+        logger.write("error", fields);
+        return message;
+    }
+    void timerCallback() override {
+        PreviewEventRecord r;
+        while (eventTrace.pop(r)) {
+            auto* fields = new juce::DynamicObject;
+            fields->setProperty("module", r.module == 1 ? "A1" : "B2");
+            fields->setProperty("frame", static_cast<juce::int64>(r.frame));
+            fields->setProperty("eligibleId", static_cast<juce::int64>(r.eligibleId));
+            fields->setProperty("bin", r.bin);
+            fields->setProperty("requested", r.requested);
+            fields->setProperty("eligible", r.eligible);
+            fields->setProperty("admitted", r.admitted);
+            fields->setProperty("started", r.started);
+            fields->setProperty("startCount", static_cast<juce::int64>(r.startCount));
+            fields->setProperty("noveltyDb", r.noveltyDb);
+            fields->setProperty("positiveSlope", r.positiveSlope);
+            fields->setProperty("sourceExcitation", r.sourceExcitation);
+            fields->setProperty("mappedExcitation", r.mappedExcitation);
+            fields->setProperty("radiusMm", r.radiusMm);
+            fields->setProperty("centerFrequencyHz", r.centerFrequencyHz);
+            fields->setProperty("depthExcitationProxy", r.depthExcitationProxy);
+            fields->setProperty("detuneLeftCents", r.detuneLeftCents);
+            fields->setProperty("detuneRightCents", r.detuneRightCents);
+            fields->setProperty("renderFrequencyL", r.renderFrequencyL);
+            fields->setProperty("renderFrequencyR", r.renderFrequencyR);
+            fields->setProperty("renderAmplitudeL", r.renderAmplitudeL);
+            fields->setProperty("renderAmplitudeR", r.renderAmplitudeR);
+            fields->setProperty("pathMeters", r.pathMeters);
+            logger.write("dsp_event", juce::var(fields));
+        }
+        if (const auto dropped = eventTrace.takeDropped())
+            logger.write("trace_overflow", static_cast<juce::int64>(dropped));
+    }
+    PreviewEventTrace eventTrace;
+    PreviewSessionLogger logger;
+    PreviewMonitorResampler resampler;
+    std::atomic<double> deviceRate{};
     juce::AudioDeviceManager device;
     // Replaced only with callback detached; read-only while playing. Bounded to 120 seconds.
     juce::AudioBuffer<float> source;
@@ -140,26 +217,35 @@ juce::String PreviewController::load(const juce::File& wav) {
     juce::WavAudioFormat format;
     auto stream = wav.createInputStream();
     if (!stream)
-        return "Cannot open WAV.";
+        return impl_->failure("source_open", "Cannot open WAV.");
     std::unique_ptr<juce::AudioFormatReader> reader(format.createReaderFor(stream.release(), true));
     if (!reader || reader->numChannels < 1 || reader->numChannels > 2 ||
         reader->sampleRate < 44100 || reader->sampleRate > 96000 || reader->lengthInSamples <= 0 ||
         reader->lengthInSamples > 120.0 * reader->sampleRate)
-        return "Use a mono/stereo WAV, 44.1-96 kHz, at most 120 seconds.";
+        return impl_->failure("source_metadata",
+                              "Use a mono/stereo WAV, 44.1-96 kHz, at most 120 seconds.");
     juce::AudioBuffer<float> loaded(static_cast<int>(reader->numChannels),
                                     static_cast<int>(reader->lengthInSamples));
     if (!reader->read(&loaded, 0, loaded.getNumSamples(), 0, true, true))
-        return "WAV decode failed.";
+        return impl_->failure("source_decode", "WAV decode failed.");
     for (int channel = 0; channel < loaded.getNumChannels(); ++channel)
         for (int sample = 0; sample < loaded.getNumSamples(); ++sample) {
             const auto value = loaded.getSample(channel, sample);
             if (!std::isfinite(value) || std::abs(value) > 1.0f)
-                return "Source must be finite and within full scale (same as research renderer).";
+                return impl_->failure(
+                    "source_samples",
+                    "Source must be finite and within full scale (same as research renderer).");
         }
     impl_->source = std::move(loaded);
     impl_->sourceRate = reader->sampleRate;
     impl_->sourceName = wav.getFileName();
     impl_->position.store(0);
+    auto fields = impl_->rateFields();
+    fields.getDynamicObject()->setProperty("basename", impl_->sourceName);
+    fields.getDynamicObject()->setProperty("sampleCount", impl_->source.getNumSamples());
+    fields.getDynamicObject()->setProperty("durationSeconds",
+                                           impl_->source.getNumSamples() / impl_->sourceRate);
+    impl_->logger.write("source_load", fields);
     return {};
 }
 
@@ -220,48 +306,72 @@ juce::String PreviewController::validate(const PreviewSettings& settings, double
 juce::String PreviewController::play(const PreviewSettings& settings) {
     stop();
     if (impl_->source.getNumSamples() == 0)
-        return "Load a WAV first.";
+        return impl_->failure("play", "Load a WAV first.");
     const auto error = prepareStopped(settings);
     return error.isEmpty() ? startPrepared() : error;
 }
 juce::String PreviewController::prepareStopped(const PreviewSettings& settings) {
     if (impl_->callbackAttached)
-        return "Stop playback before preparing a research configuration.";
+        return impl_->failure("prepare",
+                              "Stop playback before preparing a research configuration.");
     impl_->prepared = false;
     impl_->preparedRate = impl_->sourceRate > 0 ? impl_->sourceRate : 48000;
     if (!impl_->engine.prepare(impl_->preparedRate, settings))
-        return validate(settings);
+        return impl_->failure("prepare", validate(settings));
     impl_->protectDepth.store(settings.protect.depth, std::memory_order_relaxed);
+    auto* fields = new juce::DynamicObject;
+    fields->setProperty("config", juce::JSON::parse(encodeResearchConfig(settings)));
+    fields->setProperty("seed", static_cast<int>(PreviewEngine::kSeed));
+    fields->setProperty("core", static_cast<int>(settings.core));
+    fields->setProperty("composition", settings.mode);
+    fields->setProperty("d1Backend", "Historical Lagrange3; NUMERICAL / HUMAN ACCEPTANCE PENDING");
+    impl_->logger.write("apply", juce::var(fields));
     impl_->prepared = true;
     return {};
 }
 juce::String PreviewController::startPrepared() {
     if (!impl_->prepared || impl_->callbackAttached || impl_->source.getNumSamples() == 0 ||
         impl_->preparedRate != impl_->sourceRate)
-        return "Load a source and prepare the stopped preview before starting.";
+        return impl_->failure("play",
+                              "Load a source and prepare the stopped preview before starting.");
     if (impl_->device.getCurrentAudioDevice() == nullptr) {
         const auto error = impl_->device.initialiseWithDefaultDevices(0, 2);
         if (error.isNotEmpty())
-            return error;
+            return impl_->failure("device_setup", error);
     }
-    auto setup = impl_->device.getAudioDeviceSetup();
-    setup.sampleRate = impl_->sourceRate;
-    const auto error = impl_->device.setAudioDeviceSetup(setup, true);
-    if (error.isNotEmpty())
-        return "Audio device: " + error;
     auto* audioDevice = impl_->device.getCurrentAudioDevice();
-    if (audioDevice == nullptr ||
-        audioDevice->getActiveOutputChannels().countNumberOfSetBits() < 2 ||
-        std::abs(audioDevice->getCurrentSampleRate() - impl_->sourceRate) > .5)
-        return "Default output must support stereo at the WAV sample rate; no resampling is used.";
+    if (audioDevice == nullptr || audioDevice->getActiveOutputChannels().countNumberOfSetBits() < 2)
+        return impl_->failure("device_setup", "Default output must provide at least two channels.");
+    const double deviceRate = audioDevice->getCurrentSampleRate();
+    if (!std::isfinite(deviceRate) || deviceRate < 8000 || deviceRate > 384000)
+        return impl_->failure("device_rate",
+                              "Unsupported monitor device rate (8-384 kHz required).");
+    impl_->deviceRate.store(deviceRate);
+    auto fields = impl_->rateFields();
+    fields.getDynamicObject()->setProperty("deviceName", audioDevice->getName());
+    fields.getDynamicObject()->setProperty("deviceType", audioDevice->getTypeName());
+    fields.getDynamicObject()->setProperty(
+        "outputChannels", audioDevice->getActiveOutputChannels().countNumberOfSetBits());
+    fields.getDynamicObject()->setProperty(
+        "monitorAntiAlias", deviceRate < impl_->preparedRate - .5
+                                ? "129-tap Blackman FIR, cutoff 0.45*deviceRate; monitor only"
+                                : "off");
+    fields.getDynamicObject()->setProperty("requestedDeviceRate",
+                                           "current/default (no rate request)");
+    impl_->logger.write("device_setup", fields);
     impl_->isPlaying.store(true);
     impl_->device.addAudioCallback(impl_.get());
     impl_->callbackAttached = true;
+    impl_->logger.write("restart", impl_->rateFields());
+    impl_->logger.write("play_start", impl_->rateFields());
     return {};
 }
 
 void PreviewController::stop() {
+    const bool wasPlaying = impl_->isPlaying.load();
     impl_->stop();
+    if (wasPlaying)
+        impl_->logger.write("play_stop", impl_->rateFields());
 }
 void PreviewController::setAuditionTrim(double decibels) noexcept {
     if (std::isfinite(decibels) && decibels >= 0 && decibels <= 36)
@@ -299,6 +409,19 @@ plugin::DeveloperDiagnosticsSnapshot PreviewController::diagnostics() const noex
 }
 ProtectDiagnosticsSnapshot PreviewController::protectDiagnostics() noexcept {
     return impl_->protectMetrics.snapshot();
+}
+void PreviewController::logEvent(const juce::String& event) {
+    impl_->logger.write(event, impl_->rateFields());
+}
+juce::String PreviewController::rateDescription() const {
+    const auto rate = impl_->deviceRate.load();
+    return "SOURCE " + juce::String(impl_->sourceRate, 0) + " Hz | DSP " +
+           juce::String(impl_->preparedRate, 0) + " Hz | DEVICE " + juce::String(rate, 0) +
+           " Hz | MONITOR SRC " +
+           (rate > 0 && std::abs(rate - impl_->preparedRate) > .5 ? "ON" : "OFF");
+}
+juce::String PreviewController::logStatus() const {
+    return impl_->logger.status();
 }
 juce::String PreviewController::sourceDescription() const {
     if (impl_->sourceName.isEmpty())

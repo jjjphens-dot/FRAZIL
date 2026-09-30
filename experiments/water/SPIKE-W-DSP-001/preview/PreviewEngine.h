@@ -1,11 +1,13 @@
 #pragma once
 
 #include "DiagnosticMonitor.h"
+#include "PreviewEventTrace.h"
 #include "PreviewSettings.h"
 #include "ProtectDiagnostics.h"
 #include "ResearchCoreParameterAdapter.h"
 #include "dsp/BubbleA1.h"
 #include "dsp/DropletB1.h"
+#include "dsp/DropletB2.h"
 #include "dsp/FlowD1.h"
 #include "render/ReadConfig.h"
 
@@ -59,6 +61,7 @@ class PreviewEngine final {
     }
 
     void reset() noexcept {
+        tracedA_ = tracedAStarts_ = tracedB_ = tracedBAdmitted_ = tracedBStarts_ = 0;
         fluid_.reset();
         modal_.reset();
         protect_.reset();
@@ -66,6 +69,8 @@ class PreviewEngine final {
             a1_->reset();
         if (b1_)
             b1_->reset();
+        if (b2_)
+            b2_->reset();
         d1_.reset();
         readout_ = {};
         diagnostic_ = {};
@@ -128,14 +133,21 @@ class PreviewEngine final {
             activity.reworked = true;
             activity.bubbleRequested = bubbleEnabled_ ? a1_->requested() : 0;
             activity.bubbleRequestedRate = bubbleEnabled_ ? a1_->requestedRate() : 0;
-            activity.dropletEligible = dropletEnabled_ ? b1_->counters().eligible : 0;
-            activity.dropletAdmitted = dropletEnabled_ ? b1_->counters().admitted : 0;
+            activity.dropletEligible =
+                dropletEnabled_ ? (useB2_ ? b2_->counters().eligible : b1_->counters().eligible)
+                                : 0;
+            activity.dropletAdmitted =
+                dropletEnabled_ ? (useB2_ ? b2_->counters().admitted : b1_->counters().admitted)
+                                : 0;
             activity.flowPathMeters = flowEnabled_ ? d1_.pathMeters() : 0;
             activity.bubbleEvents = bubbleEnabled_ ? a1_->pool().counters().started : 0;
             activity.bubbleActive = bubbleEnabled_ ? a1_->pool().active() : 0;
             activity.bubbleSteals = bubbleEnabled_ ? a1_->pool().counters().steals : 0;
-            activity.dropletEvents = dropletEnabled_ ? b1_->pool().counters().started : 0;
-            activity.dropletActive = dropletEnabled_ ? b1_->pool().active() : 0;
+            activity.dropletEvents = dropletEnabled_ ? (useB2_ ? b2_->pool().counters().started
+                                                               : b1_->pool().counters().started)
+                                                     : 0;
+            activity.dropletActive =
+                dropletEnabled_ ? (useB2_ ? b2_->pool().active() : b1_->pool().active()) : 0;
             activity.flowDelayMs =
                 flowEnabled_ ? 1000 * research::FlowD1Model::delaySeconds(d1_.pathMeters()) : 0;
         } else {
@@ -161,6 +173,81 @@ class PreviewEngine final {
                 protect_.reductionDb()};
     }
 
+    void traceEvents(PreviewEventTrace& trace, std::uint64_t frame) noexcept {
+        if (!ready_ || !reworked_)
+            return;
+        if (bubbleEnabled_) {
+            const auto make = [&](const research::BubbleA1Event& e, bool requested,
+                                  std::uint64_t starts) {
+                PreviewEventRecord r;
+                r.module = 1;
+                r.frame = frame;
+                // Request sequence only applies to request records; starts may be deferred.
+                r.eligibleId = requested ? a1_->requested() : 0;
+                r.requested = requested;
+                r.started = starts != 0;
+                r.startCount = starts;
+                r.bin = static_cast<int>(e.bin);
+                r.radiusMm = e.physics.radiusMeters * 1000;
+                r.centerFrequencyHz = e.physics.frequencyHz;
+                r.depthExcitationProxy = e.depthExcitationProxy;
+                r.renderAmplitudeL = e.amplitude[0];
+                r.renderAmplitudeR = e.amplitude[1];
+                r.pathMeters = flowEnabled_ ? d1_.pathMeters() : 0;
+                trace.push(r);
+            };
+            if (a1_->requested() != tracedA_)
+                make(a1_->lastRequestedEvent(), true, 0);
+            const auto starts = a1_->pool().counters().started;
+            if (starts != tracedAStarts_)
+                make(a1_->pool().lastStarted(), false, starts - tracedAStarts_);
+            tracedA_ = a1_->requested();
+            tracedAStarts_ = starts;
+        }
+        if (dropletEnabled_ && useB2_) {
+            const auto make = [&](const research::DropletB2Event& e, bool eligible, bool started) {
+                PreviewEventRecord r;
+                r.module = 2;
+                r.frame = frame;
+                r.eligibleId = e.center.eligibleId;
+                r.eligible = eligible;
+                r.started = started;
+                r.startCount = started ? b2_->pool().counters().started - tracedBStarts_ : 0;
+                r.admitted = started || b2_->counters().admitted != tracedBAdmitted_;
+                r.noveltyDb = e.center.impact.onsetStrength;
+                r.positiveSlope = e.positiveSlope;
+                r.sourceExcitation = e.sourceExcitation;
+                r.mappedExcitation = e.mappedExcitation;
+                r.radiusMm = e.center.physics.equivalentRadiusMeters * 1000;
+                r.centerFrequencyHz = e.center.physics.frequencyHz;
+                const double maximum =
+                    e.center.riseXi > 0
+                        ? std::min(std::sqrt(2.) * r.centerFrequencyHz, .45 * sampleRate_)
+                        : r.centerFrequencyHz;
+                const double cents = research::DropletB2SpatialRenderer::boundedCents(
+                    maximum, e.detuneCents, e.maximumBeatHz);
+                r.detuneLeftCents = -e.polarity * cents;
+                r.detuneRightCents = e.polarity * cents;
+                const auto f = research::DropletB2SpatialRenderer::frequencies(r.centerFrequencyHz,
+                                                                               cents, e.polarity);
+                r.renderFrequencyL = f[0];
+                r.renderFrequencyR = f[1];
+                const double amplitude =
+                    e.center.physics.renderAmplitudeScale * e.mappedExcitation * e.center.gain;
+                r.renderAmplitudeL = amplitude * e.center.impact.carrier[0];
+                r.renderAmplitudeR = amplitude * e.center.impact.carrier[1];
+                r.pathMeters = flowEnabled_ ? d1_.pathMeters() : 0;
+                trace.push(r);
+            };
+            if (b2_->counters().eligible != tracedB_)
+                make(b2_->lastEligible(), true, false);
+            if (b2_->pool().counters().started != tracedBStarts_)
+                make(b2_->pool().lastStarted(), false, true);
+            tracedB_ = b2_->counters().eligible;
+            tracedBAdmitted_ = b2_->counters().admitted;
+            tracedBStarts_ = b2_->pool().counters().started;
+        }
+    }
     static constexpr std::uint32_t kSeed = 42;
 
   private:
@@ -169,6 +256,9 @@ class PreviewEngine final {
         if (!Adapter::validate(settings.tuning))
             return false;
         baseline_ = modalMode_ = false;
+        useB2_ = settings.tuning.useB2;
+        if (!b2_)
+            b2_ = std::make_unique<research::DropletB2>();
         sampleRate_ = sampleRate;
         const std::string_view mode(kModes[static_cast<std::size_t>(settings.mode)]);
         bubbleEnabled_ = mode.find('a') != std::string_view::npos;
@@ -180,12 +270,14 @@ class PreviewEngine final {
         if (!b1_)
             b1_ = std::make_unique<research::DropletB1>();
         const research::ResearchConfig config{sampleRate, kSeed};
-        ready_ = (!bubbleEnabled_ ||
-                  a1_->prepare(config, Adapter::makeBubbleA1Config(settings.tuning),
-                               Adapter::makeSharedExcitationConfig(settings.tuning))) &&
-                 (!dropletEnabled_ ||
-                  b1_->prepare(config, Adapter::makeDropletB1Config(settings.tuning))) &&
-                 (!flowEnabled_ || d1_.prepare(config, Adapter::makeFlowD1Config(settings.tuning)));
+        ready_ =
+            (!bubbleEnabled_ ||
+             a1_->prepare(config, Adapter::makeBubbleA1Config(settings.tuning),
+                          Adapter::makeSharedExcitationConfig(settings.tuning))) &&
+            (!dropletEnabled_ ||
+             (useB2_ ? b2_->prepare(config, research::DropletB2Config{settings.tuning.dropletB2})
+                     : b1_->prepare(config, Adapter::makeDropletB1Config(settings.tuning)))) &&
+            (!flowEnabled_ || d1_.prepare(config, Adapter::makeFlowD1Config(settings.tuning)));
         reset();
         return ready_;
     }
@@ -196,7 +288,7 @@ class PreviewEngine final {
             diagnostic_.at(DiagnosticSignal::bubbleDriver) = a1_->excitationFrame();
         }
         if (dropletEnabled_)
-            parts.droplet = b1_->process(input);
+            parts.droplet = useB2_ ? b2_->process(input) : b1_->process(input);
         auto effect = parts.sum(); // Same float summation boundary as render_main.cpp.
         if (flowEnabled_) {
             const auto transferred = d1_.process(effect);
@@ -214,6 +306,9 @@ class PreviewEngine final {
         readout_.at(WaterSignal::postProtect) = effect;
         return effect;
     }
+    std::uint64_t tracedA_{}, tracedAStarts_{}, tracedB_{}, tracedBAdmitted_{}, tracedBStarts_{};
+    bool useB2_{};
+    std::unique_ptr<research::DropletB2> b2_;
     std::unique_ptr<research::BubbleA1> a1_;
     std::unique_ptr<research::DropletB1> b1_;
     research::FlowD1 d1_;

@@ -1,5 +1,9 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+## Listening Remediation Round 01
+
+Preview uses source-rate DSP followed by monitor-only SRC and explicit anti-alias FIR, retaining both processed channels. B1 stays selectable; B2 uses independent v1 config and b2/b2-residual/a1b2/b2d1/a1b2d1 modes. A1 v3 adds depthAmplitudeGamma without changing v2. Offline --a1-binning source.wav output.wav events.csv bins radiusMin gamma checks its 128-bin case sample-exact against runtime A1. --d1-path rate frames seed output.bin exports unchanged default paths as little-endian doubles for existing FD-003 kernels. listening_round01.py --renderer ... --sources ... --output build/... --section a1|b2|c6 creates local evidence. Do not redistribute audio without permission. See [Round 01](../../../docs/evidence/WATER_LISTENING_ROUND_01.md).
+
 ## A1/B1/D1 Preview raw parameter tuning
 
 The standalone Engineering view now edits canonical raw research configs through generic cards,
@@ -448,7 +452,7 @@ never enters either schema; see the debug guide for DSP/context dirty and checkp
 Optional `modal.motionDepth` defaults to 0 (range 0..0.35), preserving exact historical sample
 arithmetic when omitted. `modal.motionIntervalSeconds` defaults to .7 s (range .02..10 s).
 The research macro maps depth=.35m and interval=.7*2.8^(1-2m). A/B/D and existing three Modal
-fields retain their defaults/ranges. Together with the Droplet scheduling/probability gates and C policy options, Legacy preview raw controls total 28; separate Reworked tuning exposes 40 writable fields.
+fields retain their defaults/ranges. Together with the Droplet scheduling/probability gates and C policy options, Legacy preview raw controls total 28; separate Reworked tuning exposes 62 writable numeric/choice fields plus the B1/B2 selector, including retained inactive values.
 
 Six positive random targets are normalized to sum six, then interpolated with smoothstep between
 normalized endpoints. Only excitation distribution changes: poles, decay and output gain are

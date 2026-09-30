@@ -1,5 +1,9 @@
 # Research Water Mapping v0.2
 
+## Round 01 classifications
+
+A1 depthAmplitudeGamma and B2 sourceExcitationGamma are PRODUCT_MAPPING. B2 eventRadiusSpreadPct is REDUCED_PHYSICAL_MODEL, not a measured population. Stereo cents are PRODUCT_MAPPING; the 2 Hz cap, detector, queue, trace and monitor SRC/anti-alias filter are ENGINEERING. Center radius/frequency and empirical damping retain audited PHYSICAL assumptions. No Size/Motion/Decay mapping is frozen. See [B2 contract](../EXP-W-DB-002.md).
+
 ## Core applicability
 
 `research-water-mapping-v0.2` applies to Legacy A0/B0/D0 and unchanged C only.

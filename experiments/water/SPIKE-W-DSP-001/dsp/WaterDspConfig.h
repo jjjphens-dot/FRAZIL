@@ -14,7 +14,9 @@ enum class RandomDomain : std::uint64_t {
     dropletB1Identity = 7,
     dropletB1Admission = 8,
     dropletB1Jitter = 9, // Reserved, not consumed by B1 v1.
-    flowD1 = 10 // Independent reduced-path trajectory; append-only identity.
+    flowD1 = 10,         // Independent reduced-path trajectory; append-only identity.
+    dropletB2Radius = 11,
+    dropletB2Spatial = 12
 };
 
 struct ResearchConfig final {

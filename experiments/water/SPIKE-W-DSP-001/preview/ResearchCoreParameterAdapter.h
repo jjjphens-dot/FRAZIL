@@ -10,9 +10,9 @@
 #include <string>
 
 namespace frazil::water::preview {
-enum class ResearchModule { bubble, droplet, flow };
+enum class ResearchModule { bubble, droplet, flow, dropletB2 };
 inline constexpr std::array kResearchModules{ResearchModule::bubble, ResearchModule::droplet,
-                                             ResearchModule::flow};
+                                             ResearchModule::flow, ResearchModule::dropletB2};
 
 // Non-owning immutable view: every numeric field/choice refers to a canonical static spec.
 struct ResearchDebugParameter final {
@@ -30,16 +30,22 @@ struct ResearchDebugParameter final {
 // A future candidate adds state/spec/config adaptation and DSP dispatch; the view stays generic.
 struct ResearchCoreParameterAdapter final {
     static const char* identifier(ResearchModule module) noexcept {
+        if (module == ResearchModule::dropletB2)
+            return "B2";
         return module == ResearchModule::bubble    ? "A1"
                : module == ResearchModule::droplet ? "B1"
                                                    : "D1";
     }
     static const char* displayName(ResearchModule module) noexcept {
+        if (module == ResearchModule::dropletB2)
+            return "B2 / DROPLET CANDIDATE";
         return module == ResearchModule::bubble    ? "A1 / BUBBLE"
                : module == ResearchModule::droplet ? "B1 / DROPLET"
                                                    : "D1 / FLOW";
     }
     static const char* configKey(ResearchModule module) noexcept {
+        if (module == ResearchModule::dropletB2)
+            return "dropletB2";
         return module == ResearchModule::bubble    ? "bubbleA1"
                : module == ResearchModule::droplet ? "dropletB1"
                                                    : "flowD1";
@@ -51,6 +57,8 @@ struct ResearchCoreParameterAdapter final {
             return state.bubble;
         case ResearchModule::droplet:
             return state.droplet;
+        case ResearchModule::dropletB2:
+            return state.dropletB2;
         case ResearchModule::flow:
             return state.flow;
         }
@@ -63,6 +71,8 @@ struct ResearchCoreParameterAdapter final {
             return state.bubble;
         case ResearchModule::droplet:
             return state.droplet;
+        case ResearchModule::dropletB2:
+            return state.dropletB2;
         case ResearchModule::flow:
             return state.flow;
         }
@@ -74,6 +84,8 @@ struct ResearchCoreParameterAdapter final {
             return research::kA1Parameters.size();
         case ResearchModule::droplet:
             return research::kB1Parameters.size();
+        case ResearchModule::dropletB2:
+            return research::kB2Parameters.size();
         case ResearchModule::flow:
             return research::kD1Parameters.size();
         }
@@ -90,6 +102,8 @@ struct ResearchCoreParameterAdapter final {
                     spec.initial,
                     {spec.choices.data(), spec.choiceCount}};
         };
+        if (module == ResearchModule::dropletB2)
+            return adapt(research::kB2Parameters.at(index));
         if (module == ResearchModule::bubble)
             return adapt(research::kA1Parameters.at(index));
         if (module == ResearchModule::droplet)
@@ -123,6 +137,8 @@ struct ResearchCoreParameterAdapter final {
         return true;
     }
     static void resetModule(ResearchCoreTuningState& state, ResearchModule module) {
+        if (module == ResearchModule::bubble)
+            state.depthAmplitudeGamma = 1;
         for (std::size_t i = 0; i < parameterCount(module); ++i)
             values(state, module)[i] = parameter(module, i).initial;
     }
@@ -130,6 +146,8 @@ struct ResearchCoreParameterAdapter final {
         state = {};
     }
     static bool validate(const ResearchCoreTuningState& state) {
+        if (!research::kA1DepthAmplitudeGamma.accepts(state.depthAmplitudeGamma))
+            return false;
         for (auto module : kResearchModules)
             for (std::size_t i = 0; i < parameterCount(module); ++i)
                 if (!parameter(module, i).accepts(getValue(state, module, i)))
@@ -169,6 +187,7 @@ struct ResearchCoreParameterAdapter final {
         config.riseModel =
             static_cast<research::BubbleA1RiseModel>(static_cast<int>(v("riseModel")));
         config.sourceEnergyAmplitude = v("sourceEnergyAmplitude") == 1;
+        config.depthAmplitudeGamma = state.depthAmplitudeGamma;
         return config;
     }
     static research::SharedExcitationConfig

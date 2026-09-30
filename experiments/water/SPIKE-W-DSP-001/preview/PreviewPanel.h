@@ -193,7 +193,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             const auto& settings = session_.applied().engineering;
             setStatus(settings.reworkedFluid()
                           ? "Copied APPLIED config | renderer mode " +
-                                reworkedRendererMode(settings.mode) +
+                                reworkedRendererMode(settings.mode, settings.tuning.useB2) +
                                 " | seed 42 | same source WAV; monitor/trim excluded."
                           : "Copied APPLIED module config; composition/seed/monitor are separate.");
         };
@@ -382,6 +382,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
     void capture(std::size_t slot) {
         operations_.finish();
         session_.capture(slot);
+        controller_.logEvent(slot == 0 ? "capture_A" : "capture_B");
         refresh();
         setStatus(juce::String("Captured ") + (slot == 0 ? "A" : "B") +
                   ": APPLIED experiment, engineering and monitor state.");
@@ -402,6 +403,7 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                                session_.restoreValidated(candidate);
                                discardPendingText();
                            });
+        controller_.logEvent(slot == 0 ? "restore_A" : "restore_B");
         setStatus("Recalled snapshot. Play restarts; source position is not restored.");
     }
     void refresh() {
@@ -572,7 +574,8 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
             "*.json");
         const auto json = session ? encodeSession(session_.applied())
                                   : encodeResearchConfig(session_.applied().engineering);
-        const auto rendererMode = reworkedRendererMode(session_.applied().engineering.mode);
+        const auto rendererMode = reworkedRendererMode(session_.applied().engineering.mode,
+                                                       session_.applied().engineering.tuning.useB2);
         const bool reworkedConfig = !session && session_.applied().engineering.reworkedFluid();
         chooser_->launchAsync(
             juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles |
@@ -604,17 +607,23 @@ class PreviewPanel final : public juce::Component, private juce::Timer {
                 juce::dontSendNotification);
         }
         overRangeWarning_.setVisible(now < overRangeUntil_);
+        source_.setText(controller_.sourceDescription() + " | " + controller_.rateDescription(),
+                        juce::dontSendNotification);
         const auto summary = controller_.protectDiagnostics();
         protect_.updateDiagnostics(summary);
-        waterDiagnostics_.setText(waterDiagnosticsText(summary), false);
+        waterDiagnostics_.setText(
+            waterDiagnosticsText(summary) +
+                "\nD1: Historical Lagrange3 - NUMERICAL / HUMAN ACCEPTANCE PENDING\nLog: " +
+                controller_.logStatus(),
+            false);
         diagnostics_.update(controller_.diagnostics(),
                             kModes[static_cast<std::size_t>(session_.applied().engineering.mode)]);
         refreshApplied();
         if (controller_.playing() && (controller_.finished() || controller_.deviceRateMismatch())) {
             const bool mismatch = controller_.deviceRateMismatch();
             controller_.stop();
-            setStatus(mismatch ? "Device rate changed; stopped. Play reopens at source rate."
-                               : "Finished source + 30 s tail.");
+            setStatus(mismatch ? "Unsupported device rate; stopped. Check the session log."
+                               : "Finished source + 30 s tail + monitor SRC drain.");
         }
     }
     ResearchSessionModel session_;

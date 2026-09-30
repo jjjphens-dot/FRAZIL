@@ -37,6 +37,9 @@ class PreviewController final {
     ProtectDiagnosticsSnapshot protectDiagnostics() noexcept;
     // Consumes a latched actual-output over-range event; never changes the monitor gain.
     bool consumeMonitorOverRange() noexcept;
+    void logEvent(const juce::String& event);
+    juce::String rateDescription() const;
+    juce::String logStatus() const;
     juce::String sourceDescription() const;
     SourceMetadata sourceMetadata() const;
     double positionSeconds() const noexcept;

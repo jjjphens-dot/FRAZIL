@@ -2,6 +2,7 @@
 
 #include "dsp/BubbleA1Model.h"
 #include "dsp/DropletB1Config.h"
+#include "dsp/DropletB2Config.h"
 #include "dsp/FlowD1Config.h"
 #include "dsp/FluidCandidate.h"
 #include "dsp/FluidProtect.h"
@@ -34,6 +35,11 @@ struct BubbleA1RenderConfig final {
 
 struct DropletB1RenderConfig final {
     DropletB1Config droplet;
+    bool supplied{};
+};
+
+struct DropletB2RenderConfig final {
+    DropletB2Config droplet;
     bool supplied{};
 };
 
@@ -212,7 +218,7 @@ inline bool readNumbers(const juce::var& value,
 inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfig& modal,
                            ProtectRenderConfig* protect = nullptr,
                            BubbleA1RenderConfig* a1 = nullptr, DropletB1RenderConfig* b1 = nullptr,
-                           FlowD1RenderConfig* d1 = nullptr) {
+                           FlowD1RenderConfig* d1 = nullptr, DropletB2RenderConfig* b2 = nullptr) {
     if (text.empty() || text.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()))
         return false;
     if (text.starts_with("\xef\xbb\xbf"))
@@ -255,7 +261,7 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
             d1->supplied = true;
         } else if (name == "dropletB1") {
             if (!b1)
-                return false; // Preview/session cannot adopt B1 through a module import.
+                return false; // Caller must explicitly opt in to this research revision.
             double version = 0;
             for (const auto& field : property.value.getDynamicObject()->getProperties()) {
                 if (!field.value.isInt() && !field.value.isInt64() && !field.value.isDouble())
@@ -280,6 +286,33 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
             if (version != 1 || !b1->droplet.valid())
                 return false;
             b1->supplied = true;
+        } else if (name == "dropletB2") {
+            if (!b2)
+                return false; // Caller must explicitly opt in to this research revision.
+            double version = 0;
+            for (const auto& field : property.value.getDynamicObject()->getProperties()) {
+                if (!field.value.isInt() && !field.value.isInt64() && !field.value.isDouble())
+                    return false;
+                const double value = static_cast<double>(field.value);
+                if (!std::isfinite(value))
+                    return false;
+                if (field.name.toString() == "version") {
+                    version = value;
+                    continue;
+                }
+                bool found = false;
+                for (std::size_t i = 0; i < kB2Parameters.size(); ++i)
+                    if (field.name.toString() == kB2Parameters[i].name.data()) {
+                        b2->droplet.values[i] = value;
+                        found = true;
+                        break;
+                    }
+                if (!found)
+                    return false;
+            }
+            if (version != 1 || !b2->droplet.valid())
+                return false;
+            b2->supplied = true;
         } else if (name == "bubbleA1") {
             if (!a1)
                 return false; // Preview/session imports cannot silently adopt offline A1.
@@ -296,6 +329,7 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
                               {kA1PopulationGamma.name.data(), &c.populationGamma},
                               {kA1AmplitudeRadiusExponent.name.data(), &c.amplitudeRadiusExponent},
                               {kA1DepthExponent.name.data(), &c.depthExponent},
+                              {"depthAmplitudeGamma", &c.depthAmplitudeGamma},
                               {kA1PersistenceScale.name.data(), &c.persistenceScale},
                               {kA1MaxEventRateHz.name.data(), &c.maxEventRateHz},
                               {kA1MotionFactor.name.data(), &c.motionFactor},
@@ -312,7 +346,9 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
                               {kSharedSlowReleaseMs.name.data(), &a.slowReleaseMs},
                               {kSharedActivityFloorDbFS.name.data(), &a.activityFloorDbFS},
                               {kSharedActivityKneeDb.name.data(), &a.activityKneeDb}}) ||
-                version != 2 || !kA1RiseModel.accepts(riseModel) ||
+                (version != 2 && version != 3) ||
+                (version == 2 && property.value.hasProperty("depthAmplitudeGamma")) ||
+                !a1Range(c.depthAmplitudeGamma, .5, 1) || !kA1RiseModel.accepts(riseModel) ||
                 !validVoiceRepresentation(capacity) || !kA1SourceEnergyAmplitude.accepts(energy))
                 return false;
             c.voiceCapacity = static_cast<std::size_t>(capacity);
@@ -410,12 +446,13 @@ inline bool readConfigText(std::string_view text, FluidConfig& fluid, ModalConfi
 
 inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,
                        ProtectRenderConfig* protect = nullptr, BubbleA1RenderConfig* a1 = nullptr,
-                       DropletB1RenderConfig* b1 = nullptr, FlowD1RenderConfig* d1 = nullptr) {
+                       DropletB1RenderConfig* b1 = nullptr, FlowD1RenderConfig* d1 = nullptr,
+                       DropletB2RenderConfig* b2 = nullptr) {
     juce::MemoryBlock bytes;
     if (!file.existsAsFile() || !file.loadFileAsData(bytes))
         return false;
     return readConfigText({static_cast<const char*>(bytes.getData()), bytes.getSize()}, fluid,
-                          modal, protect, a1, b1, d1);
+                          modal, protect, a1, b1, d1, b2);
 }
 
 inline bool readConfig(const juce::File& file, FluidConfig& fluid, ModalConfig& modal,

@@ -35,6 +35,8 @@ inline constexpr ResearchParameterSpec kA1RiseModel{
     "riseModel", "choice", "PRODUCT_MAPPING", 0, 1, 1, {0, 1}, 2};
 inline constexpr ResearchParameterSpec kA1SourceEnergyAmplitude{
     "sourceEnergyAmplitude", "choice", "REDUCED_PHYSICAL_MODEL", 0, 1, 1, {0, 1}, 2};
+inline constexpr ResearchParameterSpec kA1DepthAmplitudeGamma{
+    "depthAmplitudeGamma", "dimensionless", "PRODUCT_MAPPING", .5, 1, 1, {}, 0};
 inline constexpr std::array kA1Parameters{kA1RadiusMinMm,
                                           kA1RadiusMaxMm,
                                           kA1PopulationGamma,

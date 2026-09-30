@@ -1,5 +1,9 @@
 # FRAZIL 测试、听测与发布门槛
 
+## Water Listening Round 01 validation
+
+New droplet_b2 and droplet_b2_cli CTests cover exact B1-like ablation, radius/gamma/spatial isolation, beat bounds, three-rate transient spacing, finite output, processing allocation, schema/modes, mono spatial output and A1 v2/v3 gamma1 identity. Preview tests cover SRC reset/partition/drain/latency and Apply-only state. Optional preview_tests --device-smoke input.wav opens the real default stereo device for 500 ms at -18 dB Dry, separately from device-free CTest. listening_round01.py generates local A1/B2/C6 evidence without automatic listening verdicts. Commands/results: [Round 01](evidence/WATER_LISTENING_ROUND_01.md).
+
 ## Reworked raw tuning regression
 
 `preview_reworked_parameter_tests.cpp` extends the existing device-free Preview executable:

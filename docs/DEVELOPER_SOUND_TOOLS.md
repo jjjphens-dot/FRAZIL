@@ -1,5 +1,9 @@
 # FRAZIL Developer Sound Tools
 
+## Water Preview Round 01
+
+Preview separates source/DSP and device rates, canonicalizes mono before DSP, and records message-thread JSONL plus bounded event transport. Monitor-only SRC/anti-alias latency is not plugin latency. B2 and A1 v3 are optional research candidates; session v5 and production stay unchanged. See [Round 01](evidence/WATER_LISTENING_ROUND_01.md) and [debug guide](DEV_UI_WATER_DEBUG_GUIDE.md).
+
 ## Research Preview core bridge
 
 独立 Preview 新增 runtime Legacy/Reworked core；默认 Legacy。Reworked 通过 canonical specs 驱动的 raw tuning 构造现有 A1/B1/D1 typed configs，

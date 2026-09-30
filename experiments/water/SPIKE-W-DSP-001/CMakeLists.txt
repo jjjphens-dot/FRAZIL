@@ -7,7 +7,7 @@ target_compile_features(frazil_water_research PUBLIC cxx_std_20)
 
 set(water_test_targets)
 set(water_test_names)
-foreach(module IN ITEMS baseline features modal excitation normalization motion bubble bubble_a1 droplet_b1_physics droplet_b1_onset droplet_b1 droplet_b1_allocation flow flow_d1 droplet activity fluid event_pool protect_detector protect mapping)
+foreach(module IN ITEMS baseline features modal excitation normalization motion bubble bubble_a1 droplet_b1_physics droplet_b1_onset droplet_b1 droplet_b1_allocation droplet_b2 flow flow_d1 droplet activity fluid event_pool protect_detector protect mapping)
     set(target "frazil_water_${module}_tests")
     if(module STREQUAL "baseline")
         set(target frazil_water_experiment_tests)
@@ -19,6 +19,7 @@ foreach(module IN ITEMS baseline features modal excitation normalization motion 
     list(APPEND water_test_names "frazil_water_${module}")
 endforeach()
 target_sources(frazil_water_droplet_b1_allocation_tests PRIVATE tests/AllocationObserver.cpp)
+target_sources(frazil_water_droplet_b2_tests PRIVATE tests/AllocationObserver.cpp)
 
 add_executable(frazil_water_flow_d1_latency_native tests/flow_d1_latency_native.cpp
     tests/AllocationObserver.cpp)
@@ -46,6 +47,10 @@ add_test(NAME frazil_water_protect_listening
             $<TARGET_FILE:frazil_water_experiment_render>)
 add_test(NAME frazil_water_bubble_a1_cli
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/bubble_a1_cli_test.py"
+            $<TARGET_FILE:frazil_water_experiment_render>)
+
+add_test(NAME frazil_water_droplet_b2_cli
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/droplet_b2_cli_test.py"
             $<TARGET_FILE:frazil_water_experiment_render>)
 
 add_test(NAME frazil_water_droplet_b1_cli
@@ -102,6 +107,7 @@ if(FRAZIL_BUILD_WATER_PREVIEW)
         tests/preview_protect_tests.cpp tests/preview_diagnostics_tests.cpp tests/preview_workflow_tests.cpp
         tests/preview_operation_tests.cpp tests/preview_audition_tests.cpp tests/preview_audition_workflow_tests.cpp
         tests/preview_reworked_core_tests.cpp tests/preview_reworked_parameter_tests.cpp
+        tests/preview_monitor_rate_tests.cpp
         preview/PreviewController.cpp
         ../../../src/dsp/primitives/LinearSmoother.cpp)
     target_compile_definitions(frazil_water_preview_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
@@ -120,7 +126,7 @@ add_dependencies(frazil_smoke ${water_test_targets} frazil_water_experiment_rend
 
 if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
     get_filename_component(water_msvc_bin "${CMAKE_CXX_COMPILER}" DIRECTORY)
-    set_property(TEST ${water_test_names} frazil_water_experiment_render_cli frazil_water_protect_listening frazil_water_bubble_a1_cli frazil_water_droplet_b1_cli frazil_water_flow_d1_cli
+    set_property(TEST ${water_test_names} frazil_water_experiment_render_cli frazil_water_protect_listening frazil_water_bubble_a1_cli frazil_water_droplet_b1_cli frazil_water_droplet_b2_cli frazil_water_flow_d1_cli
         PROPERTY ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${water_msvc_bin}")
     foreach(target IN LISTS water_test_targets)
         add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different

@@ -4,6 +4,7 @@
 #include "SessionCodec.h"
 #include "render/BubbleA1Descriptor.h"
 #include "render/DropletB1Descriptor.h"
+#include "render/DropletB2Descriptor.h"
 #include "render/FlowD1Descriptor.h"
 #include "render/ReadConfig.h"
 
@@ -13,13 +14,25 @@ namespace frazil::water::preview {
 // Message-thread serialization adapter. Versions come from existing renderer descriptors;
 // this is the renderer's module schema, not a Preview session/preset schema.
 inline juce::var researchCoreDescriptor(ResearchModule module) {
+    if (module == ResearchModule::dropletB2)
+        return research::dropletB2Descriptor();
     if (module == ResearchModule::bubble)
         return research::bubbleA1Descriptor();
     if (module == ResearchModule::droplet)
         return research::dropletB1Descriptor();
     return research::flowD1Descriptor();
 }
-inline juce::String reworkedRendererMode(int composition) {
+inline juce::String reworkedRendererMode(int composition, bool useB2 = false) {
+    if (useB2) {
+        if (composition == 3)
+            return "b2";
+        if (composition == 5)
+            return "a1b2";
+        if (composition == 7)
+            return "b2d1";
+        if (composition == 0)
+            return "a1b2d1";
+    }
     switch (composition) {
     case 2:
         return "a1";
@@ -45,7 +58,10 @@ inline juce::String encodeResearchConfig(const PreviewSettings& settings) {
         return {};
     juce::var root(new juce::DynamicObject());
     for (std::size_t m = 0; m < kResearchModules.size(); ++m) {
-        if (!moduleActive(static_cast<ControlGroup>(m), settings.mode))
+        if ((kResearchModules[m] == ResearchModule::droplet && settings.tuning.useB2) ||
+            (kResearchModules[m] == ResearchModule::dropletB2 && !settings.tuning.useB2) ||
+            !moduleActive(m == 3 ? ControlGroup::droplet : static_cast<ControlGroup>(m),
+                          settings.mode))
             continue;
         const auto module = kResearchModules[m];
         juce::var object(new juce::DynamicObject());
@@ -54,6 +70,11 @@ inline juce::String encodeResearchConfig(const PreviewSettings& settings) {
         for (std::size_t i = 0; i < Adapter::parameterCount(module); ++i)
             object.getDynamicObject()->setProperty(Adapter::parameter(module, i).name.data(),
                                                    Adapter::getValue(settings.tuning, module, i));
+        if (module == ResearchModule::bubble && settings.tuning.depthAmplitudeGamma != 1) {
+            object.getDynamicObject()->setProperty("version", 3);
+            object.getDynamicObject()->setProperty("depthAmplitudeGamma",
+                                                   settings.tuning.depthAmplitudeGamma);
+        }
         root.getDynamicObject()->setProperty(Adapter::configKey(module), object);
     }
     return juce::JSON::toString(root, false, 17);
@@ -68,24 +89,27 @@ inline juce::String decodeReworkedConfig(std::string_view text,
     research::ModalConfig modal;
     research::BubbleA1RenderConfig a;
     research::DropletB1RenderConfig b;
+    research::DropletB2RenderConfig b2;
     research::FlowD1RenderConfig d;
-    if (!research::readConfigText(text, fluid, modal, nullptr, &a, &b, &d))
+    if (!research::readConfigText(text, fluid, modal, nullptr, &a, &b, &d, &b2))
         return "Reworked config: invalid syntax, field, version or value.";
     if (text.starts_with("\xef\xbb\xbf"))
         text.remove_prefix(3);
     const auto root =
         juce::JSON::parse(juce::String::fromUTF8(text.data(), static_cast<int>(text.size())));
     using Adapter = ResearchCoreParameterAdapter;
-    if (!a.supplied && !b.supplied && !d.supplied)
+    if ((!a.supplied && !b.supplied && !b2.supplied && !d.supplied) || (b.supplied && b2.supplied))
         return "Reworked config: no research modules.";
     for (const auto& property : root.getDynamicObject()->getProperties()) {
         bool known{};
         for (auto module : kResearchModules)
             known |= property.name.toString() == Adapter::configKey(module);
         if (!known)
-            return "Reworked config: only bubbleA1, dropletB1 and flowD1 are accepted.";
+            return "Reworked config: only bubbleA1, dropletB1/dropletB2 and flowD1 are accepted.";
     }
     auto candidate = current;
+    if (b.supplied || b2.supplied)
+        candidate.useB2 = b2.supplied;
     for (auto module : kResearchModules) {
         const auto object = root[Adapter::configKey(module)];
         if (object.isVoid())
@@ -98,6 +122,8 @@ inline juce::String decodeReworkedConfig(std::string_view text,
                 return "Reworked config: invalid " + juce::String(Adapter::key(module, i));
         }
     }
+    if (a.supplied)
+        candidate.depthAmplitudeGamma = a.bubble.depthAmplitudeGamma;
     if (!Adapter::validate(candidate))
         return "Reworked config: A1 requires radiusMinMm < radiusMaxMm.";
     output = candidate;

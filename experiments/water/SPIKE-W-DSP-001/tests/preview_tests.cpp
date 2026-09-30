@@ -7,6 +7,7 @@
 
 using namespace frazil::water;
 
+int runMonitorRateTests();
 int runTimeValueTests();
 int runDescriptorTests();
 int runSessionTests();
@@ -20,10 +21,29 @@ int runAuditionWorkflowTests();
 int runReworkedCoreTests();
 int runReworkedParameterTests();
 
-int main() {
+int main(int argc, char** argv) {
     juce::ScopedJuceInitialiser_GUI gui;
-    int failures = runTimeValueTests() + runDescriptorTests() + runSessionTests() +
-                   runSessionCodecTests() + runPreviewProtectTests() +
+    if (argc == 3 && std::string_view(argv[1]) == "--device-smoke") {
+        preview::PreviewController device;
+        auto error = device.load(juce::File::getCurrentWorkingDirectory().getChildFile(argv[2]));
+        preview::PreviewSettings settings;
+        settings.mode = 8;
+        device.setMonitor(preview::MonitorMode::dry, -18);
+        if (error.isEmpty())
+            error = device.play(settings);
+        if (error.isNotEmpty()) {
+            std::cerr << error << '\n';
+            return 1;
+        }
+        juce::Thread::sleep(500);
+        const bool advanced = device.positionSeconds() > 0 && !device.deviceRateMismatch();
+        std::cout << device.rateDescription() << " | position " << device.positionSeconds()
+                  << " | log " << device.logStatus() << '\n';
+        device.stop();
+        return advanced ? 0 : 1;
+    }
+    int failures = runMonitorRateTests() + runTimeValueTests() + runDescriptorTests() +
+                   runSessionTests() + runSessionCodecTests() + runPreviewProtectTests() +
                    runProtectDiagnosticsTests() + runWorkflowTests() + runOperationTests() +
                    runAuditionTests() + runAuditionWorkflowTests() + runReworkedCoreTests() +
                    runReworkedParameterTests();

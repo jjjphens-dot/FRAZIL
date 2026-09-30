@@ -110,9 +110,23 @@ class ResearchSessionModel final {
         return revision_;
     }
 
+    void setRemediation(bool useB2, double gamma) {
+        if (!std::isfinite(gamma) || gamma < .5 || gamma > 1)
+            return;
+        auto candidate = draft_.engineering.tuning;
+        candidate.useB2 = useB2;
+        candidate.depthAmplitudeGamma = gamma;
+        if (candidate != draft_.engineering.tuning) {
+            draft_.engineering.tuning = candidate;
+            changed(ChangeOrigin::engineeringUI);
+        }
+    }
     std::size_t unappliedChanges() const noexcept {
         std::size_t count = draft_.engineering.mode != applied_.engineering.mode;
         count += draft_.engineering.core != applied_.engineering.core;
+        count += draft_.engineering.tuning.useB2 != applied_.engineering.tuning.useB2;
+        count += draft_.engineering.tuning.depthAmplitudeGamma !=
+                 applied_.engineering.tuning.depthAmplitudeGamma;
         for (auto module : kResearchModules)
             for (std::size_t i = 0; i < ResearchCoreParameterAdapter::parameterCount(module); ++i)
                 count +=

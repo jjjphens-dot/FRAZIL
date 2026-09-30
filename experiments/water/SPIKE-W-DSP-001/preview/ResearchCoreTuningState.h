@@ -2,6 +2,7 @@
 
 #include "dsp/BubbleA1ConfigSpec.h"
 #include "dsp/DropletB1Config.h"
+#include "dsp/DropletB2Config.h"
 #include "dsp/FlowD1Config.h"
 
 #include <array>
@@ -23,6 +24,10 @@ struct ResearchCoreTuningState final {
         researchDefaults(research::kB1Parameters);
     std::array<double, research::kD1Parameters.size()> flow =
         researchDefaults(research::kD1Parameters);
+    std::array<double, research::kB2Parameters.size()> dropletB2 =
+        researchDefaults(research::kB2Parameters);
+    bool useB2{};
+    double depthAmplitudeGamma{1};
     bool operator==(const ResearchCoreTuningState&) const = default;
 };
 } // namespace frazil::water::preview
