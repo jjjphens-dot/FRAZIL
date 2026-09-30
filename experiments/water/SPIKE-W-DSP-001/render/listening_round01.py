@@ -61,6 +61,7 @@ def metrics(audio, rate):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--renderer", type=Path, required=True)
+    parser.add_argument("--renderer-revision", required=True, help="Git commit used for the compiled renderer")
     parser.add_argument("--sources", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--section", choices=("a1", "b2", "c6"), required=True)
@@ -70,6 +71,7 @@ def main():
     if subprocess.check_output(["git", "status", "--porcelain", "--", scope], cwd=repo, text=True).strip():
         raise ValueError("Commit research implementation before freezing a listening pack")
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
+    renderer_revision = subprocess.check_output(["git", "rev-parse", "--verify", args.renderer_revision + "^{commit}"], cwd=repo, text=True).strip()
     args.output.mkdir(parents=True, exist_ok=False)
     renderer = args.renderer.resolve()
     manifest = []
@@ -146,6 +148,7 @@ def main():
         factorial = {f"factor-r{r}-g{g}-p{p}": baseline | dict(eventRadiusSpreadPct=r,
                       sourceExcitationGamma=g, amplitudePolicy=p)
                      for r in (0, 1, 2.5, 5) for g in (1, .75, .5) for p in (0, 1)}
+        factorial |= {f"detune-{d}": baseline | dict(stereoDetuneCents=d) for d in (0, .25, .5, 1)}
         for sid, source, dry, rate in inputs:
             reference = render(source, args.output / f"{sid}-B1-residual.wav", "b1-residual")
             audio_pair(args.output / "fixed-scale" / sid, "B1", reference + np.pad(dry, ((0, len(reference)-len(dry)), (0, 0))), rate)
@@ -158,7 +161,12 @@ def main():
                 full = residual + np.pad(dry, ((0, len(residual)-len(dry)), (0, 0)))
                 gain = audio_pair(args.output / "fixed-scale" / sid, name, full, rate)
                 events = [json.loads(line) for line in trace.read_text().splitlines()]
+                eligible_frames = [e["frame"] for e in events if e["eligible"]]
+                started_frames = [e["frame"] for e in events if e["started"]]
+                minimum_gap = lambda frames: float(np.min(np.diff(frames))*1000/rate) if len(frames)>1 else None
                 rows.append(dict(source=sid, variant=name, rate=rate, rms_preference_gain=gain,
+                                 minimum_eligible_gap_ms=minimum_gap(eligible_frames),
+                                 minimum_started_gap_ms=minimum_gap(started_frames),
                                  eligible=sum(e["eligible"] for e in events), started=sum(e["started"] for e in events),
                                  **metrics(residual, rate)))
     elif args.section == "a1":
@@ -223,7 +231,7 @@ def main():
                                      input_conversion=f"scipy.resample_poly {original_rate}->{rate}; canonical stereo before DSP",
                                      trailing_raw_peak=float(np.max(np.abs(raw[-128:])))))
     csv_write(args.output / "MEASUREMENTS.csv", rows)
-    write_json(args.output / "CONTEXT.json", dict(section=args.section, code_revision=revision, seed=42,
+    write_json(args.output / "CONTEXT.json", dict(section=args.section, study_revision=revision, renderer_revision=renderer_revision, seed=42,
                monitor_output_db=0, e_trim_db=0, human_acceptance="NOT ASSESSED",
                fixed_scale="Primary preservation", rms_matched="Preference only; target -23 dBFS; never pooled",
                generated_sources=len(inputs)))
