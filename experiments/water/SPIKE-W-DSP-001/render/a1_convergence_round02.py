@@ -42,6 +42,8 @@ def main():
     parser.add_argument("--input", type=Path, action="append", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--playback-gain-db", type=float, default=-18)
+    parser.add_argument("--radius-min-mm", type=float,
+                        help="Optional fixed large-radius probe; never changes runtime defaults")
     args = parser.parse_args()
     if not np.isfinite(args.playback_gain_db) or not -60 <= args.playback_gain_db <= 0:
         parser.error("Playback gain must be finite, -60..0 dB")
@@ -58,6 +60,12 @@ def main():
     renderer = args.renderer.resolve()
     descriptor = json.loads(subprocess.check_output([str(renderer), "--describe-bubble-a1"], text=True))
     reference = {p["name"]: p["default"] for p in descriptor["parameters"]}
+    if args.radius_min_mm is not None:
+        spec = next(p for p in descriptor["parameters"] if p["name"] == "radiusMinMm")
+        if not (np.isfinite(args.radius_min_mm) and spec["minimum"] <= args.radius_min_mm
+                <= spec["maximum"] and args.radius_min_mm < reference["radiusMaxMm"]):
+            parser.error("Probe radius minimum must satisfy descriptor bounds and min < max")
+        reference["radiusMinMm"] = args.radius_min_mm
     reference["version"] = 2
     output.mkdir(parents=True, exist_ok=False)
     context = dict(status="INCOMPLETE", study_revision=revision, renderer_revision=renderer_revision,
@@ -157,6 +165,8 @@ def main():
         f"Use ONE playback bus at {args.playback_gain_db:g} dB for every source and variant. "
         "Water Only files contain E; Full files contain x+E, E Trim 0 dB. No limiter, "
         "per-file peak normalization, RMS matching or SRC. Source rate is unchanged.\n\n"
+        f"Fixed radius range: {reference['radiusMinMm']:g}–{reference['radiusMaxMm']:g} mm. "
+        "A nondefault range is a targeted probe, not a reconstruction of the human session. "
         "Compare alpha .75 / 1 / 1.25 / 1.5 with the same source, then fill HUMAN_REVIEW.csv. "
         "Judge A01/A02 exposed tube/sine, rare low events, Water identity and Full source masking. "
         "No numerical metric chooses a default. Config files import into Reworked Fluid A1 only.\n\n"
