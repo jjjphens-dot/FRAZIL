@@ -7,6 +7,19 @@
 #include <type_traits>
 
 namespace frazil::water::research {
+// ENGINEERING, research-only selection. Historical remains the implicit path everywhere.
+enum class BubbleA1LifecyclePolicy { historicalL0, admissionAwareL1 };
+enum class BubbleA1TriggerResult {
+    notReady,
+    started,
+    pendingReplacement,
+    preStartCulled,
+    capacityDropped
+};
+inline bool a1TriggerAccepted(BubbleA1TriggerResult result) noexcept {
+    return result == BubbleA1TriggerResult::started ||
+           result == BubbleA1TriggerResult::pendingReplacement;
+}
 struct BubbleA1Event final {
     BubbleA1Bin physics;
     // Captured once; retained through deferred stealing for causal diagnostics.
@@ -26,17 +39,39 @@ inline std::size_t bubbleA1Band(double hz) noexcept {
     return static_cast<std::size_t>(std::upper_bound(edges.begin(), edges.end(), hz) -
                                     edges.begin());
 }
+struct BubbleA1LifecycleCounters final {
+    std::uint64_t preStartCulled{};
+    std::uint64_t firstNonZero{}, completedWithoutNonZero{}, acceptedAsPendingReplacement{};
+    std::uint64_t replacementStarted{}, replacementFirstNonZero{};
+    std::uint64_t replacementCompletedWithoutNonZero{}, causedStealButNeverNonZero{};
+    std::uint64_t pendingReplacementDropped{}, riseEnabledAndFirstNonZero{};
+};
 struct BubbleA1BandCounters final {
     std::uint64_t requested{}, started{}, completed{}, stolen{}, capacityDrops{};
+    BubbleA1LifecycleCounters lifecycle{};
     double startedAmplitudeMax{}, initialSquaredAmplitudeSum{};
 };
-enum class BubbleA1ObservationKind { requested, started, bandSummary };
+enum class BubbleA1ObservationKind {
+    requested,
+    started,
+    bandSummary,
+    firstNonZero,
+    completed,
+    causedSteal,
+    pendingDropped,
+    preStartCulled
+};
 struct BubbleA1Observation final {
     BubbleA1Event event{};
     BubbleA1ObservationKind kind{};
     std::uint64_t frame{}, requested{}, started{}, completed{}, steals{}, capacityDrops{};
     std::size_t active{}, band{};
     BubbleA1BandCounters bandCounters{};
+    BubbleA1LifecycleCounters lifecycle{};
+    std::size_t victimBand{};
+    double victimEnvelope{};
+    std::uint32_t voiceAgeSamples{};
+    bool fromReplacement{}, everNonZero{};
 };
 static_assert(std::is_trivially_copyable_v<BubbleA1Observation>);
 // Non-owning processing-thread observer. Caller guarantees lifetime and bounded, allocation/I/O/
@@ -132,12 +167,20 @@ struct BubbleA1PoolCounters final {
     std::array<std::uint64_t, 128> lifetimeHistogram{};
     std::uint64_t rising{}, requested{};
     std::array<BubbleA1BandCounters, 7> bands{};
+    BubbleA1LifecycleCounters lifecycle{};
+};
+
+// Pool-owned diagnostic sidecar: no render metadata or oscillator state expansion.
+// Reset on actual start, including a deferred replacement; never affects allocation priority.
+struct BubbleA1VoiceObservationState final {
+    bool everNonZero{}, fromReplacement{};
 };
 
 class BubbleA1VoicePool final {
   public:
     static constexpr std::size_t kStorage = 1024;
-    bool prepare(double rate, const BubbleA1Config& c) noexcept {
+    bool prepare(double rate, const BubbleA1Config& c,
+                 BubbleA1LifecyclePolicy policy = BubbleA1LifecyclePolicy::historicalL0) noexcept {
         ready_ = false;
         reset();
         if (!a1Range(rate, 44100, 96000) || !a1Capacity(c.voiceCapacity) ||
@@ -145,6 +188,8 @@ class BubbleA1VoicePool final {
             return false;
         rate_ = rate;
         floorDb_ = c.tailFloorDb;
+        admissionFloor_ = std::pow(10., c.tailFloorDb / 20);
+        policy_ = policy;
         capacity_ = c.voiceCapacity;
         releaseSamples_ = static_cast<std::uint32_t>(std::ceil(c.stealReleaseMs * .001 * rate));
         ready_ = true;
@@ -154,6 +199,8 @@ class BubbleA1VoicePool final {
         // Avoid a second full-pool temporary on the bounded Windows thread stack.
         for (auto& voice : voices_)
             voice = {};
+        for (auto& observation : observations_)
+            observation = {};
         active_ = {};
         activeCount_ = 0;
         freeCount_ = kStorage;
@@ -170,22 +217,32 @@ class BubbleA1VoicePool final {
         return true; // Existing/releasing voices finish; no destructive downshift.
     }
     // Processing-owner API: event comes from a prepared model, bin < 128, finite amplitudes.
-    bool trigger(const BubbleA1Event& e) noexcept {
+    BubbleA1TriggerResult trigger(const BubbleA1Event& e) noexcept {
         if (!ready_)
-            return false;
+            return BubbleA1TriggerResult::notReady;
         ++counters_.requested;
         ++counters_.bands[bubbleA1Band(e.physics.frequencyHz)].requested;
         observe(e, BubbleA1ObservationKind::requested);
+        // Decide only after the complete identity was generated. No RNG or physical changes.
+        // L1 intentionally removes historical victim-release side effects of these requests.
+        const auto& amplitude = e.separateAmplitudeRole ? e.lifecycleAmplitude : e.amplitude;
+        if (policy_ == BubbleA1LifecyclePolicy::admissionAwareL1 &&
+            std::max(std::abs(amplitude[0]), std::abs(amplitude[1])) <= admissionFloor_) {
+            increment(&BubbleA1LifecycleCounters::preStartCulled,
+                      bubbleA1Band(e.physics.frequencyHz));
+            observe(e, BubbleA1ObservationKind::preStartCulled);
+            return BubbleA1TriggerResult::preStartCulled;
+        }
         if (activeCount_ < capacity_) {
             const auto slot = free_[--freeCount_];
             active_[activeCount_++] = slot;
             start(slot, e);
             ++counters_.accepted;
-            return true;
+            return BubbleA1TriggerResult::started;
         }
         if (activeCount_ > capacity_) {
             drop(e);
-            return false;
+            return BubbleA1TriggerResult::capacityDropped;
         }
         std::size_t chosen = kStorage;
         double least = std::numeric_limits<double>::infinity();
@@ -200,7 +257,7 @@ class BubbleA1VoicePool final {
         }
         if (chosen == kStorage) {
             drop(e);
-            return false;
+            return BubbleA1TriggerResult::capacityDropped;
         }
         auto& v = voices_[chosen];
         v.replacement = e;
@@ -209,7 +266,11 @@ class BubbleA1VoicePool final {
         ++counters_.accepted;
         ++counters_.steals;
         ++counters_.bands[bubbleA1Band(v.event.physics.frequencyHz)].stolen;
-        return true;
+        increment(&BubbleA1LifecycleCounters::acceptedAsPendingReplacement,
+                  bubbleA1Band(e.physics.frequencyHz));
+        observe(e, BubbleA1ObservationKind::causedSteal, {}, 0,
+                bubbleA1Band(v.event.physics.frequencyHz), least);
+        return BubbleA1TriggerResult::pendingReplacement;
     }
     StereoFrame process() noexcept {
         std::array<double, 2> sum{};
@@ -217,6 +278,17 @@ class BubbleA1VoicePool final {
             const auto slot = active_[i];
             auto& v = voices_[slot];
             const auto y = v.process();
+            auto& observation = observations_[slot];
+            if (!observation.everNonZero && (y[0] != 0 || y[1] != 0)) {
+                const auto eventBand = bubbleA1Band(v.event.physics.frequencyHz);
+                observation.everNonZero = true;
+                increment(&BubbleA1LifecycleCounters::firstNonZero, eventBand);
+                if (observation.fromReplacement)
+                    increment(&BubbleA1LifecycleCounters::replacementFirstNonZero, eventBand);
+                if (v.event.riseXi > 0)
+                    increment(&BubbleA1LifecycleCounters::riseEnabledAndFirstNonZero, eventBand);
+                observe(v.event, BubbleA1ObservationKind::firstNonZero, observation, v.age);
+            }
             sum[0] += y[0];
             sum[1] += y[1];
             if (!v.done()) {
@@ -224,18 +296,33 @@ class BubbleA1VoicePool final {
                 continue;
             }
             ++counters_.completed;
+            const auto eventBand = bubbleA1Band(v.event.physics.frequencyHz);
             ++counters_.bands[bubbleA1Band(v.event.physics.frequencyHz)].completed;
+            if (!observation.everNonZero) {
+                increment(&BubbleA1LifecycleCounters::completedWithoutNonZero, eventBand);
+                if (observation.fromReplacement) {
+                    increment(&BubbleA1LifecycleCounters::replacementCompletedWithoutNonZero,
+                              eventBand);
+                    increment(&BubbleA1LifecycleCounters::causedStealButNeverNonZero, eventBand);
+                }
+            }
+            observe(v.event, BubbleA1ObservationKind::completed, observation, v.age);
             const auto bin =
                 static_cast<std::size_t>(127 * std::log(double(std::max(1u, v.age))) /
                                          std::log(BubbleA1Voice::kMaximumLifetimeSeconds * rate_));
             ++counters_.lifetimeHistogram[std::min<std::size_t>(127, bin)];
             if (v.pending && activeCount_ <= capacity_) {
                 const auto e = v.replacement;
-                start(slot, e);
+                start(slot, e, true);
                 ++i;
             } else {
-                if (v.pending)
+                if (v.pending) {
+                    const auto pendingBand = bubbleA1Band(v.replacement.physics.frequencyHz);
+                    increment(&BubbleA1LifecycleCounters::pendingReplacementDropped, pendingBand);
+                    increment(&BubbleA1LifecycleCounters::causedStealButNeverNonZero, pendingBand);
+                    observe(v.replacement, BubbleA1ObservationKind::pendingDropped);
                     drop(v.replacement);
+                }
                 free_[freeCount_++] = slot;
                 active_[i] = active_[--activeCount_];
             }
@@ -271,6 +358,10 @@ class BubbleA1VoicePool final {
     }
 
   private:
+    void increment(std::uint64_t BubbleA1LifecycleCounters::* counter, std::size_t band) noexcept {
+        ++(counters_.lifecycle.*counter);
+        ++(counters_.bands[band].lifecycle.*counter);
+    }
     void snapshot(BubbleA1Observation& r) const noexcept {
         r.requested = counters_.requested;
         r.started = counters_.started;
@@ -278,8 +369,11 @@ class BubbleA1VoicePool final {
         r.steals = counters_.steals;
         r.capacityDrops = counters_.capacityDrops;
         r.active = activeCount_;
+        r.lifecycle = counters_.lifecycle;
     }
-    void observe(const BubbleA1Event& e, BubbleA1ObservationKind kind) const noexcept {
+    void observe(const BubbleA1Event& e, BubbleA1ObservationKind kind,
+                 BubbleA1VoiceObservationState state = {}, std::uint32_t age = 0,
+                 std::size_t victimBand = 0, double victimEnvelope = 0) const noexcept {
         if (!observer_)
             return;
         BubbleA1Observation r;
@@ -287,6 +381,11 @@ class BubbleA1VoicePool final {
         r.kind = kind;
         r.frame = frame_;
         r.band = bubbleA1Band(e.physics.frequencyHz);
+        r.fromReplacement = state.fromReplacement;
+        r.everNonZero = state.everNonZero;
+        r.voiceAgeSamples = age;
+        r.victimBand = victimBand;
+        r.victimEnvelope = victimEnvelope;
         snapshot(r);
         observer_(observerContext_, r);
     }
@@ -294,8 +393,12 @@ class BubbleA1VoicePool final {
         ++counters_.capacityDrops;
         ++counters_.bands[bubbleA1Band(e.physics.frequencyHz)].capacityDrops;
     }
-    void start(std::size_t slot, const BubbleA1Event& e) noexcept {
+    void start(std::size_t slot, const BubbleA1Event& e, bool replacement = false) noexcept {
         voices_[slot].start(e, rate_, floorDb_);
+        observations_[slot] = {false, replacement};
+        if (replacement)
+            increment(&BubbleA1LifecycleCounters::replacementStarted,
+                      bubbleA1Band(e.physics.frequencyHz));
         lastStarted_ = e;
         ++counters_.started;
         ++counters_.radiusHistogram[e.bin];
@@ -307,12 +410,15 @@ class BubbleA1VoicePool final {
         // Mean L/R initial squared envelope, NOT integrated energy, SPL or loudness.
         band.initialSquaredAmplitudeSum +=
             .5 * (e.amplitude[0] * e.amplitude[0] + e.amplitude[1] * e.amplitude[1]);
-        observe(e, BubbleA1ObservationKind::started);
+        observe(e, BubbleA1ObservationKind::started, observations_[slot]);
     }
     std::array<BubbleA1Voice, kStorage> voices_{};
+    std::array<BubbleA1VoiceObservationState, kStorage> observations_{};
     std::array<std::size_t, kStorage> active_{}, free_{};
     std::size_t activeCount_{}, freeCount_{kStorage}, capacity_{256};
     double rate_{48000}, floorDb_{-80};
+    double admissionFloor_{1e-4};
+    BubbleA1LifecyclePolicy policy_{BubbleA1LifecyclePolicy::historicalL0};
     std::uint32_t releaseSamples_{72};
     BubbleA1PoolCounters counters_{};
     BubbleA1Event lastStarted_{};

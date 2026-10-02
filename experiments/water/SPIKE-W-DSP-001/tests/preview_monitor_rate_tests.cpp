@@ -112,7 +112,8 @@ int runMonitorRateTests() {
         engine->traceEvents(trace, frame);
         while (trace.pop(record)) {
             const auto json = research::bubbleA1TraceJson(record.a1, 48000);
-            check(json["module"].toString() == "A1" && static_cast<int>(json["traceVersion"]) == 2,
+            check(json["module"].toString() == "A1" &&
+                      static_cast<int>(json["traceVersion"]) == 3 && json["lifecycle"].isObject(),
                   "Preview A1 serialization");
             requests += record.a1.kind == research::BubbleA1ObservationKind::requested;
             starts += record.a1.kind == research::BubbleA1ObservationKind::started;

@@ -20,6 +20,58 @@ bool near(double a, double b, double tolerance = 1e-10) {
 int main() {
     using frazil::water::preview::PreviewEventRecord;
     using frazil::water::preview::PreviewEventTrace;
+    {
+        auto pool = std::make_unique<BubbleA1VoicePool>();
+        BubbleA1Config c;
+        BubbleA1Event e;
+        e.physics.frequencyHz = 1000;
+        e.physics.tauSeconds = 1;
+        e.physics.poleRadius = .9;
+        e.amplitude = {1.01e-4, 0};
+        check(pool->trigger(e) == BubbleA1TriggerResult::notReady, "typed not-ready");
+        check(pool->prepare(48000, c, BubbleA1LifecyclePolicy::admissionAwareL1), "L1 prepare");
+        check(pool->trigger(e) == BubbleA1TriggerResult::started,
+              "L1 deliberately does not cull just-above-floor events");
+        (void)pool->process();
+        check(pool->counters().lifecycle.completedWithoutNonZero == 1 &&
+                  pool->counters().lifecycle.preStartCulled == 0,
+              "post-first-decay silent start remains distinct from admission cull");
+        pool->reset();
+        e.amplitude = {1e-4, 0};
+        check(pool->trigger(e) == BubbleA1TriggerResult::preStartCulled, "inclusive floor");
+        pool->reset();
+        e.amplitude = {.1, -.1};
+        (void)pool->trigger(e);
+        e.amplitude = {-.1, .1};
+        (void)pool->trigger(e);
+        (void)pool->process();
+        check(pool->process() == StereoFrame{} && pool->counters().lifecycle.firstNonZero == 2,
+              "voice-local nonzero survives exact summed cancellation");
+        pool->reset();
+        check(pool->counters().lifecycle.firstNonZero == 0, "sidecar reset");
+    }
+    {
+        auto pool = std::make_unique<BubbleA1VoicePool>();
+        BubbleA1Config c;
+        c.voiceCapacity = 128;
+        check(pool->prepare(48000, c), "pending cancellation setup");
+        BubbleA1Event e;
+        e.physics.frequencyHz = 300;
+        e.physics.tauSeconds = 1;
+        e.physics.poleRadius = std::exp(-1. / 48000);
+        e.amplitude = {.5, -.25};
+        for (int i = 0; i < 128; ++i)
+            (void)pool->trigger(e);
+        check(pool->trigger(e) == BubbleA1TriggerResult::pendingReplacement,
+              "typed pending replacement");
+        check(pool->setCapacity(64), "downshift retains releasing voices");
+        for (int i = 0; i < 72; ++i)
+            (void)pool->process();
+        const auto& life = pool->counters().lifecycle;
+        check(life.pendingReplacementDropped == 1 && life.causedStealButNeverNonZero == 1 &&
+                  life.replacementStarted == 0 && life.completedWithoutNonZero == 0,
+              "unstarted pending cancellation is not a completed voice");
+    }
     // Exact band-edge semantics and non-coalesced deferred-start identity.
     for (std::size_t i = 0; i < 6; ++i) {
         const double edge = 250. * std::pow(2., double(i));
@@ -41,10 +93,10 @@ int main() {
         e.sourceCarrier = {1, -.5};
         for (std::uint64_t id = 1; id <= 128; ++id) {
             e.requestId = id;
-            check(pool->trigger(e), "fill and reserve every release");
+            check(a1TriggerAccepted(pool->trigger(e)), "fill and reserve every release");
         }
         e.requestId = 129;
-        check(!pool->trigger(e), "all releasing capacity drop");
+        check(!a1TriggerAccepted(pool->trigger(e)), "all releasing capacity drop");
         PreviewEventRecord row;
         while (queue->pop(row)) {
         }
@@ -56,6 +108,8 @@ int main() {
         check(allocationtest::allocations == 0, "deferred trace processing allocates nothing");
         std::size_t starts{};
         while (queue->pop(row)) {
+            if (row.a1.kind != BubbleA1ObservationKind::started)
+                continue;
             check(row.a1.kind == BubbleA1ObservationKind::started && row.a1.frame == 71 &&
                       row.a1.event.requestId == 65 + starts && row.a1.event.requestFrame == 0 &&
                       row.a1.event.sourceCarrier == e.sourceCarrier,
@@ -63,6 +117,11 @@ int main() {
             ++starts;
         }
         check(starts == 64 && queue->takeDropped() == 0, "no start coalescing");
+        check(pool->counters().lifecycle.firstNonZero == 64 &&
+                  pool->counters().lifecycle.acceptedAsPendingReplacement == 64 &&
+                  pool->counters().lifecycle.replacementStarted == 64 &&
+                  pool->counters().lifecycle.replacementFirstNonZero == 0,
+              "replacement admission/start/emission are distinct");
         const auto band = pool->bandObservation(1);
         check(band.bandCounters.requested == 129 && band.bandCounters.started == 128 &&
                   band.bandCounters.completed == 64 && band.bandCounters.stolen == 64 &&
@@ -71,7 +130,7 @@ int main() {
               "lifecycle totals and independent initial squared amplitude oracle");
         // Reset clears pending work and all diagnostic totals.
         for (int n = 0; n < 64; ++n)
-            (void)pool->trigger(e);
+            (void)a1TriggerAccepted(pool->trigger(e));
         pool->reset();
         check(pool->counters().requested == 0 && pool->bandObservation(1).bandCounters.started == 0,
               "reset clears cumulative counters");
@@ -339,7 +398,7 @@ int main() {
         auto pool = std::make_unique<BubbleA1VoicePool>();
         cfg.voiceCapacity = cap;
         check(pool->prepare(48000, cfg), "pool prepare");
-        check(pool->trigger(event), "single trigger");
+        check(a1TriggerAccepted(pool->trigger(event)), "single trigger");
         for (int n = 0; n < 2000; ++n) {
             const auto y = pool->process();
             if (cap == 64)
@@ -352,19 +411,20 @@ int main() {
     cfg.voiceCapacity = 512;
     check(pool->prepare(48000, cfg), "downshift prepare");
     for (int i = 0; i < 512; ++i)
-        check(pool->trigger(event), "fill pool");
+        check(a1TriggerAccepted(pool->trigger(event)), "fill pool");
     check(pool->setCapacity(128) && pool->active() == 512, "non-destructive 512-to-128 downshift");
-    check(!pool->trigger(event) && pool->counters().capacityDrops == 1,
+    check(!a1TriggerAccepted(pool->trigger(event)) && pool->counters().capacityDrops == 1,
           "downshift inhibits allocation");
     for (int n = 0; n < 48000; ++n)
         (void)pool->process();
     check(pool->active() == 0, "tails retire after downshift");
     check(pool->setCapacity(64), "lower capacity for stealing test");
     for (int i = 0; i < 64; ++i)
-        check(pool->trigger(event), "fill lower ceiling");
+        check(a1TriggerAccepted(pool->trigger(event)), "fill lower ceiling");
     for (int n = 0; n < 100; ++n)
         (void)pool->process();
-    check(pool->trigger(event) && pool->counters().steals == 1, "bounded releasing replacement");
+    check(a1TriggerAccepted(pool->trigger(event)) && pool->counters().steals == 1,
+          "bounded releasing replacement");
     const auto beforeStart = pool->counters().started;
     for (int n = 0; n < 71; ++n)
         (void)pool->process();

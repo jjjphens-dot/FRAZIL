@@ -12,10 +12,52 @@ inline juce::var bubbleA1TraceJson(const BubbleA1Observation& r, double rate) {
         o->setProperty(key, static_cast<juce::int64>(value));
     };
     o->setProperty("module", "A1");
-    o->setProperty("traceVersion", 2);
-    o->setProperty("kind", r.kind == BubbleA1ObservationKind::requested ? "requested"
-                           : r.kind == BubbleA1ObservationKind::started ? "started"
-                                                                        : "bandSummary");
+    o->setProperty("traceVersion", 3);
+    const char* kind = "bandSummary";
+    switch (r.kind) {
+    case BubbleA1ObservationKind::requested:
+        kind = "requested";
+        break;
+    case BubbleA1ObservationKind::started:
+        kind = "started";
+        break;
+    case BubbleA1ObservationKind::firstNonZero:
+        kind = "firstNonZero";
+        break;
+    case BubbleA1ObservationKind::completed:
+        kind = "completed";
+        break;
+    case BubbleA1ObservationKind::causedSteal:
+        kind = "causedSteal";
+        break;
+    case BubbleA1ObservationKind::pendingDropped:
+        kind = "pendingDropped";
+        break;
+    case BubbleA1ObservationKind::preStartCulled:
+        kind = "preStartCulled";
+        break;
+    case BubbleA1ObservationKind::bandSummary:
+        break;
+    }
+    o->setProperty("kind", kind);
+    const auto lifecycle = [&](const BubbleA1LifecycleCounters& c) {
+        auto* data = new juce::DynamicObject;
+        const auto count = [&](const char* key, std::uint64_t value) {
+            data->setProperty(key, static_cast<juce::int64>(value));
+        };
+        count("firstNonZero", c.firstNonZero);
+        count("preStartCulled", c.preStartCulled);
+        count("completedWithoutNonZero", c.completedWithoutNonZero);
+        count("acceptedAsPendingReplacement", c.acceptedAsPendingReplacement);
+        count("replacementStarted", c.replacementStarted);
+        count("replacementFirstNonZero", c.replacementFirstNonZero);
+        count("replacementCompletedWithoutNonZero", c.replacementCompletedWithoutNonZero);
+        count("causedStealButNeverNonZero", c.causedStealButNeverNonZero);
+        count("pendingReplacementDropped", c.pendingReplacementDropped);
+        count("riseEnabledAndFirstNonZero", c.riseEnabledAndFirstNonZero);
+        return juce::var(data);
+    };
+    o->setProperty("lifecycle", lifecycle(r.lifecycle));
     integer("frame", r.frame);
     integer("requestedCount", r.requested);
     integer("startedCount", r.started);
@@ -26,6 +68,7 @@ inline juce::var bubbleA1TraceJson(const BubbleA1Observation& r, double rate) {
     integer("band", r.band);
     if (r.kind == BubbleA1ObservationKind::bandSummary) {
         const auto& b = r.bandCounters;
+        o->setProperty("bandLifecycle", lifecycle(b.lifecycle));
         integer("bandRequested", b.requested);
         integer("bandStarted", b.started);
         integer("bandCompleted", b.completed);
@@ -35,6 +78,13 @@ inline juce::var bubbleA1TraceJson(const BubbleA1Observation& r, double rate) {
         o->setProperty("initialSquaredAmplitudeSum", b.initialSquaredAmplitudeSum);
     } else {
         const auto& e = r.event;
+        o->setProperty("fromReplacement", r.fromReplacement);
+        o->setProperty("everNonZero", r.everNonZero);
+        integer("voiceAgeSamples", r.voiceAgeSamples);
+        if (r.kind == BubbleA1ObservationKind::causedSteal) {
+            integer("victimBand", r.victimBand);
+            o->setProperty("victimEnvelope", r.victimEnvelope);
+        }
         integer("requestId", e.requestId);
         integer("requestFrame", e.requestFrame);
         integer("bin", e.bin);
