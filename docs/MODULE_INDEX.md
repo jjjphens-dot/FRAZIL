@@ -2,10 +2,10 @@
 
 ## A1 listening convergence Round 02
 
-[Round 02 execution](evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
-non-coalesced A1 event diagnostics, seven analysis-only frequency bands and the
-alpha-only local listening study. Defaults and physical equations stay unchanged.
-B2/D1 remain separate research candidates; human acceptance remains pending.
+BubbleA1VoicePool owns causal request/start observations and seven fixed band counters.
+PreviewEventTrace remains the single bounded transport. BubbleA1TraceJson owns non-RT
+serialization shared by Preview and CLI; a1_convergence_round02.py owns alpha-only
+local artifact generation. No new production module. See [execution](evidence/WATER_A1_CONVERGENCE_ROUND_02.md).
 
 ## Round 01 research components
 

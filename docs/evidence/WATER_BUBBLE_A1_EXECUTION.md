@@ -2,10 +2,9 @@
 
 ## A1 listening convergence Round 02
 
-[Round 02 execution](WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
-non-coalesced A1 event diagnostics, seven analysis-only frequency bands and the
-alpha-only local listening study. Defaults and physical equations stay unchanged.
-B2/D1 remain separate research candidates; human acceptance remains pending.
+This historical execution record remains intact. [Round 02](WATER_A1_CONVERGENCE_ROUND_02.md)
+records later partial human observations, causal diagnostics and alpha-only experiments;
+no current default or equation change is implied by these earlier studies.
 
 ## Subsequent exact-head hosted verification
 

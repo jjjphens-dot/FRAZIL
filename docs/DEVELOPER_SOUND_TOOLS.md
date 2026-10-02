@@ -2,10 +2,10 @@
 
 ## A1 listening convergence Round 02
 
-[Round 02 execution](evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
-non-coalesced A1 event diagnostics, seven analysis-only frequency bands and the
-alpha-only local listening study. Defaults and physical equations stay unchanged.
-B2/D1 remain separate research candidates; human acceptance remains pending.
+A1 JSONL traceVersion 2 retains every observed request/start identity through deferred
+stealing and reports seven analysis-only band summaries. Overflow remains explicit;
+B2 retains its earlier logging semantics. No raw control default, session or Host change.
+See [field semantics and study](evidence/WATER_A1_CONVERGENCE_ROUND_02.md).
 
 ## Water Preview Round 01
 

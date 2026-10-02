@@ -30,8 +30,11 @@ frequency and empirical damping from source proxies, discretization and normaliz
 A1-PHYS-REF is a historical label, not a wholly first-principles pipeline.
 The v2 descriptor and snapshot mirror one typed parameter authority; execution
 results remain in the A1 evidence record.
-The legacy Bubble/Fluid explanations below describe A0; Preview remains A0. B/D/C
-research and Proposed ADR-0006 are unchanged; production Water is NOT IMPLEMENTED.
+The legacy Bubble/Fluid explanations below describe A0. Preview defaults to Legacy;
+its opt-in Reworked Fluid uses A1 with B1 or the independent B2 candidate and optional
+D1. [Round 02](evidence/WATER_A1_CONVERGENCE_ROUND_02.md) documents A1 causal diagnostics
+and alpha-only research, without changing physical equations or defaults. Proposed
+ADR-0006 remains unadopted; production Water is NOT IMPLEMENTED.
 
 > 文档状态：Maintained implementation guide（实现参考，不替代产品/架构合同）
 > 初始整理日期：2026-09-07

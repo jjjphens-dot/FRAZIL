@@ -2,10 +2,11 @@
 
 ## A1 listening convergence Round 02
 
-[Round 02 execution](evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
-non-coalesced A1 event diagnostics, seven analysis-only frequency bands and the
-alpha-only local listening study. Defaults and physical equations stay unchanged.
-B2/D1 remain separate research candidates; human acceptance remains pending.
+A1 tests cover deferred request identity, analysis bands, zero allocation and trace-on/off
+sample preservation; native CLI tests isolate Persistence from initial amplitude.
+The performance executable accepts `--trace` to include producer transport cost and
+report trace loss, excluding consumer serialization. Serial preset results, controlled
+alpha renders and remaining human coverage: [execution](evidence/WATER_A1_CONVERGENCE_ROUND_02.md).
 
 ## Water Listening Round 01 validation
 
