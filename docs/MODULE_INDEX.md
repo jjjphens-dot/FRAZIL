@@ -1,5 +1,10 @@
 # FRAZIL Module Index
 
+## R3.1 historical observation and explicit L1 research
+
+BubbleA1VoiceObservationState is a fixed pool-owned sidecar; BubbleA1Event does not grow. BubbleA1TriggerResult distinguishes admission outcomes; BubbleA1LifecyclePolicy defaults to L0. BubbleA1TraceJson serializes additive lifecycle observations using the existing transport. render/a1_lifecycle_r31.py owns numeric preservation/real-source comparison and the small fixed-level local pack.
+[Current execution and gates](evidence/WATER_A1_LIFECYCLE_R31.md).
+
 ## R3 lifecycle gate - preservation failed
 
 tests/bubble_a1_cull_gate_tests.cpp reuses the unchanged model/pool for offline ENGINEERING verification of silent-request stealing. No new runtime policy.

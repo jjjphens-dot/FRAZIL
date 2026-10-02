@@ -1,5 +1,10 @@
 # FRAZIL 当前实现与差距
 
+## R3.1 historical observation and explicit L1 research
+
+L0 observation and explicit research L1 are implemented. Historical reference music has959 nonzero events under both policies; L1 only removes1808 silent allocations. NO CANDIDATE SELECTED; human benefit not demonstrated and dense1024 timing exceeds deadline. Release full41/41; Debug40/41 (native provenance timeout), ASAN40/41 (native latency SegFault). These failures remain OPEN. Part3 tuning, A1+B2 final acceptance and D1 C6/C7 remain gated.
+[Current execution and gates](evidence/WATER_A1_LIFECYCLE_R31.md).
+
 ## R3 lifecycle gate - preservation failed
 
 Runtime stays R2. NO CANDIDATE SELECTED; A1+B2 final acceptance gated, B2 trigger inflation OPEN, D1 C6/C7 pending.

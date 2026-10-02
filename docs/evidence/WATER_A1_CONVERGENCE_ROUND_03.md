@@ -1,5 +1,7 @@
 # Water A1 Convergence Round 03
 
+Follow-up: [R3.1](WATER_A1_LIFECYCLE_R31.md) preserves this historical failure and separately authorizes sound-changing L1. The R3 stop below is historical.
+
 Status: **P0 PRESERVATION FAILED — downstream studies stopped. NO CANDIDATE SELECTED.**
 Implementation/self-review: engineering agent. Perceptual selection: Sound Lead.
 
