@@ -1,5 +1,10 @@
 # EXP-W-BA-001 — Bubble A1 independent population
 
+## R3 lifecycle gate - preservation failed
+
+A below-floor event can steal a sounding voice. Historical runtime remains; explicit cull is not sample preserving.
+[Evidence and stop decision](../../docs/evidence/WATER_A1_CONVERGENCE_ROUND_03.md).
+
 ## A1 listening convergence Round 02
 
 [Round 02 execution](../../docs/evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,

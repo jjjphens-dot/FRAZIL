@@ -1,0 +1,13 @@
+rate,pool,amplitude_role,control_max_delta,cull_max_delta,first_difference_frame,historical_steals,cull_steals,preservation_gate
+44100,empty,v2,0,0,-1,0,0,PASS
+44100,empty,v3-separated,0,0,-1,0,0,PASS
+44100,full,v2,0,0.0095480084419250488,33,1,0,FAIL
+44100,full,v3-separated,0,0.0095480084419250488,33,1,0,FAIL
+48000,empty,v2,0,0,-1,0,0,PASS
+48000,empty,v3-separated,0,0,-1,0,0,PASS
+48000,full,v2,0,0.0095490813255310059,33,1,0,FAIL
+48000,full,v3-separated,0,0.0095490813255310059,33,1,0,FAIL
+96000,empty,v2,0,0,-1,0,0,PASS
+96000,empty,v3-separated,0,0,-1,0,0,PASS
+96000,full,v2,0,0.0095496177673339844,33,1,0,FAIL
+96000,full,v3-separated,0,0.0095496177673339844,33,1,0,FAIL

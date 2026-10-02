@@ -7,7 +7,7 @@ target_compile_features(frazil_water_research PUBLIC cxx_std_20)
 
 set(water_test_targets)
 set(water_test_names)
-foreach(module IN ITEMS baseline features modal excitation normalization motion bubble bubble_a1 droplet_b1_physics droplet_b1_onset droplet_b1 droplet_b1_allocation droplet_b2 flow flow_d1 droplet activity fluid event_pool protect_detector protect mapping)
+foreach(module IN ITEMS baseline features modal excitation normalization motion bubble bubble_a1 bubble_a1_cull_gate droplet_b1_physics droplet_b1_onset droplet_b1 droplet_b1_allocation droplet_b2 flow flow_d1 droplet activity fluid event_pool protect_detector protect mapping)
     set(target "frazil_water_${module}_tests")
     if(module STREQUAL "baseline")
         set(target frazil_water_experiment_tests)

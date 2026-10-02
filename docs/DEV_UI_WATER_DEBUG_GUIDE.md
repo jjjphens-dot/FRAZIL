@@ -1,5 +1,10 @@
 # Debug UI 与 Water 研究预览联调指南
 
+## R3 lifecycle gate - preservation failed
+
+Runtime controls/trace remain R2. Started can include zero-output events; completed includes steal retirement. No runtime firstNonZero or pre-start-cull counter exists yet.
+[Evidence and stop decision](evidence/WATER_A1_CONVERGENCE_ROUND_03.md).
+
 ## Round 01 research remediation
 
 Source rate equals DSP rate. The device retains its current/default rate. Dry/Full/Residual

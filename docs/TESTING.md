@@ -1,5 +1,10 @@
 # FRAZIL 测试、听测与发布门槛
 
+## R3 lifecycle gate - preservation failed
+
+CTest frazil_water_bubble_a1_cull_gate reproduces the expected saturation counterexample at three rates. CTest PASS does not mean preservation passed: six CSV gate rows are FAIL.
+[Evidence and stop decision](evidence/WATER_A1_CONVERGENCE_ROUND_03.md).
+
 ## A1 listening convergence Round 02
 
 A1 tests cover deferred request identity, analysis bands, zero allocation and trace-on/off

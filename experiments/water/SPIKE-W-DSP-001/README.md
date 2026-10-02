@@ -1,5 +1,10 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+## R3 lifecycle gate - preservation failed
+
+The offline frazil_water_bubble_a1_cull_gate_tests target reproduces why skipping a silent request can change another voice through stealing. Runtime remains R2.
+[Evidence and stop decision](../../../docs/evidence/WATER_A1_CONVERGENCE_ROUND_03.md).
+
 ## A1 listening convergence Round 02
 
 [Round 02 execution](../../../docs/evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,

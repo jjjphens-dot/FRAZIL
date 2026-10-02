@@ -1,5 +1,10 @@
 # Bubble A1 execution record
 
+## R3 lifecycle gate - preservation failed
+
+Only offline characterization was added. Runtime culling and downstream R3 studies stopped at the required gate.
+[Evidence and stop decision](WATER_A1_CONVERGENCE_ROUND_03.md).
+
 ## A1 listening convergence Round 02
 
 This historical execution record remains intact. [Round 02](WATER_A1_CONVERGENCE_ROUND_02.md)

@@ -1,5 +1,10 @@
 # FRAZIL Module Index
 
+## R3 lifecycle gate - preservation failed
+
+tests/bubble_a1_cull_gate_tests.cpp reuses the unchanged model/pool for offline ENGINEERING verification of silent-request stealing. No new runtime policy.
+[Evidence and stop decision](evidence/WATER_A1_CONVERGENCE_ROUND_03.md).
+
 ## A1 listening convergence Round 02
 
 BubbleA1VoicePool owns causal request/start observations and seven fixed band counters.

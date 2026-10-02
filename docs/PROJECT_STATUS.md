@@ -1,5 +1,10 @@
 # FRAZIL 当前实现与差距
 
+## R3 lifecycle gate - preservation failed
+
+Runtime stays R2. NO CANDIDATE SELECTED; A1+B2 final acceptance gated, B2 trigger inflation OPEN, D1 C6/C7 pending.
+[Evidence and stop decision](evidence/WATER_A1_CONVERGENCE_ROUND_03.md).
+
 ## A1 listening convergence Round 02
 
 [Round 02 execution](evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
