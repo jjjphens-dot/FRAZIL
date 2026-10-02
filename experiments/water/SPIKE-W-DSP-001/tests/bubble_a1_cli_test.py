@@ -45,6 +45,53 @@ def main():
                 p["name"]: p["default"] for p in descriptor["parameters"]}}}), encoding="utf-8")
             explicit, _ = run(renderer, source, root / f"{rate}-explicit-defaults.wav", config)
             assert np.array_equal(reference, explicit), "descriptor and typed defaults disagree"
+            trace_path = root / f"{rate}-events.jsonl"
+            traced_path = root / f"{rate}-traced.wav"
+            subprocess.run([str(renderer), "--a1-trace", str(trace_path), str(source),
+                            str(traced_path), "a1-residual", "257", "42", str(config), "1"],
+                           check=True, capture_output=True)
+            assert np.array_equal(reference, sf.read(traced_path, always_2d=True)[0])
+            rows = [json.loads(line) for line in trace_path.read_text().splitlines()]
+            requested = {r["requestId"]: r for r in rows if r["kind"] == "requested"}
+            started = [r for r in rows if r["kind"] == "started"]
+            bands = [r for r in rows if r["kind"] == "bandSummary"]
+            assert len(bands) == 7 and sum(r["bandStarted"] for r in bands) == len(started)
+            assert sum(r["bandRequested"] for r in bands) == len(requested)
+            for row in started:
+                request = requested[row["requestId"]]
+                assert row["requestFrame"] == request["frame"] <= row["frame"]
+                for field in ("radiusMm", "physicalDampingPerSecond", "tauSeconds",
+                              "sourceCarrierL", "sourceCarrierR", "renderAmplitudeL",
+                              "renderAmplitudeR", "riseXi", "depthAmplitudeGamma"):
+                    assert row[field] == request[field]
+                assert np.isclose(row["renderAmplitudeL"], row["sourceCarrierL"] *
+                                  row["radiusAmplitudeScale"] * row["audibleDepth"] * .2)
+                expected_slope = row["initialFrequencyHz"] * row["riseXi"] / row["tauSeconds"]
+                assert np.isclose(row["predictedRiseHzPerSecond"], expected_slope)
+            # Persistence changes tau/P1 slope, not the captured initial amplitude or scheduling.
+            for persistence in (.25, 4.):
+                config.write_text(json.dumps({"bubbleA1": {"version": 2,
+                    "persistenceScale": persistence}}), encoding="utf-8")
+                pt = root / f"{rate}-p{persistence}.jsonl"
+                subprocess.run([str(renderer), "--a1-trace", str(pt), str(source),
+                                str(root / f"{rate}-p{persistence}.wav"), "a1-residual", "128", "42",
+                                str(config), "1"], check=True, capture_output=True)
+                altered = [json.loads(line) for line in pt.read_text().splitlines()]
+                altered = [r for r in altered if r["kind"] == "requested"]
+                assert len(altered) == len(requested)
+                for r in altered:
+                    base = requested[r["requestId"]]
+                    for key in ("frame", "radiusMm", "renderAmplitudeL", "renderAmplitudeR", "riseXi"):
+                        assert r[key] == base[key]
+                    assert np.isclose(r["tauSeconds"], persistence * base["tauSeconds"])
+                    assert np.isclose(r["predictedRiseHzPerSecond"] * persistence,
+                                      base["predictedRiseHzPerSecond"])
+            config.write_text(json.dumps({"bubbleA1": {"version": 2}}), encoding="utf-8")
+            # Existing trace files must never be overwritten.
+            rejected = subprocess.run([str(renderer), "--a1-trace", str(trace_path), str(source),
+                                       str(root / "forbidden.wav"), "a1", "128", "42"],
+                                      capture_output=True)
+            assert rejected.returncode != 0 and not (root / "forbidden.wav").exists()
             assert "bubble_model=A1" in stats and "radius_hist=" in stats
             fields = dict(token.split("=", 1) for token in stats.split() if "=" in token)
             assert int(fields["bubble_events"]) == int(fields["started"]) > 0

@@ -61,7 +61,7 @@ class PreviewEngine final {
     }
 
     void reset() noexcept {
-        tracedA_ = tracedAStarts_ = tracedB_ = tracedBAdmitted_ = tracedBStarts_ = 0;
+        tracedB_ = tracedBAdmitted_ = tracedBStarts_ = 0;
         fluid_.reset();
         modal_.reset();
         protect_.reset();
@@ -173,37 +173,22 @@ class PreviewEngine final {
                 protect_.reductionDb()};
     }
 
+    // Callback must be stopped. Queue outlives engine processing; no ownership transfer.
+    void setEventTrace(PreviewEventTrace* trace) noexcept {
+        if (a1_)
+            a1_->setObserver(trace, trace ? PreviewEventTrace::captureA1 : nullptr);
+    }
+    void traceA1Bands(PreviewEventTrace& trace) const noexcept {
+        if (ready_ && reworked_ && bubbleEnabled_)
+            for (std::size_t band = 0; band < 7; ++band)
+                PreviewEventTrace::captureA1(&trace, a1_->pool().bandObservation(band));
+    }
     void traceEvents(PreviewEventTrace& trace, std::uint64_t frame) noexcept {
         if (!ready_ || !reworked_)
             return;
-        if (bubbleEnabled_) {
-            const auto make = [&](const research::BubbleA1Event& e, bool requested,
-                                  std::uint64_t starts) {
-                PreviewEventRecord r;
-                r.module = 1;
-                r.frame = frame;
-                // Request sequence only applies to request records; starts may be deferred.
-                r.eligibleId = requested ? a1_->requested() : 0;
-                r.requested = requested;
-                r.started = starts != 0;
-                r.startCount = starts;
-                r.bin = static_cast<int>(e.bin);
-                r.radiusMm = e.physics.radiusMeters * 1000;
-                r.centerFrequencyHz = e.physics.frequencyHz;
-                r.depthExcitationProxy = e.depthExcitationProxy;
-                r.renderAmplitudeL = e.amplitude[0];
-                r.renderAmplitudeR = e.amplitude[1];
-                r.pathMeters = flowEnabled_ ? d1_.pathMeters() : 0;
-                trace.push(r);
-            };
-            if (a1_->requested() != tracedA_)
-                make(a1_->lastRequestedEvent(), true, 0);
-            const auto starts = a1_->pool().counters().started;
-            if (starts != tracedAStarts_)
-                make(a1_->pool().lastStarted(), false, starts - tracedAStarts_);
-            tracedA_ = a1_->requested();
-            tracedAStarts_ = starts;
-        }
+        // About 10 Hz source-clock summaries; seven records, cumulative and analysis-only.
+        if (bubbleEnabled_ && frame % static_cast<std::uint64_t>(sampleRate_ / 10) == 0)
+            traceA1Bands(trace);
         if (dropletEnabled_ && useB2_) {
             const auto make = [&](const research::DropletB2Event& e, bool eligible, bool started) {
                 PreviewEventRecord r;
@@ -306,7 +291,7 @@ class PreviewEngine final {
         readout_.at(WaterSignal::postProtect) = effect;
         return effect;
     }
-    std::uint64_t tracedA_{}, tracedAStarts_{}, tracedB_{}, tracedBAdmitted_{}, tracedBStarts_{};
+    std::uint64_t tracedB_{}, tracedBAdmitted_{}, tracedBStarts_{};
     bool useB2_{};
     std::unique_ptr<research::DropletB2> b2_;
     std::unique_ptr<research::BubbleA1> a1_;

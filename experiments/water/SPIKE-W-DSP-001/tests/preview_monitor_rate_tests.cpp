@@ -1,5 +1,7 @@
+#include "preview/PreviewEngine.h"
 #include "preview/PreviewEventTrace.h"
 #include "preview/PreviewMonitorResampler.h"
+#include "render/BubbleA1TraceJson.h"
 
 #include <cmath>
 #include <iostream>
@@ -97,5 +99,33 @@ int runMonitorRateTests() {
     for (std::uint64_t i = 0; i < preview::PreviewEventTrace::kCapacity; ++i)
         check(trace.pop(record) && record.frame == i, "trace FIFO payload");
     check(!trace.pop(record), "trace empty");
+    // Actual Preview producer -> existing queue -> same message-thread JSON adapter.
+    auto engine = std::make_unique<preview::PreviewEngine>();
+    preview::PreviewSettings settings;
+    settings.core = preview::WaterResearchCore::reworked;
+    settings.mode = 2; // A1 only.
+    check(engine->prepare(48000, settings), "trace Preview prepare");
+    engine->setEventTrace(&trace);
+    std::uint64_t requests{}, starts{};
+    for (std::uint64_t frame = 0; frame < 4800; ++frame) {
+        (void)engine->residual({.5f, -.25f});
+        engine->traceEvents(trace, frame);
+        while (trace.pop(record)) {
+            const auto json = research::bubbleA1TraceJson(record.a1, 48000);
+            check(json["module"].toString() == "A1" && static_cast<int>(json["traceVersion"]) == 2,
+                  "Preview A1 serialization");
+            requests += record.a1.kind == research::BubbleA1ObservationKind::requested;
+            starts += record.a1.kind == research::BubbleA1ObservationKind::started;
+        }
+    }
+    engine->traceA1Bands(trace);
+    std::uint64_t bandRequests{}, bandStarts{};
+    while (trace.pop(record)) {
+        bandRequests += record.a1.bandCounters.requested;
+        bandStarts += record.a1.bandCounters.started;
+    }
+    check(requests > 0 && requests == bandRequests && starts == bandStarts &&
+              trace.takeDropped() == 0,
+          "Preview event stream and cumulative bands agree");
     return failures;
 }

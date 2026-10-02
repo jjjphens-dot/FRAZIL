@@ -1,5 +1,12 @@
 # Water research index
 
+## A1 listening convergence Round 02
+
+[Round 02 execution](../../docs/evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
+non-coalesced A1 event diagnostics, seven analysis-only frequency bands and the
+alpha-only local listening study. Defaults and physical equations stay unchanged.
+B2/D1 remain separate research candidates; human acceptance remains pending.
+
 ## Listening Remediation Round 01
 
 [EXP-W-DB-002](EXP-W-DB-002.md) adds separate B2 while preserving B1. A1 v3 amplitude mapping, 128/512-bin offline study and monitor-rate/mono remediation are bounded research. D1 remains historical Lagrange3 pending C6/C7. See [execution](../../docs/evidence/WATER_LISTENING_ROUND_01.md).

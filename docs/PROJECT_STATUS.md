@@ -1,5 +1,12 @@
 # FRAZIL 当前实现与差距
 
+## A1 listening convergence Round 02
+
+[Round 02 execution](evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
+non-coalesced A1 event diagnostics, seven analysis-only frequency bands and the
+alpha-only local listening study. Defaults and physical equations stay unchanged.
+B2/D1 remain separate research candidates; human acceptance remains pending.
+
 ## Water Listening Round 01
 
 Research branch engineering work is delivered with open findings: monitor-rate/mono remediation, persistent diagnostics, A1 v3 amplitude-role separation and independent B2 candidate. This is not main/production adoption or human acceptance. D1 model/trajectory/historical backend are unchanged; C6/C7 remain pending. Current results and source coverage: [Round 01](evidence/WATER_LISTENING_ROUND_01.md). Earlier branch failures below remain historical evidence, not current-run results.

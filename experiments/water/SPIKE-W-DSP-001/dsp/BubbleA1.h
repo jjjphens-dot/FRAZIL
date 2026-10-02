@@ -24,7 +24,7 @@ class BubbleA1 final {
         analyzer_.reset();
         pool_.reset();
         random_.reseed(seed_);
-        requested_ = 0;
+        requested_ = frame_ = 0;
         lastRequestedEvent_ = {};
         driver_ = {};
         requestedRate_ = 0;
@@ -40,6 +40,10 @@ class BubbleA1 final {
         if (double(random_.nextUnipolar()) < probability) {
             ++requested_;
             BubbleA1Event e;
+            e.requestId = requested_;
+            e.requestFrame = frame_;
+            e.persistenceScale = config_.persistenceScale;
+            e.depthAmplitudeGamma = config_.depthAmplitudeGamma;
             e.bin = model_.sample(random_.nextUnipolar());
             e.physics = model_.bins()[e.bin];
             e.depthExcitationProxy =
@@ -47,6 +51,7 @@ class BubbleA1 final {
             e.riseXi = e.depthExcitationProxy > config_.riseCutoff ? config_.riseXi : 0;
             e.riseModel = config_.riseModel;
             e.amplitude = analyzer_.eventCarrier(config_.sourceEnergyAmplitude);
+            e.sourceCarrier = e.amplitude;
             e.lifecycleAmplitude = e.amplitude;
             for (auto& a : e.lifecycleAmplitude)
                 a *= e.physics.amplitude * e.depthExcitationProxy * config_.residualGain;
@@ -55,13 +60,18 @@ class BubbleA1 final {
                 config_.depthAmplitudeGamma == 1
                     ? e.depthExcitationProxy
                     : std::pow(e.depthExcitationProxy, config_.depthAmplitudeGamma);
+            e.audibleDepth = audibleDepth;
             for (auto& a : e.amplitude)
                 a *= e.physics.amplitude * audibleDepth * config_.residualGain;
             lastRequestedEvent_ = e;
             if (pool_.trigger(e))
                 driver_ = {static_cast<float>(e.amplitude[0]), static_cast<float>(e.amplitude[1])};
         }
+        ++frame_;
         return pool_.process();
+    }
+    void setObserver(void* context, BubbleA1Observer observer) noexcept {
+        pool_.setObserver(context, observer);
     }
     bool setMotion(double motion) noexcept {
         if (!kA1MotionFactor.accepts(motion))
@@ -106,7 +116,7 @@ class BubbleA1 final {
     RandomSource::Seed seed_{RandomSource::kDefaultSeed};
     StereoFrame driver_{};
     double rate_{48000}, requestedRate_{};
-    std::uint64_t requested_{};
+    std::uint64_t requested_{}, frame_{};
     bool ready_{};
 };
 } // namespace frazil::water::research

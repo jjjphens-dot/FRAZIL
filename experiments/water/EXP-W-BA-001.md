@@ -1,5 +1,12 @@
 # EXP-W-BA-001 — Bubble A1 independent population
 
+## A1 listening convergence Round 02
+
+[Round 02 execution](../../docs/evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
+non-coalesced A1 event diagnostics, seven analysis-only frequency bands and the
+alpha-only local listening study. Defaults and physical equations stay unchanged.
+B2/D1 remain separate research candidates; human acceptance remains pending.
+
 Implementation status: IMPLEMENTED (offline research). Human acceptance: NOT ASSESSED.
 Product adoption: NOT ADOPTED. This is the canonical model/parameter/module contract;
 commands, measurements, failures and review history belong to the
@@ -135,7 +142,9 @@ The pool accepts immediately into a free slot or reserves a releasing replacemen
 All-releasing requests drop. Capacity downshift preserves existing tails and can
 cancel pending starts that cannot fit. Accepted and later dropped counters are
 transitions, not mutually exclusive totals. Completed-lifetime bins include stolen
-tails, and report approximate lower edges. No UI transport for these histograms or growing event log.
+tails, and report approximate lower edges. Full radius/lifetime histograms remain offline;
+Round 02 transports seven fixed frequency aggregates and bounded event records with
+explicit loss, not an unbounded in-memory event log.
 
 Offline diagnostic definitions:
 

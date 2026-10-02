@@ -1,5 +1,12 @@
 # FRAZIL Developer Sound Tools
 
+## A1 listening convergence Round 02
+
+[Round 02 execution](evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
+non-coalesced A1 event diagnostics, seven analysis-only frequency bands and the
+alpha-only local listening study. Defaults and physical equations stay unchanged.
+B2/D1 remain separate research candidates; human acceptance remains pending.
+
 ## Water Preview Round 01
 
 Preview separates source/DSP and device rates, canonicalizes mono before DSP, and records message-thread JSONL plus bounded event transport. Monitor-only SRC/anti-alias latency is not plugin latency. B2 and A1 v3 are optional research candidates; session v5 and production stay unchanged. See [Round 01](evidence/WATER_LISTENING_ROUND_01.md) and [debug guide](DEV_UI_WATER_DEBUG_GUIDE.md).

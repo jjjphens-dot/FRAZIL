@@ -6,6 +6,7 @@
 #include "PreviewMonitorResampler.h"
 #include "PreviewSessionLogger.h"
 #include "ResearchCoreConfigCodec.h"
+#include "render/BubbleA1TraceJson.h"
 
 #include <algorithm>
 #include <atomic>
@@ -30,6 +31,8 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback, privat
         callbackAttached = false;
         isPlaying.store(false);
         protectMetrics.clear();
+        timerCallback();
+        engine.traceA1Bands(eventTrace);
         timerCallback();
     }
 
@@ -147,6 +150,10 @@ class PreviewController::Impl final : public juce::AudioIODeviceCallback, privat
         PreviewEventRecord r;
         // Bound each message-thread drain even if a busy producer keeps refilling it.
         for (std::size_t n = 0; n < PreviewEventTrace::kCapacity && eventTrace.pop(r); ++n) {
+            if (r.module == 1) {
+                logger.write("dsp_event", research::bubbleA1TraceJson(r.a1, preparedRate));
+                continue;
+            }
             auto* fields = new juce::DynamicObject;
             fields->setProperty("module", r.module == 1 ? "A1" : "B2");
             fields->setProperty("frame", static_cast<juce::int64>(r.frame));
@@ -319,6 +326,7 @@ juce::String PreviewController::prepareStopped(const PreviewSettings& settings) 
     impl_->preparedRate = impl_->sourceRate > 0 ? impl_->sourceRate : 48000;
     if (!impl_->engine.prepare(impl_->preparedRate, settings))
         return impl_->failure("prepare", validate(settings));
+    impl_->engine.setEventTrace(&impl_->eventTrace);
     impl_->protectDepth.store(settings.protect.depth, std::memory_order_relaxed);
     auto* fields = new juce::DynamicObject;
     fields->setProperty("config", juce::JSON::parse(encodeResearchConfig(settings)));

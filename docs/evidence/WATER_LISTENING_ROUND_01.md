@@ -1,5 +1,12 @@
 # Water Listening Remediation Round 01
 
+## A1 listening convergence Round 02
+
+[Round 02 execution](WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
+non-coalesced A1 event diagnostics, seven analysis-only frequency bands and the
+alpha-only local listening study. Defaults and physical equations stay unchanged.
+B2/D1 remain separate research candidates; human acceptance remains pending.
+
 Status: ENGINEERING DELIVERED WITH OPEN FINDINGS; research only; Human ACCEPT / REVISE / REJECT remains with Sound Lead.
 Baseline: `3426c4fd9495767ead6dc7fd462660cb4f215dbd` (fetched unchanged).
 Branch: `codex/experiment/water-listening-remediation-b2`.

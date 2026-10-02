@@ -22,9 +22,12 @@ JSONL logs use JUCE user-application-data / FRAZIL/Logs/WaterPreview. The diagno
 panel shows the actual local log location or error. Build/source/config/device/lifecycle
 and A/B records are written on the message thread. Audio only pushes trivially-copyable
 records into a 512-record SPSC queue; overflow counts are explicit. A1 requests and
-actual starts are separate records (deferred starts have no inferred request ID).
-Start records carry the last-start payload and explicit startCount if multiple starts
-coalesce in one DSP frame; this diagnostic stream is not a lossless event archive.
+actual starts are separate records. A1 traceVersion 2 retains each requestId/requestFrame
+through deferred starts, including multiple starts in one frame. It captures physical
+and rendered amplitude/trajectory inputs plus seven cumulative initial-frequency bands
+at 10 Hz and Stop. B2 retains last-start payload/startCount when starts coalesce.
+Queue overflow still means the stream is incomplete; counters do not recover lost rows.
+Field meanings and offline capture: [Round 02](evidence/WATER_A1_CONVERGENCE_ROUND_02.md).
 Each timer tick drains at most 512 records to keep message-thread work bounded.
 The historical B1 CLI retains its channel-count behavior; the new listening helper
 canonicalizes mono inputs before all A1/B1/B2 comparisons.
@@ -71,7 +74,9 @@ existing fixed block summaries; counters are cumulative since restart, rate/path
 Requested without starts suggests admission/pool investigation; B1 eligible without admitted points
 to admission. D1 path near zero suggests trajectory/config investigation; moving path with little
 audible change requires separate numerical/perceptual assessment. These readouts prove no sound quality.
-No event logger or DSP algorithm change. D1 C6/C7 pending; HUMAN LISTENING NOT ASSESSED;
+The original raw-tuning slice added no event logger; Round 01/02 logging above supersedes
+that tooling limitation. DSP equations remain unchanged. D1 C6/C7 pending; formal HUMAN
+ACCEPTANCE NOT ASSESSED (partial observations are recorded in Round 02);
 PRODUCT NOT ADOPTED; PRODUCTION WATER NOT IMPLEMENTED.
 
 以下原有参数表与映射说明适用于 Legacy；Reworked 以上节为准。
@@ -121,8 +126,8 @@ Release、ASAN 可使用对应 preset 串行构建这个独立工具；FRAZIL Re
 1. 启动 **Water Research Preview**，点击 **Load WAV**，选一个 mono/stereo WAV。
    支持 44.1–96 kHz、最多 120 秒；输入必须 finite 且在 full scale 内。
    可用 `testdata/input/zero_state_response__impulse.wav` 做连线检查。
-2. 使用系统默认立体声输出设备。设备必须支持 WAV 的采样率；工具不重采样、不打开麦克风。
-   不匹配时明确拒绝播放，选择合适采样率的 WAV 或系统输出设备后重试。
+2. 使用系统默认立体声输出设备，不打开麦克风。DSP 始终按 WAV 采样率运行；设备采样率
+   不同时，仅监听链执行 SRC。界面分别显示 SOURCE / DSP / DEVICE，具体滤波与尾部排空见上节。
 3. 保持 monitor gain 初始 **-18 dB**。在 Sound Lead 页选择 `Resonant`（对应 Engineering 页的 `c`），保持 **AUTO AUDITION** 开启，模型/宏修改完成后自动应用并从头播放；关闭它时使用 **Apply config**，再 **Play / Restart**。
 4. 观察 INPUT / OUTPUT meter 和 FINITE 状态；在 **Source / x**、**Full / x+E**、**Water only / E** 间切换。
    Residual 用于单独定位响应。使用 **Focus / E +18 dB** 辅助检查轻微响应；E Trim 可调至 +36 dB，仅影响监听。

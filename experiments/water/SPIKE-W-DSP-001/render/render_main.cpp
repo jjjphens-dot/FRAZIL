@@ -1,5 +1,6 @@
 #include "A1BinningStudy.h"
 #include "BubbleA1Descriptor.h"
+#include "BubbleA1TraceJson.h"
 #include "DropletB1Descriptor.h"
 #include "DropletB2Descriptor.h"
 #include "FlowD1Descriptor.h"
@@ -9,6 +10,7 @@
 #include "dsp/DropletB2.h"
 #include "dsp/FlowD1.h"
 #include "dsp/ResearchBaseline.h"
+#include "preview/PreviewEventTrace.h"
 
 #include <charconv>
 #include <iomanip>
@@ -26,6 +28,12 @@ template <typename Integer> bool parse(std::string_view text, Integer& value) {
 }
 
 int render(int argc, char** argv) {
+    const char* a1TracePath = nullptr;
+    if (argc >= 3 && std::string_view(argv[1]) == "--a1-trace") {
+        a1TracePath = argv[2];
+        argc -= 2;
+        argv += 2;
+    }
     if (argc == 8 && std::string_view(argv[1]) == "--a1-binning") {
         int bins{};
         double minimum{}, gamma{};
@@ -78,7 +86,8 @@ int render(int argc, char** argv) {
         return 0;
     }
     if (argc < 6 || argc > 13) {
-        std::cerr << "Usage: renderer input.wav NEW-output.wav mode block seed [config.json|-] "
+        std::cerr << "Usage: renderer [--a1-trace NEW-events.jsonl] input.wav NEW-output.wav mode "
+                     "block seed [config.json|-] "
                      "[tail-seconds] [NEW-protect-trace.csv|-] [raw|hard|softsign|tanh|feature] "
                      "[NEW-excitation.wav|-] [c0|c3] [independent|structured]\n"
                      "Modes: baseline, residual (zero), a, b, d, ab, ad, bd, abd, c; append "
@@ -213,6 +222,33 @@ int render(int argc, char** argv) {
         if (!trace || (!b2Mode && !trace->writeText("frame,d0,d1_db,gr_db\n", false, false, "\n")))
             return 1;
     }
+    // Optional A1 observations use the SAME fixed transport as Preview; file writes happen
+    // only after process() returns. Per-sample drain prevents event coalescing offline.
+    std::unique_ptr<juce::FileOutputStream> a1Trace;
+    std::unique_ptr<frazil::water::preview::PreviewEventTrace> a1Queue;
+    if (a1TracePath) {
+        const auto file = cwd.getChildFile(a1TracePath);
+        if (!a1 || file.exists() || file == input || file == output ||
+            (argc >= 9 && file == cwd.getChildFile(argv[8])) ||
+            (captureExcitation && file == cwd.getChildFile(argv[10])))
+            return 2;
+        a1Queue = std::make_unique<frazil::water::preview::PreviewEventTrace>();
+        a1Trace = file.createOutputStream();
+        if (!a1Trace)
+            return 1;
+        a1->setObserver(a1Queue.get(), frazil::water::preview::PreviewEventTrace::captureA1);
+    }
+    const auto drainA1 = [&]() {
+        frazil::water::preview::PreviewEventRecord record;
+        while (a1Queue->pop(record))
+            if (!a1Trace->writeText(
+                    juce::JSON::toString(bubbleA1TraceJson(record.a1, config.sampleRateHz), true,
+                                         17) +
+                        "\n",
+                    false, false, "\n"))
+                return false;
+        return a1Queue->takeDropped() == 0;
+    };
     const auto channels = b2Mode ? 2 : static_cast<int>(reader->numChannels);
     const auto totalFrames =
         reader->lengthInSamples + static_cast<juce::int64>(tailSeconds * config.sampleRateHz);
@@ -287,6 +323,8 @@ int render(int argc, char** argv) {
                 auto components = fluid.processComponents(frame);
                 if (a1) {
                     components.bubble = a1->process(frame);
+                    if (a1Trace && !drainA1())
+                        return 1;
                     a1RateSum += a1->requestedRate();
                     a1ActivitySum += a1->excitation().activity;
                     a1EnergySum += a1->excitation().fastPower;
@@ -444,6 +482,16 @@ int render(int argc, char** argv) {
         return 1;
     if (!writer->flush())
         return 1;
+    if (a1Trace) {
+        for (std::size_t band = 0; band < 7; ++band)
+            frazil::water::preview::PreviewEventTrace::captureA1(a1Queue.get(),
+                                                                 a1->pool().bandObservation(band));
+        if (!drainA1())
+            return 1;
+        a1Trace->flush();
+        if (a1Trace->getStatus().failed())
+            return 1;
+    }
     if (trace) {
         trace->flush();
         if (trace->getStatus().failed())

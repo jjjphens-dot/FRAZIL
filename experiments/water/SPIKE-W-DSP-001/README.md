@@ -1,5 +1,12 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+## A1 listening convergence Round 02
+
+[Round 02 execution](../../../docs/evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
+non-coalesced A1 event diagnostics, seven analysis-only frequency bands and the
+alpha-only local listening study. Defaults and physical equations stay unchanged.
+B2/D1 remain separate research candidates; human acceptance remains pending.
+
 ## Listening Remediation Round 01
 
 Preview uses source-rate DSP followed by monitor-only SRC and an explicit anti-alias

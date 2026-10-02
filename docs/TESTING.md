@@ -1,5 +1,12 @@
 # FRAZIL 测试、听测与发布门槛
 
+## A1 listening convergence Round 02
+
+[Round 02 execution](evidence/WATER_A1_CONVERGENCE_ROUND_02.md) records the supplied partial human observations,
+non-coalesced A1 event diagnostics, seven analysis-only frequency bands and the
+alpha-only local listening study. Defaults and physical equations stay unchanged.
+B2/D1 remain separate research candidates; human acceptance remains pending.
+
 ## Water Listening Round 01 validation
 
 New droplet_b2 and droplet_b2_cli CTests cover exact B1-like ablation, radius/gamma/spatial isolation, beat bounds, three-rate transient spacing, finite output, processing allocation, schema/modes, mono spatial output and A1 v2/v3 gamma1 identity. Preview tests cover SRC reset/partition/drain/latency and Apply-only state. Optional preview_tests --device-smoke input.wav opens the real default stereo device for 500 ms at -18 dB Dry, separately from device-free CTest. listening_round01.py generates local A1/B2/C6 evidence without automatic listening verdicts. Commands/results: [Round 01](evidence/WATER_LISTENING_ROUND_01.md).

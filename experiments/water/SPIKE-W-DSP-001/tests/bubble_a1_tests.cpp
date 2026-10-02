@@ -1,4 +1,6 @@
+#include "AllocationObserver.h"
 #include "dsp/BubbleA1.h"
+#include "preview/PreviewEventTrace.h"
 
 #include <iostream>
 #include <memory>
@@ -16,6 +18,90 @@ bool near(double a, double b, double tolerance = 1e-10) {
 }
 } // namespace
 int main() {
+    using frazil::water::preview::PreviewEventRecord;
+    using frazil::water::preview::PreviewEventTrace;
+    // Exact band-edge semantics and non-coalesced deferred-start identity.
+    for (std::size_t i = 0; i < 6; ++i) {
+        const double edge = 250. * std::pow(2., double(i));
+        check(bubbleA1Band(edge) == i + 1 && bubbleA1Band(edge - .01) == i,
+              "half-open analysis bands");
+    }
+    {
+        auto pool = std::make_unique<BubbleA1VoicePool>();
+        auto queue = std::make_unique<PreviewEventTrace>();
+        BubbleA1Config c;
+        c.voiceCapacity = 64;
+        check(pool->prepare(48000, c), "diagnostic pool prepare");
+        pool->setObserver(queue.get(), PreviewEventTrace::captureA1);
+        BubbleA1Event e;
+        e.physics.frequencyHz = 300;
+        e.physics.tauSeconds = 1;
+        e.physics.poleRadius = std::exp(-1. / 48000);
+        e.amplitude = {.5, -.25};
+        e.sourceCarrier = {1, -.5};
+        for (std::uint64_t id = 1; id <= 128; ++id) {
+            e.requestId = id;
+            check(pool->trigger(e), "fill and reserve every release");
+        }
+        e.requestId = 129;
+        check(!pool->trigger(e), "all releasing capacity drop");
+        PreviewEventRecord row;
+        while (queue->pop(row)) {
+        }
+        allocationtest::allocations = 0;
+        allocationtest::observing = true;
+        for (int n = 0; n < 72; ++n)
+            (void)pool->process();
+        allocationtest::observing = false;
+        check(allocationtest::allocations == 0, "deferred trace processing allocates nothing");
+        std::size_t starts{};
+        while (queue->pop(row)) {
+            check(row.a1.kind == BubbleA1ObservationKind::started && row.a1.frame == 71 &&
+                      row.a1.event.requestId == 65 + starts && row.a1.event.requestFrame == 0 &&
+                      row.a1.event.sourceCarrier == e.sourceCarrier,
+                  "all 64 same-frame deferred starts retain causal payload");
+            ++starts;
+        }
+        check(starts == 64 && queue->takeDropped() == 0, "no start coalescing");
+        const auto band = pool->bandObservation(1);
+        check(band.bandCounters.requested == 129 && band.bandCounters.started == 128 &&
+                  band.bandCounters.completed == 64 && band.bandCounters.stolen == 64 &&
+                  band.bandCounters.capacityDrops == 1 &&
+                  near(band.bandCounters.initialSquaredAmplitudeSum, 20.),
+              "lifecycle totals and independent initial squared amplitude oracle");
+        // Reset clears pending work and all diagnostic totals.
+        for (int n = 0; n < 64; ++n)
+            (void)pool->trigger(e);
+        pool->reset();
+        check(pool->counters().requested == 0 && pool->bandObservation(1).bandCounters.started == 0,
+              "reset clears cumulative counters");
+    }
+    for (double rate : {44100., 48000., 96000.}) {
+        auto observed = std::make_unique<BubbleA1>();
+        auto reference = std::make_unique<BubbleA1>();
+        auto queue = std::make_unique<PreviewEventTrace>();
+        check(observed->prepare({rate, 42}) && reference->prepare({rate, 42}), "trace fixtures");
+        observed->setObserver(queue.get(), PreviewEventTrace::captureA1);
+        allocationtest::allocations = 0;
+        allocationtest::observing = true;
+        for (int n = 0; n < 12000; ++n) {
+            const StereoFrame x{.7f, -.35f};
+            check(observed->process(x) == reference->process(x), "trace preserves samples");
+            PreviewEventRecord row;
+            while (queue->pop(row)) {
+                const auto& e = row.a1.event;
+                check(e.requestId > 0 && e.requestFrame <= row.a1.frame,
+                      "captured request identity and clock");
+                check(near(e.amplitude[0],
+                           e.sourceCarrier[0] * e.physics.amplitude * e.audibleDepth * .2),
+                      "captured amplitude decomposition");
+            }
+        }
+        allocationtest::observing = false;
+        check(allocationtest::allocations == 0 && queue->takeDropped() == 0,
+              "observed process has no allocations or transport loss");
+    }
+
     // Preserve the numeric identity of EVERY historic stream, including named A1 domain 6.
     const std::array domains{RandomDomain::bubble,
                              RandomDomain::droplet,

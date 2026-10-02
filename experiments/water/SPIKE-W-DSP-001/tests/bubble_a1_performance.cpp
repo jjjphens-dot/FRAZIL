@@ -1,4 +1,5 @@
 #include "dsp/BubbleA1.h"
+#include "preview/PreviewEventTrace.h"
 
 #include <chrono>
 #include <iostream>
@@ -6,10 +7,13 @@
 #include <numeric>
 #include <vector>
 using namespace frazil::water::research;
-int main() {
+int main(int argc, char** argv) {
+    const bool trace = argc == 2 && std::string_view(argv[1]) == "--trace";
+    if (argc > 1 && !trace)
+        return 2;
     constexpr int block = 128, warmup = 500, measured = 3000;
     std::cout << "rate,capacity,profile,mean_us,p95_us,p99_us,worst_us,active_mean,active_peak,"
-                 "events_per_second,steals,drops,output_sum\n";
+                 "events_per_second,steals,drops,output_sum,trace_drops\n";
     for (double rate : {44100., 48000., 96000.})
         for (std::size_t cap : {64u, 128u, 256u, 512u, 1024u})
             for (int profile : {0, 1}) {
@@ -25,6 +29,11 @@ int main() {
                 }
                 if (!a->prepare({rate, 42}, c))
                     return 1;
+                auto queue = std::make_unique<frazil::water::preview::PreviewEventTrace>();
+                if (trace)
+                    a->setObserver(queue.get(),
+                                   frazil::water::preview::PreviewEventTrace::captureA1);
+                std::uint64_t traceDrops{};
                 std::vector<double> times(measured);
                 double sink{}, activeSum{};
                 std::size_t peak{};
@@ -41,6 +50,11 @@ int main() {
                         sink += y[0];
                     }
                     const auto end = std::chrono::steady_clock::now();
+                    // Transport writes are timed; consumer/file serialization is not DSP.
+                    frazil::water::preview::PreviewEventRecord record;
+                    while (queue->pop(record)) {
+                    }
+                    traceDrops += queue->takeDropped();
                     if (b >= 0) {
                         times[b] = std::chrono::duration<double, std::micro>(end - start).count();
                         activeSum += a->pool().active();
@@ -55,6 +69,7 @@ int main() {
                           << activeSum / measured << ',' << peak << ','
                           << (a->requested() - eventStart) * rate / (measured * block) << ','
                           << a->pool().counters().steals - stealStart << ','
-                          << a->pool().counters().capacityDrops - dropStart << ',' << sink << '\n';
+                          << a->pool().counters().capacityDrops - dropStart << ',' << sink << ','
+                          << traceDrops << '\n';
             }
 }

@@ -4,16 +4,44 @@
 
 #include <cstdint>
 #include <limits>
+#include <type_traits>
 
 namespace frazil::water::research {
 struct BubbleA1Event final {
     BubbleA1Bin physics;
+    // Captured once; retained through deferred stealing for causal diagnostics.
+    std::uint64_t requestId{}, requestFrame{};
+    std::array<double, 2> sourceCarrier{};
+    double depthAmplitudeGamma{1}, audibleDepth{}, persistenceScale{1};
     std::array<double, 2> amplitude{}, lifecycleAmplitude{};
     bool separateAmplitudeRole{}; // v3 mapping must not alter retirement/stealing decisions.
     double depthExcitationProxy{}, riseXi{};
     std::size_t bin{};
     BubbleA1RiseModel riseModel{BubbleA1RiseModel::effectiveDampingP1};
 };
+
+// Initial-frequency bins, not a filter bank or instantaneous spectral-energy estimate.
+inline std::size_t bubbleA1Band(double hz) noexcept {
+    constexpr std::array edges{250., 500., 1000., 2000., 4000., 8000.};
+    return static_cast<std::size_t>(std::upper_bound(edges.begin(), edges.end(), hz) -
+                                    edges.begin());
+}
+struct BubbleA1BandCounters final {
+    std::uint64_t requested{}, started{}, completed{}, stolen{}, capacityDrops{};
+    double startedAmplitudeMax{}, initialSquaredAmplitudeSum{};
+};
+enum class BubbleA1ObservationKind { requested, started, bandSummary };
+struct BubbleA1Observation final {
+    BubbleA1Event event{};
+    BubbleA1ObservationKind kind{};
+    std::uint64_t frame{}, requested{}, started{}, completed{}, steals{}, capacityDrops{};
+    std::size_t active{}, band{};
+    BubbleA1BandCounters bandCounters{};
+};
+static_assert(std::is_trivially_copyable_v<BubbleA1Observation>);
+// Non-owning processing-thread observer. Caller guarantees lifetime and bounded, allocation/I/O/
+// lock-free execution. Preview supplies its EXISTING queue; offline callers can copy into it too.
+using BubbleA1Observer = void (*)(void*, const BubbleA1Observation&) noexcept;
 
 // Shared acoustic trajectory, separate signed channel amplitudes. Linear complex recurrences
 // integrate the frequency ramp; transcendental setup occurs at event start, never per voice/sample.
@@ -102,7 +130,8 @@ struct BubbleA1PoolCounters final {
     std::array<std::uint64_t, 128> radiusHistogram{};
     // Log-spaced completed lifetime histogram, 1 sample..30 seconds. Numeric fixed storage.
     std::array<std::uint64_t, 128> lifetimeHistogram{};
-    std::uint64_t rising{};
+    std::uint64_t rising{}, requested{};
+    std::array<BubbleA1BandCounters, 7> bands{};
 };
 
 class BubbleA1VoicePool final {
@@ -122,12 +151,15 @@ class BubbleA1VoicePool final {
         return true;
     }
     void reset() noexcept {
-        voices_ = {};
+        // Avoid a second full-pool temporary on the bounded Windows thread stack.
+        for (auto& voice : voices_)
+            voice = {};
         active_ = {};
         activeCount_ = 0;
         freeCount_ = kStorage;
         counters_ = {};
         lastStarted_ = {};
+        frame_ = 0;
         for (std::size_t i = 0; i < kStorage; ++i)
             free_[i] = kStorage - i - 1;
     }
@@ -141,6 +173,9 @@ class BubbleA1VoicePool final {
     bool trigger(const BubbleA1Event& e) noexcept {
         if (!ready_)
             return false;
+        ++counters_.requested;
+        ++counters_.bands[bubbleA1Band(e.physics.frequencyHz)].requested;
+        observe(e, BubbleA1ObservationKind::requested);
         if (activeCount_ < capacity_) {
             const auto slot = free_[--freeCount_];
             active_[activeCount_++] = slot;
@@ -149,7 +184,7 @@ class BubbleA1VoicePool final {
             return true;
         }
         if (activeCount_ > capacity_) {
-            ++counters_.capacityDrops;
+            drop(e);
             return false;
         }
         std::size_t chosen = kStorage;
@@ -164,7 +199,7 @@ class BubbleA1VoicePool final {
             }
         }
         if (chosen == kStorage) {
-            ++counters_.capacityDrops;
+            drop(e);
             return false;
         }
         auto& v = voices_[chosen];
@@ -173,6 +208,7 @@ class BubbleA1VoicePool final {
         v.release(releaseSamples_);
         ++counters_.accepted;
         ++counters_.steals;
+        ++counters_.bands[bubbleA1Band(v.event.physics.frequencyHz)].stolen;
         return true;
     }
     StereoFrame process() noexcept {
@@ -188,6 +224,7 @@ class BubbleA1VoicePool final {
                 continue;
             }
             ++counters_.completed;
+            ++counters_.bands[bubbleA1Band(v.event.physics.frequencyHz)].completed;
             const auto bin =
                 static_cast<std::size_t>(127 * std::log(double(std::max(1u, v.age))) /
                                          std::log(BubbleA1Voice::kMaximumLifetimeSeconds * rate_));
@@ -198,12 +235,27 @@ class BubbleA1VoicePool final {
                 ++i;
             } else {
                 if (v.pending)
-                    ++counters_.capacityDrops;
+                    drop(v.replacement);
                 free_[freeCount_++] = slot;
                 active_[i] = active_[--activeCount_];
             }
         }
+        ++frame_;
         return {static_cast<float>(sum[0]), static_cast<float>(sum[1])};
+    }
+    // Set only by the processing owner with callback stopped; reset retains this binding.
+    void setObserver(void* context, BubbleA1Observer observer) noexcept {
+        observerContext_ = context;
+        observer_ = observer;
+    }
+    BubbleA1Observation bandObservation(std::size_t band) const noexcept {
+        BubbleA1Observation r;
+        r.kind = BubbleA1ObservationKind::bandSummary;
+        r.frame = frame_;
+        r.band = band;
+        r.bandCounters = counters_.bands[band];
+        snapshot(r);
+        return r;
     }
     std::size_t active() const noexcept {
         return activeCount_;
@@ -219,12 +271,43 @@ class BubbleA1VoicePool final {
     }
 
   private:
+    void snapshot(BubbleA1Observation& r) const noexcept {
+        r.requested = counters_.requested;
+        r.started = counters_.started;
+        r.completed = counters_.completed;
+        r.steals = counters_.steals;
+        r.capacityDrops = counters_.capacityDrops;
+        r.active = activeCount_;
+    }
+    void observe(const BubbleA1Event& e, BubbleA1ObservationKind kind) const noexcept {
+        if (!observer_)
+            return;
+        BubbleA1Observation r;
+        r.event = e;
+        r.kind = kind;
+        r.frame = frame_;
+        r.band = bubbleA1Band(e.physics.frequencyHz);
+        snapshot(r);
+        observer_(observerContext_, r);
+    }
+    void drop(const BubbleA1Event& e) noexcept {
+        ++counters_.capacityDrops;
+        ++counters_.bands[bubbleA1Band(e.physics.frequencyHz)].capacityDrops;
+    }
     void start(std::size_t slot, const BubbleA1Event& e) noexcept {
         voices_[slot].start(e, rate_, floorDb_);
         lastStarted_ = e;
         ++counters_.started;
         ++counters_.radiusHistogram[e.bin];
         counters_.rising += e.riseXi > 0 ? 1u : 0u;
+        auto& band = counters_.bands[bubbleA1Band(e.physics.frequencyHz)];
+        ++band.started;
+        band.startedAmplitudeMax = std::max(
+            band.startedAmplitudeMax, std::max(std::abs(e.amplitude[0]), std::abs(e.amplitude[1])));
+        // Mean L/R initial squared envelope, NOT integrated energy, SPL or loudness.
+        band.initialSquaredAmplitudeSum +=
+            .5 * (e.amplitude[0] * e.amplitude[0] + e.amplitude[1] * e.amplitude[1]);
+        observe(e, BubbleA1ObservationKind::started);
     }
     std::array<BubbleA1Voice, kStorage> voices_{};
     std::array<std::size_t, kStorage> active_{}, free_{};
@@ -233,6 +316,10 @@ class BubbleA1VoicePool final {
     std::uint32_t releaseSamples_{72};
     BubbleA1PoolCounters counters_{};
     BubbleA1Event lastStarted_{};
+    // Source/DSP frames since reset, incremented after each sample; no device-clock conversion.
+    std::uint64_t frame_{};
+    void* observerContext_{};
+    BubbleA1Observer observer_{};
     bool ready_{};
 };
 } // namespace frazil::water::research

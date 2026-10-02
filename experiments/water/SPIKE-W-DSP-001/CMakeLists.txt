@@ -18,6 +18,7 @@ foreach(module IN ITEMS baseline features modal excitation normalization motion 
     list(APPEND water_test_targets ${target})
     list(APPEND water_test_names "frazil_water_${module}")
 endforeach()
+target_sources(frazil_water_bubble_a1_tests PRIVATE tests/AllocationObserver.cpp)
 target_sources(frazil_water_droplet_b1_allocation_tests PRIVATE tests/AllocationObserver.cpp)
 target_sources(frazil_water_droplet_b2_tests PRIVATE tests/AllocationObserver.cpp)
 

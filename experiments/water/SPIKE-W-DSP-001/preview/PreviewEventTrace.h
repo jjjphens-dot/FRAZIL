@@ -1,4 +1,6 @@
 #pragma once
+#include "dsp/BubbleA1VoicePool.h"
+
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -6,6 +8,7 @@
 
 namespace frazil::water::preview {
 struct PreviewEventRecord final {
+    research::BubbleA1Observation a1{};
     std::uint64_t frame{}, eligibleId{};
     std::uint64_t startCount{}; // Last-start payload; multiplicity is explicit if starts coalesce.
     int module{}, bin{};        // 1=A1, 2=B2; flags describe this record, not cumulative counters.
@@ -20,6 +23,13 @@ static_assert(std::is_trivially_copyable_v<PreviewEventRecord>);
 // loss is explicit. No allocation, locks or file access. Reset only with callback detached.
 class PreviewEventTrace final {
   public:
+    // The same bounded transport is used by the native offline renderer. No serialization here.
+    static void captureA1(void* context, const research::BubbleA1Observation& value) noexcept {
+        PreviewEventRecord record;
+        record.module = 1;
+        record.a1 = value;
+        static_cast<PreviewEventTrace*>(context)->push(record);
+    }
     bool push(const PreviewEventRecord& record) noexcept {
         const auto write = write_.load(std::memory_order_relaxed);
         if (write - read_.load(std::memory_order_acquire) == kCapacity) {
