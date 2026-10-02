@@ -1,5 +1,10 @@
 # EXP-W-BA-001 — Bubble A1 independent population
 
+## R3.1 historical observation and explicit L1 research
+
+L0 remains the historical/default lifecycle. Explicit offline CLI L1 rejects initially below-floor requests before allocation; this is ENGINEERING, sound-changing, HUMAN NOT ASSESSED and PRODUCT NOT ADOPTED. Config v2/v3 defaults and physics are unchanged.
+[Current execution and gates](../../docs/evidence/WATER_A1_LIFECYCLE_R31.md).
+
 ## R3 lifecycle gate - preservation failed
 
 A below-floor event can steal a sounding voice. Historical runtime remains; explicit cull is not sample preserving.

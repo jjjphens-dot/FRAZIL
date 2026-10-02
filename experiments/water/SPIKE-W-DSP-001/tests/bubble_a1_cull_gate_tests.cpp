@@ -25,7 +25,8 @@ bool run(double rate, bool saturated, bool separateAmplitudeRole) {
     auto explicitCull = std::make_unique<BubbleA1VoicePool>();
     auto control = std::make_unique<BubbleA1VoicePool>();
     if (!model.prepare(rate, config) || !historical->prepare(rate, config) ||
-        !explicitCull->prepare(rate, config) || !control->prepare(rate, config))
+        !explicitCull->prepare(rate, config, BubbleA1LifecyclePolicy::admissionAwareL1) ||
+        !control->prepare(rate, config))
         return false;
 
     BubbleA1Event event;
@@ -35,8 +36,9 @@ bool run(double rate, bool saturated, bool separateAmplitudeRole) {
     if (saturated) {
         for (std::size_t i = 0; i < config.voiceCapacity; ++i) {
             event.requestId = i + 1;
-            if (!historical->trigger(event) || !explicitCull->trigger(event) ||
-                !control->trigger(event))
+            if (!a1TriggerAccepted(historical->trigger(event)) ||
+                !a1TriggerAccepted(explicitCull->trigger(event)) ||
+                !a1TriggerAccepted(control->trigger(event)))
                 return false;
         }
     }
@@ -59,9 +61,14 @@ bool run(double rate, bool saturated, bool separateAmplitudeRole) {
     const auto first = isolated.process();
     if (first[0] != 0 || first[1] != 0 || !isolated.done())
         return false;
-    if (!historical->trigger(event) || !control->trigger(event))
+    if (!a1TriggerAccepted(historical->trigger(event)) ||
+        !a1TriggerAccepted(control->trigger(event)))
         return false;
-    // The only counterfactual difference: skip trigger for the below-floor request.
+    // Exercise the actual candidate admission, retaining the original R3 counterexample.
+    if (explicitCull->trigger(event) != BubbleA1TriggerResult::preStartCulled ||
+        explicitCull->counters().lifecycle.preStartCulled != 1 ||
+        explicitCull->counters().capacityDrops != 0)
+        return false;
     double delta{}, controlDelta{};
     int firstDifference = -1;
     for (int frame = 0; frame < static_cast<int>(rate); ++frame) {
@@ -78,6 +85,11 @@ bool run(double rate, bool saturated, bool separateAmplitudeRole) {
     }
     const auto oldSteals = historical->counters().steals;
     const auto newSteals = explicitCull->counters().steals;
+    const auto& observed = historical->counters().lifecycle;
+    if (observed.completedWithoutNonZero != 1 || observed.firstNonZero != (saturated ? 64u : 0u) ||
+        observed.causedStealButNeverNonZero != (saturated ? 1u : 0u) ||
+        observed.replacementCompletedWithoutNonZero != (saturated ? 1u : 0u))
+        return false;
     std::cout << rate << ',' << (saturated ? "full" : "empty") << ','
               << (separateAmplitudeRole ? "v3-separated" : "v2") << ',' << controlDelta << ','
               << delta << ',' << firstDifference << ',' << oldSteals << ',' << newSteals << ','

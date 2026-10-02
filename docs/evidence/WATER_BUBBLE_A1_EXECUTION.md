@@ -1,5 +1,10 @@
 # Bubble A1 execution record
 
+## R3.1 historical observation and explicit L1 research
+
+R3.1 adds actual voice-local nonzero/ghost-steal observations and a CLI-only L1 candidate. Six reference sources have zero ghost steals and exact L0/L1 audio; L1 is not selected. Dense1024 timing remains an open gate.
+[Current execution and gates](WATER_A1_LIFECYCLE_R31.md).
+
 ## R3 lifecycle gate - preservation failed
 
 Only offline characterization was added. Runtime culling and downstream R3 studies stopped at the required gate.

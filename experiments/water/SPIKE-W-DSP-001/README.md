@@ -1,5 +1,10 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+## R3.1 historical observation and explicit L1 research
+
+Renderer --a1-lifecycle l0|l1 is an explicit research selector, compatible with --a1-trace. L1 is ENGINEERING / SOUND-CHANGING / HUMAN NOT ASSESSED; Preview and v2/v3 defaults stay L0. a1_lifecycle_r31.py --renderer ... --baseline ... --compare-l1 --input ... --output build/new-r31 creates new local evidence without choosing a candidate.
+[Current execution and gates](../../../docs/evidence/WATER_A1_LIFECYCLE_R31.md).
+
 ## R3 lifecycle gate - preservation failed
 
 The offline frazil_water_bubble_a1_cull_gate_tests target reproduces why skipping a silent request can change another voice through stealing. Runtime remains R2.

@@ -1,5 +1,10 @@
 # Debug UI 与 Water 研究预览联调指南
 
+## R3.1 historical observation and explicit L1 research
+
+Preview remains L0; there is no L1 UI/session control. A1 JSONL traceVersion3 adds firstNonZero, completed, causedSteal and pendingDropped records, plus cumulative lifecycle and bandLifecycle counters. A firstNonZero event is numerical, not audibility. L1 requires offline renderer --a1-lifecycle l1; omission stays L0. Existing dropped-trace accounting remains mandatory.
+[Current execution and gates](evidence/WATER_A1_LIFECYCLE_R31.md).
+
 ## R3 lifecycle gate - preservation failed
 
 Runtime controls/trace remain R2. Started can include zero-output events; completed includes steal retirement. No runtime firstNonZero or pre-start-cull counter exists yet.

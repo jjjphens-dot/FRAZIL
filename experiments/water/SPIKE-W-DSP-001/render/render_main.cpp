@@ -29,11 +29,29 @@ template <typename Integer> bool parse(std::string_view text, Integer& value) {
 
 int render(int argc, char** argv) {
     const char* a1TracePath = nullptr;
-    if (argc >= 3 && std::string_view(argv[1]) == "--a1-trace") {
-        a1TracePath = argv[2];
+    auto lifecycle = BubbleA1LifecyclePolicy::historicalL0;
+    bool lifecycleSelected = false;
+    while (argc >= 3 && (std::string_view(argv[1]) == "--a1-trace" ||
+                         std::string_view(argv[1]) == "--a1-lifecycle")) {
+        if (std::string_view(argv[1]) == "--a1-trace") {
+            if (a1TracePath)
+                return 2;
+            a1TracePath = argv[2];
+        } else {
+            if (lifecycleSelected ||
+                (std::string_view(argv[2]) != "l0" && std::string_view(argv[2]) != "l1"))
+                return 2;
+            lifecycleSelected = true;
+            lifecycle = std::string_view(argv[2]) == "l1"
+                            ? BubbleA1LifecyclePolicy::admissionAwareL1
+                            : BubbleA1LifecyclePolicy::historicalL0;
+        }
         argc -= 2;
         argv += 2;
     }
+    if ((a1TracePath || lifecycleSelected) && argc >= 2 &&
+        std::string_view(argv[1]).starts_with("--"))
+        return 2; // A1 render selectors cannot prefix unrelated utility commands.
     if (argc == 8 && std::string_view(argv[1]) == "--a1-binning") {
         int bins{};
         double minimum{}, gamma{};
@@ -86,7 +104,8 @@ int render(int argc, char** argv) {
         return 0;
     }
     if (argc < 6 || argc > 13) {
-        std::cerr << "Usage: renderer [--a1-trace NEW-events.jsonl] input.wav NEW-output.wav mode "
+        std::cerr << "Usage: renderer [--a1-trace NEW-events.jsonl] [--a1-lifecycle l0|l1] "
+                     "input.wav NEW-output.wav mode "
                      "block seed [config.json|-] "
                      "[tail-seconds] [NEW-protect-trace.csv|-] [raw|hard|softsign|tanh|feature] "
                      "[NEW-excitation.wav|-] [c0|c3] [independent|structured]\n"
@@ -111,6 +130,8 @@ int render(int argc, char** argv) {
     const bool a1Mode = mode == "a1b2" || mode == "a1b2d1" || mode == "a1" || mode == "a1b" ||
                         mode == "a1d" || mode == "a1bd" || mode == "a1b1" || mode == "a1b1d" ||
                         mode == "a1d1" || mode == "a1b1d1";
+    if (lifecycleSelected && !a1Mode)
+        return 2;
     if (!baselineMode && mode != "a" && mode != "b" && mode != "d" && mode != "ab" &&
         mode != "ad" && mode != "bd" && mode != "abd" && mode != "c" && !a1Mode && !b1Mode &&
         !b2Mode)
@@ -206,7 +227,7 @@ int render(int argc, char** argv) {
                           : mode == "c" ? modal.prepare(config, modalConfig, excitationMode,
                                                         normalization, motionModel)
                                         : fluid.prepare(config, fluidConfig);
-    if (!prepared || (a1 && !a1->prepare(config, a1Config.bubble, a1Config.analysis)) ||
+    if (!prepared || (a1 && !a1->prepare(config, a1Config.bubble, a1Config.analysis, lifecycle)) ||
         (b1 && !b1->prepare(config, b1Config.droplet)) ||
         (b2 && !b2->prepare(config, b2Config.droplet)) ||
         (d1Mode && !d1.prepare(config, d1Config.flow)))
@@ -524,6 +545,9 @@ int render(int argc, char** argv) {
     if (a1) {
         const auto& p = a1->pool();
         const auto& counters = p.counters();
+        std::cout << "a1_lifecycle="
+                  << (lifecycle == BubbleA1LifecyclePolicy::historicalL0 ? "L0" : "L1")
+                  << " research_only=1 human_not_assessed=1 product_not_adopted=1\n";
         // Frame fields are FIRST request/start; window-active counts eligible frames.
         // Legacy silent-events counts zero CURRENT frames, not unexcited windows.
         std::cout << "a1_requested_frame=" << a1RequestedFrame

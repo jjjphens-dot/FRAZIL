@@ -53,6 +53,37 @@ def main():
             assert np.array_equal(reference, sf.read(traced_path, always_2d=True)[0])
             rows = [json.loads(line) for line in trace_path.read_text().splitlines()]
             requested = {r["requestId"]: r for r in rows if r["kind"] == "requested"}
+            # Research selector keeps identities/RNG while culling before allocation.
+            l1trace = root / f"{rate}-l1.jsonl"
+            l1out = root / f"{rate}-l1.wav"
+            subprocess.run([str(renderer), "--a1-lifecycle", "l1", "--a1-trace", str(l1trace),
+                            str(source), str(l1out), "a1-residual", "128", "42", str(config), "1"],
+                           check=True, capture_output=True)
+            l1rows = [json.loads(line) for line in l1trace.read_text().splitlines()]
+            l1requests = [r for r in l1rows if r["kind"] == "requested"]
+            assert len(l1requests) == len(requested)
+            for row in l1requests:
+                old = requested[row["requestId"]]
+                for key in ("requestFrame", "radiusMm", "depthExcitationProxy", "riseXi",
+                            "sourceCarrierL", "sourceCarrierR", "renderAmplitudeL", "renderAmplitudeR"):
+                    assert row[key] == old[key], key
+            last = next(r for r in reversed(l1rows) if r["kind"] == "bandSummary")
+            assert last["requestedCount"] == last["startedCount"] + last["lifecycle"]["preStartCulled"]
+            repeated = root / f"{rate}-l1-partition.wav"
+            subprocess.run([str(renderer), "--a1-lifecycle", "l1", str(source), str(repeated),
+                            "a1-residual", "257", "42", str(config), "1"],
+                           check=True, capture_output=True)
+            assert np.array_equal(sf.read(l1out)[0], sf.read(repeated)[0])
+            for flags in (("--a1-lifecycle", "bad"),
+                          ("--a1-lifecycle", "l1", "--a1-lifecycle", "l0")):
+                invalid = root / f"{rate}-invalid-selector.wav"
+                result = subprocess.run([str(renderer), *flags, str(source), str(invalid),
+                                         "a1", "128", "42"], capture_output=True)
+                assert result.returncode != 0 and not invalid.exists()
+            invalid = root / f"{rate}-wrong-mode.wav"
+            result = subprocess.run([str(renderer), "--a1-lifecycle", "l1", str(source),
+                                     str(invalid), "b2", "128", "42"], capture_output=True)
+            assert result.returncode != 0 and not invalid.exists()
             started = [r for r in rows if r["kind"] == "started"]
             bands = [r for r in rows if r["kind"] == "bandSummary"]
             assert len(bands) == 7 and sum(r["bandStarted"] for r in bands) == len(started)

@@ -8,8 +8,10 @@ namespace frazil::water::research {
 // The independent shared analyzer also serves B1; population scheduling remains A1-owned.
 class BubbleA1 final {
   public:
-    bool prepare(const ResearchConfig& research, const BubbleA1Config& config = {},
-                 const SharedExcitationConfig& analysis = {}) noexcept {
+    bool
+    prepare(const ResearchConfig& research, const BubbleA1Config& config = {},
+            const SharedExcitationConfig& analysis = {},
+            BubbleA1LifecyclePolicy lifecycle = BubbleA1LifecyclePolicy::historicalL0) noexcept {
         ready_ = false;
         config_ = config;
         rate_ = research.sampleRateHz;
@@ -17,7 +19,7 @@ class BubbleA1 final {
         seed_ = research.seedFor(RandomDomain::bubbleA1);
         reset();
         ready_ = model_.prepare(rate_, config) && analyzer_.prepare(rate_, analysis) &&
-                 pool_.prepare(rate_, config);
+                 pool_.prepare(rate_, config, lifecycle);
         return ready_;
     }
     void reset() noexcept {
@@ -64,7 +66,7 @@ class BubbleA1 final {
             for (auto& a : e.amplitude)
                 a *= e.physics.amplitude * audibleDepth * config_.residualGain;
             lastRequestedEvent_ = e;
-            if (pool_.trigger(e))
+            if (a1TriggerAccepted(pool_.trigger(e)))
                 driver_ = {static_cast<float>(e.amplitude[0]), static_cast<float>(e.amplitude[1])};
         }
         ++frame_;

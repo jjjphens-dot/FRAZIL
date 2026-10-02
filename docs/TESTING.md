@@ -1,5 +1,10 @@
 # FRAZIL 测试、听测与发布门槛
 
+## R3.1 historical observation and explicit L1 research
+
+R3.1 covers first-nonzero emission, summed cancellation, deferred/cancelled replacement, inclusive cull boundary, typed trigger results, RNG identity and trace/block invariance. The R3 saturated-pool counterexample now exercises actual L1 and still expects nonzero delta. Full preset results and the open1024-voice timing finding are separate from sample preservation.
+[Current execution and gates](evidence/WATER_A1_LIFECYCLE_R31.md).
+
 ## R3 lifecycle gate - preservation failed
 
 CTest frazil_water_bubble_a1_cull_gate reproduces the expected saturation counterexample at three rates. CTest PASS does not mean preservation passed: six CSV gate rows are FAIL.
