@@ -16,11 +16,21 @@ MAX_BUILD_JOBS = 8
 DEFAULT_BUILD_JOBS = 6
 BASE_AVAILABLE_MEMORY_BYTES = 2 * 1024 * 1024 * 1024
 MEMORY_PER_JOB_BYTES = 512 * 1024 * 1024
-SUPPORTED_PRESETS = (
+BASE_PRESETS = (
     "windows-debug",
     "windows-release",
     "windows-asan",
     "ci-windows-debug",
+)
+
+# Explicit preset families keep arbitrary names out of command/log construction.
+TEST_PROFILES = (
+    "smoke", "core", "fast", "full", "water-common", "water-a1", "water-b1",
+    "water-b2", "water-d1", "water-protect", "preview",
+)
+SUPPORTED_PRESETS = BASE_PRESETS + tuple(
+    f"{base}-{profile}" for base in BASE_PRESETS for profile in TEST_PROFILES
+    if base == "windows-debug" or profile in ("core", "fast", "full")
 )
 
 

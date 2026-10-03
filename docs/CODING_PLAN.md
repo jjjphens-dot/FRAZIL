@@ -1,5 +1,9 @@
 # FRAZIL 分阶段 Coding Plan
 
+## Test path infrastructure maintenance
+
+The [test-path execution plan](research/test-path-systematic-refactor/FRAZIL_Test_Path_Systematic_Refactor_Agent_Plan.md) sequences classification/build decoupling before CLI/matrix splitting, research isolation, Preview groups and CI routing. Preserve coverage and compare Full before/after each relevant phase; do not convert fast regression into milestone, listening or production acceptance. [Coverage mapping](testing/TEST_PATH_MATRIX.md) records routing; live results stay in its execution record. This work changes no milestone dependencies or product contract.
+
 ## Proposed minimum-practical latency policy (ARCH-LAT-002)
 
 The user-authorized [ADR-0007](adr/0007-minimum-practical-processing-latency.md)

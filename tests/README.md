@@ -1,5 +1,9 @@
 # tests/
 
+## Test execution paths
+
+Daily regression uses `windows-debug-fast`; core/module/full build and CTest selections are documented in the [coverage matrix](../docs/testing/TEST_PATH_MATRIX.md). P0 preserves all tests; module selections still include unsplit slow suites.
+
 当前测试 target：
 
 - `frazil_smoke`：CTest wiring smoke；

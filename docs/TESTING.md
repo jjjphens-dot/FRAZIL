@@ -1,5 +1,9 @@
 # FRAZIL 测试、听测与发布门槛
 
+## Test execution paths
+
+The test-path refactor preserves required coverage while separating daily regression from full validation. See the [coverage matrix](testing/TEST_PATH_MATRIX.md) for labels, build/test entries and pending CLI/matrix splits. Fast excludes known mixed research suites; module labels still select full module coverage. Full means all tests registered by the selected configure options, not listening or candidate acceptance.
+
 ## R3.1 validation closeout
 
 Phase 0 follow-up hardens all 12/84/57/120 canonical row identities and requires live clean Git/binary provenance binding before publication. A1 CLI captures every renderer child (including normal exit-2 config rejection); native crashes cannot satisfy negative tests. Manual `native_parent_environment_ab.py` runs a fixed parent-PATH A/B without changing default CTest environment. `a1_observation_performance.py` retains three complete fixed-order timing rounds and a separately labelled, untimed workload audit. Final full presets and Hosted results must refer to one frozen HEAD; earlier passes are not substitutes.
@@ -826,8 +830,8 @@ python tools/build_safe.py --preset windows-release
 
 ```powershell
 cmake --preset windows-debug
-python tools/build_safe.py --preset windows-debug
-ctest --preset windows-debug
+python tools/build_safe.py --preset windows-debug-fast
+ctest --preset windows-debug-fast
 
 cmake --preset windows-release
 python tools/build_safe.py --preset windows-release

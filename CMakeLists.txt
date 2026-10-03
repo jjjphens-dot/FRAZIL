@@ -328,6 +328,21 @@ add_test(
             --renderer $<TARGET_FILE:frazil_render>
 )
 
+# Test execution profiles do not change test assertions or production linkage.
+set_tests_properties(frazil_smoke PROPERTIES LABELS "core;fast;smoke")
+set_tests_properties(frazil_unit PROPERTIES LABELS "core;fast;unit")
+set_tests_properties(frazil_plugin_integration PROPERTIES LABELS "core;fast;integration")
+set_tests_properties(frazil_processor_property PROPERTIES LABELS "core;fast;property")
+set_tests_properties(frazil_latency_contract PROPERTIES LABELS "core;fast;integration")
+set_tests_properties(frazil_render PROPERTIES LABELS "core;fast;render")
+set_tests_properties(frazil_render_cli PROPERTIES LABELS "core;fast;cli")
+
+add_custom_target(frazil_core_tests DEPENDS
+    frazil_smoke frazil_tests frazil_plugin_integration frazil_processor_property
+    frazil_latency_contract frazil_render)
+add_custom_target(frazil_fast_tests DEPENDS frazil_core_tests)
+add_custom_target(frazil_full_tests DEPENDS frazil_core_tests)
+
 # Research targets are opt-in and never linked into the production plugin.
 option(FRAZIL_BUILD_WATER_EXPERIMENT "Build the standalone Water DSP research candidates" OFF)
 option(FRAZIL_BUILD_WATER_PREVIEW "Build standalone engineering Water preview GUI" OFF)
@@ -336,6 +351,8 @@ if(FRAZIL_BUILD_WATER_PREVIEW AND NOT FRAZIL_BUILD_WATER_EXPERIMENT)
 endif()
 if(FRAZIL_BUILD_WATER_EXPERIMENT)
     add_subdirectory(experiments/water/SPIKE-W-DSP-001)
+    add_dependencies(frazil_fast_tests frazil_water_fast_tests)
+    add_dependencies(frazil_full_tests frazil_water_full_tests)
 endif()
 
 # MSVC ASAN uses a dynamic runtime DLL. Keep test execution independent from the

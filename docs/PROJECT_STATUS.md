@@ -1,5 +1,9 @@
 # FRAZIL 当前实现与差距
 
+## Test path infrastructure
+
+P0 implementation is local on the latest research branch, not merged main: labels, build/test profiles and smoke separation are implemented. Core 7/7 and Fast 27/27 pass; Full is 41/42 before and after with different retained failures, so acceptance is BLOCKED. CLI/matrix splitting and CI routing remain pending. Actual results and open failures: [execution record](testing/TEST_PATH_EXECUTION.md).
+
 ## R3.1 validation closeout
 
 Latest Phase 0 follow-up: publisher completeness/live provenance and per-child crash capture implemented; fixed parent-PATH A/B reproduced one Python write fault in A, none in two B runs (cause still unproven). Three complete timing rounds retain deadline overruns; 57/57 new comparisons are exact. No sound/default/D1 changes. PHASE 0 OPEN / DO NOT START PHASE 1. Final frozen-head Debug/Release/ASAN and Hosted results are linked from the [execution ledger](evidence/R31_VALIDATION_CLOSEOUT.md#phase-0-follow-up-measurement-and-validation-handoff); earlier results below remain dated evidence.

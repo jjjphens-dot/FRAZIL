@@ -25,7 +25,6 @@ target_sources(frazil_water_droplet_b2_tests PRIVATE tests/AllocationObserver.cp
 add_executable(frazil_water_flow_d1_latency_native tests/flow_d1_latency_native.cpp
     tests/AllocationObserver.cpp)
 target_link_libraries(frazil_water_flow_d1_latency_native PRIVATE frazil_water_research)
-add_dependencies(frazil_smoke frazil_water_flow_d1_latency_native)
 list(APPEND water_test_targets frazil_water_flow_d1_latency_native)
 add_test(NAME frazil_water_flow_d1_latency_native
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_latency_native_test.py"
@@ -88,7 +87,6 @@ add_executable(frazil_water_flow_d1_performance tests/flow_d1_performance.cpp)
 target_link_libraries(frazil_water_flow_d1_performance PRIVATE frazil_water_research)
 add_executable(frazil_water_flow_d1_source_probe tests/flow_d1_source_probe.cpp)
 target_link_libraries(frazil_water_flow_d1_source_probe PRIVATE frazil_water_research)
-add_dependencies(frazil_smoke frazil_water_flow_d1_source_probe)
 
 # Separate research application. It is never linked into FRAZIL or registered as a Host plugin.
 if(FRAZIL_BUILD_WATER_PREVIEW)
@@ -125,8 +123,112 @@ if(FRAZIL_BUILD_WATER_PREVIEW)
     list(APPEND water_test_names frazil_water_preview)
 endif()
 
-# Include opt-in research in existing safe presets; never link it into production targets.
-add_dependencies(frazil_smoke ${water_test_targets} frazil_water_experiment_render frazil_water_performance frazil_water_research_cases frazil_water_bubble_a1_performance frazil_water_droplet_b1_performance frazil_water_flow_d1_performance)
+
+# P0 preserves every existing registration and assertion. Mixed CLI/matrix suites
+# stay slow until their smoke/contract coverage is separated in subsequent phases.
+set_tests_properties(frazil_water_baseline PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_features PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_modal PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_excitation PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_normalization PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_motion PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_bubble PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_flow PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_droplet PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_activity PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_fluid PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_event_pool PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_mapping PROPERTIES LABELS "water-common;fast;property")
+set_tests_properties(frazil_water_bubble_a1 PROPERTIES LABELS "water-a1;slow;property;research")
+set_tests_properties(frazil_water_bubble_a1_cull_gate PROPERTIES LABELS "water-a1;slow;property;evidence;research")
+set_tests_properties(frazil_water_droplet_b1_physics PROPERTIES LABELS "water-b1;fast;unit")
+set_tests_properties(frazil_water_droplet_b1_onset PROPERTIES LABELS "water-b1;fast;unit")
+set_tests_properties(frazil_water_droplet_b1 PROPERTIES LABELS "water-b1;slow;property;research")
+set_tests_properties(frazil_water_droplet_b1_allocation PROPERTIES LABELS "water-b1;water-d1;fast;property")
+set_tests_properties(frazil_water_droplet_b2 PROPERTIES LABELS "water-b2;slow;property;performance;research")
+set_tests_properties(frazil_water_flow_d1 PROPERTIES LABELS "water-d1;fast;property")
+set_tests_properties(frazil_water_protect_detector PROPERTIES LABELS "water-protect;fast;unit")
+set_tests_properties(frazil_water_protect PROPERTIES LABELS "water-protect;fast;property")
+set_tests_properties(frazil_water_flow_d1_latency_native PROPERTIES LABELS "water-d1;slow;native;research")
+set_tests_properties(frazil_water_evidence_tools PROPERTIES LABELS "research-validation;slow;unit;evidence;research")
+set_tests_properties(frazil_water_experiment_render_cli PROPERTIES LABELS "water-common;water-protect;slow;cli;render;research")
+set_tests_properties(frazil_water_protect_listening PROPERTIES LABELS "water-protect;slow;listening;research")
+set_tests_properties(frazil_water_bubble_a1_cli PROPERTIES LABELS "water-a1;slow;cli;render;research")
+set_tests_properties(frazil_water_droplet_b2_cli PROPERTIES LABELS "water-b2;slow;cli;render;research")
+set_tests_properties(frazil_water_droplet_b1_cli PROPERTIES LABELS "water-b1;slow;cli;render;listening;research")
+set_tests_properties(frazil_water_flow_d1_cli PROPERTIES LABELS "water-d1;slow;cli;native;research")
+set_tests_properties(frazil_water_flow_d1_remediation PROPERTIES LABELS "water-d1;slow;native;research")
+set_tests_properties(frazil_water_flow_d1_convergence PROPERTIES LABELS "water-d1;slow;native;research")
+set_tests_properties(frazil_water_flow_d1_latency PROPERTIES LABELS "water-d1;slow;unit;research")
+if(FRAZIL_BUILD_WATER_PREVIEW)
+    set_tests_properties(frazil_water_preview PROPERTIES LABELS "water-preview;fast;integration")
+endif()
+
+add_custom_target(frazil_water_fast_tests DEPENDS
+    frazil_water_experiment_tests
+    frazil_water_features_tests
+    frazil_water_modal_tests
+    frazil_water_excitation_tests
+    frazil_water_normalization_tests
+    frazil_water_motion_tests
+    frazil_water_bubble_tests
+    frazil_water_flow_tests
+    frazil_water_droplet_tests
+    frazil_water_activity_tests
+    frazil_water_fluid_tests
+    frazil_water_event_pool_tests
+    frazil_water_mapping_tests
+    frazil_water_droplet_b1_physics_tests
+    frazil_water_droplet_b1_onset_tests
+    frazil_water_droplet_b1_allocation_tests
+    frazil_water_flow_d1_tests
+    frazil_water_protect_detector_tests
+    frazil_water_protect_tests)
+if(FRAZIL_BUILD_WATER_PREVIEW)
+    add_dependencies(frazil_water_fast_tests frazil_water_preview_tests)
+endif()
+
+# Full also retains manual study/benchmark executables from the former smoke closure.
+add_custom_target(frazil_water_full_tests DEPENDS ${water_test_targets}
+    frazil_water_experiment_render frazil_water_performance frazil_water_research_cases
+    frazil_water_bubble_a1_performance frazil_water_droplet_b1_performance
+    frazil_water_flow_d1_performance frazil_water_flow_d1_source_probe)
+add_custom_target(frazil_water_common_test_group DEPENDS
+    frazil_water_experiment_tests
+    frazil_water_features_tests
+    frazil_water_modal_tests
+    frazil_water_excitation_tests
+    frazil_water_normalization_tests
+    frazil_water_motion_tests
+    frazil_water_bubble_tests
+    frazil_water_flow_tests
+    frazil_water_droplet_tests
+    frazil_water_activity_tests
+    frazil_water_fluid_tests
+    frazil_water_event_pool_tests
+    frazil_water_mapping_tests
+    frazil_water_experiment_render)
+add_custom_target(frazil_water_a1_test_group DEPENDS
+    frazil_water_bubble_a1_tests frazil_water_bubble_a1_cull_gate_tests frazil_water_experiment_render)
+add_custom_target(frazil_water_b1_test_group DEPENDS
+    frazil_water_droplet_b1_tests
+    frazil_water_droplet_b1_physics_tests
+    frazil_water_droplet_b1_onset_tests
+    frazil_water_droplet_b1_allocation_tests
+    frazil_water_experiment_render)
+add_custom_target(frazil_water_b2_test_group DEPENDS
+    frazil_water_droplet_b2_tests frazil_water_experiment_render)
+add_custom_target(frazil_water_d1_test_group DEPENDS
+    frazil_water_flow_d1_tests
+    frazil_water_droplet_b1_allocation_tests
+    frazil_water_flow_d1_latency_native
+    frazil_water_flow_d1_source_probe
+    frazil_water_experiment_render)
+add_custom_target(frazil_water_protect_test_group DEPENDS
+    frazil_water_protect_detector_tests frazil_water_protect_tests frazil_water_experiment_render)
+if(FRAZIL_BUILD_WATER_PREVIEW)
+    add_custom_target(frazil_water_preview_test_group DEPENDS frazil_water_preview_tests)
+endif()
 
 if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
     get_filename_component(water_msvc_bin "${CMAKE_CXX_COMPILER}" DIRECTORY)

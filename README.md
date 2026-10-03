@@ -59,7 +59,7 @@ python tools/check_vscode_tasks.py
 ```powershell
 cmake --preset windows-debug
 python tools/build_safe.py --preset windows-debug
-ctest --preset windows-debug
+ctest --preset windows-debug-fast
 ```
 
 The CTest preset also runs the RENDER-001 offline smoke through `frazil_render`;
@@ -72,6 +72,8 @@ complete current engine configuration plus input/output metadata and hashes.
 机器在 MSVC developer environment 已初始化后使用 `ci-windows-debug`，所有共享 preset 都使用 portable tool discovery。
 Windows 工具链初始化、pluginval 和本地配置见 [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)。
 所有构建输出、Python 环境和工具缓存必须保持 repository-local 或由 ignored local configuration 指定，并且不得提交。
+
+Fast/core/module/full execution and opt-in configuration requirements: [test-path matrix](docs/testing/TEST_PATH_MATRIX.md). Legacy build/test presets retain full configured coverage; CI routing is unchanged at P0.
 
 ## 仓库
 

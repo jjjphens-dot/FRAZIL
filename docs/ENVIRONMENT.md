@@ -73,8 +73,8 @@ tracked 的 CMakePresets.json、.vscode/tasks.json 和 CI workflow 不包含开�
     python tools/verify_testdata.py
     cmake --list-presets
     cmake --preset windows-debug
-    python tools/build_safe.py --preset windows-debug
-    ctest --preset windows-debug
+    python tools/build_safe.py --preset windows-debug-fast
+    ctest --preset windows-debug-fast
 
 其他配置：
 
@@ -119,6 +119,8 @@ ASAN configure 会从 C++ 编译器位置发现 MSVC runtime directory；测试 
 object 为零依赖，不得信任 header-only 修改后的增量结果。在同一 developer shell 执行 `chcp 65001`，
 再 `cmake --fresh --preset <preset>`（保留所需 configure options），通过安全 wrapper 重新构建并确认
 依赖列表实际包含修改的头文件；必要时使用新的本地 build tree。此为本机编码诊断，不修改共享并发限制。
+
+Fast/core/module/full execution and opt-in configuration requirements: [test-path matrix](testing/TEST_PATH_MATRIX.md). Legacy build/test presets retain full configured coverage; CI routing is unchanged at P0.
 
 ## VS Code
 

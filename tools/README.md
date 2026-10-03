@@ -1,5 +1,9 @@
 # tools/
 
+## Selective safe builds
+
+`build_safe.py` accepts the explicit core/fast/full build presets and Debug module profiles listed in the [test-path matrix](../docs/testing/TEST_PATH_MATRIX.md). All paths retain memory preflight, six default jobs and the eight-job ceiling.
+
 项目相关外部工具的配置位置。
 
 ## 固定依赖恢复

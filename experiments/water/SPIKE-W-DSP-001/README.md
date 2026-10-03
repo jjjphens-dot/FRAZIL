@@ -1,5 +1,9 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+## Test execution paths
+
+Research no longer builds through `frazil_smoke`. Use explicit fast/module/full build targets and CTest presets in the [coverage matrix](../../../docs/testing/TEST_PATH_MATRIX.md). Mixed CLI, native, listening, evidence and large matrices remain Full; this routing does not alter research acceptance.
+
 ## R3.1 validation closeout
 
 Follow-up: canonical publication requires the complete fixed closeout matrix and live Git/binary binding (see the execution report for arguments). `render/a1_observation_performance.py --baseline <old-benchmark> --current <benchmark> --output build/<new-run>` records all three timing rounds. `tests/native_parent_environment_ab.py --native <asan-probe> --runtime-dir <ctest-runtime-dir> --output build/<new-run>` isolates only the parent PATH entry. Neither tool selects a DSP candidate or changes default CTest environment. The benchmark's `--workload` output is explicitly not timing evidence.

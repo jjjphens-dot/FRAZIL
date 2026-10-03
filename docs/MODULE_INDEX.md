@@ -1,5 +1,9 @@
 # FRAZIL Module Index
 
+## Test infrastructure routing
+
+Test modules retain their existing sources and responsibilities. CMake aggregate targets now select core/fast/module/full dependencies; `frazil_smoke` is independent. See [test-path coverage](testing/TEST_PATH_MATRIX.md); no production module interface changes.
+
 ## R3.1 validation closeout
 
 Phase 0 follow-up adds `render/a1_observation_performance.py` for fixed three-round resource evidence and `tests/native_parent_environment_ab.py` for the observed parent runtime-environment hypothesis. These are offline engineering tools, not DSP selectors. The canonical publisher now owns fixed closeout completeness and live binary/Git binding; renderer CLI cases reuse `native_case_evidence.py`.
