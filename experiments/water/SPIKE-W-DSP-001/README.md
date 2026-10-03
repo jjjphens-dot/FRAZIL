@@ -8,6 +8,11 @@ lists the renderer/B1/D1 smoke, contract, full/native/listening entries, A1/B1/B
 and `--full` runners, and separate B2 performance executable. No-argument matrix runners
 retain full coverage; old CLI commands delegate to all extracted paths.
 
+`frazil_water_flow_d1_source_probe <new-directory> --events-only` exports all 12 A1/B1
+event cases and authority without unrelated transfer/trajectory/sample CSV work. Convergence
+uses this mode with its original 120-second deadline. The default full exporter is retained;
+remediation compares both modes' event/authority bytes and rejects unknown options.
+
 Preview accepts `--group core|session|diagnostics|audition|parameters|workflow` (one value),
 each registered independently. Its timing observation uses the separate `performance`
 group and is excluded from Fast. No-argument Preview still runs all tests; `--device-smoke`

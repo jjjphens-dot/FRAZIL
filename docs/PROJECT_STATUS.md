@@ -2,14 +2,25 @@
 
 ## Test path infrastructure
 
-The systematic test-path implementation has been pushed to remote `codex/refactor/test-paths` (`545dd33`). Review follow-up implements docs-only CI gating, Python ownership and five missing Full performance observations; its final local/Hosted validation is pending. The previously reviewed implementation is based
-on Water `ff75735` and prior P0 commits. CLI/matrix splits, B2 performance isolation,
-Preview groups and CI routing are implemented. Core 8/8, Fast 42/42 and every module-fast
-path pass. Debug Full first run is 61/62: the unchanged testdata regeneration script exited
-`0xc0000409` in `python312.dll`; one fault-handler diagnostic run passed without establishing
-cause. Release Full is60/62 (testdata exception and renderer Python segfault); ASAN Full
-is61/62 (testdata Python access violation). All builds pass. The systematic refactor is
-INCOMPLETE/BLOCKED at final validation; these failures are not repaired or replaced by retries. Hosted execution, independent approval, merge and release are not yet claimed. [Execution, per-path timings and failures](testing/TEST_PATH_EXECUTION.md).
+The review remediation is published at `07bf7b4` on `codex/refactor/test-paths` in
+[draft PR #44](https://github.com/jjjphens-dot/FRAZIL/pull/44), based on Water `ff75735`.
+Docs-only CI gating, precise Python ownership, five additional Full performance observations
+and native helper closure checks are implemented. Daily Fast remains 42 tests; complete
+Water+Preview Full contains 67. Local Core8/8, Fast42/42 and all module-fast paths pass.
+All three safe builds pass. First local Full results remain Debug66/67, Release65/67,
+ASAN66/67 with Python process failures; none is replaced by a diagnostic pass.
+
+The [exact-code Hosted run](https://github.com/jjjphens-dot/FRAZIL/actions/runs/37143829885)
+on `07bf7b4` passes Core/module-fast and Debug/Release Full67/67 with clean Python3.12.10;
+ASAN Full is66/67: D1 convergence's full source export exceeds its 120-second timeout.
+Controlled direct/CTest Python diagnostics pass8/8 in each of the three Hosted
+profile but fail4/8 under both local installed3.12.4 and isolated3.12.10. Fresh-cache local
+diagnostics still fail, so the old interpreter version alone does not explain the issue.
+The systematic refactor is INCOMPLETE: the source probe now offers event-only export for
+convergence, retaining every A1/B1 sample and all 12 cases; parity against the full export
+passes locally, with convergence3.31s under ASAN. Its final validation is pending. The local
+Python cause remains unproven. Independent approval, merge and release are pending.
+[Execution, timings and retained failures](testing/TEST_PATH_EXECUTION.md).
 The historical Water convergence timeout, Python/native faults and realtime margin remain OPEN.
 
 ## R3.1 validation closeout

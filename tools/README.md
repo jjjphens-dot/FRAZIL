@@ -9,10 +9,13 @@ preflight, six default jobs and eight-job ceiling. `check_test_paths.py --preset
 `test_check_test_paths.py` and `test_build_safe.py` exercise these guards.
 
 `test_impact.py --base <git-ref> --head <git-ref>` computes CI modules from local quoted
-C++ include closure and explicitly linked implementation files. Unknown infrastructure,
-new/deleted files, Python scripts and shared configs conservatively select all modules.
-Private test-source changes select their owner; production-only sources select Core unless
-actually consumed by Water. `test_test_impact.py` checks transitive and linked dependencies.
+C++ includes, explicitly linked implementation files and Python entrypoints/local imports.
+Known Python changes select their actual consumers; shared helpers select every dependent
+module. Unknown infrastructure and new/deleted executable files conservatively select all
+modules. Private test-source changes select their owner; production-only sources select Core
+unless actually consumed by Water. Wording-only documentation changes retain the lightweight
+Core policy check without Windows build/CTest; executable commands in documentation are
+checked conservatively. `test_test_impact.py` covers these routing decisions.
 Fast Python audio tests and Full install canonical `requirements-dsp.txt`; Core requires
 only the standard library. No dependency versions are copied into the workflow.
 

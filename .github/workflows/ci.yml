@@ -226,6 +226,8 @@ jobs:
             build/${{ matrix.preset }}/full-first-run.log
             build/${{ matrix.preset }}/Testing/Temporary/*.log
             build/python-ab-${{ matrix.preset }}/
+            build/convergence-events-*/*.log
+            build/convergence-events-*/*.json*
             build/safe-build/*.log
 
   flow-d1-latency:

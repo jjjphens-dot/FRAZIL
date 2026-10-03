@@ -1,8 +1,13 @@
 # Test path systematic refactor execution
 
-Date: 2026-10-04. Status: **INCOMPLETE — review follow-up validation in progress**.
+Date: 2026-10-04. Status: **INCOMPLETE — Hosted ASAN timeout fix under validation**.
 
-Implementation `545dd33` is published on remote `codex/refactor/test-paths`. The sections below retain the reviewed implementation and its first failures; current RF-001 through RF-008 work is recorded in [Review follow-up](#review-follow-up). Historical first-run results are not replaced by diagnostics.
+Remediation `07bf7b4514a0fdefca594c7f6bfc9b558bb05b86` is published on remote
+`codex/refactor/test-paths` in [draft PR #44](https://github.com/jjjphens-dot/FRAZIL/pull/44).
+Current RF-001 through RF-008 results are recorded in [Review follow-up](#review-follow-up).
+Everything from **Execution baseline** through **Historical blockers and next checkpoint**
+below describes reviewed implementation `545dd33`, not the current remediation. Its original
+failures and then-pending Hosted status are retained as dated evidence, not replaced by diagnostics.
 
 ## Execution baseline
 
@@ -13,7 +18,7 @@ Implementation `545dd33` is published on remote `codex/refactor/test-paths`. The
 - Latest remote command: `c14bf5e2e2f08a5c65fc22b52906d88791d511a9`, imported into
   `docs/research/test-path-systematic-refactor/FRAZIL_Test_Path_Systematic_Refactor_Implementation_Agent_Command.md`
   (Markdown trailing spaces normalized). Original plan and P0 review remain historical references.
-- Final implementation commit: the commit containing this report (resolve with `git log -1`).
+- Historical implementation commit: `545dd33`.
 - Tests exercised the working-tree implementation before this checkpoint commit; no clean/frozen publication artifact is claimed.
 - The latest command explicitly supersedes P0-only scope; the old planning branch is based on
   older main and was not used as an implementation base. Existing P0 work was preserved.
@@ -286,7 +291,7 @@ perceptual contract and candidate acceptance unchanged. `git diff -- src/` and r
 DSP/contracts paths are empty. Pluginval, real DAW, human listening and performance acceptance
 are NOT RUN/N/A for test routing. Hosted CI and independent PR review are NOT RUN.
 
-## Blockers and next checkpoint
+## Historical blockers and next checkpoint
 
 The implementation is reviewable locally. TP-005 and TP-009 remain BLOCKED at the final
 validation gate by the recorded Python process failures. No common root cause, environment fix
@@ -303,31 +308,181 @@ The implementation was subsequently pushed to `codex/refactor/test-paths` at `54
 
 Baseline: Water `ff75735`; reviewed implementation `545dd33`; remote review command
 [`258e21a`](https://github.com/jjjphens-dot/FRAZIL/blob/258e21a/docs/research/test-path-systematic-refactor/FRAZIL_Test_Path_Refactor_Review_Followup_Agent_Command.md).
-Branch: `codex/refactor/test-paths`. Remediation HEAD and Hosted run IDs will be recorded
-after publication and execution. No merge/release or independent approval is claimed.
+Branch: `codex/refactor/test-paths`; remediation HEAD:
+`07bf7b4514a0fdefca594c7f6bfc9b558bb05b86`. Published in
+[draft PR #44](https://github.com/jjjphens-dot/FRAZIL/pull/44), based on the unmerged R3.1
+closeout branch/PR #43 so its diff contains only test-path work. No merge/release or
+independent approval is claimed. The first validation below belongs to that frozen code
+commit. Its Hosted ASAN failure prompted the additional source-probe fix recorded below;
+results from `07bf7b4` are not claimed as validation of that later implementation.
 
 | Finding | Root cause and actual fix | Validation/status |
 |---|---|---|
-| RF-001 docs-only CI | Core was unconditional; router now emits core_required, command-aware doc diff, stable ci-core policy check on Ubuntu, conditional Windows steps | 13 impact regressions pass; Hosted pending |
-| RF-002 Full performance | Five canonical programs were build-only; CMake registers product/Legacy/A1/B1/D1 via finite/schema/complete-case adapter | 3 adapter regressions pass; native Full execution pending |
-| RF-003 Python faults | Cause unproven; fixed direct/CTest matrix reproduces configured interpreter/cwd/environment with and without user-site isolation | BLOCKED pending exact-head local and Hosted evidence; no second local Python 3.12.x found by launcher |
-| RF-004 Python owners | Missing Python graph; explicit entrypoints plus AST local-import closure route all real consumers; additions/deletions remain conservative | 13 impact regressions pass |
-| RF-005 remote status | Previous text described pre-push snapshot; status/evidence now state remote publication at 545dd33 | FIXED; no fabricated merge or Hosted pass |
-| RF-006 label invariant | Added performance must retain module/tier/kind | Configured inventory 67; label/intersection checker passes |
-| RF-007 performance isolation | Prevent added observations from leaking into Fast | Fast 42/42 passes; graph rejects slow helpers |
-| RF-008 execution/build closure | Old graph proof did not guarantee performance execution | Checker requires canonical Full entries and each native helper in selected Ninja graph; Full results pending |
+| RF-001 docs-only CI | Core was unconditional; tools/test_impact.py emits core_required and inspects executable doc diffs; ci.yml retains stable ci-core policy on Ubuntu and gates Windows steps | FIXED: 13 routing regressions cover docs/templates, executable commands and conservative fallback; Hosted Core/Water Fast pass |
+| RF-002 Full performance | Five canonical programs were build-only; root/Water CMake register product/Legacy/A1/B1/D1 through performance_observation.py | FIXED: 3 adapter regressions pass; all seven performance CTests execute and pass in all three local and Hosted Full runs |
+| RF-003 Python faults | python_test_ab.py reproduces registered commands, cwd, TEMP/TMP and PATH; all 24 Hosted diagnostic cases pass, isolating the inconsistent Python failures to the local environment without proving a specific cause | BLOCKED: Hosted ASAN exposes a separate D1 provenance timeout; bounded exporter correction below awaits final validation |
+| RF-004 Python owners | Missing Python graph; test_impact.py uses explicit entrypoints plus AST local-import closure; new/deleted executable files remain conservative | FIXED: private B1/D1/render and shared cli_support consumers verified by 13 routing regressions; Preview ownership checked using its actual C++ helper |
+| RF-005 remote status | Previous text described pre-push snapshot; PROJECT_STATUS and this ledger distinguish published implementation, historical results and current evidence | FIXED: remote 07bf7b4, PR #44 and actual run IDs recorded; no fabricated merge/approval |
+| RF-006 label invariant | Added performance entries must retain module, exactly one tier, kind and derived fast aliases | FIXED: configured inventory 67; 15 selection regressions and actual label/intersection checks pass |
+| RF-007 performance isolation | Added observations could leak into daily targets | FIXED: Fast 42/42 passes; check_test_paths.py rejects performance and slow research helpers in Fast; singleton Smoke retained |
+| RF-008 execution/build closure | Old graph proof did not guarantee observation registration/execution | FIXED: check_test_paths.py requires canonical Full entries and each native helper in selected Ninja graph; actual Full observation execution recorded below |
 
-Functional Validation: safe Debug Full build PASS. Core8/8 2.187s; Fast42/42 35.703s;
+Functional Validation: safe Debug/Release/ASAN Full builds PASS, executed serially with six jobs.
+Core8/8 2.187s; Fast42/42 35.703s;
 Common16/16 11.094s; A1 1/1 1.297s; B1 6/6 6.219s; B2 1/1 1.906s; D1 4/4 1.954s;
 Protect3/3 1.312s; Preview6/6 8.766s. Counts unchanged in daily paths.
+Fast remains within the requested roughly 30–40 second local envelope; all module paths
+remain below 12 seconds. These are observed test times, not portable timing budgets.
+
+### Exact-code Full and Hosted evidence
+
+All rows below use remediation `07bf7b4`, with Water and Preview enabled. First local Full
+results are never replaced by a diagnostic pass. Hosted runners use clean Python 3.12.10;
+the installed local interpreter is Python 3.12.4.
+
+| Environment | Full preset | First result | CTest seconds |
+|---|---|---:|---:|
+| Local | Debug | 66/67; testdata Python access violation | 443.66 |
+| Local | Release | 65/67; testdata TypeError and D1 latency-native Python parent crash | 86.39 |
+| Local | ASAN | 66/67; testdata TypeError | 1039.08 |
+| Hosted | Debug | 67/67 PASS | 788 |
+| Hosted | Release | 67/67 PASS | 173 |
+| Hosted | ASAN | 66/67; D1 source-probe timeout at 120s | 2012.12 |
+
+- [PR fast run 37143829472](https://github.com/jjjphens-dot/FRAZIL/actions/runs/37143829472):
+  PASS; normal PR merge checkout, not substituted for exact-code validation.
+- [Exact-code dispatch 37143829885](https://github.com/jjjphens-dot/FRAZIL/actions/runs/37143829885):
+  `workflow_dispatch full_validation=true`, exact HEAD `07bf7b4514a0fdefca594c7f6bfc9b558bb05b86`.
+  Core8/8, all seven module-fast selections (42 unique daily tests in total), and additional
+  deep testdata1/1 PASS. Debug/Release Full PASS; ASAN Full66/67 FAIL at D1 convergence.
+- The Full matrix runs serially and uses the safe build wrapper. JUnit, native observation
+  stdout, original `full-first-run.log` and A/B logs are uploaded as artifacts. The original
+  Full log is copied before diagnostic CTest invocations can replace `LastTest.log`.
+
+All seven performance entries pass in each local and Hosted Full: product,
+Legacy, A1, B1, D1, B2 and Preview. The five newly registered workloads preserve their native
+programs; research matrices contain 26/30/120/36 rows for Legacy/A1/B1/D1. The adapter rejects
+missing/duplicate/malformed/nonfinite observations and nonzero process exits, without a new
+wall-clock threshold. Full therefore executes these programs, rather than merely building them.
+
+### Controlled Python diagnostics and remaining local issue
+
+Each fixed A/B matrix runs exactly eight cases: testdata regeneration and full renderer,
+direct and registered CTest invocation, configured and `PYTHONNOUSERSITE=1` variants.
+The direct invocation uses CTest's interpreter, working directory, TEMP/TMP and environment
+modifications. `PYTHONFAULTHANDLER=1` captures failures. This is diagnostic evidence, not
+retry-to-green or a replacement Full result.
+
+| Fixed matrix | Passed | Failed |
+|---|---:|---:|
+| Local installed Python 3.12.4, Debug | 4 | 4 |
+| Local isolated Python 3.12.10, Debug | 4 | 4 |
+| Hosted Python 3.12.10, Debug | 8 | 0 |
+| Hosted Python 3.12.10, Release | 8 | 0 |
+| Hosted Python 3.12.10, ASAN | 8 | 0 |
+
+No second installed Python 3.12.x was available. An official
+[Python 3.12.10 embeddable runtime](https://www.python.org/downloads/release/python-31210/)
+was extracted under ignored `build/test-path/review-followup/`; its `_pth` enables only its
+standard library and trusted repository helper paths. It disables site imports and ignores
+environment variables, so the two user-site labels are not independent isolation states for
+this arm. Debug was temporarily configured to that interpreter, then restored to the original
+installed interpreter; the restored Core8/8 and selection/build-closure checks pass. No system
+installation, registry or global PATH setting changed.
+
+The installed arm failed all four testdata cases; all four renderer cases passed. The isolated
+arm failed three testdata cases and one renderer case across direct/CTest invocation. Failures
+include access violations and inconsistent Python TypeErrors (`cell` object not callable,
+`bool` has no len), not a stable CTest-only signature. A fixed additional Release D1 direct/CTest
+pair passed (13.125/13.281 seconds); its first Full parent-process crash remains a failure.
+
+To check project bytecode reuse, one further direct testdata invocation per interpreter used
+`-X pycache_prefix=<new-build-cache-directory> -X faulthandler -u`, the same Debug working
+directory and TEMP/TMP. Both failed with exit `0xc0000005` (installed 39.109s, isolated 4.063s).
+Existing project bytecode caches and the old Python version alone are therefore insufficient
+explanations. No specific operating-system, installation or hardware cause is established.
+
+First local Full failure details: Debug faults in `_fade`/`_render_log_sweep`; Release testdata
+reports `int` object not callable at `int.from_bytes`, and D1's Python parent crashes after
+native child results; ASAN testdata reports addition of two `enumerate` objects at the loop.
+The testdata test/generator/verifier sources are unchanged from `ff75735`. No exception was
+caught to force a pass and no assertion or workload was removed. Local runtime investigation
+remains OPEN. The corresponding tests and all fixed diagnostics pass on the clean Hosted
+machine in all three profiles; this isolates the observed Python faults to the local runtime
+environment. The Hosted ASAN failure is a separate native workload timeout, not a Python crash.
+
+Local raw evidence remains ignored under `build/test-path/review-followup/`: scoped logs/JUnit,
+all ten `-N` selections, build closure, first Full logs/JUnit, `python-ab-debug/`,
+`python-ab-clean-debug/`, Release D1 diagnostics, fresh-cache diagnostics and downloaded Hosted
+artifacts. Raw machine paths stay there; tracked evidence uses portable descriptions.
+
+### Hosted timeout follow-up: event provenance without unrelated exports
+
+First Hosted ASAN Full at `07bf7b4` failed only `frazil_water_flow_d1_convergence`.
+`test_native_event_provenance` reads 12 event CSVs, but invoked the default source probe,
+which also evaluates independent D1 transfer/historical/trajectory paths and formats the full
+audio/audit CSVs. This complete export exceeded its unchanged 120-second child deadline.
+It is a repository test-workload problem; the overall run remains FAIL even though the
+other 66 tests and all eight ASAN Python diagnostics pass.
+
+`flow_d1_source_probe.cpp` now accepts optional `--events-only`. Both modes run every original
+A1/B1 sample, RNG/admission update, all three rates and four profiles, and the overlap/nonzero
+checks. The default full exporter remains intact. Only independent transfer/trajectory work
+and unused sample CSVs are skipped in event mode. Convergence selects this mode with its
+existing 120-second timeout and every original event assertion unchanged.
+
+`flow_d1_remediation_test.py` still exercises the complete exporter and adds byte-for-byte
+comparison of all 12 event files plus `authority.json` against event mode, strict output-file
+inventory and unknown-option rejection. No content hashes are calculated. Full coverage and
+CTest count67 remain unchanged. CI now uploads convergence child logs/command/progress JSON
+alongside the first Full log, so a future timeout retains partial native progress too.
+
+Initial focused local remediation/convergence pass: Debug20.46s/2.23s, Release4.10s/1.44s,
+ASAN90.55s/3.31s. Complete output parity passes; the fixed 120-second boundary is unchanged.
+Code Quality Review checks argument rejection before output-directory creation, identical
+A1/B1 update order/RNG state, full-mode stream error handling and default-export compatibility.
+Comment & Documentation Pass updates the test/Water READMEs, matrix, status and this ledger;
+module boundaries and production contracts remain unchanged. Final exact-code Full validation
+of this additional implementation is pending. No DSP source or algorithm changed.
+
+### Final review and documentation impact
 
 Contract Review: bounded infrastructure only; build/CI documentation Full Gate applies.
 Code Quality Review: no production/native benchmark edits, no timing budgets, no retries,
 no hidden smoke dependency; Python imports and native helper arguments inspected.
 Comment & Documentation Pass: synchronized TESTING, GITHUB_WORKFLOW, ENVIRONMENT,
-CODING_PLAN, PROJECT_STATUS, matrix/execution, tools/tests README. Reviewed unchanged:
+CODING_PLAN, PROJECT_STATUS, matrix/execution, tools/tests README and Water SPIKE README. Reviewed unchanged:
 CODE_STANDARDS/DOCUMENT_GOVERNANCE (rules unchanged), root README (presets unchanged),
 MODULE_INDEX (existing test/tool module responsibilities unchanged). Architecture, parameter,
 state, routing, realtime, latency and perceptual contracts are unaffected.
-Final Validation remains pending; first-run logs use ignored `build/test-path/review-followup/`.
+Final Validation: all three safe builds, scoped executions, all ten `-N` selections, actual
+labels/intersections/native helper closure, 15 selection regressions, 13 impact regressions,
+3 observation regressions, build-safety regression, portability/link/VS Code task checks and
+their scanner regressions PASS. Workflow YAML parses; Full matrix remains serial. First Hosted
+ASAN failed at the separately documented timeout; final validation of its exporter correction
+is pending. Relevant execution commands are the three preset
+configure/safe-build/Full sequences listed above, each scoped Debug preset, and:
+
+```powershell
+python tools/check_test_paths.py --preset windows-debug --build-closure
+python tools/test_check_test_paths.py
+python tools/test_test_impact.py
+python tools/test_performance_observation.py
+python tools/test_build_safe.py
+python tools/check_portability.py
+python tools/test_check_portability.py
+python tools/check_markdown_links.py
+python tools/test_check_markdown_links.py
+python tools/check_vscode_tasks.py
+python tools/test_check_vscode_tasks.py
+python tools/python_test_ab.py --preset windows-debug-full --output build/test-path/review-followup/python-ab-debug
+gh workflow run ci.yml --ref codex/refactor/test-paths -f full_validation=true
+```
+
+The A/B output directory must be new; use another ignored directory for an explicitly scoped
+new comparison. Cross-document consistency was checked for inventory67, daily42, actual Python
+ownership, docs-only conditional Windows execution, first failures and exact-code attribution.
 Removed coverage: none. Production DSP/audio/defaults/Host/state/routing/latency unchanged.
+Architecture/parameter/state/realtime/performance-acceptance impacts: N/A. Pluginval, real DAW,
+human listening and production performance acceptance: NOT RUN/N/A for this infrastructure
+change. Independent PR approval and merge remain pending; self-review is not formal approval.

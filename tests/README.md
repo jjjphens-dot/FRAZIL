@@ -1,5 +1,10 @@
 # tests/
 
+D1 native provenance uses `frazil_water_flow_d1_source_probe <new-directory> --events-only`
+to retain the complete A1/B1 event workload without unrelated D1/sample CSV exports. The
+default invocation still exports the full study. Remediation compares all 12 event files
+and authority bytes between modes; convergence retains its 120-second timeout and assertions.
+
 ## Test execution paths
 
 Use `windows-debug-core`, `windows-debug-fast`, or a module-fast suffix from the

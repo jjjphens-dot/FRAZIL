@@ -54,6 +54,13 @@ is repeated in independent entries. D1's imported helper also now requires exit2
 crash cannot satisfy a rejection. C++ `--full` preserves every original matrix axis and check.
 No thresholds were relaxed. Fast does not contain research/native/performance/listening/evidence.
 
+D1 convergence uses the source probe's `--events-only` mode with the original 120-second
+deadline. It retains all three rates, four profiles and every A1/B1 sample/admission, omitting
+only independent D1 transfer/trajectory calculation and unused sample CSVs. The remediation
+test retains full export and compares all 12 event CSVs plus authority byte-for-byte against
+event mode, checks its exact file inventory and rejects unknown options. Full coverage and
+the 67-entry registration count are unchanged; first Hosted timeout evidence is in the ledger.
+
 ## Build ownership and CI
 
 Smoke has only `frazil_smoke.exe`. Core owns its six native executables plus Python tests.
@@ -63,7 +70,8 @@ Full retains the entire former smoke research closure, including manual study/be
 Ninja read-only graph checks compare the executable closure with actual selected CTest commands.
 ASAN runtime copy and PATH apply to every new native target/CTest; temporary files stay in build.
 
-CI Core always runs; module routing follows real local include closure and linked sources.
+The lightweight CI Core policy check always runs; Windows Core build/CTest requires executable
+impact. Module routing follows local C++ includes, linked sources and Python imports.
 Renderer changes select common/B1/D1/Protect; shared DSP headers select every actual dependent
 (including Preview/B2 where appropriate); RandomSource.cpp selects all Water modules.
 Private A1 or Preview session tests select their respective owner. Unmapped/new/deleted
@@ -73,8 +81,10 @@ deleted. Dependencies come from requirements-dsp.txt only for applicable Python-
 
 ## Actual CTest inventory
 
-Snapshot generated from configured CTest JSON; seconds are the first systematic Debug Full run,
-including the failed testdata process (timing is not a PASS assertion). See
+The following 62-entry snapshot belongs to reviewed implementation `545dd33`; seconds are its
+first systematic Debug Full run, including the failed testdata process (timing is not a PASS
+assertion). The five canonical performance entries in the review-follow-up table below bring
+the current inventory to 67 without replacing these historical timings. See
 [execution results](TEST_PATH_EXECUTION.md) for status and retained first failures.
 
 | CTest | Module | Tier / kind | Command / helper | Seconds |
