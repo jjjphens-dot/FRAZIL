@@ -32,6 +32,7 @@ jobs:
     outputs:
       modules: ${{ steps.route.outputs.modules }}
       water: ${{ steps.route.outputs.water }}
+      core_required: ${{ steps.route.outputs.core_required }}
       testdata: ${{ steps.route.outputs.testdata }}
       research_dependencies: ${{ steps.route.outputs.research_dependencies }}
     steps:
@@ -53,17 +54,24 @@ jobs:
   ci-core:
     name: Core build and fast regression
     needs: impact
-    runs-on: windows-latest
+    # Keep the required check name present for docs-only changes, on a lightweight runner.
+    runs-on: ${{ needs.impact.outputs.core_required == 'true' && 'windows-latest' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - uses: ilammy/msvc-dev-cmd@v1
+        if: ${{ needs.impact.outputs.core_required == 'true' }}
         with:
           arch: x64
       - uses: actions/cache@v4
+        if: ${{ needs.impact.outputs.core_required == 'true' }}
         with:
           path: external/JUCE
           key: juce-9.0.1-e18f7f506c0b96f2c738a0bcd7fe6467a5005ad8-${{ runner.os }}
       - name: Restore pinned dependencies
+        if: ${{ needs.impact.outputs.core_required == 'true' }}
         shell: pwsh
         run: ./tools/bootstrap_dependencies.ps1
       - name: Repository checks and tooling regressions
@@ -71,11 +79,12 @@ jobs:
         run: |
           foreach ($script in @('check_portability', 'test_check_portability', 'check_markdown_links',
               'test_check_markdown_links', 'check_vscode_tasks', 'test_check_vscode_tasks',
-              'test_build_safe', 'test_check_test_paths', 'test_test_impact')) {
+              'test_build_safe', 'test_check_test_paths', 'test_test_impact', 'test_performance_observation')) {
             python "tools/$script.py"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
       - name: Configure core without research dependencies
+        if: ${{ needs.impact.outputs.core_required == 'true' }}
         shell: pwsh
         run: |
           $ciPython = python -c "import sys; print(sys.executable)"
@@ -83,14 +92,16 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/check_test_paths.py --preset ci-windows-debug
       - name: Safe core build
+        if: ${{ needs.impact.outputs.core_required == 'true' }}
         run: python tools/build_safe.py --preset ci-windows-debug-core
       - name: Core fast including lightweight corpus verification
+        if: ${{ needs.impact.outputs.core_required == 'true' }}
         run: ctest --preset ci-windows-debug-core --output-junit core.xml
       - name: Deep corpus regeneration on corpus or generator changes
-        if: ${{ needs.impact.outputs.testdata == 'true' }}
+        if: ${{ needs.impact.outputs.core_required == 'true' && needs.impact.outputs.testdata == 'true' }}
         run: ctest --preset ci-windows-debug-full -R '^frazil_testdata_regeneration$' --output-junit testdata.xml
       - name: Preserve first-run evidence
-        if: always()
+        if: ${{ always() && needs.impact.outputs.core_required == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: ci-core-${{ github.sha }}
@@ -108,6 +119,9 @@ jobs:
       MODULES: ${{ needs.impact.outputs.modules }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
@@ -166,6 +180,9 @@ jobs:
         preset: [windows-debug, windows-release, windows-asan]
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
@@ -180,14 +197,25 @@ jobs:
         shell: pwsh
         run: |
           $ciPython = python -c "import sys; print(sys.executable)"
+          python --version
+          "Exact HEAD: $(git rev-parse HEAD)"
           & $ciPython -m pip install -r requirements-dsp.txt
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cmake --preset ${{ matrix.preset }} -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=ON "-DPython3_EXECUTABLE:FILEPATH=$ciPython"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Safe full build
+        id: full_build
         run: python tools/build_safe.py --preset ${{ matrix.preset }}-full
       - name: Complete validation including research, listening mechanics and performance
-        run: ctest --preset ${{ matrix.preset }}-full --output-junit full.xml
+        shell: pwsh
+        run: |
+          ctest --preset ${{ matrix.preset }}-full --output-junit full.xml
+          $fullExit = $LASTEXITCODE
+          Copy-Item build/${{ matrix.preset }}/Testing/Temporary/LastTest.log build/${{ matrix.preset }}/full-first-run.log
+          exit $fullExit
+      - name: Controlled Python direct versus CTest diagnostic
+        if: ${{ always() && steps.full_build.outcome == 'success' }}
+        run: python tools/python_test_ab.py --preset ${{ matrix.preset }}-full --output build/python-ab-${{ matrix.preset }}
       - name: Preserve first-run evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -195,7 +223,9 @@ jobs:
           name: full-${{ matrix.preset }}-${{ github.sha }}
           path: |
             build/${{ matrix.preset }}/*.xml
+            build/${{ matrix.preset }}/full-first-run.log
             build/${{ matrix.preset }}/Testing/Temporary/*.log
+            build/python-ab-${{ matrix.preset }}/
             build/safe-build/*.log
 
   flow-d1-latency:

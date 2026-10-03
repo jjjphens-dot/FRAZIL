@@ -95,3 +95,10 @@ WAV stream.
 - AudioPluginHost 的构建说明或路径配置
 
 大型第三方二进制文件默认不提交到仓库。当前已将 Ninja 1.13.2 和 pluginval 1.0.4 放置在 `tools/bin`，下载归档位于 `tools/downloads`；两者均已加入 `.gitignore`，来源和版本需在环境审计中记录。
+
+## Test-path review follow-up tools
+
+- `test_impact.py` emits `core_required` and uses local Python imports as well as C++ includes. Docs-only wording uses policy checks; command/preset edits and executable changes request engineering checks. Added/deleted executable paths remain conservative.
+- `performance_observation.py <kind> <executable>` executes the existing product/Legacy/A1/B1/D1 benchmark once and validates schema, complete identities and finite observations, without timing thresholds. `test_performance_observation.py` checks rejection behavior.
+- `check_test_paths.py --build-closure` verifies selected native helpers against read-only Ninja graphs and requires Full performance entries.
+- `python_test_ab.py --preset windows-debug-full --output build/python-ab-debug` performs a fixed direct/CTest matrix for testdata regeneration and renderer Full using the configured interpreter, working directory and environment modifications, with/without user-site isolation. The output directory must be new; logs never replace earlier failures.

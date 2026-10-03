@@ -67,3 +67,11 @@ Smoke selects only `frazil_smoke`. The execution report retains failures as well
 
 后续按 `docs/TESTING.md` 增加 DSP property、完整 render regression 和真实 Host/DAW acceptance；
 测试 target 不依赖运行中的插件 editor。
+
+## Full performance observations
+
+Full executes product, Legacy Water, A1, B1 and D1 canonical performance programs via
+`tools/performance_observation.py`, alongside the existing B2 and Preview entries. These
+slow entries validate complete finite observations, not an unapproved timing budget.
+Daily Fast selections exclude every performance observation. See the
+[coverage matrix](../docs/testing/TEST_PATH_MATRIX.md#canonical-full-performance-execution).

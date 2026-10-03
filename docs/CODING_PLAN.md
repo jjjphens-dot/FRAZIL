@@ -9,6 +9,9 @@ CI routing on the current Water implementation. Preserve all original assertions
 matrices. This is test infrastructure, not a change to milestone dependencies or product
 contracts. Full includes research, performance observations and listening-pack mechanics;
 Fast never substitutes for research, human listening, Host or production acceptance.
+Review follow-up `258e21a` requires docs-only policy gating, precise Python ownership, actual
+canonical performance execution and exact-head local/Hosted validation. Production scope
+and the original first-failure evidence remain unchanged.
 [Coverage and commands](testing/TEST_PATH_MATRIX.md) follow actual CTest registration;
 [execution and unresolved failures](testing/TEST_PATH_EXECUTION.md) record measured status.
 

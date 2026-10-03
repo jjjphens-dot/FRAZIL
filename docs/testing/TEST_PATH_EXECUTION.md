@@ -1,6 +1,8 @@
 # Test path systematic refactor execution
 
-Date: 2026-10-03. Status: **INCOMPLETE / BLOCKED — first-run Python validation failures unresolved**.
+Date: 2026-10-04. Status: **INCOMPLETE — review follow-up validation in progress**.
+
+Implementation `545dd33` is published on remote `codex/refactor/test-paths`. The sections below retain the reviewed implementation and its first failures; current RF-001 through RF-008 work is recorded in [Review follow-up](#review-follow-up). Historical first-run results are not replaced by diagnostics.
 
 ## Execution baseline
 
@@ -132,7 +134,7 @@ not listening preferences. Old CTest Preview responsibility is partitioned acros
 
 ## CI routing
 
-Core always runs portability/tooling and Core AND Fast. Quoted local include closure and
+At reviewed HEAD `545dd33`, Core always ran portability/tooling and Core AND Fast (RF-001 below corrects this). Quoted local include closure and
 explicit linked sources identify Water consumers; private A1/Preview tests stay scoped.
 Shared renderer selects common/B1/D1/Protect; RandomSource.cpp selects all modules;
 LinearSmoother.cpp also selects Preview. New/deleted/unmapped scripts/config/build files
@@ -293,6 +295,39 @@ pass. Changing DSP, dropping assertions or replacing the first run with a retry 
 valid correction. Next action: isolate the unchanged generator/runtime failure and compare the
 original and extracted CLI under a controlled interpreter/parent environment before accepting
 Full. This handoff stops at that unresolved boundary; no heavy pipeline remains active.
-No push, merge or release was performed. Independent review and Hosted execution remain NOT RUN.
+The implementation was subsequently pushed to `codex/refactor/test-paths` at `545dd33`. Remote review command `258e21a` requested the follow-up below. No merge or release is claimed; Hosted results will be recorded only after execution.
 
 **TEST PATH SYSTEMATIC REFACTOR: INCOMPLETE**
+
+## Review follow-up
+
+Baseline: Water `ff75735`; reviewed implementation `545dd33`; remote review command
+[`258e21a`](https://github.com/jjjphens-dot/FRAZIL/blob/258e21a/docs/research/test-path-systematic-refactor/FRAZIL_Test_Path_Refactor_Review_Followup_Agent_Command.md).
+Branch: `codex/refactor/test-paths`. Remediation HEAD and Hosted run IDs will be recorded
+after publication and execution. No merge/release or independent approval is claimed.
+
+| Finding | Root cause and actual fix | Validation/status |
+|---|---|---|
+| RF-001 docs-only CI | Core was unconditional; router now emits core_required, command-aware doc diff, stable ci-core policy check on Ubuntu, conditional Windows steps | 13 impact regressions pass; Hosted pending |
+| RF-002 Full performance | Five canonical programs were build-only; CMake registers product/Legacy/A1/B1/D1 via finite/schema/complete-case adapter | 3 adapter regressions pass; native Full execution pending |
+| RF-003 Python faults | Cause unproven; fixed direct/CTest matrix reproduces configured interpreter/cwd/environment with and without user-site isolation | BLOCKED pending exact-head local and Hosted evidence; no second local Python 3.12.x found by launcher |
+| RF-004 Python owners | Missing Python graph; explicit entrypoints plus AST local-import closure route all real consumers; additions/deletions remain conservative | 13 impact regressions pass |
+| RF-005 remote status | Previous text described pre-push snapshot; status/evidence now state remote publication at 545dd33 | FIXED; no fabricated merge or Hosted pass |
+| RF-006 label invariant | Added performance must retain module/tier/kind | Configured inventory 67; label/intersection checker passes |
+| RF-007 performance isolation | Prevent added observations from leaking into Fast | Fast 42/42 passes; graph rejects slow helpers |
+| RF-008 execution/build closure | Old graph proof did not guarantee performance execution | Checker requires canonical Full entries and each native helper in selected Ninja graph; Full results pending |
+
+Functional Validation: safe Debug Full build PASS. Core8/8 2.187s; Fast42/42 35.703s;
+Common16/16 11.094s; A1 1/1 1.297s; B1 6/6 6.219s; B2 1/1 1.906s; D1 4/4 1.954s;
+Protect3/3 1.312s; Preview6/6 8.766s. Counts unchanged in daily paths.
+
+Contract Review: bounded infrastructure only; build/CI documentation Full Gate applies.
+Code Quality Review: no production/native benchmark edits, no timing budgets, no retries,
+no hidden smoke dependency; Python imports and native helper arguments inspected.
+Comment & Documentation Pass: synchronized TESTING, GITHUB_WORKFLOW, ENVIRONMENT,
+CODING_PLAN, PROJECT_STATUS, matrix/execution, tools/tests README. Reviewed unchanged:
+CODE_STANDARDS/DOCUMENT_GOVERNANCE (rules unchanged), root README (presets unchanged),
+MODULE_INDEX (existing test/tool module responsibilities unchanged). Architecture, parameter,
+state, routing, realtime, latency and perceptual contracts are unaffected.
+Final Validation remains pending; first-run logs use ignored `build/test-path/review-followup/`.
+Removed coverage: none. Production DSP/audio/defaults/Host/state/routing/latency unchanged.

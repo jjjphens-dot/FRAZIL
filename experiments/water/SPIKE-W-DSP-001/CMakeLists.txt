@@ -105,6 +105,18 @@ target_link_libraries(frazil_water_flow_d1_performance PRIVATE frazil_water_rese
 add_executable(frazil_water_flow_d1_source_probe tests/flow_d1_source_probe.cpp)
 target_link_libraries(frazil_water_flow_d1_source_probe PRIVATE frazil_water_research)
 
+# Run canonical workloads unchanged; the adapter checks complete finite measurements,
+# never an unapproved wall-clock threshold. These observations only belong to Full.
+function(water_performance name kind target module)
+    add_test(NAME ${name} COMMAND "${Python3_EXECUTABLE}"
+        "${PROJECT_SOURCE_DIR}/tools/performance_observation.py" ${kind} $<TARGET_FILE:${target}>)
+    set_tests_properties(${name} PROPERTIES LABELS "${module};slow;performance;research")
+endfunction()
+water_performance(frazil_water_legacy_performance legacy frazil_water_performance water-common)
+water_performance(frazil_water_a1_performance a1 frazil_water_bubble_a1_performance water-a1)
+water_performance(frazil_water_b1_performance b1 frazil_water_droplet_b1_performance water-b1)
+water_performance(frazil_water_d1_performance d1 frazil_water_flow_d1_performance water-d1)
+
 # Separate research application. It is never linked into FRAZIL or registered as a Host plugin.
 if(FRAZIL_BUILD_WATER_PREVIEW)
     set(FRAZIL_PREVIEW_VARIANT "${CMAKE_BUILD_TYPE}")

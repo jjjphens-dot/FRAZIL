@@ -11,7 +11,7 @@
 - Python 用于 DSP 实验和跨平台工具；Python 依赖见 requirements-dsp.txt。
 - Core-only validation uses the Python standard library. Water B1/D1 fast CLI tests and
   full research validation require `python -m pip install -r requirements-dsp.txt`.
-  CI installs this canonical file only for jobs selecting those paths. Bind CMake's
+  CI uses a clean Python 3.12.x through setup-python and installs this canonical file only for jobs selecting those paths. Docs-only policy checks use Ubuntu without MSVC/JUCE/configure/build. Bind CMake's
   `Python3_EXECUTABLE` to the same interpreter that installed dependencies.
   CTest temporary directories are kept in the configured build tree; ASAN runtime PATH
   discovery/copy remains in effect for every newly registered Water test.

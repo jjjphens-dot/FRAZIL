@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -23,6 +24,63 @@ KINDS = frozenset({
     "unit", "integration", "property", "cli", "render", "native", "smoke",
     "research", "listening", "evidence", "performance",
 })
+PERFORMANCE = {
+    "core": "frazil_product_performance",
+    "water-common": "frazil_water_legacy_performance",
+    "water-a1": "frazil_water_a1_performance",
+    "water-b1": "frazil_water_b1_performance",
+    "water-b2": "frazil_water_droplet_b2_performance",
+    "water-d1": "frazil_water_d1_performance",
+    "water-preview": "frazil_water_preview_performance",
+}
+
+
+def validate_performance(tests: dict[str, set[str]]) -> list[str]:
+    findings = []
+    modules = set().union(*tests.values()) if tests else set()
+    for module, name in PERFORMANCE.items():
+        if module in modules and not {module, "slow", "performance"}.issubset(tests.get(name, set())):
+            findings.append(f"Full missing canonical performance execution: {name}")
+    return findings
+
+
+def validate_build_closure(inventory: dict, graph: str, build: Path) -> list[str]:
+    """Check executable arguments (including Python's native helpers) against Ninja's graph."""
+    built = {label.replace("\\", "/").lower() for label in re.findall(r'\[label="([^"]+)"', graph)}
+    findings = []
+    labels = inventory_tests(inventory)
+    if labels and all("fast" in value for value in labels.values()):
+        forbidden = ("performance", "source_probe", "latency_native", "research_cases")
+        for executable in sorted(built):
+            if executable.endswith(".exe") and any(word in executable for word in forbidden):
+                findings.append(f"Fast build contains slow helper: {executable}")
+            if set(labels) == {"frazil_smoke"} and executable.endswith(".exe") and "frazil_water" in executable:
+                findings.append(f"Smoke build contains Water helper: {executable}")
+    for test in inventory["tests"]:
+        for argument in test.get("command", []):
+            path = Path(argument)
+            if path.suffix.lower() == ".exe" and path.is_absolute() and path.is_relative_to(build):
+                relative = path.relative_to(build).as_posix().lower()
+                if relative not in built:
+                    findings.append(f"{test['name']}: helper absent from build closure: {relative}")
+    return findings
+
+
+def check_build(preset: str, inventory: dict) -> list[str]:
+    presets = json.loads((ROOT / "CMakePresets.json").read_text(encoding="utf-8"))
+    builds = {p["name"]: p for p in presets["buildPresets"]}
+    resolved = dict(builds[preset])
+    parent = resolved.get("inherits")
+    while parent:
+        inherited = builds[parent]
+        resolved = {**inherited, **resolved}
+        parent = inherited.get("inherits")
+    build = ROOT / "build" / resolved["configurePreset"]
+    cache = (build / "CMakeCache.txt").read_text(encoding="utf-8")
+    ninja = re.search(r"^CMAKE_MAKE_PROGRAM:[^=]+=(.+)$", cache, re.M).group(1).strip()
+    graph = subprocess.check_output([ninja, "-C", str(build), "-t", "graph", *resolved["targets"]],
+                                    text=True, encoding="utf-8")
+    return validate_build_closure(inventory, graph, build)
 
 
 def inventory_tests(inventory: dict) -> dict[str, set[str]]:
@@ -82,17 +140,27 @@ def query(preset: str, *filters: str) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--preset", default="windows-debug", choices=("windows-debug", "ci-windows-debug"))
+    parser.add_argument("--build-closure", action="store_true", help="Also inspect read-only Ninja target graphs")
     args = parser.parse_args()
     try:
-        full = inventory_tests(query(args.preset + "-full"))
+        full_inventory = query(args.preset + "-full")
+        full = inventory_tests(full_inventory)
         findings = validate_inventory(full)
+        findings += validate_performance(full)
+        if args.build_closure:
+            findings += check_build(args.preset + "-full", full_inventory)
         smoke = set(inventory_tests(query(args.preset + "-smoke")))
         if smoke != {"frazil_smoke"}:
             findings.append(f"Smoke build/test path contains unrelated tests: {sorted(smoke)}")
+        if args.build_closure:
+            findings += check_build(args.preset + "-smoke", query(args.preset + "-smoke"))
         for module in (None, "core", *MODULES):
             suffix = "fast" if module is None else "preview" if module == "water-preview" else module
             preset = args.preset + "-" + suffix
-            selected = set(inventory_tests(query(preset)))
+            selection = query(preset)
+            selected = set(inventory_tests(selection))
+            if args.build_closure and selected:
+                findings += check_build(preset, selection)
             findings += validate_selection(full, selected, module)
             filters = ["-L", "^fast$"]
             if module:

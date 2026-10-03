@@ -5,12 +5,12 @@
 Daily regression uses core/module AND fast selections. A1/B1/B2 representative paths,
 renderer/B1/D1 smoke and schema contracts, and six independently selectable Preview groups
 are registered separately from full matrices, native/oracle studies, listening-pack validation
-and B2/Preview performance observations. There is no mixed-purpose B2 Fast exception.
+and canonical product/Legacy/A1/B1/B2/D1/Preview performance observations. There is no mixed-purpose B2 Fast exception.
 `verify_testdata.py` runs in Core/Fast; `test_testdata.py` runs in Full or CI on corpus/generator changes.
 All historical assertion responsibilities are mapped in the [coverage matrix](testing/TEST_PATH_MATRIX.md).
 Full means every registered test for the enabled configure options. Legacy base test presets
 remain unfiltered. `tools/check_test_paths.py` verifies orthogonal labels, exact intersections
-and the singleton Smoke path. CI routing follows the [workflow](GITHUB_WORKFLOW.md#7-ci-分层计划).
+and the singleton Smoke path; `--build-closure` also verifies native helper dependencies and Full performance registration. Performance adapters validate complete finite measurements without introducing wall-clock budgets. CI routing follows the [workflow](GITHUB_WORKFLOW.md#7-ci-分层计划).
 Full results and first failures remain [separate evidence](testing/TEST_PATH_EXECUTION.md),
 not candidate acceptance or a claim that historical runtime faults are fixed.
 

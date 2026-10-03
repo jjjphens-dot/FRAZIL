@@ -2,8 +2,9 @@
 """Regression tests for wrong CTest intersections and missing classifications."""
 
 import unittest
+from pathlib import Path
 
-from check_test_paths import inventory_tests, validate_inventory, validate_selection
+from check_test_paths import inventory_tests, validate_inventory, validate_selection, validate_performance, validate_build_closure
 
 
 class TestPathTests(unittest.TestCase):
@@ -63,6 +64,25 @@ class TestPathTests(unittest.TestCase):
         self.assertTrue(validate_inventory({}))
         with self.assertRaises(ValueError):
             inventory_tests({"tests": [{"name": "same", "properties": []}] * 2})
+
+    def test_missing_or_fast_performance_rejected(self):
+        tests = {"unit": {"core", "fast", "unit"}}
+        self.assertTrue(validate_performance(tests))
+        tests["frazil_product_performance"] = {"core", "slow", "performance"}
+        self.assertEqual(validate_performance(tests), [])
+        tests["frazil_product_performance"] = {"core", "fast", "performance"}
+        self.assertTrue(validate_performance(tests))
+        self.assertTrue(validate_inventory(tests))
+
+    def test_python_native_helper_build_closure(self):
+        build = Path.cwd().resolve() / "build"
+        inventory = {"tests": [{"name": "observation", "properties": [], "command": ["python", "adapter.py", str(build / "native.exe")]}]}
+        self.assertTrue(validate_build_closure(inventory, '', build))
+        self.assertEqual(validate_build_closure(inventory, '"node" [label="native.exe"]', build), [])
+
+    def test_fast_build_rejects_slow_helpers(self):
+        inventory = {"tests": [{"name": "fast", "properties": [{"name": "LABELS", "value": ["fast"]}]}]}
+        self.assertTrue(validate_build_closure(inventory, '"node" [label="frazil_water_performance.exe"]', Path.cwd()))
 
 
 if __name__ == "__main__":

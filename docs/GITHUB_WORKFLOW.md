@@ -244,15 +244,23 @@ CI 不应使用本机盘符、compiler/SDK 安装目录或用户名路径。`win
 
 `impact` compares PR base/head or push before/head using `tools/test_impact.py`. Missing
 dispatch/root-commit bases select all modules and deep corpus validation; invalid Git bases fail rather than skip tests.
-Local quoted C++ includes and linked sources determine actual fast consumers. Unknown
-scripts/config/build files conservatively select all modules. `ci-core` always runs repository
-tool checks, builds Core and runs Core AND Fast without the research Python stack.
+Local quoted C++ includes, linked sources and Python import closures determine consumers.
+Unknown/new/deleted executable/config/build files conservatively select all modules.
+`core_required` keeps docs/template/governance wording changes on an Ubuntu lightweight
+`ci-core` policy check, preserving the existing check name. MSVC, JUCE, configure, build and
+Core CTest run only for executable impact. Documentation diffs changing commands/presets
+are conservatively engineering-impacting. Core uses only the Python standard library.
 `ci-water-fast` builds/runs selected module-fast presets serially and installs canonical
 `requirements-dsp.txt` only when selected B1/D1 Python audio checks need it.
 
 Testdata/generator changes additionally run deep corpus regeneration. `workflow_dispatch`
 with `full_validation=true` runs unfiltered Debug, Release and ASAN Full on a serial matrix,
 including all configured native, convergence, listening-pack and performance observations.
+Five previously build-only canonical benchmarks now execute through finite/schema/case
+validators; B2/Preview retain their native observations. No new timing budget is enforced.
+Hosted jobs use a clean Python 3.12.x selected by setup-python and bind that interpreter to
+CMake. Full preserves its first-run log before a fixed direct/CTest diagnostic matrix with
+and without PYTHONNOUSERSITE; diagnostic logs never replace Full JUnit or first failures.
 The independent D1 study dispatch remains available. These are engineering paths, not
 human listening or production acceptance. Preserve first-run JUnit/CTest/build logs using
 the workflow artifacts; unexplained failures must not be replaced by retry-until-pass.

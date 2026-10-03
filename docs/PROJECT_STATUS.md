@@ -2,15 +2,14 @@
 
 ## Test path infrastructure
 
-The systematic test-path implementation is local on `codex/refactor/test-paths`, based
+The systematic test-path implementation has been pushed to remote `codex/refactor/test-paths` (`545dd33`). Review follow-up implements docs-only CI gating, Python ownership and five missing Full performance observations; its final local/Hosted validation is pending. The previously reviewed implementation is based
 on Water `ff75735` and prior P0 commits. CLI/matrix splits, B2 performance isolation,
 Preview groups and CI routing are implemented. Core 8/8, Fast 42/42 and every module-fast
 path pass. Debug Full first run is 61/62: the unchanged testdata regeneration script exited
 `0xc0000409` in `python312.dll`; one fault-handler diagnostic run passed without establishing
 cause. Release Full is60/62 (testdata exception and renderer Python segfault); ASAN Full
 is61/62 (testdata Python access violation). All builds pass. The systematic refactor is
-INCOMPLETE/BLOCKED at final validation; these failures are not repaired or replaced by retries. Hosted execution, independent approval and publication are not
-claimed. [Execution, per-path timings and failures](testing/TEST_PATH_EXECUTION.md).
+INCOMPLETE/BLOCKED at final validation; these failures are not repaired or replaced by retries. Hosted execution, independent approval, merge and release are not yet claimed. [Execution, per-path timings and failures](testing/TEST_PATH_EXECUTION.md).
 The historical Water convergence timeout, Python/native faults and realtime margin remain OPEN.
 
 ## R3.1 validation closeout

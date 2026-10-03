@@ -2,7 +2,7 @@
 
 Authoritative Water base: `ff75735`; systematic implementation follows the
 [latest command](../research/test-path-systematic-refactor/FRAZIL_Test_Path_Systematic_Refactor_Implementation_Agent_Command.md),
-superseding the P0-only stop. The configured Water+Preview inventory now has 62 entries.
+superseding the P0-only stop. The configured Water+Preview inventory now has 67 entries (five canonical performance observations added by review follow-up).
 Original responsibilities remain; registration count changes are splits and additional Fast paths.
 
 ## Commands and selectors
@@ -15,14 +15,14 @@ python tools/build_safe.py --preset windows-debug-water-b1
 ctest --preset windows-debug-water-b1
 python tools/build_safe.py --preset windows-debug-full
 ctest --preset windows-debug-full
-python tools/check_test_paths.py
+python tools/check_test_paths.py --build-closure
 ```
 
 Debug and CI Debug suffixes: `smoke`, `core`, `fast`, `water-common`, `water-a1`,
 `water-b1`, `water-b2`, `water-d1`, `water-protect`, `preview`, `full`.
 Release/ASAN suffixes: `core`, `fast`, `full`. Configure the unsuffixed base first;
 all suffixed build/test presets share that configured tree. Full with Water/Preview OFF
-only means all enabled tests, not the complete research suite. Both ON register 62.
+only means all enabled tests, not the complete research suite. Both ON register 67.
 
 Core uses derived `fast-core`; module presets use derived `fast-water-*` aliases.
 Aliases derive from authoritative module AND tier labels. Equivalent CLI:
@@ -141,3 +141,22 @@ including the failed testdata process (timing is not a PASS assertion). See
 | `frazil_water_preview_parameters` | water-preview | fast; integration | `frazil_water_preview_tests.exe --group parameters` | 4.51061 |
 | `frazil_water_preview_workflow` | water-preview | fast; integration | `frazil_water_preview_tests.exe --group workflow` | 0.108581 |
 | `frazil_water_preview_performance` | water-preview | performance; research; slow | `frazil_water_preview_tests.exe --group performance` | 0.223494 |
+
+## Canonical Full performance execution
+
+The following adapters execute unchanged canonical workloads and validate process success,
+complete case identities, CSV/measurement schema and finite values. Timings are observations,
+not new hard budgets. None belongs to Fast. B2 and Preview retain their existing native entries.
+
+| CTest | Executable | Module/tier/kind | Expected observations |
+|---|---|---|---|
+| frazil_product_performance | frazil_performance | core / slow / performance | steady-state, parameter-retarget, denormal finite |
+| frazil_water_legacy_performance | frazil_water_performance | water-common / slow / performance+research | 26 cases |
+| frazil_water_a1_performance | frazil_water_bubble_a1_performance | water-a1 / slow / performance+research | 30 rate/capacity/profile cases |
+| frazil_water_b1_performance | frazil_water_droplet_b1_performance | water-b1 / slow / performance+research | 120 rate/capacity/radius/persistence/profile cases |
+| frazil_water_d1_performance | frazil_water_flow_d1_performance | water-d1 / slow / performance+research | 36 rate/block/profile cases |
+
+`check_test_paths.py --build-closure` checks every selected native executable/helper against
+its Ninja aggregate and rejects performance/native-study helpers in Fast. It also requires
+canonical performance registrations for each enabled domain; Full execution results remain
+separate evidence from the build graph.

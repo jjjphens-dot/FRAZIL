@@ -345,7 +345,10 @@ add_custom_target(frazil_core_tests DEPENDS
     frazil_smoke frazil_tests frazil_plugin_integration frazil_processor_property
     frazil_latency_contract frazil_render)
 add_custom_target(frazil_fast_tests DEPENDS frazil_core_tests)
-add_custom_target(frazil_full_tests DEPENDS frazil_core_tests)
+add_custom_target(frazil_full_tests DEPENDS frazil_core_tests frazil_performance)
+add_test(NAME frazil_product_performance COMMAND "${Python3_EXECUTABLE}"
+    "${PROJECT_SOURCE_DIR}/tools/performance_observation.py" product $<TARGET_FILE:frazil_performance>)
+set_tests_properties(frazil_product_performance PROPERTIES LABELS "core;slow;performance")
 
 # Research targets are opt-in and never linked into the production plugin.
 option(FRAZIL_BUILD_WATER_EXPERIMENT "Build the standalone Water DSP research candidates" OFF)
@@ -368,7 +371,7 @@ if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
 
     set_property(
         TEST frazil_smoke frazil_unit frazil_plugin_integration frazil_processor_property
-             frazil_latency_contract frazil_render frazil_render_cli
+             frazil_latency_contract frazil_render frazil_render_cli frazil_product_performance
         PROPERTY ENVIRONMENT_MODIFICATION
                  "PATH=path_list_prepend:${frazil_msvc_tool_bin_dir}"
     )
