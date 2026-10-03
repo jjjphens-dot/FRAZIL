@@ -6,7 +6,7 @@ A1 JSONL traceVersion 4 adds capacityDropped and triggerOutcome on immediate adm
 
 ## R3.1 historical observation and explicit L1 research
 
-Preview remains L0; there is no L1 UI/session control. A1 JSONL traceVersion3 adds firstNonZero, completed, causedSteal and pendingDropped records, plus cumulative lifecycle and bandLifecycle counters. A firstNonZero event is numerical, not audibility. L1 requires offline renderer --a1-lifecycle l1; omission stays L0. Existing dropped-trace accounting remains mandatory.
+Preview remains L0; there is no L1 UI/session control. Historical R3.1 JSONL traceVersion3 added firstNonZero, completed, causedSteal and pendingDropped records, plus cumulative lifecycle and bandLifecycle counters. A firstNonZero event is numerical, not audibility. L1 requires offline renderer --a1-lifecycle l1; omission stays L0. Existing dropped-trace accounting remains mandatory.
 [Current execution and gates](evidence/WATER_A1_LIFECYCLE_R31.md).
 
 ## R3 lifecycle gate - preservation failed

@@ -2,7 +2,7 @@
 
 ## R3.1 validation closeout
 
-Research evidence tools now include `a1_lifecycle_r31_publish.py` (deterministic canonical CSVs) and `native_case_evidence.py` (offline child provenance and retained failure streams). A1 trace v4 exposes request-local typed outcomes. No production module changed. See [validation closeout](evidence/R31_VALIDATION_CLOSEOUT.md).
+Research evidence tools now include `a1_lifecycle_r31_publish.py` (deterministic canonical CSVs) and `native_case_evidence.py` (offline child provenance and retained failure streams). The manual `tests/native_text_write_repro.py` isolates the observed parent Python text-write fault without DSP or a native child. A1 trace v4 exposes request-local typed outcomes. No production module changed. See [validation closeout](evidence/R31_VALIDATION_CLOSEOUT.md).
 
 ## R3.1 historical observation and explicit L1 research
 

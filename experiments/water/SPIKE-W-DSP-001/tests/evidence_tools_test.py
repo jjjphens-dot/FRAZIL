@@ -70,7 +70,10 @@ class EvidenceTests(unittest.TestCase):
         path.write_text(json.dumps(data))
         with self.assertRaisesRegex(ValueError, "exact-source"):
             collect(self.root)
-        for private in ("X:/private/input.wav", "X:\\private\\input.wav", "/private/input.wav"):
+        separator = chr(92)
+        for private in ("X" + ":/private/input.wav",
+                        "X:" + separator + "private" + separator + "input.wav",
+                        "/private/input.wav"):
             with self.assertRaisesRegex(ValueError, "private path"):
                 encode([dict(source=private)])
 

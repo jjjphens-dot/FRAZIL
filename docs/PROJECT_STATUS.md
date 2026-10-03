@@ -2,7 +2,7 @@
 
 ## R3.1 validation closeout
 
-R3.1 validation closeout is IN PROGRESS on a separate fix branch. Historical L0 remains reference; B2/D1 convergence is gated by Phase 0. Original Debug timeout, Python/native-test crash and observation timing findings remain open pending investigation. See [execution ledger](evidence/R31_VALIDATION_CLOSEOUT.md).
+R3.1 Phase 0 diagnostics/provenance fixes are implemented, but the gate is OPEN: full Release/Debug 42/42 PASS, ASAN 40/42 FAIL at cb9ddab. Python coefficient-write crash is localized; its cause, a separate renderer GS failure, original Debug timeout and realtime margin remain unresolved. Historical L0 stays reference; no B2 sonic work. See [execution ledger](evidence/R31_VALIDATION_CLOSEOUT.md).
 
 ## R3.1 historical observation and explicit L1 research
 
