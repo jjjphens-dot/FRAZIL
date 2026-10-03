@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import shutil
 import re
+import subprocess
 import sys
 import tempfile
 
@@ -57,8 +58,11 @@ class RendererCases:
 
 
 def run(renderer, source, output, config, block=128, mode="a1-residual", ok=True):
-    result = renderer.invoke([str(renderer), str(source), str(output), mode, str(block), "42",
-                              str(config), "1"], expected=ok)
+    command = [str(renderer), str(source), str(output), mode, str(block), "42", str(config), "1"]
+    # D1 CLI imports this helper with a Path. Keep its existing contract; only A1's
+    # explicit adapter owns the retained case directory and expected-exit policy.
+    result = (renderer.invoke(command, expected=ok) if isinstance(renderer, RendererCases)
+              else subprocess.run(command, capture_output=True, text=True))
     if ok:
         assert result.returncode == 0, (result.returncode, result.stdout, result.stderr)
         audio, rate = sf.read(output, always_2d=True)

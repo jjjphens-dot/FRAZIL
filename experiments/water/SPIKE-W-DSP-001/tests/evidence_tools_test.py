@@ -168,6 +168,20 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(inherited["PATH"], str(runtime) + os.pathsep + normal["PATH"])
         self.assertEqual(inherited["SENTINEL"], normal["SENTINEL"])
 
+    def test_shared_renderer_helper_still_accepts_path(self):
+        # flow_d1_cli_test imports this API without the A1-specific evidence adapter.
+        import numpy as np
+        from bubble_a1_cli_test import run
+        audio = np.zeros((4, 2))
+        completed = subprocess.CompletedProcess([], 0, stdout="source stats", stderr="")
+        with patch("bubble_a1_cli_test.subprocess.run", return_value=completed), \
+                patch("bubble_a1_cli_test.sf.read", return_value=(audio, 48000)):
+            actual, stats = run(self.root / "renderer.exe", self.root / "source.wav",
+                                self.root / "output.wav", self.root / "config.json",
+                                mode="a1b1d1-residual")
+        np.testing.assert_array_equal(actual, audio)
+        self.assertEqual(stats, "source stats")
+
 
 if __name__ == "__main__":
     unittest.main()
