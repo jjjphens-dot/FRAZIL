@@ -1,5 +1,9 @@
 # FRAZIL 测试、听测与发布门槛
 
+## R3.1 validation closeout
+
+Phase 0 closeout adds request-local capacity-drop/snapshot regressions, deterministic CSV publication tests, retained native child streams/case IDs and Python fault capture. The 120 s source-probe timeout is unchanged. Full preset results and unresolved original failures are recorded in [R3.1 validation closeout](evidence/R31_VALIDATION_CLOSEOUT.md).
+
 ## R3.1 historical observation and explicit L1 research
 
 R3.1 covers first-nonzero emission, summed cancellation, deferred/cancelled replacement, inclusive cull boundary, typed trigger results, RNG identity and trace/block invariance. The R3 saturated-pool counterexample now exercises actual L1 and still expects nonzero delta. Full preset results and the open1024-voice timing finding are separate from sample preservation.

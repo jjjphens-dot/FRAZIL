@@ -99,6 +99,28 @@ int runMonitorRateTests() {
     for (std::uint64_t i = 0; i < preview::PreviewEventTrace::kCapacity; ++i)
         check(trace.pop(record) && record.frame == i, "trace FIFO payload");
     check(!trace.pop(record), "trace empty");
+    for (const auto kind : {research::BubbleA1ObservationKind::capacityDropped,
+                            research::BubbleA1ObservationKind::pendingDropped,
+                            research::BubbleA1ObservationKind::causedSteal}) {
+        research::BubbleA1Observation observation;
+        observation.kind = kind;
+        observation.event.requestId = 17;
+        observation.capacityDrops = 2;
+        const auto json = research::bubbleA1TraceJson(observation, 48000);
+        check(static_cast<juce::int64>(json["requestId"]) == 17 &&
+                  static_cast<juce::int64>(json["capacityDrops"]) == 2,
+              "drop/steal serialization retains identity and current count");
+        if (kind == research::BubbleA1ObservationKind::capacityDropped)
+            check(json["kind"].toString() == "capacityDropped" &&
+                      json["triggerOutcome"].toString() == "capacityDropped",
+                  "typed direct drop");
+        if (kind == research::BubbleA1ObservationKind::causedSteal)
+            check(json["triggerOutcome"].toString() == "pendingReplacement",
+                  "typed pending outcome");
+        if (kind == research::BubbleA1ObservationKind::pendingDropped)
+            check(json["triggerOutcome"].isVoid(),
+                  "pending cancellation is not a second admission");
+    }
     // Actual Preview producer -> existing queue -> same message-thread JSON adapter.
     auto engine = std::make_unique<preview::PreviewEngine>();
     preview::PreviewSettings settings;
@@ -113,7 +135,7 @@ int runMonitorRateTests() {
         while (trace.pop(record)) {
             const auto json = research::bubbleA1TraceJson(record.a1, 48000);
             check(json["module"].toString() == "A1" &&
-                      static_cast<int>(json["traceVersion"]) == 3 && json["lifecycle"].isObject(),
+                      static_cast<int>(json["traceVersion"]) == 4 && json["lifecycle"].isObject(),
                   "Preview A1 serialization");
             requests += record.a1.kind == research::BubbleA1ObservationKind::requested;
             starts += record.a1.kind == research::BubbleA1ObservationKind::started;

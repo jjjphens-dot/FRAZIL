@@ -60,6 +60,13 @@ def main():
                             str(source), str(l1out), "a1-residual", "128", "42", str(config), "1"],
                            check=True, capture_output=True)
             l1rows = [json.loads(line) for line in l1trace.read_text().splitlines()]
+            for trace_rows in (rows, l1rows):
+                identities = [r["requestId"] for r in trace_rows if r["kind"] == "requested"]
+                outcomes = [r for r in trace_rows if "triggerOutcome" in r]
+                assert sorted(r["requestId"] for r in outcomes) == sorted(identities)
+                assert all(r["traceVersion"] == 4 for r in trace_rows)
+                assert all(r["triggerOutcome"] in ("started", "pendingReplacement",
+                                                    "preStartCulled", "capacityDropped") for r in outcomes)
             l1requests = [r for r in l1rows if r["kind"] == "requested"]
             assert len(l1requests) == len(requested)
             for row in l1requests:

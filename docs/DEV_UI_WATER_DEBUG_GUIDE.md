@@ -1,5 +1,9 @@
 # Debug UI 与 Water 研究预览联调指南
 
+## R3.1 validation closeout
+
+A1 JSONL traceVersion 4 adds capacityDropped and triggerOutcome on immediate admission decisions. pendingDropped is a later cancellation, with cumulative capacityDrops already updated; deferred started records are not second admission decisions. Preview remains L0. See [validation closeout](evidence/R31_VALIDATION_CLOSEOUT.md).
+
 ## R3.1 historical observation and explicit L1 research
 
 Preview remains L0; there is no L1 UI/session control. A1 JSONL traceVersion3 adds firstNonZero, completed, causedSteal and pendingDropped records, plus cumulative lifecycle and bandLifecycle counters. A firstNonZero event is numerical, not audibility. L1 requires offline renderer --a1-lifecycle l1; omission stays L0. Existing dropped-trace accounting remains mandatory.

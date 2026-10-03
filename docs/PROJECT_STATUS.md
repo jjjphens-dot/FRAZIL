@@ -1,5 +1,9 @@
 # FRAZIL 当前实现与差距
 
+## R3.1 validation closeout
+
+R3.1 validation closeout is IN PROGRESS on a separate fix branch. Historical L0 remains reference; B2/D1 convergence is gated by Phase 0. Original Debug timeout, Python/native-test crash and observation timing findings remain open pending investigation. See [execution ledger](evidence/R31_VALIDATION_CLOSEOUT.md).
+
 ## R3.1 historical observation and explicit L1 research
 
 L0 observation and explicit research L1 are implemented. Historical reference music has959 nonzero events under both policies; L1 only removes1808 silent allocations. NO CANDIDATE SELECTED; human benefit not demonstrated and dense1024 timing exceeds deadline. Release full41/41; Debug40/41 (native provenance timeout), ASAN40/41 (native latency SegFault). These failures remain OPEN. Part3 tuning, A1+B2 final acceptance and D1 C6/C7 remain gated.

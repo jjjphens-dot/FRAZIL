@@ -8,19 +8,24 @@
 #include <vector>
 using namespace frazil::water::research;
 int main(int argc, char** argv) {
-    bool trace = false, l1 = false;
+    bool trace = false, l1 = false, observerOnly = false;
     for (int i = 1; i < argc; ++i) {
         if (std::string_view(argv[i]) == "--trace" && !trace)
             trace = true;
         else if (std::string_view(argv[i]) == "--l1" && !l1)
             l1 = true;
+        else if (std::string_view(argv[i]) == "--observer-only" && !observerOnly)
+            observerOnly = true;
         else
             return 2;
     }
+    if (trace && observerOnly)
+        return 2;
     constexpr int block = 128, warmup = 500, measured = 3000;
     std::cout << "rate,capacity,profile,mean_us,p95_us,p99_us,worst_us,active_mean,active_peak,"
                  "events_per_second,steals,drops,output_sum,trace_drops,policy,starts_per_second,"
-                 "firstNonZero_per_second,preStartCull_per_second,causedStealButNeverNonZero\n";
+                 "firstNonZero_per_second,preStartCull_per_second,causedStealButNeverNonZero,"
+                 "observer_records\n";
     for (double rate : {44100., 48000., 96000.})
         for (std::size_t cap : {64u, 128u, 256u, 512u, 1024u})
             for (int profile : {0, 1}) {
@@ -39,6 +44,13 @@ int main(int argc, char** argv) {
                                    : BubbleA1LifecyclePolicy::historicalL0))
                     return 1;
                 auto queue = std::make_unique<frazil::water::preview::PreviewEventTrace>();
+                std::uint64_t observedRecords{};
+                // Separate payload/callback cost from queue producer cost, without changing DSP.
+                if (observerOnly)
+                    a->setObserver(&observedRecords,
+                                   [](void* context, const BubbleA1Observation&) noexcept {
+                                       ++*static_cast<std::uint64_t*>(context);
+                                   });
                 if (trace)
                     a->setObserver(queue.get(),
                                    frazil::water::preview::PreviewEventTrace::captureA1);
@@ -95,6 +107,6 @@ int main(int argc, char** argv) {
                           << ','
                           << counts.lifecycle.causedStealButNeverNonZero -
                                  lifecycleAtWarmup.causedStealButNeverNonZero
-                          << '\n';
+                          << ',' << observedRecords << '\n';
             }
 }
