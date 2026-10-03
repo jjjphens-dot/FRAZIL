@@ -64,13 +64,37 @@ int main() {
             (void)pool->trigger(e);
         check(pool->trigger(e) == BubbleA1TriggerResult::pendingReplacement,
               "typed pending replacement");
+        auto queue = std::make_unique<PreviewEventTrace>();
+        pool->setObserver(queue.get(), PreviewEventTrace::captureA1);
         check(pool->setCapacity(64), "downshift retains releasing voices");
+        e.requestId = 130;
+        check(pool->trigger(e) == BubbleA1TriggerResult::capacityDropped,
+              "downshift rejects new request with typed outcome");
         for (int i = 0; i < 72; ++i)
             (void)pool->process();
         const auto& life = pool->counters().lifecycle;
         check(life.pendingReplacementDropped == 1 && life.causedStealButNeverNonZero == 1 &&
                   life.replacementStarted == 0 && life.completedWithoutNonZero == 0,
               "unstarted pending cancellation is not a completed voice");
+        PreviewEventRecord record;
+        std::size_t dropped{}, pendingDropped{};
+        while (queue->pop(record)) {
+            const auto& r = record.a1;
+            if (r.kind == BubbleA1ObservationKind::capacityDropped) {
+                ++dropped;
+                check(r.event.requestId == 130 && r.capacityDrops == 1,
+                      "capacity drop closes the exact incoming request");
+            }
+            if (r.kind == BubbleA1ObservationKind::pendingDropped) {
+                ++pendingDropped;
+                check(r.capacityDrops == pool->counters().capacityDrops && r.capacityDrops == 2 &&
+                          r.lifecycle.pendingReplacementDropped == life.pendingReplacementDropped &&
+                          r.lifecycle.causedStealButNeverNonZero == life.causedStealButNeverNonZero,
+                      "pending drop snapshot includes current cumulative bookkeeping");
+            }
+        }
+        check(dropped == 1 && pendingDropped == 1 && queue->takeDropped() == 0,
+              "one direct outcome and one later pending cancellation");
     }
     // Exact band-edge semantics and non-coalesced deferred-start identity.
     for (std::size_t i = 0; i < 6; ++i) {
@@ -98,8 +122,15 @@ int main() {
         e.requestId = 129;
         check(!a1TriggerAccepted(pool->trigger(e)), "all releasing capacity drop");
         PreviewEventRecord row;
+        std::size_t dropped{};
         while (queue->pop(row)) {
+            if (row.a1.kind == BubbleA1ObservationKind::capacityDropped) {
+                ++dropped;
+                check(row.a1.event.requestId == 129 && row.a1.capacityDrops == 1,
+                      "all-pending rejection retains incoming identity and cumulative drop");
+            }
         }
+        check(dropped == 1, "all-pending rejection is directly observable");
         allocationtest::allocations = 0;
         allocationtest::observing = true;
         for (int n = 0; n < 72; ++n)

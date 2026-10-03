@@ -1,5 +1,11 @@
 # FRAZIL 当前实现与差距
 
+## R3.1 validation closeout
+
+Latest Phase 0 follow-up: publisher completeness/live provenance and per-child crash capture implemented; fixed parent-PATH A/B reproduced one Python write fault in A, none in two B runs (cause still unproven). Three complete timing rounds retain deadline overruns; 57/57 new comparisons are exact. No sound/default/D1 changes. PHASE 0 OPEN / DO NOT START PHASE 1. Final frozen-head Debug/Release/ASAN and Hosted results are linked from the [execution ledger](evidence/R31_VALIDATION_CLOSEOUT.md#phase-0-follow-up-measurement-and-validation-handoff); earlier results below remain dated evidence.
+
+R3.1 Phase 0 diagnostics/provenance fixes are implemented, but the gate is OPEN: full Release/Debug 42/42 PASS, ASAN 40/42 FAIL at cb9ddab. Python coefficient-write crash is localized; its cause, a separate renderer GS failure, original Debug timeout and realtime margin remain unresolved. Historical L0 stays reference; no B2 sonic work. See [execution ledger](evidence/R31_VALIDATION_CLOSEOUT.md).
+
 ## R3.1 historical observation and explicit L1 research
 
 L0 observation and explicit research L1 are implemented. Historical reference music has959 nonzero events under both policies; L1 only removes1808 silent allocations. NO CANDIDATE SELECTED; human benefit not demonstrated and dense1024 timing exceeds deadline. Release full41/41; Debug40/41 (native provenance timeout), ASAN40/41 (native latency SegFault). These failures remain OPEN. Part3 tuning, A1+B2 final acceptance and D1 C6/C7 remain gated.

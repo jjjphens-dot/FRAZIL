@@ -6,7 +6,6 @@ the separately converged Fourier oracle. No runtime candidate is selected here.
 """
 import argparse
 import csv
-import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -14,10 +13,16 @@ import numpy as np
 from flow_d1_latency_models import EPSILON, Conditioner, GuardKernel, conditioners
 from flow_d1_latency_study import qualified_reference, sources
 from flow_d1_remediation_study import csv_write, metrics
+from native_case_evidence import record, run_case
 
 
-def run_native(executable, directory, conditioner, kernel, audio, delays, quick=False):
+def run_native(executable, directory, conditioner, kernel, audio, delays, quick=False,
+               child_environment=None):
     directory.mkdir(parents=True, exist_ok=False)
+    case_id = directory.name
+    record(directory, 'coefficient-generation', case_id=case_id,
+           rate=conditioner.rate if hasattr(conditioner, 'rate') else 'see-case-id',
+           conditioner=conditioner.name, kernel=kernel.name, frames=len(audio))
     positions = np.linspace(0, 1, 4097)
     positions[-1] = 1-1e-12
     _, table = kernel.coefficients(positions)
@@ -30,14 +35,11 @@ def run_native(executable, directory, conditioner, kernel, audio, delays, quick=
         for values in (fir, sos, table):
             np.savetxt(stream, np.asarray(values).reshape(-1), fmt='%.17g')
     np.savetxt(directory/'input.txt', np.column_stack((delays, audio)), fmt='%.17g')
-    result = subprocess.run([str(executable), str(directory/'coefficients.txt'),
+    run_case([str(executable), str(directory/'coefficients.txt'),
                              str(directory/'input.txt'), str(directory/'output.csv'),
-                             str(directory/'resource.csv')]+(['--quick'] if quick else []), capture_output=True, text=True,
-                            timeout=240)
-    (directory/'native.log').write_text(result.stdout+result.stderr, encoding='utf-8')
-    if result.returncode:
-        raise RuntimeError(f'native candidate failed ({result.returncode}): {directory}\n'
-                           f'{(result.stdout+result.stderr)[-4000:]}')
+                             str(directory/'resource.csv')]+(['--quick'] if quick else []),
+             directory, case_id, timeout=240, environment=child_environment)
+    record(directory, 'independent-oracle', case_id=case_id)
     output = np.loadtxt(directory/'output.csv', delimiter=',')
     latency = conditioner.latency+kernel.guard
     aligned = output[latency:]
@@ -48,6 +50,7 @@ def run_native(executable, directory, conditioner, kernel, audio, delays, quick=
     values = metrics(aligned, expected)
     if not values['finite'] or max(values['relative_rms_error'], values['peak_normalized_error']) > 1e-6:
         raise AssertionError(f'Native/model mismatch: {directory}: {values}')
+    record(directory, 'case-finish', case_id=case_id, finite=bool(values['finite']))
     return aligned, values, list(csv.DictReader((directory/'resource.csv').open()))
 
 

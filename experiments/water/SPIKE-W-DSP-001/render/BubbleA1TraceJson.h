@@ -12,7 +12,7 @@ inline juce::var bubbleA1TraceJson(const BubbleA1Observation& r, double rate) {
         o->setProperty(key, static_cast<juce::int64>(value));
     };
     o->setProperty("module", "A1");
-    o->setProperty("traceVersion", 3);
+    o->setProperty("traceVersion", 4);
     const char* kind = "bandSummary";
     switch (r.kind) {
     case BubbleA1ObservationKind::requested:
@@ -36,10 +36,20 @@ inline juce::var bubbleA1TraceJson(const BubbleA1Observation& r, double rate) {
     case BubbleA1ObservationKind::preStartCulled:
         kind = "preStartCulled";
         break;
+    case BubbleA1ObservationKind::capacityDropped:
+        kind = "capacityDropped";
+        break;
     case BubbleA1ObservationKind::bandSummary:
         break;
     }
     o->setProperty("kind", kind);
+    // One immediate typed outcome per prepared request; deferred starts are not re-admissions.
+    if (r.kind == BubbleA1ObservationKind::causedSteal)
+        o->setProperty("triggerOutcome", "pendingReplacement");
+    else if ((r.kind == BubbleA1ObservationKind::started && !r.fromReplacement) ||
+             r.kind == BubbleA1ObservationKind::preStartCulled ||
+             r.kind == BubbleA1ObservationKind::capacityDropped)
+        o->setProperty("triggerOutcome", kind);
     const auto lifecycle = [&](const BubbleA1LifecycleCounters& c) {
         auto* data = new juce::DynamicObject;
         const auto count = [&](const char* key, std::uint64_t value) {

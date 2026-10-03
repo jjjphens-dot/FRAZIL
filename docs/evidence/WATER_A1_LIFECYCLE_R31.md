@@ -1,5 +1,7 @@
 # Water A1 lifecycle R3.1 execution
 
+Follow-up: [Phase 0 validation closeout](R31_VALIDATION_CLOSEOUT.md) retains this original evidence and investigates its failures.
+
 Status: AWAITING REVIEW — bounded implementation/evidence delivered; engineering gates FAILED/OPEN. HUMAN NOT ASSESSED.
 Owner: engineering agent; human acceptance: Sound Lead. NO CANDIDATE SELECTED.
 

@@ -1,5 +1,11 @@
 # Water DSP objective feasibility — SPIKE-W-DSP-001
 
+## R3.1 validation closeout
+
+Follow-up: canonical publication requires the complete fixed closeout matrix and live Git/binary binding (see the execution report for arguments). `render/a1_observation_performance.py --baseline <old-benchmark> --current <benchmark> --output build/<new-run>` records all three timing rounds. `tests/native_parent_environment_ab.py --native <asan-probe> --runtime-dir <ctest-runtime-dir> --output build/<new-run>` isolates only the parent PATH entry. Neither tool selects a DSP candidate or changes default CTest environment. The benchmark's `--workload` output is explicitly not timing evidence.
+
+Phase 0 adds A1 trace v4 typed outcomes, reproducible CSV publishing and retained native case evidence. Test-only progress logging stays outside measured DSP/allocation loops. No source tuning or D1 implementation changes. See [validation closeout](../../../docs/evidence/R31_VALIDATION_CLOSEOUT.md).
+
 ## R3.1 historical observation and explicit L1 research
 
 Renderer --a1-lifecycle l0|l1 is an explicit research selector, compatible with --a1-trace. L1 is ENGINEERING / SOUND-CHANGING / HUMAN NOT ASSESSED; Preview and v2/v3 defaults stay L0. a1_lifecycle_r31.py --renderer ... --baseline ... --compare-l1 --input ... --output build/new-r31 creates new local evidence without choosing a candidate.

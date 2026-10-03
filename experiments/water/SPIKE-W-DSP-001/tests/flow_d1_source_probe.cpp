@@ -4,6 +4,7 @@
 #include "dsp/FlowD1Trajectory.h"
 #include "dsp/FlowModulator.h"
 
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
@@ -62,6 +63,23 @@ int main(int argc, char** argv) {
                 return 1;
             const std::string label = (overlap ? (edge ? "-sustained" : "-overlap") : "") +
                                       std::string(edge ? "-edge" : "-reference");
+            const auto caseId = std::to_string(rate) + label;
+            const auto begin = std::chrono::steady_clock::now();
+            const auto progress = [&](const char* stage, int frame) {
+                const auto timestamp = std::chrono::duration<double>(
+                                           std::chrono::system_clock::now().time_since_epoch())
+                                           .count();
+                std::cerr << std::setprecision(17) << "case=" << caseId << " stage=" << stage
+                          << " utc_seconds=" << timestamp << " last_frame=" << frame
+                          << " elapsed_seconds="
+                          << std::chrono::duration<double>(std::chrono::steady_clock::now() - begin)
+                                 .count()
+                          << " a1_requested=" << a.requested()
+                          << " b1_eligible=" << b.counters().eligible << " last_file=" << caseId
+                          << "-events.csv\n"
+                          << std::flush;
+            };
+            progress("start", -1);
             std::ofstream output(root / (std::to_string(rate) + label + ".csv"));
             std::ofstream audit(root / (std::to_string(rate) + label + "-audit.csv"));
             output << std::setprecision(17) << "path_m,a_left,a_right,b_left,b_right\n";
@@ -112,10 +130,18 @@ int main(int argc, char** argv) {
                        << ',' << bv[1] << '\n';
                 audit << input[0] << ',' << input[1] << ',' << d0[0] << ',' << d0[1] << ',' << dv[0]
                       << ',' << dv[1] << '\n';
+                if ((n + 1) % (rate / 4) == 0)
+                    progress("render", n);
             }
             if (!output || !audit || !events || a.requested() == 0 || b.counters().admitted == 0 ||
                 (overlap && !edge && simultaneous == 0))
                 return 1;
+            output.flush();
+            audit.flush();
+            events.flush();
+            if (!output || !audit || !events)
+                return 1;
+            progress("finish", rate - 1);
         }
     }
     return 0;

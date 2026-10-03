@@ -31,6 +31,9 @@ add_test(NAME frazil_water_flow_d1_latency_native
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/flow_d1_latency_native_test.py"
             $<TARGET_FILE:frazil_water_flow_d1_latency_native>)
 list(APPEND water_test_names frazil_water_flow_d1_latency_native)
+add_test(NAME frazil_water_evidence_tools
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/evidence_tools_test.py")
+list(APPEND water_test_names frazil_water_evidence_tools)
 
 juce_add_console_app(frazil_water_experiment_render PRODUCT_NAME "FRAZIL Water Research Render")
 target_sources(frazil_water_experiment_render PRIVATE render/render_main.cpp)

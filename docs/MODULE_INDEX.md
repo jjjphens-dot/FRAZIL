@@ -1,5 +1,11 @@
 # FRAZIL Module Index
 
+## R3.1 validation closeout
+
+Phase 0 follow-up adds `render/a1_observation_performance.py` for fixed three-round resource evidence and `tests/native_parent_environment_ab.py` for the observed parent runtime-environment hypothesis. These are offline engineering tools, not DSP selectors. The canonical publisher now owns fixed closeout completeness and live binary/Git binding; renderer CLI cases reuse `native_case_evidence.py`.
+
+Research evidence tools now include `a1_lifecycle_r31_publish.py` (deterministic canonical CSVs) and `native_case_evidence.py` (offline child provenance and retained failure streams). The manual `tests/native_text_write_repro.py` isolates the observed parent Python text-write fault without DSP or a native child. A1 trace v4 exposes request-local typed outcomes. No production module changed. See [validation closeout](evidence/R31_VALIDATION_CLOSEOUT.md).
+
 ## R3.1 historical observation and explicit L1 research
 
 BubbleA1VoiceObservationState is a fixed pool-owned sidecar; BubbleA1Event does not grow. BubbleA1TriggerResult distinguishes admission outcomes; BubbleA1LifecyclePolicy defaults to L0. BubbleA1TraceJson serializes additive lifecycle observations using the existing transport. render/a1_lifecycle_r31.py owns numeric preservation/real-source comparison and the small fixed-level local pack.

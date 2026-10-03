@@ -59,7 +59,8 @@ enum class BubbleA1ObservationKind {
     completed,
     causedSteal,
     pendingDropped,
-    preStartCulled
+    preStartCulled,
+    capacityDropped
 };
 struct BubbleA1Observation final {
     BubbleA1Event event{};
@@ -242,6 +243,7 @@ class BubbleA1VoicePool final {
         }
         if (activeCount_ > capacity_) {
             drop(e);
+            observe(e, BubbleA1ObservationKind::capacityDropped);
             return BubbleA1TriggerResult::capacityDropped;
         }
         std::size_t chosen = kStorage;
@@ -257,6 +259,7 @@ class BubbleA1VoicePool final {
         }
         if (chosen == kStorage) {
             drop(e);
+            observe(e, BubbleA1ObservationKind::capacityDropped);
             return BubbleA1TriggerResult::capacityDropped;
         }
         auto& v = voices_[chosen];
@@ -320,8 +323,9 @@ class BubbleA1VoicePool final {
                     const auto pendingBand = bubbleA1Band(v.replacement.physics.frequencyHz);
                     increment(&BubbleA1LifecycleCounters::pendingReplacementDropped, pendingBand);
                     increment(&BubbleA1LifecycleCounters::causedStealButNeverNonZero, pendingBand);
-                    observe(v.replacement, BubbleA1ObservationKind::pendingDropped);
                     drop(v.replacement);
+                    // Snapshot the completed bookkeeping, not the previous drop total.
+                    observe(v.replacement, BubbleA1ObservationKind::pendingDropped);
                 }
                 free_[freeCount_++] = slot;
                 active_[i] = active_[--activeCount_];

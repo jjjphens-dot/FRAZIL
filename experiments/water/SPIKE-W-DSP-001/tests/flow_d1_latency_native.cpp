@@ -55,6 +55,9 @@ int main(int argc, char** argv) {
         LatencyCandidate processor;
         const auto saved = config;
         require(processor.prepare(std::move(config)), "candidate prepare failed");
+        std::cerr << "stage=prepared guard=" << saved.guard << " fir_taps=" << firCount
+                  << " sos_sections=" << sosCount << '\n'
+                  << std::flush;
         std::ifstream input(argv[2]);
         std::vector<Frame> frames;
         Frame frame;
@@ -72,10 +75,16 @@ int main(int argc, char** argv) {
         frames.resize(frames.size() + static_cast<std::size_t>(processor.latency()));
         std::vector<LatencyCandidate::Stereo> reference(frames.size());
         allocationtest::allocations = 0;
-        allocationtest::observing = true;
-        for (std::size_t i = 0; i < frames.size(); ++i)
-            reference[i] = processor.process(frames[i].audio, frames[i].delay);
-        allocationtest::observing = false;
+        for (std::size_t begin = 0; begin < frames.size(); begin += 512) {
+            const auto end = std::min(begin + 512, frames.size());
+            allocationtest::observing = true;
+            for (std::size_t i = begin; i < end; ++i)
+                reference[i] = processor.process(frames[i].audio, frames[i].delay);
+            allocationtest::observing = false;
+            // Offline checkpoints are outside the allocation observation and measured loop.
+            std::cerr << "stage=render-checkpoint last_frame=" << end - 1 << '\n' << std::flush;
+        }
+        std::cerr << "stage=render-complete last_frame=" << frames.size() - 1 << '\n' << std::flush;
         require(allocationtest::allocations == 0, "render allocation");
         for (auto value : reference)
             require(std::isfinite(value[0]) && std::isfinite(value[1]), "nonfinite output");
@@ -129,6 +138,9 @@ int main(int argc, char** argv) {
             metrics << block << ',' << sum / repetitions << ',' << timings[p95] << ','
                     << timings[p99] << ',' << peak << ',' << processor.stateBytes() << ','
                     << allocationtest::allocations << ",true," << repetitions << '\n';
+            std::cerr << "stage=block-complete block=" << block
+                      << " last_frame=" << frames.size() - 1 << '\n'
+                      << std::flush;
         }
         metrics.flush();
         require(metrics.good() && std::isfinite(observable), "benchmark failed");
@@ -137,6 +149,8 @@ int main(int argc, char** argv) {
         for (std::size_t i = 0; i < frames.size(); ++i)
             repeat &= processor.process(frames[i].audio, frames[i].delay) == reference[i];
         require(repeat, "reprepare changed output");
+        std::cerr << "stage=finish last_frame=" << frames.size() - 1 << " exit_code=0\n"
+                  << std::flush;
         return 0;
     } catch (const std::exception& error) {
         allocationtest::observing = false;

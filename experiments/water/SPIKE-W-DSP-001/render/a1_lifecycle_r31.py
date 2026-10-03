@@ -183,6 +183,32 @@ def comparison(renderer, directory):
                human="NOT ASSESSED", normalization=False, limiter=False))
 
 
+def musical_preservation(baseline, renderer, directory):
+    """Re-render actual native sources from the rebuilt baseline; no manual CSV merge."""
+    import csv
+    rows = []
+    with (directory / "MEASUREMENTS.csv").open(encoding="utf-8", newline="") as stream:
+        sources = list(csv.DictReader(stream))
+    for source in sources:
+        sid = source["source_id"]
+        root = directory / sid
+        old, rate, _ = render(baseline, root / "source.wav", root / "rebuilt-baseline.wav")
+        new, _ = sf.read(root / "l0.wav", always_2d=True, dtype="float32")
+        delta = float(np.max(np.abs(old.astype(float) - new)))
+        rows.append(dict(rate=rate, mode=f"{sid}-a1", comparison="old-new-real-source", max_delta=delta))
+        if delta != 0:
+            raise ValueError("STOP: rebuilt baseline differs from current L0")
+        full, _, _ = render(renderer, root / "source.wav", root / "l1-full.wav", mode="a1", policy="l1")
+        expected, _ = sf.read(root / "l1.wav", always_2d=True, dtype="float32")
+        x, _ = sf.read(root / "source.wav", always_2d=True, dtype="float32")
+        expected[:len(x)] += x
+        delta = float(np.max(np.abs(full.astype(float) - expected)))
+        rows.append(dict(rate=rate, mode=f"{sid}-a1", comparison="l1-full-equation", max_delta=delta))
+        if delta != 0:
+            raise ValueError("L1 Full differs from unchanged source + residual")
+    csv_write(directory / "PRESERVATION.csv", rows)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--renderer", type=Path, required=True)
@@ -203,6 +229,8 @@ def main():
         reference(args.renderer.resolve(), args.input, root / "reference")
         if args.compare_l1:
             comparison(args.renderer.resolve(), root / "reference")
+            if args.baseline:
+                musical_preservation(args.baseline.resolve(), args.renderer.resolve(), root / "reference")
     write_json(root / "STATUS.json", dict(status="ENGINEERING COMPLETE", human="NOT ASSESSED"))
 
 

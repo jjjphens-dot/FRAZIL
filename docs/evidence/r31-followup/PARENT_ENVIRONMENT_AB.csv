@@ -1,0 +1,5 @@
+round,variant,outcome,completed_cases
+1,A-parent-inherited,PASS,24
+1,B-child-only,PASS,24
+2,A-parent-inherited,ACCESS_VIOLATION_0xc0000005,11
+2,B-child-only,PASS,24

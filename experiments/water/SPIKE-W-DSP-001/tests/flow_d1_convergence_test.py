@@ -3,7 +3,6 @@
 import sys
 import argparse
 import csv
-import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,6 +19,7 @@ parser.add_argument("--probe", type=Path)
 options, remaining = parser.parse_known_args()
 sys.argv = [sys.argv[0]] + remaining
 from flow_d1_convergence_study import select_policies, kernel_authority
+from native_case_evidence import run_case
 
 
 class ConvergenceTests(unittest.TestCase):
@@ -106,40 +106,37 @@ class ConvergenceTests(unittest.TestCase):
     @unittest.skipUnless(options.probe, "native source probe not supplied")
     def test_native_event_provenance(self):
         root = Path(__file__).resolve().parents[4]
-        with tempfile.TemporaryDirectory(
-            prefix="convergence-events-", dir=root / "build"
-        ) as temporary:
-            output = Path(temporary) / "sources"
-            subprocess.run(
-                [str(options.probe.resolve()), str(output)],
-                check=True,
-                capture_output=True,
-                timeout=120,
-            )
-            files = list(output.glob("*-events.csv"))
-            self.assertEqual(len(files), 12)
-            for path in files:
-                with path.open() as stream:
-                    rows = list(csv.DictReader(stream))
-                for source in ("A1", "B1"):
-                    events = [r for r in rows if r["source"] == source]
-                    self.assertTrue(events)
-                    self.assertEqual(
-                        [int(r["id"]) for r in events], list(range(1, len(events) + 1))
-                    )
-                    times = [float(r["time_s"]) for r in events]
-                    self.assertEqual(times, sorted(times))
-                    for event in events:
-                        self.assertTrue(0 <= float(event["time_s"]) < 1)
-                        self.assertTrue(float(event["radius_m"]) > 0)
-                        self.assertTrue(float(event["frequency_hz"]) > 0)
-                        self.assertIn(event["admitted"], ("0", "1"))
-                        if source == "B1":
-                            self.assertGreaterEqual(
-                                float(event["due_time_s"]), float(event["time_s"])
-                            )
-                        else:
-                            self.assertEqual(event["due_time_s"], "")
+        temporary = tempfile.mkdtemp(prefix="convergence-events-", dir=root / "build")
+        output = Path(temporary) / "sources"
+        run_case(
+            [str(options.probe.resolve()), str(output)],
+            Path(temporary), "source-probe-12-cases",
+            timeout=120,
+        )
+        files = list(output.glob("*-events.csv"))
+        self.assertEqual(len(files), 12)
+        for path in files:
+            with path.open() as stream:
+                rows = list(csv.DictReader(stream))
+            for source in ("A1", "B1"):
+                events = [r for r in rows if r["source"] == source]
+                self.assertTrue(events)
+                self.assertEqual(
+                    [int(r["id"]) for r in events], list(range(1, len(events) + 1))
+                )
+                times = [float(r["time_s"]) for r in events]
+                self.assertEqual(times, sorted(times))
+                for event in events:
+                    self.assertTrue(0 <= float(event["time_s"]) < 1)
+                    self.assertTrue(float(event["radius_m"]) > 0)
+                    self.assertTrue(float(event["frequency_hz"]) > 0)
+                    self.assertIn(event["admitted"], ("0", "1"))
+                    if source == "B1":
+                        self.assertGreaterEqual(
+                            float(event["due_time_s"]), float(event["time_s"])
+                        )
+                    else:
+                        self.assertEqual(event["due_time_s"], "")
 
     def test_nonlinear_probe_preserves_historical_values(self):
         root = Path(__file__).resolve().parents[4]
