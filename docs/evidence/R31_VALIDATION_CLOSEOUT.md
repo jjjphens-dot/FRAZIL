@@ -8,7 +8,7 @@ Status: PHASE 0 OPEN / STOP BEFORE PHASE 1. Bounded fixes and reproducible evide
 
 Latest authority: [current-status plan](../research/water-current-status/FRAZIL_Water_Current_Status_and_Next_Agent_Plan.md), upstream `9b027ecce53429aee61ea050da8d86232dd8f8d7`. Intake HEAD/remote `2c20de25d10471290802ea9a766e6e341ced9359`, clean, ahead/behind 0/0; PR #43 remains draft/open. Its Hosted Windows Debug run 37102955436 completed SUCCESS. Original local failures below remain valid.
 
-Follow-up status: RUNNING, Phase 0 OPEN. Owner: engineering agent; no delegated workers. Ordered scope: publisher completeness and live provenance binding, renderer case capture, controlled parent-runtime A/B, three complete timing rounds, then frozen exact-HEAD full suites and Hosted validation. Next checkpoint: negative evidence tests before native diagnosis. No sound/lifecycle policy changes.
+Follow-up status: PHASE 0 OPEN. Owner: engineering agent; no delegated workers. Publisher completeness/live binding, renderer case capture, controlled parent-runtime A/B and three complete timing rounds are executed below. Frozen-head full-suite execution status/results are maintained in the linked PR #43 validation table so recording the result does not move the validated commit. Next engineering checkpoint: unresolved failure/cost diagnosis. No sound/lifecycle policy changes.
 
 CONFLICT FOUND: older status sections and the Perceptual Contract's illustrative Decay paragraph retain pre-acceptance wording although the accepted brief and current framework header record acceptance. This follow-up uses the current accepted brief for perceptual authority and treats dated execution sections as historical; it does not rewrite controlled contracts or infer algorithm acceptance from implemented code.
 
@@ -166,3 +166,30 @@ Reviewed unchanged: Architecture, Parameters, Coding Plan, DSP physical governan
 Human listening, independent acceptance, pluginval/DAW, B2 phases 1–5, D1 C6/C7 and production work are NOT RUN. Hosted CI and draft PR are recorded as live publication evidence on GitHub; a Hosted pass cannot resolve the retained local ASAN failures.
 
 Final staged-file validation: evidence-tool regression 3/3 PASS (0.581 s); repository portability, Markdown internal links, VS Code task references, changed Python AST, changed C++ clang-format and `git diff --cached --check` PASS. Cross-document state consistently retains Phase 0 OPEN and Historical L0. Full preset results above remain tied to cb9ddab; they were not rerun merely to replace failures.
+
+## Phase 0 follow-up measurement and validation handoff
+
+Measurement code HEAD: `9f8a295a5f6914ec77d3ea169fa3cfdd566b93e0`, clean at Release configure/safe-build and both publication checks. Exact R3 baseline remains `1092ba01007d70a66ac5204c7d0d7cb070421972`. Both renderer digests remain the pair recorded above: this follow-up changes offline/test tooling, not renderer DSP. The automatic publisher independently checked both live Git HEADs, clean trees and binary digests; a stale checkout or changed binary rejects. It does not infer a rebuild from a filename. The safe-build record supplies build provenance.
+
+New versioned evidence: [12 reference rows](r31-followup/WATER_A1_R31_REFERENCE.csv), [84 band rows](r31-followup/WATER_A1_R31_BANDS.csv), [57 exact comparisons](r31-followup/WATER_A1_R31_PRESERVATION.csv), and [120 first-round timing rows](r31-followup/WATER_A1_R31_PERFORMANCE.csv). All six sources retain the previous source IDs/rates, seed/config/gain. L0/L1 totals are unchanged (959 firstNonZero each); no new musical benefit or selection. Two live-bound publications into separate ignored directories were byte-identical. Only the explicitly authorized renderer pair was hashed; no audio/log/source hashes.
+
+[All 540 timing rows](r31-followup/PERFORMANCE_RUNS.csv) retain all three fixed-order runs, not a selected best run. [180 median/min/max rows](r31-followup/PERFORMANCE_SUMMARY.csv) cover every variant/rate/capacity/profile. At 96 kHz / 1024 / dense / block128:
+
+| Variant | Mean median us | Mean range us | Worst median us | Worst range us |
+| --- | ---: | --- | ---: | --- |
+| rebuilt R3 | 452.092 | 427.371–456.404 | 1191.7 | 1009.0–1191.9 |
+| L0 | 514.951 | 505.563–523.126 | 1254.9 | 1220.8–1384.1 |
+| L1 | 515.008 | 503.408–526.897 | 1271.4 | 1221.7–1503.1 |
+| L1 + trace | 527.831 | 490.779–543.463 | 1363.1 | 1289.5–1373.5 |
+| L0 count observer | 516.810 | 511.273–529.595 | 1270.0 | 1259.9–1276.4 |
+| L0 + trace | 512.255 | 509.266–516.169 | 1312.8 | 1178.8–1488.5 |
+
+L0 mean median exceeds rebuilt R3 by 13.9%. Callback/queue variants overlap the L0 timing range; payload/queue cost alone does not explain that gap. The prior single-run +16.6% and deadline misses are not erased. There is no optimization/adoption claim.
+
+Separate [L0](r31-followup/PERFORMANCE_l0-WORKLOAD.csv) and [L1](r31-followup/PERFORMANCE_l1-WORKLOAD.csv) audits preserve output sums and event counters for all 30 cells per policy. Timing fields are N/A. Current measured sizes: voice512 bytes, observation sidecar2 bytes, pool546136 bytes. Dense96k/1024 visits393215509 voice-samples over3000 callbacks (~131072/callback), first-nonzero branch taken27176 times and completion taken27203 times; requested/callback9.067. The pool checks first-nonzero/completion once per visited voice; the first-nonzero predicate succeeds on about0.0069% of visits. `sidecar_logical_touches` counts the per-visit lookup plus start/reset write, not hardware memory transactions or cache misses. The per-voice observation path is a plausible major contributor; branch prediction, cache/compiler layout and bookkeeping are not separately causally isolated. **Overhead explanation and realtime acceptance remain OPEN.**
+
+[Parent environment A/B](r31-followup/PARENT_ENVIRONMENT_AB.csv) retains A PASS/FAIL and B PASS/PASS. Completed coefficients/input pairs compare byte-equal for24 first-round and11 second-round cases. The interrupted coefficient file is an exact prefix of B's complete file. This strengthens the controlled input comparison, not a root-cause or environment-fix claim. No default environment change was made. Historical source-probe120s timeout and renderer GS failure remain open; per-case evidence now identifies future failures.
+
+Final validation protocol: freeze the publication commit, then run configure, six-job safe build and full CTest for Debug, Release and ASAN serially, plus Hosted Windows Debug on that same exact HEAD. Do not amend the validated commit or replace a failing attempt with a retry. The exact HEAD and final results are recorded in the [PR #43 validation table](https://github.com/jjjphens-dot/FRAZIL/pull/43) and its linked Actions run; local commands/first failures remain under `build/r31-followup/final-validation/`. This publication-time document does not predeclare those results. It remains PHASE 0 OPEN regardless of subsequent green tests because the retained root-cause and performance findings are unresolved.
+
+Comment/documentation consistency: Testing, Module Index, Project Status and SPIKE README describe the implemented tools and the same open gate. Stable Architecture, Parameters, Coding Plan, physical governance and acoustic contracts remain unchanged. All follow-up changes classify as ENGINEERING. No A1/B2/D1 acoustic code, production, Host/state, defaults, physical equations, lifecycle/RNG/order or timeout was changed. Human listening, independent acceptance, B2 Phase1+, D1 C6/C7 and pluginval/DAW remain NOT RUN. Next authorized work is only Phase0 failure/cost diagnosis.

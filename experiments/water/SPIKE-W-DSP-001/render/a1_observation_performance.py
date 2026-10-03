@@ -4,7 +4,6 @@ The separate workload pass is not timing evidence. No automatic winner or gate d
 """
 
 import argparse
-import csv
 import json
 from pathlib import Path
 import statistics
