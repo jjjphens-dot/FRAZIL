@@ -18,17 +18,19 @@ def record(directory, stage, **fields):
     print(json.dumps(row, sort_keys=True), flush=True)
 
 
-def run_case(command, directory, case_id, timeout):
+def run_case(command, directory, case_id, timeout, *, environment=None,
+             expected_exit_codes=(0,), metadata=None):
     """Write streams directly to disk so timeout/crash cannot discard partial output."""
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     command = [str(value) for value in command]
-    env = os.environ.copy()
+    env = os.environ.copy() if environment is None else environment.copy()
     # Microsoft ASAN's documented dump hook. It only writes on a detected error.
     env["ASAN_SAVE_DUMPS"] = str((directory / "asan.dmp").resolve())
     (directory / "command.json").write_text(
         json.dumps(dict(case_id=case_id, command=command, timeout_seconds=timeout,
-                        asan_dump=env["ASAN_SAVE_DUMPS"]), indent=2), encoding="utf-8")
+                        asan_dump=env["ASAN_SAVE_DUMPS"], metadata=metadata,
+                        expected_exit_codes=list(expected_exit_codes)), indent=2), encoding="utf-8")
     record(directory, "child-start", case_id=case_id)
     start = time.monotonic()
     with (directory / "stdout.log").open("wb") as stdout, (directory / "stderr.log").open("wb") as stderr:
@@ -40,7 +42,7 @@ def run_case(command, directory, case_id, timeout):
             raise
     record(directory, "child-finish", case_id=case_id, elapsed_seconds=time.monotonic() - start,
            exit_code=result.returncode)
-    if result.returncode:
+    if result.returncode not in expected_exit_codes:
         tail = (directory / "stderr.log").read_text(encoding="utf-8", errors="replace")[-6000:]
         raise RuntimeError(f"{case_id}: child exit {result.returncode}; evidence {directory}\n{tail}")
     return result

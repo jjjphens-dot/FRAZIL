@@ -9,9 +9,11 @@ The provenance file stays local; its two renderer digests are the plan's explici
 import argparse
 import csv
 import io
+import hashlib
 import json
 from pathlib import Path
 import re
+import subprocess
 
 
 def read(path):
@@ -35,24 +37,55 @@ def encode(rows):
     return stream.getvalue()
 
 
-def collect(root):
-    if json.loads((root / "STATUS.json").read_text())["status"] != "ENGINEERING COMPLETE":
-        raise ValueError("Study is incomplete")
+BASELINE_SHA = "1092ba01007d70a66ac5204c7d0d7cb070421972"
+RATES = (44100, 48000, 96000)
+SOURCE_RATES = {f"source-{i:02}": rate for i, rate in enumerate(
+    (44100, 48000, 48000, 44100, 48000, 48000), 1)}
+
+
+def require_keys(rows, fields, expected, label):
+    keys = [tuple(str(row[field]) for field in fields) for row in rows]
+    if len(keys) != len(expected) or set(keys) != expected:
+        raise ValueError(f"Incomplete/duplicate/unexpected {label}")
+
+
+def verify_provenance(root, expected_baseline_sha, expected_current_sha,
+                      baseline_binary, current_binary):
+    """Bind both recorded renderer digests to clean live Git checkouts; only hash these binaries."""
+    if expected_baseline_sha != BASELINE_SHA:
+        raise ValueError("Wrong expected baseline SHA")
     provenance = json.loads((root / "PROVENANCE.json").read_text())
-    for role in ("baseline", "current"):
+    for role, expected, binary in (("baseline", expected_baseline_sha, baseline_binary),
+                                   ("current", expected_current_sha, current_binary)):
         entry = provenance[role]
         if (entry["working_tree"] != "clean" or
-                not re.fullmatch(r"[0-9a-f]{40}", entry["source_sha"]) or
+                not re.fullmatch(r"[0-9a-f]{40}", expected) or entry["source_sha"] != expected or
                 not re.fullmatch(r"[0-9a-f]{64}", entry["binary_sha256"])):
-            raise ValueError(f"Missing clean exact-source binary provenance: {role}")
+            raise ValueError(f"Invalid clean exact-source provenance: {role}")
+        binary = Path(binary).resolve(strict=True)
+        def git(*args):
+            return subprocess.check_output(["git", "-C", str(binary.parent), *args],
+                                           text=True).strip()
+        if git("rev-parse", "HEAD") != expected or git("status", "--porcelain"):
+            raise ValueError(f"Live Git HEAD/tree mismatch: {role}")
+        with binary.open("rb") as stream:
+            digest = hashlib.file_digest(stream, "sha256").hexdigest()
+        if digest != entry["binary_sha256"]:
+            raise ValueError(f"Binary digest mismatch: {role}")
+
+
+def collect(root, *, expected_baseline_sha, expected_current_sha, baseline_binary, current_binary):
+    if json.loads((root / "STATUS.json").read_text())["status"] != "ENGINEERING COMPLETE":
+        raise ValueError("Study is incomplete")
+    verify_provenance(root, expected_baseline_sha, expected_current_sha, baseline_binary, current_binary)
     reference = root / "reference"
     l0 = read(reference / "MEASUREMENTS.csv")
     l1 = read(reference / "L1_MEASUREMENTS.csv")
-    ids = [r["source_id"] for r in l0]
-    if ids != [r["source_id"] for r in l1] or len(set(ids)) != len(ids):
-        raise ValueError("L0/L1 source identities differ")
-    if any(not re.fullmatch(r"source-\d{2}", sid) for sid in ids):
-        raise ValueError("Only anonymized source IDs may be published")
+    ids = list(SOURCE_RATES)
+    for policy, values in (("L0", l0), ("L1", l1)):
+        require_keys(values, ("policy", "source_id", "rate"),
+                     {(policy, sid, str(rate)) for sid, rate in SOURCE_RATES.items()},
+                     f"{policy} reference sources/rates")
     rows = l0 + l1
     for row in rows:
         for numerator, denominator in (
@@ -67,9 +100,18 @@ def collect(root):
     for sid in ids:
         bands.extend(dict(policy="L1", source_id=sid, **row)
                      for row in read(reference / sid / "L1_BANDS.csv"))
-    if len(bands) != len(ids) * 14:
-        raise ValueError("Incomplete seven-band policy evidence")
+    require_keys(bands, ("policy", "source_id", "band"),
+                 {(policy, sid, str(band)) for policy in ("L0", "L1")
+                  for sid in ids for band in range(7)}, "seven-band policy evidence")
     preservation = read(root / "preservation" / "PRESERVATION.csv") + read(reference / "PRESERVATION.csv")
+    expected = {(str(rate), mode, "old-new") for rate in RATES
+                for mode in ("a1", "a1b1", "a1b2", "a1b1d1", "a1b2d1", "b1", "b2", "abd", "c")}
+    expected |= {(str(rate), mode, "trace-partition") for rate in RATES
+                 for mode in ("a1", "a1b1", "a1b2", "a1b1d1", "a1b2d1")}
+    expected |= {(str(rate), "a1-dense64", "old-new-trace") for rate in RATES}
+    expected |= {(str(rate), sid + "-a1", comparison) for sid, rate in SOURCE_RATES.items()
+                 for comparison in ("old-new-real-source", "l1-full-equation")}
+    require_keys(preservation, ("rate", "mode", "comparison"), expected, "preservation matrix")
     if any(float(row["max_delta"]) != 0 for row in preservation):
         raise ValueError("STOP: preservation failed")
     performance = []
@@ -93,8 +135,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("study", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--expected-baseline-sha", required=True)
+    parser.add_argument("--expected-current-sha", required=True)
+    parser.add_argument("--baseline-binary", type=Path, required=True)
+    parser.add_argument("--current-binary", type=Path, required=True)
     args = parser.parse_args()
-    outputs = collect(args.study.resolve())  # Validate everything before writing any destination.
+    outputs = collect(args.study.resolve(), expected_baseline_sha=args.expected_baseline_sha,
+                      expected_current_sha=args.expected_current_sha,
+                      baseline_binary=args.baseline_binary, current_binary=args.current_binary)  # Validate everything before writing any destination.
     args.output.mkdir(parents=True, exist_ok=True)
     for name, content in outputs.items():
         (args.output / name).write_text(content, encoding="utf-8", newline="")

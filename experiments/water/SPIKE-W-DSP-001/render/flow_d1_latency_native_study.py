@@ -16,7 +16,8 @@ from flow_d1_remediation_study import csv_write, metrics
 from native_case_evidence import record, run_case
 
 
-def run_native(executable, directory, conditioner, kernel, audio, delays, quick=False):
+def run_native(executable, directory, conditioner, kernel, audio, delays, quick=False,
+               child_environment=None):
     directory.mkdir(parents=True, exist_ok=False)
     case_id = directory.name
     record(directory, 'coefficient-generation', case_id=case_id,
@@ -37,7 +38,7 @@ def run_native(executable, directory, conditioner, kernel, audio, delays, quick=
     run_case([str(executable), str(directory/'coefficients.txt'),
                              str(directory/'input.txt'), str(directory/'output.csv'),
                              str(directory/'resource.csv')]+(['--quick'] if quick else []),
-             directory, case_id, timeout=240)
+             directory, case_id, timeout=240, environment=child_environment)
     record(directory, 'independent-oracle', case_id=case_id)
     output = np.loadtxt(directory/'output.csv', delimiter=',')
     latency = conditioner.latency+kernel.guard

@@ -2,6 +2,8 @@
 
 ## R3.1 validation closeout
 
+Phase 0 follow-up hardens all 12/84/57/120 canonical row identities and requires live clean Git/binary provenance binding before publication. A1 CLI captures every renderer child (including normal exit-2 config rejection); native crashes cannot satisfy negative tests. Manual `native_parent_environment_ab.py` runs a fixed parent-PATH A/B without changing default CTest environment. `a1_observation_performance.py` retains three complete fixed-order timing rounds and a separately labelled, untimed workload audit. Final full presets and Hosted results must refer to one frozen HEAD; earlier passes are not substitutes.
+
 Phase 0 closeout adds request-local capacity-drop/snapshot regressions, deterministic CSV publication tests, retained native child streams/case IDs and Python fault capture. The 120 s source-probe timeout is unchanged. Full preset results and unresolved original failures are recorded in [R3.1 validation closeout](evidence/R31_VALIDATION_CLOSEOUT.md).
 
 ## R3.1 historical observation and explicit L1 research

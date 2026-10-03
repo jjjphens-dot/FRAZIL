@@ -4,6 +4,20 @@ Status: PHASE 0 OPEN / STOP BEFORE PHASE 1. Bounded fixes and reproducible evide
 
 ## Authority and recovery state
 
+### Phase 0 follow-up intake
+
+Latest authority: [current-status plan](../research/water-current-status/FRAZIL_Water_Current_Status_and_Next_Agent_Plan.md), upstream `9b027ecce53429aee61ea050da8d86232dd8f8d7`. Intake HEAD/remote `2c20de25d10471290802ea9a766e6e341ced9359`, clean, ahead/behind 0/0; PR #43 remains draft/open. Its Hosted Windows Debug run 37102955436 completed SUCCESS. Original local failures below remain valid.
+
+Follow-up status: RUNNING, Phase 0 OPEN. Owner: engineering agent; no delegated workers. Ordered scope: publisher completeness and live provenance binding, renderer case capture, controlled parent-runtime A/B, three complete timing rounds, then frozen exact-HEAD full suites and Hosted validation. Next checkpoint: negative evidence tests before native diagnosis. No sound/lifecycle policy changes.
+
+CONFLICT FOUND: older status sections and the Perceptual Contract's illustrative Decay paragraph retain pre-acceptance wording although the accepted brief and current framework header record acceptance. This follow-up uses the current accepted brief for perceptual authority and treats dated execution sections as historical; it does not rewrite controlled contracts or infer algorithm acceptance from implemented code.
+
+Follow-up implementation checkpoint: publisher now checks exact fixed reference/band/preservation/performance keys and live Git HEAD/clean status plus the two binary digests. Evidence regressions: six tests PASS, including matrix mutations, wrong provenance, strict expected CLI exits and environment construction. A1 CLI now captures 183 individually identified children; focused Release and ASAN PASS against the retained cb9ddab binaries. The first harness trial failed with an obsolete `check` keyword; this test-adapter error was repaired and its log retained.
+
+Controlled parent-PATH diagnostic (two preregistered A/B rounds, same retained ASAN native binary, Python 3.12.4, NumPy 2.3.4 and original 24-case workload): A PASS / access violation; B PASS / PASS. A inherits the CTest MSVC runtime path; B removes only that path from the parent and restores it for native children. The second A interrupted 48000 / IIR / Kaiser guard64 in `np.savetxt`, before native launch. Stack again points to NumPy `write_normal` and `savetxt`. Environment interaction is implicated, not proven; one failure in two A trials and none in two B trials do not establish a repair. Default CTest PATH and all native timeouts remain unchanged. Raw evidence stays in `build/r31-closeout/parent-environment-ab/`.
+
+Separate code-quality review: no DSP/header changes; native evidence remains offline; admission/order/RNG unchanged. CLI config-rejection cases accept only exit 2, never an arbitrary crash. Workload counters use a separate untimed benchmark loop, with no per-voice counting branch in timing mode. The next step is a clean Release build and three-round resource/provenance evidence, followed by a final frozen-head validation.
+
 - User plan: [B2/D1 convergence](../research/water-b2-d1-convergence/FRAZIL_B2_D1_Convergence_Agent_Plan.md), upstream `be3fdf606f49e5e5139d4847cc1deb9008036042`.
 - Research intake: `e0b37e0e06d7b4fc8c2c81e05ce05556fd66ddd4`, clean, origin synchronized (0 ahead / 0 behind); PR #42 draft; Hosted Debug PASS 41/41.
 - Work branch: `codex/fix/water-r31-validation-closeout`. The plan branch is based on older code; only its single plan commit was imported, without reverting research implementation.
@@ -120,7 +134,7 @@ The no-consumer L0 mean exceeds rebuilt R3 by about 16.6% in this cell. The coun
 2. Run `render/a1_lifecycle_r31.py --baseline <rebuilt-renderer> --renderer <current-renderer> --compare-l1 --input <source> ... --output build/<new-study>`.
 3. Run the baseline performance executable and current executable with no selector, `--l1`, and `--l1 --trace`; save the four `performance-{before,l0,l1,l1-trace}.csv` files in that study. Additional `--observer-only` and `--trace` runs are separate diagnostics.
 4. Record `PROVENANCE.json` with baseline/current `source_sha`, `working_tree=clean`, `binary_sha256`, toolchain and preset; raw paths stay local.
-5. Run `render/a1_lifecycle_r31_publish.py build/<study> --output docs/evidence/r31-closeout`. It validates all inputs before writing the four canonical CSVs, derives ratios/deadlines and normalizes all empty cells to `N/A`. Two independent publications produced identical bytes. No manual spreadsheet merge or input audio publication.
+5. Run `render/a1_lifecycle_r31_publish.py build/<study> --output <output> --expected-baseline-sha 1092ba01007d70a66ac5204c7d0d7cb070421972 --expected-current-sha <study-build-head> --baseline-binary <rebuilt-renderer> --current-binary <current-renderer>`. The follow-up requires both live binary checkouts at those exact clean revisions and matches the two supplied binary digests against provenance. Historical studies cannot be relabelled as the current build. It validates complete keyed matrices before writing, derives ratios/deadlines and normalizes empty cells to `N/A`. The original publisher produced identical bytes in two publications. No manual spreadsheet merge or input audio publication.
 
 The versioned closeout folder is the canonical evidence for this run. Original R3.1 CSVs remain historical snapshots and are not silently overwritten. Private audio and the local derived pack remain ignored. Exact command/log details live under `build/r31-closeout/`; native failures also retain uniquely named per-run directories under build.
 

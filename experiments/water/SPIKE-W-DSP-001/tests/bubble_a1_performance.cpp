@@ -8,7 +8,7 @@
 #include <vector>
 using namespace frazil::water::research;
 int main(int argc, char** argv) {
-    bool trace = false, l1 = false, observerOnly = false;
+    bool trace = false, l1 = false, observerOnly = false, workloadOnly = false;
     for (int i = 1; i < argc; ++i) {
         if (std::string_view(argv[i]) == "--trace" && !trace)
             trace = true;
@@ -16,6 +16,8 @@ int main(int argc, char** argv) {
             l1 = true;
         else if (std::string_view(argv[i]) == "--observer-only" && !observerOnly)
             observerOnly = true;
+        else if (std::string_view(argv[i]) == "--workload" && !workloadOnly)
+            workloadOnly = true;
         else
             return 2;
     }
@@ -25,7 +27,9 @@ int main(int argc, char** argv) {
     std::cout << "rate,capacity,profile,mean_us,p95_us,p99_us,worst_us,active_mean,active_peak,"
                  "events_per_second,steals,drops,output_sum,trace_drops,policy,starts_per_second,"
                  "firstNonZero_per_second,preStartCull_per_second,causedStealButNeverNonZero,"
-                 "observer_records\n";
+                 "observer_records,measurement_kind,voice_bytes,sidecar_bytes,pool_bytes,"
+                 "voice_sample_visits,first_nonzero_taken,completion_taken,requests_per_callback,"
+                 "sidecar_logical_touches\n";
     for (double rate : {44100., 48000., 96000.})
         for (std::size_t cap : {64u, 128u, 256u, 512u, 1024u})
             for (int profile : {0, 1}) {
@@ -61,6 +65,7 @@ int main(int argc, char** argv) {
                 std::uint64_t eventStart{}, stealStart{}, dropStart{};
                 std::uint64_t startsAtWarmup{};
                 BubbleA1LifecycleCounters lifecycleAtWarmup{};
+                std::uint64_t voiceVisits{}, completionsAtWarmup{};
                 for (int b = -warmup; b < measured; ++b) {
                     if (b == 0) {
                         eventStart = a->requested();
@@ -68,11 +73,24 @@ int main(int argc, char** argv) {
                         dropStart = a->pool().counters().capacityDrops;
                         startsAtWarmup = a->pool().counters().started;
                         lifecycleAtWarmup = a->pool().counters().lifecycle;
+                        completionsAtWarmup = a->pool().counters().completed;
                     }
                     const auto start = std::chrono::steady_clock::now();
-                    for (int n = 0; n < block; ++n) {
-                        const auto y = a->process({.7f, -.7f});
-                        sink += y[0];
+                    if (workloadOnly) {
+                        // Separate audit loop: no per-sample counting branch in timed runs.
+                        for (int n = 0; n < block; ++n) {
+                            const auto before = a->pool().active();
+                            const auto startsBefore = a->pool().counters().started;
+                            const auto y = a->process({.7f, -.7f});
+                            if (b >= 0)
+                                voiceVisits += before + a->pool().counters().started - startsBefore;
+                            sink += y[0];
+                        }
+                    } else {
+                        for (int n = 0; n < block; ++n) {
+                            const auto y = a->process({.7f, -.7f});
+                            sink += y[0];
+                        }
                     }
                     const auto end = std::chrono::steady_clock::now();
                     // Transport writes are timed; consumer/file serialization is not DSP.
@@ -90,10 +108,18 @@ int main(int argc, char** argv) {
                 std::sort(times.begin(), times.end());
                 const auto& counts = a->pool().counters();
                 const double perSecond = rate / (measured * block);
+                const auto& life = counts.lifecycle;
+                // Deferred replacement starts reuse a slot already visited in that sample.
+                if (workloadOnly)
+                    voiceVisits -= life.replacementStarted - lifecycleAtWarmup.replacementStarted;
                 std::cout << rate << ',' << cap << ','
-                          << (profile ? "dense-stress" : "physical-reference") << ',' << mean << ','
-                          << times[2849] << ',' << times[2969] << ',' << times.back() << ','
-                          << activeSum / measured << ',' << peak << ','
+                          << (profile ? "dense-stress" : "physical-reference") << ',';
+                if (workloadOnly)
+                    std::cout << "N/A,N/A,N/A,N/A,";
+                else
+                    std::cout << mean << ',' << times[2849] << ',' << times[2969] << ','
+                              << times.back() << ',';
+                std::cout << activeSum / measured << ',' << peak << ','
                           << (a->requested() - eventStart) * rate / (measured * block) << ','
                           << a->pool().counters().steals - stealStart << ','
                           << a->pool().counters().capacityDrops - dropStart << ',' << sink << ','
@@ -107,6 +133,14 @@ int main(int argc, char** argv) {
                           << ','
                           << counts.lifecycle.causedStealButNeverNonZero -
                                  lifecycleAtWarmup.causedStealButNeverNonZero
-                          << ',' << observedRecords << '\n';
+                          << ',' << observedRecords << ','
+                          << (workloadOnly ? "workload-only-not-timing" : "timing") << ','
+                          << sizeof(BubbleA1Voice) << ',' << sizeof(BubbleA1VoiceObservationState)
+                          << ',' << sizeof(BubbleA1VoicePool) << ',' << voiceVisits << ','
+                          << life.firstNonZero - lifecycleAtWarmup.firstNonZero << ','
+                          << counts.completed - completionsAtWarmup << ','
+                          << double(a->requested() - eventStart) / measured << ','
+                          << (workloadOnly ? voiceVisits + counts.started - startsAtWarmup : 0)
+                          << '\n';
             }
 }

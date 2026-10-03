@@ -1,7 +1,8 @@
 """A1 actual renderer properties; all temporary files stay in the repository build tree."""
 import json
 from pathlib import Path
-import subprocess
+import shutil
+import re
 import sys
 import tempfile
 
@@ -9,9 +10,55 @@ import numpy as np
 import soundfile as sf
 
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "render"))
+from native_case_evidence import run_case
+
+
+class RendererCases:
+    """Test-only child adapter; failures retain mutable inputs and exact case metadata."""
+    def __init__(self, executable, root):
+        self.executable, self.root, self.sequence = executable, root, 0
+
+    def __str__(self):
+        return str(self.executable)
+
+    def invoke(self, command, *, expected=True):
+        args = [str(value) for value in command][1:]
+        policy, trace = "L0", False
+        while args and args[0] in ("--a1-trace", "--a1-lifecycle"):
+            flag, value, *args = args
+            if flag == "--a1-lifecycle":
+                policy = value
+            else:
+                trace = True
+        info = dict(rate="NA", mode="descriptor", component="NA", block="NA", policy=policy,
+                    config_variant="none", purpose="descriptor", trace=trace)
+        config = None
+        if len(args) >= 5:
+            source, output, mode, block = args[:4]
+            info.update(rate=sf.info(source).samplerate, mode=mode,
+                        component=mode.removesuffix("-residual"), block=block,
+                        purpose=Path(output).stem, config_variant=Path(output).stem)
+            if len(args) >= 6:
+                config = Path(args[5])
+        self.sequence += 1
+        label = (f"A1CLI_{self.sequence:03}_RATE{info['rate']}_MODE_{info['mode']}_"
+                 f"COMPONENT_{info['component']}_BLOCK{info['block']}_{info['policy']}_{info['purpose']}")
+        label = re.sub(r"[^A-Za-z0-9_.-]", "_", label)
+        directory = self.root / label
+        directory.mkdir()
+        if config is not None:
+            shutil.copyfile(config, directory / "config.json")
+        result = run_case(command, directory, label, None,
+                          expected_exit_codes=(0,) if expected else (2,), metadata=info)
+        result.stdout = (directory / "stdout.log").read_text(encoding="utf-8", errors="replace")
+        result.stderr = (directory / "stderr.log").read_text(encoding="utf-8", errors="replace")
+        return result
+
+
 def run(renderer, source, output, config, block=128, mode="a1-residual", ok=True):
-    result = subprocess.run([str(renderer), str(source), str(output), mode, str(block), "42",
-                             str(config), "1"], capture_output=True, text=True)
+    result = renderer.invoke([str(renderer), str(source), str(output), mode, str(block), "42",
+                              str(config), "1"], expected=ok)
     if ok:
         assert result.returncode == 0, (result.returncode, result.stdout, result.stderr)
         audio, rate = sf.read(output, always_2d=True)
@@ -21,208 +68,206 @@ def run(renderer, source, output, config, block=128, mode="a1-residual", ok=True
 
 
 def main():
-    renderer = Path(sys.argv[1]).resolve()
-    descriptor = json.loads(subprocess.run([str(renderer), "--describe-bubble-a1"],
-                                          check=True, capture_output=True, text=True).stdout)
+    build = Path(__file__).resolve().parents[4] / "build" / "bubble-a1"
+    build.mkdir(parents=True, exist_ok=True)
+    root = Path(tempfile.mkdtemp(dir=build, prefix="cli-"))
+    print(f"A1 CLI retained evidence: {root}", flush=True)
+    renderer = RendererCases(Path(sys.argv[1]).resolve(), root)
+    descriptor = json.loads(renderer.invoke([str(renderer), "--describe-bubble-a1"]).stdout)
     snapshot = Path(__file__).resolve().parents[2] / "contracts" / "bubble-a1-v2.json"
     assert descriptor == json.loads(snapshot.read_text(encoding="utf-8"))
     assert descriptor["modelVersion"] == descriptor["configVersion"] == 2
     assert len(descriptor["parameters"]) == 22
     assert len({p["name"] for p in descriptor["parameters"]}) == 22
-    build = Path(__file__).resolve().parents[4] / "build" / "bubble-a1"
-    build.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(dir=build, prefix="cli-") as directory:
-        root = Path(directory)
-        config = root / "config.json"
-        for rate in (44100, 48000, 96000):
-            time = np.arange(int(rate * .25) + 3) / rate
-            left = .7 * np.sin(2 * np.pi * 197 * time)
-            source = root / "source.wav"
-            sf.write(source, np.column_stack((left, -.3 * left)), rate, subtype="FLOAT")
-            config.write_text('{"bubbleA1": {"version":2}}', encoding="utf-8")
-            reference, stats = run(renderer, source, root / f"{rate}-base.wav", config)
-            config.write_text(json.dumps({"bubbleA1": {"version": 2, **{
-                p["name"]: p["default"] for p in descriptor["parameters"]}}}), encoding="utf-8")
-            explicit, _ = run(renderer, source, root / f"{rate}-explicit-defaults.wav", config)
-            assert np.array_equal(reference, explicit), "descriptor and typed defaults disagree"
-            trace_path = root / f"{rate}-events.jsonl"
-            traced_path = root / f"{rate}-traced.wav"
-            subprocess.run([str(renderer), "--a1-trace", str(trace_path), str(source),
-                            str(traced_path), "a1-residual", "257", "42", str(config), "1"],
-                           check=True, capture_output=True)
-            assert np.array_equal(reference, sf.read(traced_path, always_2d=True)[0])
-            rows = [json.loads(line) for line in trace_path.read_text().splitlines()]
-            requested = {r["requestId"]: r for r in rows if r["kind"] == "requested"}
-            # Research selector keeps identities/RNG while culling before allocation.
-            l1trace = root / f"{rate}-l1.jsonl"
-            l1out = root / f"{rate}-l1.wav"
-            subprocess.run([str(renderer), "--a1-lifecycle", "l1", "--a1-trace", str(l1trace),
-                            str(source), str(l1out), "a1-residual", "128", "42", str(config), "1"],
-                           check=True, capture_output=True)
-            l1rows = [json.loads(line) for line in l1trace.read_text().splitlines()]
-            for trace_rows in (rows, l1rows):
-                identities = [r["requestId"] for r in trace_rows if r["kind"] == "requested"]
-                outcomes = [r for r in trace_rows if "triggerOutcome" in r]
-                assert sorted(r["requestId"] for r in outcomes) == sorted(identities)
-                assert all(r["traceVersion"] == 4 for r in trace_rows)
-                assert all(r["triggerOutcome"] in ("started", "pendingReplacement",
-                                                    "preStartCulled", "capacityDropped") for r in outcomes)
-            l1requests = [r for r in l1rows if r["kind"] == "requested"]
-            assert len(l1requests) == len(requested)
-            for row in l1requests:
-                old = requested[row["requestId"]]
-                for key in ("requestFrame", "radiusMm", "depthExcitationProxy", "riseXi",
-                            "sourceCarrierL", "sourceCarrierR", "renderAmplitudeL", "renderAmplitudeR"):
-                    assert row[key] == old[key], key
-            last = next(r for r in reversed(l1rows) if r["kind"] == "bandSummary")
-            assert last["requestedCount"] == last["startedCount"] + last["lifecycle"]["preStartCulled"]
-            repeated = root / f"{rate}-l1-partition.wav"
-            subprocess.run([str(renderer), "--a1-lifecycle", "l1", str(source), str(repeated),
-                            "a1-residual", "257", "42", str(config), "1"],
-                           check=True, capture_output=True)
-            assert np.array_equal(sf.read(l1out)[0], sf.read(repeated)[0])
-            for flags in (("--a1-lifecycle", "bad"),
-                          ("--a1-lifecycle", "l1", "--a1-lifecycle", "l0")):
-                invalid = root / f"{rate}-invalid-selector.wav"
-                result = subprocess.run([str(renderer), *flags, str(source), str(invalid),
-                                         "a1", "128", "42"], capture_output=True)
-                assert result.returncode != 0 and not invalid.exists()
-            invalid = root / f"{rate}-wrong-mode.wav"
-            result = subprocess.run([str(renderer), "--a1-lifecycle", "l1", str(source),
-                                     str(invalid), "b2", "128", "42"], capture_output=True)
+    config = root / "config.json"
+    for rate in (44100, 48000, 96000):
+        time = np.arange(int(rate * .25) + 3) / rate
+        left = .7 * np.sin(2 * np.pi * 197 * time)
+        source = root / "source.wav"
+        sf.write(source, np.column_stack((left, -.3 * left)), rate, subtype="FLOAT")
+        config.write_text('{"bubbleA1": {"version":2}}', encoding="utf-8")
+        reference, stats = run(renderer, source, root / f"{rate}-base.wav", config)
+        config.write_text(json.dumps({"bubbleA1": {"version": 2, **{
+            p["name"]: p["default"] for p in descriptor["parameters"]}}}), encoding="utf-8")
+        explicit, _ = run(renderer, source, root / f"{rate}-explicit-defaults.wav", config)
+        assert np.array_equal(reference, explicit), "descriptor and typed defaults disagree"
+        trace_path = root / f"{rate}-events.jsonl"
+        traced_path = root / f"{rate}-traced.wav"
+        renderer.invoke([str(renderer), "--a1-trace", str(trace_path), str(source),
+                        str(traced_path), "a1-residual", "257", "42", str(config), "1"])
+        assert np.array_equal(reference, sf.read(traced_path, always_2d=True)[0])
+        rows = [json.loads(line) for line in trace_path.read_text().splitlines()]
+        requested = {r["requestId"]: r for r in rows if r["kind"] == "requested"}
+        # Research selector keeps identities/RNG while culling before allocation.
+        l1trace = root / f"{rate}-l1.jsonl"
+        l1out = root / f"{rate}-l1.wav"
+        renderer.invoke([str(renderer), "--a1-lifecycle", "l1", "--a1-trace", str(l1trace),
+                        str(source), str(l1out), "a1-residual", "128", "42", str(config), "1"])
+        l1rows = [json.loads(line) for line in l1trace.read_text().splitlines()]
+        for trace_rows in (rows, l1rows):
+            identities = [r["requestId"] for r in trace_rows if r["kind"] == "requested"]
+            outcomes = [r for r in trace_rows if "triggerOutcome" in r]
+            assert sorted(r["requestId"] for r in outcomes) == sorted(identities)
+            assert all(r["traceVersion"] == 4 for r in trace_rows)
+            assert all(r["triggerOutcome"] in ("started", "pendingReplacement",
+                                                "preStartCulled", "capacityDropped") for r in outcomes)
+        l1requests = [r for r in l1rows if r["kind"] == "requested"]
+        assert len(l1requests) == len(requested)
+        for row in l1requests:
+            old = requested[row["requestId"]]
+            for key in ("requestFrame", "radiusMm", "depthExcitationProxy", "riseXi",
+                        "sourceCarrierL", "sourceCarrierR", "renderAmplitudeL", "renderAmplitudeR"):
+                assert row[key] == old[key], key
+        last = next(r for r in reversed(l1rows) if r["kind"] == "bandSummary")
+        assert last["requestedCount"] == last["startedCount"] + last["lifecycle"]["preStartCulled"]
+        repeated = root / f"{rate}-l1-partition.wav"
+        renderer.invoke([str(renderer), "--a1-lifecycle", "l1", str(source), str(repeated),
+                        "a1-residual", "257", "42", str(config), "1"])
+        assert np.array_equal(sf.read(l1out)[0], sf.read(repeated)[0])
+        for flags in (("--a1-lifecycle", "bad"),
+                      ("--a1-lifecycle", "l1", "--a1-lifecycle", "l0")):
+            invalid = root / f"{rate}-invalid-selector.wav"
+            result = renderer.invoke([str(renderer), *flags, str(source), str(invalid),
+                                     "a1", "128", "42"], expected=False)
             assert result.returncode != 0 and not invalid.exists()
-            started = [r for r in rows if r["kind"] == "started"]
-            bands = [r for r in rows if r["kind"] == "bandSummary"]
-            assert len(bands) == 7 and sum(r["bandStarted"] for r in bands) == len(started)
-            assert sum(r["bandRequested"] for r in bands) == len(requested)
-            for row in started:
-                request = requested[row["requestId"]]
-                assert row["requestFrame"] == request["frame"] <= row["frame"]
-                for field in ("radiusMm", "physicalDampingPerSecond", "tauSeconds",
-                              "sourceCarrierL", "sourceCarrierR", "renderAmplitudeL",
-                              "renderAmplitudeR", "riseXi", "depthAmplitudeGamma"):
-                    assert row[field] == request[field]
-                assert np.isclose(row["renderAmplitudeL"], row["sourceCarrierL"] *
-                                  row["radiusAmplitudeScale"] * row["audibleDepth"] * .2)
-                expected_slope = row["initialFrequencyHz"] * row["riseXi"] / row["tauSeconds"]
-                assert np.isclose(row["predictedRiseHzPerSecond"], expected_slope)
-            # Persistence changes tau/P1 slope, not the captured initial amplitude or scheduling.
-            for persistence in (.25, 4.):
-                config.write_text(json.dumps({"bubbleA1": {"version": 2,
-                    "persistenceScale": persistence}}), encoding="utf-8")
-                pt = root / f"{rate}-p{persistence}.jsonl"
-                subprocess.run([str(renderer), "--a1-trace", str(pt), str(source),
-                                str(root / f"{rate}-p{persistence}.wav"), "a1-residual", "128", "42",
-                                str(config), "1"], check=True, capture_output=True)
-                altered = [json.loads(line) for line in pt.read_text().splitlines()]
-                altered = [r for r in altered if r["kind"] == "requested"]
-                assert len(altered) == len(requested)
-                for r in altered:
-                    base = requested[r["requestId"]]
-                    for key in ("frame", "radiusMm", "renderAmplitudeL", "renderAmplitudeR", "riseXi"):
-                        assert r[key] == base[key]
-                    assert np.isclose(r["tauSeconds"], persistence * base["tauSeconds"])
-                    assert np.isclose(r["predictedRiseHzPerSecond"] * persistence,
-                                      base["predictedRiseHzPerSecond"])
-            config.write_text(json.dumps({"bubbleA1": {"version": 2}}), encoding="utf-8")
-            # Existing trace files must never be overwritten.
-            rejected = subprocess.run([str(renderer), "--a1-trace", str(trace_path), str(source),
-                                       str(root / "forbidden.wav"), "a1", "128", "42"],
-                                      capture_output=True)
-            assert rejected.returncode != 0 and not (root / "forbidden.wav").exists()
-            assert "bubble_model=A1" in stats and "radius_hist=" in stats
-            fields = dict(token.split("=", 1) for token in stats.split() if "=" in token)
-            assert int(fields["bubble_events"]) == int(fields["started"]) > 0
-            assert int(fields["bubble_first_frame"]) == int(fields["a1_started_frame"]) >= 0
-            assert 0 <= int(fields["a1_requested_frame"]) <= int(fields["a1_started_frame"])
-            assert int(fields["a1_start_on_zero_current_frame"]) == int(fields["bubble_silent_events"])
-            assert int(fields["a1_source_window_active"]) > 0
-            assert np.square(reference).sum() > 0
-            for mode, components in (("a1b", ("a1", "b")), ("a1d", ("a1", "d")),
-                                     ("a1bd", ("a1", "b", "d"))):
-                combined, _ = run(renderer, source, root / f"{rate}-{mode}.wav", config, mode=mode+"-residual")
-                expected = reference.copy()
-                empty = root / "empty.json"
-                empty.write_text("{}", encoding="utf-8")
-                for component in components[1:]:
-                    part, _ = run(renderer, source, root / f"{rate}-{mode}-{component}.wav",
-                                  empty, mode=component+"-residual")
-                    expected += part
-                assert np.max(np.abs(combined-expected)) < 1e-7
-            for block in (1, 7, 32, 64, 256, 257, 512, 1024):
-                actual, _ = run(renderer, source, root / f"{rate}-{block}.wav", config, block)
-                assert np.array_equal(reference, actual)
-            sf.write(source, np.column_stack((-.3 * left, left)), rate, subtype="FLOAT")
-            swapped, _ = run(renderer, source, root / f"{rate}-swap.wav", config)
-            assert np.array_equal(reference[:, ::-1], swapped)
-            for stereo in ("left", "mono", "anti"):
-                right = np.zeros_like(left) if stereo == "left" else left if stereo == "mono" else -left
-                sf.write(source, np.column_stack((left, right)), rate, subtype="FLOAT")
-                actual, _ = run(renderer, source, root / f"{rate}-{stereo}.wav", config)
-                expected = np.zeros(len(actual)) if stereo == "left" else actual[:, 0] * (1 if stereo == "mono" else -1)
-                assert np.array_equal(actual[:, 1], expected)
-            # File-level asymmetric/phase/decorrelated/transient coverage, in addition to
-            # the C++ independent shared-frame oracle and per-request trajectory checks.
-            rng = np.random.default_rng(719)
-            for label, pair in (
-                ("right", np.column_stack((np.zeros_like(left), left))),
-                ("quadrature", np.column_stack((left, .7*np.cos(2*np.pi*197*time)))),
-                ("decorrelated", np.column_stack((left, rng.uniform(-.5,.5,len(left))))),
-                ("transients", np.column_stack((np.where(np.arange(len(left))%113==0,.9,.1*left),
-                                                  np.where(np.arange(len(left))%127==0,-.6,-.2*left))))):
-                sf.write(source, pair, rate, subtype="FLOAT")
-                actual, trace = run(renderer, source, root / f"{rate}-{label}.wav", config)
-                sf.write(source, pair[:, ::-1], rate, subtype="FLOAT")
-                reverse, reverse_trace = run(renderer, source, root / f"{rate}-{label}-swap.wav", config)
-                assert np.array_equal(actual[:, ::-1], reverse)
-                if label == "right":
-                    assert not np.any(actual[:,0]) and np.any(actual[:,1])
-                def counters(text):
-                    return {k:v for k,v in (t.split("=",1) for t in text.split() if "=" in t)
-                            if k in ("requested","started","radius_hist","lifetime_hist","rising")}
-                assert counters(trace) == counters(reverse_trace)
-            config.write_text('{"bubbleA1":{"version":2,"motionFactor":0}}', encoding="utf-8")
-            silent, stats = run(renderer, source, root / f"{rate}-zero.wav", config)
-            assert not np.any(silent) and "requested=0 " in stats
-            # Zero current frames coexist with an active 2 ms window; these starts
-            # are source-linked, not spontaneous events. Keep the distinction executable.
-            pulses = np.zeros((len(left), 2))
-            pulses[100::16, 0] = .9
-            sf.write(source, pulses, rate, subtype="FLOAT")
-            config.write_text('{"bubbleA1":{"version":2,"maxEventRateHz":10000}}', encoding="utf-8")
-            _, stats = run(renderer, source, root / f"{rate}-window.wav", config)
-            fields = dict(token.split("=", 1) for token in stats.split() if "=" in token)
-            assert int(fields["a1_start_on_zero_current_frame"]) > 0
-            assert int(fields["a1_source_window_active"]) > 0
-            assert int(fields["a1_requested_frame"]) >= 100
-        invalid = [
-            '{"bubbleA1":{}}',
-            '{"bubbleA1":{"version":1}}',
-            '{"bubbleA1":{"version":2,"riseFactor":0.1}}',
-            '{"bubbleA1":{"version":2,"riseModel":0.5}}',
-            '{"bubbleA1":{"version":2,"riseModel":2}}',
-            '{"bubbleA1":{"version":2,"radiusMinMm":2,"radiusMaxMm":2}}',
-            '{"bubbleA1":{"version":2,"voiceCapacity":65}}',
-            '{"bubbleA1":{"version":2,"voiceCapacity":64.5}}',
-            '{"bubbleA1":{"version":2,"maxEventRateHz":10001}}',
-            '{"bubbleA1":{"version":2,"sourceEnergyAmplitude":2}}',
-            '{"bubbleA1":{"version":2,"radiusMinMm":NaN}}',
-            '{"bubbleA1":{"version":2,"radiusMinMm":1,"radiusMinMm":2}}',
-            '{"bubbleA1":{"version":2,"fastAttackMs":0}}',
-            '{"bubbleA1":{"version":2,"unknown":1}}',
-            '{"bubbleA1":{"version":2,"motionFactor":true}}',
-            '{"bubbleA1":{"version":2}} trailing',
-            '{"bubbleA1":{"version":2},"protect":{"depth":1}}',
-        ]
-        # Descriptor bounds are executable: parser/DSP must reject each field outside them.
-        for parameter in descriptor["parameters"]:
-            for value in (parameter["minimum"] - 1, parameter["maximum"] + 1):
-                invalid.append(json.dumps({"bubbleA1": {"version": 2, parameter["name"]: value}}))
-        for i, text in enumerate(invalid):
-            config.write_text(text, encoding="utf-8")
-            run(renderer, source, root / f"bad-{i}.wav", config, ok=False)
-        config.write_text('{"bubbleA1":{"version":2}}', encoding="utf-8")
-        run(renderer, source, root / "implicit-upgrade.wav", config, mode="a-residual", ok=False)
+        invalid = root / f"{rate}-wrong-mode.wav"
+        result = renderer.invoke([str(renderer), "--a1-lifecycle", "l1", str(source),
+                                 str(invalid), "b2", "128", "42"], expected=False)
+        assert result.returncode != 0 and not invalid.exists()
+        started = [r for r in rows if r["kind"] == "started"]
+        bands = [r for r in rows if r["kind"] == "bandSummary"]
+        assert len(bands) == 7 and sum(r["bandStarted"] for r in bands) == len(started)
+        assert sum(r["bandRequested"] for r in bands) == len(requested)
+        for row in started:
+            request = requested[row["requestId"]]
+            assert row["requestFrame"] == request["frame"] <= row["frame"]
+            for field in ("radiusMm", "physicalDampingPerSecond", "tauSeconds",
+                          "sourceCarrierL", "sourceCarrierR", "renderAmplitudeL",
+                          "renderAmplitudeR", "riseXi", "depthAmplitudeGamma"):
+                assert row[field] == request[field]
+            assert np.isclose(row["renderAmplitudeL"], row["sourceCarrierL"] *
+                              row["radiusAmplitudeScale"] * row["audibleDepth"] * .2)
+            expected_slope = row["initialFrequencyHz"] * row["riseXi"] / row["tauSeconds"]
+            assert np.isclose(row["predictedRiseHzPerSecond"], expected_slope)
+        # Persistence changes tau/P1 slope, not the captured initial amplitude or scheduling.
+        for persistence in (.25, 4.):
+            config.write_text(json.dumps({"bubbleA1": {"version": 2,
+                "persistenceScale": persistence}}), encoding="utf-8")
+            pt = root / f"{rate}-p{persistence}.jsonl"
+            renderer.invoke([str(renderer), "--a1-trace", str(pt), str(source),
+                            str(root / f"{rate}-p{persistence}.wav"), "a1-residual", "128", "42",
+                            str(config), "1"], )
+            altered = [json.loads(line) for line in pt.read_text().splitlines()]
+            altered = [r for r in altered if r["kind"] == "requested"]
+            assert len(altered) == len(requested)
+            for r in altered:
+                base = requested[r["requestId"]]
+                for key in ("frame", "radiusMm", "renderAmplitudeL", "renderAmplitudeR", "riseXi"):
+                    assert r[key] == base[key]
+                assert np.isclose(r["tauSeconds"], persistence * base["tauSeconds"])
+                assert np.isclose(r["predictedRiseHzPerSecond"] * persistence,
+                                  base["predictedRiseHzPerSecond"])
+        config.write_text(json.dumps({"bubbleA1": {"version": 2}}), encoding="utf-8")
+        # Existing trace files must never be overwritten.
+        rejected = renderer.invoke([str(renderer), "--a1-trace", str(trace_path), str(source),
+                                   str(root / "forbidden.wav"), "a1", "128", "42"],
+                                  expected=False)
+        assert rejected.returncode != 0 and not (root / "forbidden.wav").exists()
+        assert "bubble_model=A1" in stats and "radius_hist=" in stats
+        fields = dict(token.split("=", 1) for token in stats.split() if "=" in token)
+        assert int(fields["bubble_events"]) == int(fields["started"]) > 0
+        assert int(fields["bubble_first_frame"]) == int(fields["a1_started_frame"]) >= 0
+        assert 0 <= int(fields["a1_requested_frame"]) <= int(fields["a1_started_frame"])
+        assert int(fields["a1_start_on_zero_current_frame"]) == int(fields["bubble_silent_events"])
+        assert int(fields["a1_source_window_active"]) > 0
+        assert np.square(reference).sum() > 0
+        for mode, components in (("a1b", ("a1", "b")), ("a1d", ("a1", "d")),
+                                 ("a1bd", ("a1", "b", "d"))):
+            combined, _ = run(renderer, source, root / f"{rate}-{mode}.wav", config, mode=mode+"-residual")
+            expected = reference.copy()
+            empty = root / "empty.json"
+            empty.write_text("{}", encoding="utf-8")
+            for component in components[1:]:
+                part, _ = run(renderer, source, root / f"{rate}-{mode}-{component}.wav",
+                              empty, mode=component+"-residual")
+                expected += part
+            assert np.max(np.abs(combined-expected)) < 1e-7
+        for block in (1, 7, 32, 64, 256, 257, 512, 1024):
+            actual, _ = run(renderer, source, root / f"{rate}-{block}.wav", config, block)
+            assert np.array_equal(reference, actual)
+        sf.write(source, np.column_stack((-.3 * left, left)), rate, subtype="FLOAT")
+        swapped, _ = run(renderer, source, root / f"{rate}-swap.wav", config)
+        assert np.array_equal(reference[:, ::-1], swapped)
+        for stereo in ("left", "mono", "anti"):
+            right = np.zeros_like(left) if stereo == "left" else left if stereo == "mono" else -left
+            sf.write(source, np.column_stack((left, right)), rate, subtype="FLOAT")
+            actual, _ = run(renderer, source, root / f"{rate}-{stereo}.wav", config)
+            expected = np.zeros(len(actual)) if stereo == "left" else actual[:, 0] * (1 if stereo == "mono" else -1)
+            assert np.array_equal(actual[:, 1], expected)
+        # File-level asymmetric/phase/decorrelated/transient coverage, in addition to
+        # the C++ independent shared-frame oracle and per-request trajectory checks.
+        rng = np.random.default_rng(719)
+        for label, pair in (
+            ("right", np.column_stack((np.zeros_like(left), left))),
+            ("quadrature", np.column_stack((left, .7*np.cos(2*np.pi*197*time)))),
+            ("decorrelated", np.column_stack((left, rng.uniform(-.5,.5,len(left))))),
+            ("transients", np.column_stack((np.where(np.arange(len(left))%113==0,.9,.1*left),
+                                              np.where(np.arange(len(left))%127==0,-.6,-.2*left))))):
+            sf.write(source, pair, rate, subtype="FLOAT")
+            actual, trace = run(renderer, source, root / f"{rate}-{label}.wav", config)
+            sf.write(source, pair[:, ::-1], rate, subtype="FLOAT")
+            reverse, reverse_trace = run(renderer, source, root / f"{rate}-{label}-swap.wav", config)
+            assert np.array_equal(actual[:, ::-1], reverse)
+            if label == "right":
+                assert not np.any(actual[:,0]) and np.any(actual[:,1])
+            def counters(text):
+                return {k:v for k,v in (t.split("=",1) for t in text.split() if "=" in t)
+                        if k in ("requested","started","radius_hist","lifetime_hist","rising")}
+            assert counters(trace) == counters(reverse_trace)
+        config.write_text('{"bubbleA1":{"version":2,"motionFactor":0}}', encoding="utf-8")
+        silent, stats = run(renderer, source, root / f"{rate}-zero.wav", config)
+        assert not np.any(silent) and "requested=0 " in stats
+        # Zero current frames coexist with an active 2 ms window; these starts
+        # are source-linked, not spontaneous events. Keep the distinction executable.
+        pulses = np.zeros((len(left), 2))
+        pulses[100::16, 0] = .9
+        sf.write(source, pulses, rate, subtype="FLOAT")
+        config.write_text('{"bubbleA1":{"version":2,"maxEventRateHz":10000}}', encoding="utf-8")
+        _, stats = run(renderer, source, root / f"{rate}-window.wav", config)
+        fields = dict(token.split("=", 1) for token in stats.split() if "=" in token)
+        assert int(fields["a1_start_on_zero_current_frame"]) > 0
+        assert int(fields["a1_source_window_active"]) > 0
+        assert int(fields["a1_requested_frame"]) >= 100
+    invalid = [
+        '{"bubbleA1":{}}',
+        '{"bubbleA1":{"version":1}}',
+        '{"bubbleA1":{"version":2,"riseFactor":0.1}}',
+        '{"bubbleA1":{"version":2,"riseModel":0.5}}',
+        '{"bubbleA1":{"version":2,"riseModel":2}}',
+        '{"bubbleA1":{"version":2,"radiusMinMm":2,"radiusMaxMm":2}}',
+        '{"bubbleA1":{"version":2,"voiceCapacity":65}}',
+        '{"bubbleA1":{"version":2,"voiceCapacity":64.5}}',
+        '{"bubbleA1":{"version":2,"maxEventRateHz":10001}}',
+        '{"bubbleA1":{"version":2,"sourceEnergyAmplitude":2}}',
+        '{"bubbleA1":{"version":2,"radiusMinMm":NaN}}',
+        '{"bubbleA1":{"version":2,"radiusMinMm":1,"radiusMinMm":2}}',
+        '{"bubbleA1":{"version":2,"fastAttackMs":0}}',
+        '{"bubbleA1":{"version":2,"unknown":1}}',
+        '{"bubbleA1":{"version":2,"motionFactor":true}}',
+        '{"bubbleA1":{"version":2}} trailing',
+        '{"bubbleA1":{"version":2},"protect":{"depth":1}}',
+    ]
+    # Descriptor bounds are executable: parser/DSP must reject each field outside them.
+    for parameter in descriptor["parameters"]:
+        for value in (parameter["minimum"] - 1, parameter["maximum"] + 1):
+            invalid.append(json.dumps({"bubbleA1": {"version": 2, parameter["name"]: value}}))
+    for i, text in enumerate(invalid):
+        config.write_text(text, encoding="utf-8")
+        run(renderer, source, root / f"bad-{i}.wav", config, ok=False)
+    config.write_text('{"bubbleA1":{"version":2}}', encoding="utf-8")
+    run(renderer, source, root / "implicit-upgrade.wav", config, mode="a-residual", ok=False)
+    assert root.resolve().is_relative_to(build.resolve())
+    shutil.rmtree(root)  # Only after every assertion passes; failures retain the complete run.
     print("A1 renderer partition/stereo/silence/strict-config PASS")
 
 
