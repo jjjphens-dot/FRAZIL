@@ -42,9 +42,13 @@ class ImpactTests(unittest.TestCase):
                      ".github/ISSUE_TEMPLATE/bug.yml", ".github/pull_request_template.md"):
             self.assertFalse(route([path])["core_required"], path)
         self.assertFalse(executable_doc_diff("-Daily checks are useful\n+Daily checks are required"))
+        self.assertFalse(executable_doc_diff("-Python uses CMake\n+Python and CMake remain portable"))
 
     def test_executable_contract_document(self):
         self.assertTrue(executable_doc_diff("-ctest --preset windows-debug-core\n+ctest --preset windows-debug-full"))
+        for command in (r"+ .\tools\bootstrap_dependencies.ps1",
+                        r"- .\tools\vscode_msvc_env.cmd", r"+ .\tools\bootstrap_dependencies.PS1"):
+            self.assertTrue(executable_doc_diff(command), command)
         result = route(["docs/TESTING.md"], executable_docs={"docs/TESTING.md"})
         self.assertTrue(result["core_required"])
         self.assertEqual(result["modules"], list(MODULES))

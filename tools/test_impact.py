@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Route changed paths to fast test owners using local C++ include dependencies.
+"""Route changed paths to fast test owners using local C++ and Python dependencies.
 
 Unknown executable infrastructure is conservative (all modules). Research-only
 scripts still select their owner; full numerical/listening studies require the
@@ -73,8 +73,8 @@ def documentation(path: str) -> bool:
 def executable_doc_diff(diff: str) -> bool:
     """Command/preset changes in prose require engineering checks; wording does not."""
     return any(re.search(r"\b(cmake|ctest|python(?:3)?|ninja)\s+[-\w]|"
-                         r"CMakePresets\.json|\.github/workflows/|tools/[\w/-]+\.(py|ps1|cmd)|"
-                         r"\b(?:FRAZIL|CMAKE)_[A-Z_]+", line[1:])
+                         r"CMakePresets\.json|\.github/workflows/|(?i:tools/[\w/-]+\.(py|ps1|cmd))|"
+                         r"\b(?:FRAZIL|CMAKE)_[A-Z_]+", line[1:].replace("\\", "/"))
                for line in diff.splitlines()
                if line.startswith(("+", "-")) and not line.startswith(("+++", "---")))
 

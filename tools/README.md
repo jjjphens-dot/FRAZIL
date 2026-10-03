@@ -15,7 +15,8 @@ module. Unknown infrastructure and new/deleted executable files conservatively s
 modules. Private test-source changes select their owner; production-only sources select Core
 unless actually consumed by Water. Wording-only documentation changes retain the lightweight
 Core policy check without Windows build/CTest; executable commands in documentation are
-checked conservatively. `test_test_impact.py` covers these routing decisions.
+checked conservatively, including Windows backslash paths and script-path casing.
+`test_test_impact.py` covers these routing decisions.
 Fast Python audio tests and Full install canonical `requirements-dsp.txt`; Core requires
 only the standard library. No dependency versions are copied into the workflow.
 
