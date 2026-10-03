@@ -2,7 +2,16 @@
 
 ## Test path infrastructure
 
-P0 review follow-up is implemented locally on the current research baseline: module presets now select module AND fast, with matching build groups and an executable selection checker. Core 7/7, Fast 29/29, every module-fast preset and Full Debug 42/42 pass in the current run. P0 COMPLETE / READY FOR REVIEW; P1 NOT STARTED. The first attempt's convergence timeout and Python/SciPy access violation remain OPEN; this pass does not establish their root cause or resolution. CI routing and P1-P6 remain pending. [Execution and retained failures](testing/TEST_PATH_EXECUTION.md).
+The systematic test-path implementation is local on `codex/refactor/test-paths`, based
+on Water `ff75735` and prior P0 commits. CLI/matrix splits, B2 performance isolation,
+Preview groups and CI routing are implemented. Core 8/8, Fast 42/42 and every module-fast
+path pass. Debug Full first run is 61/62: the unchanged testdata regeneration script exited
+`0xc0000409` in `python312.dll`; one fault-handler diagnostic run passed without establishing
+cause. Release Full is60/62 (testdata exception and renderer Python segfault); ASAN Full
+is61/62 (testdata Python access violation). All builds pass. The systematic refactor is
+INCOMPLETE/BLOCKED at final validation; these failures are not repaired or replaced by retries. Hosted execution, independent approval and publication are not
+claimed. [Execution, per-path timings and failures](testing/TEST_PATH_EXECUTION.md).
+The historical Water convergence timeout, Python/native faults and realtime margin remain OPEN.
 
 ## R3.1 validation closeout
 

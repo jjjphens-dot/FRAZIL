@@ -30,7 +30,7 @@ TEST_PROFILES = (
 )
 SUPPORTED_PRESETS = BASE_PRESETS + tuple(
     f"{base}-{profile}" for base in BASE_PRESETS for profile in TEST_PROFILES
-    if base == "windows-debug" or profile in ("core", "fast", "full")
+    if base in {"windows-debug", "ci-windows-debug"} or profile in ("core", "fast", "full")
 )
 
 

@@ -240,6 +240,24 @@ source format 检查只对其覆盖的 source path 生效。CI 即使因平台�
 
 CI 不应使用本机盘符、compiler/SDK 安装目录或用户名路径。`windows-debug`、`windows-release`、`windows-asan` 与 `ci-windows-debug` 共享 portable tool discovery；本地差异通过 ignored `CMakeUserPresets.json` 注入，CI 不读取该文件。
 
+### Impact-based test jobs
+
+`impact` compares PR base/head or push before/head using `tools/test_impact.py`. Missing
+dispatch/root-commit bases select all modules and deep corpus validation; invalid Git bases fail rather than skip tests.
+Local quoted C++ includes and linked sources determine actual fast consumers. Unknown
+scripts/config/build files conservatively select all modules. `ci-core` always runs repository
+tool checks, builds Core and runs Core AND Fast without the research Python stack.
+`ci-water-fast` builds/runs selected module-fast presets serially and installs canonical
+`requirements-dsp.txt` only when selected B1/D1 Python audio checks need it.
+
+Testdata/generator changes additionally run deep corpus regeneration. `workflow_dispatch`
+with `full_validation=true` runs unfiltered Debug, Release and ASAN Full on a serial matrix,
+including all configured native, convergence, listening-pack and performance observations.
+The independent D1 study dispatch remains available. These are engineering paths, not
+human listening or production acceptance. Preserve first-run JUnit/CTest/build logs using
+the workflow artifacts; unexplained failures must not be replaced by retry-until-pass.
+Changing the YAML does not demonstrate Hosted success or change remote protection rules.
+
 ## 8. Release 与版本
 
 Pre-v1 使用 SemVer prerelease：`0.1.0-alpha.1` 等。版本来源应唯一（顶层 CMake 或生成的 version header），VST3 metadata、Standalone About、artifact 名称和 tag 保持一致。

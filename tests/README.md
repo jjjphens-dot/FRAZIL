@@ -2,7 +2,12 @@
 
 ## Test execution paths
 
-Daily regression uses `windows-debug-fast`; core/module/full build and CTest selections are documented in the [coverage matrix](../docs/testing/TEST_PATH_MATRIX.md). P0 preserves all tests. Module presets select module AND fast; a module label alone includes slow tests. The matrix documents the unchanged B2 timing diagnostics and later split boundaries.
+Use `windows-debug-core`, `windows-debug-fast`, or a module-fast suffix from the
+[coverage matrix](../docs/testing/TEST_PATH_MATRIX.md). Configure the base preset first;
+build with `tools/build_safe.py --preset <profile>`, then run the matching CTest preset.
+Core includes lightweight corpus verification. Full includes deep regeneration, original
+Water matrices, isolated native/listening/performance validation and all Preview groups.
+Smoke selects only `frazil_smoke`. The execution report retains failures as well as passes.
 
 当前测试 target：
 

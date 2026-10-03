@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iostream>
 #include <limits>
+#include <string_view>
 
 using namespace frazil::water;
 
@@ -21,32 +22,9 @@ int runAuditionWorkflowTests();
 int runReworkedCoreTests();
 int runReworkedParameterTests();
 
-int main(int argc, char** argv) {
-    juce::ScopedJuceInitialiser_GUI gui;
-    if (argc == 3 && std::string_view(argv[1]) == "--device-smoke") {
-        preview::PreviewController device;
-        auto error = device.load(juce::File::getCurrentWorkingDirectory().getChildFile(argv[2]));
-        preview::PreviewSettings settings;
-        settings.mode = 8;
-        device.setMonitor(preview::MonitorMode::dry, -18);
-        if (error.isEmpty())
-            error = device.play(settings);
-        if (error.isNotEmpty()) {
-            std::cerr << error << '\n';
-            return 1;
-        }
-        juce::Thread::sleep(500);
-        const bool advanced = device.positionSeconds() > 0 && !device.deviceRateMismatch();
-        std::cout << device.rateDescription() << " | position " << device.positionSeconds()
-                  << " | log " << device.logStatus() << '\n';
-        device.stop();
-        return advanced ? 0 : 1;
-    }
-    int failures = runMonitorRateTests() + runTimeValueTests() + runDescriptorTests() +
-                   runSessionTests() + runSessionCodecTests() + runPreviewProtectTests() +
-                   runProtectDiagnosticsTests() + runWorkflowTests() + runOperationTests() +
-                   runAuditionTests() + runAuditionWorkflowTests() + runReworkedCoreTests() +
-                   runReworkedParameterTests();
+namespace {
+int runCoreIntegrationTests() {
+    int failures{};
     const auto check = [&](bool result, const char* name) {
         if (!result) {
             std::cerr << "FAIL " << name << '\n';
@@ -194,6 +172,12 @@ int main(int argc, char** argv) {
     settings.values[0] = std::numeric_limits<double>::quiet_NaN();
     check(!changed.prepare(48000, settings), "nonfinite engineering field rejected");
 
+    return failures;
+}
+
+void runPreviewPerformance() {
+    preview::PreviewSettings settings;
+    preview::PreviewEngine first;
     // Same fixed workload, preliminary engineering timing only; no formal CPU budget claim.
     settings = {};
     first.prepare(48000, settings);
@@ -205,6 +189,57 @@ int main(int argc, char** argv) {
         std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - begin).count();
     std::cout << "preview ABD mean us per 128 frames=" << elapsed / 2000.0
               << " observation=" << sink << '\n';
+}
+} // namespace
+
+int main(int argc, char** argv) {
+    juce::ScopedJuceInitialiser_GUI gui;
+    if (argc == 3 && std::string_view(argv[1]) == "--device-smoke") {
+        preview::PreviewController device;
+        auto error = device.load(juce::File::getCurrentWorkingDirectory().getChildFile(argv[2]));
+        preview::PreviewSettings settings;
+        settings.mode = 8;
+        device.setMonitor(preview::MonitorMode::dry, -18);
+        if (error.isEmpty())
+            error = device.play(settings);
+        if (error.isNotEmpty()) {
+            std::cerr << error << '\n';
+            return 1;
+        }
+        juce::Thread::sleep(500);
+        const bool advanced = device.positionSeconds() > 0 && !device.deviceRateMismatch();
+        std::cout << device.rateDescription() << " | position " << device.positionSeconds()
+                  << " | log " << device.logStatus() << '\n';
+        device.stop();
+        return advanced ? 0 : 1;
+    }
+    const std::string_view group = argc == 3 && std::string_view(argv[1]) == "--group" ? argv[2]
+                                   : argc == 1                                         ? "all"
+                                                                                       : "invalid";
+    if (group != "all" && group != "core" && group != "session" && group != "diagnostics" &&
+        group != "audition" && group != "parameters" && group != "workflow" &&
+        group != "performance") {
+        std::cerr << "Unknown Preview test group\n";
+        return 2;
+    }
+    const auto selected = [&](std::string_view name) { return group == "all" || group == name; };
+    int failures = 0;
+    if (selected("core"))
+        failures += runMonitorRateTests() + runTimeValueTests() + runReworkedCoreTests();
+    if (selected("session"))
+        failures += runSessionTests() + runSessionCodecTests();
+    if (selected("diagnostics"))
+        failures += runPreviewProtectTests() + runProtectDiagnosticsTests();
+    if (selected("workflow"))
+        failures += runWorkflowTests() + runOperationTests();
+    if (selected("audition"))
+        failures += runAuditionTests() + runAuditionWorkflowTests();
+    if (selected("parameters"))
+        failures += runDescriptorTests() + runReworkedParameterTests();
+    if (selected("core"))
+        failures += runCoreIntegrationTests();
+    if (selected("performance"))
+        runPreviewPerformance();
     std::cout << "preview tests failures=" << failures << '\n';
     return failures == 0 ? 0 : 1;
 }

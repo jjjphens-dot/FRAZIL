@@ -252,6 +252,62 @@
         "frazil_full_tests",
         "frazil_performance"
       ]
+    },
+    {
+      "name": "ci-windows-debug-smoke",
+      "inherits": "ci-windows-debug",
+      "targets": [
+        "frazil_smoke"
+      ]
+    },
+    {
+      "name": "ci-windows-debug-water-common",
+      "inherits": "ci-windows-debug",
+      "targets": [
+        "frazil_water_common_test_group"
+      ]
+    },
+    {
+      "name": "ci-windows-debug-water-a1",
+      "inherits": "ci-windows-debug",
+      "targets": [
+        "frazil_water_a1_test_group"
+      ]
+    },
+    {
+      "name": "ci-windows-debug-water-b1",
+      "inherits": "ci-windows-debug",
+      "targets": [
+        "frazil_water_b1_test_group"
+      ]
+    },
+    {
+      "name": "ci-windows-debug-water-b2",
+      "inherits": "ci-windows-debug",
+      "targets": [
+        "frazil_water_b2_test_group"
+      ]
+    },
+    {
+      "name": "ci-windows-debug-water-d1",
+      "inherits": "ci-windows-debug",
+      "targets": [
+        "frazil_water_d1_test_group"
+      ]
+    },
+    {
+      "name": "ci-windows-debug-water-protect",
+      "inherits": "ci-windows-debug",
+      "targets": [
+        "frazil_water_protect_test_group"
+      ]
+    },
+    {
+      "name": "ci-windows-debug-preview",
+      "inherits": "ci-windows-debug",
+      "targets": [
+        "frazil_water_preview_test_group"
+      ]
     }
   ],
   "testPresets": [
@@ -292,7 +348,7 @@
       },
       "filter": {
         "include": {
-          "label": "^smoke$"
+          "name": "^frazil_smoke$"
         }
       }
     },
@@ -305,7 +361,7 @@
       },
       "filter": {
         "include": {
-          "label": "^core$"
+          "label": "^fast-core$"
         }
       }
     },
@@ -430,7 +486,7 @@
       },
       "filter": {
         "include": {
-          "label": "^core$"
+          "label": "^fast-core$"
         }
       }
     },
@@ -464,7 +520,7 @@
       },
       "filter": {
         "include": {
-          "label": "^core$"
+          "label": "^fast-core$"
         }
       }
     },
@@ -498,7 +554,7 @@
       },
       "filter": {
         "include": {
-          "label": "^core$"
+          "label": "^fast-core$"
         }
       }
     },
@@ -521,6 +577,110 @@
       "execution": {
         "noTestsAction": "error",
         "jobs": 1
+      }
+    },
+    {
+      "name": "ci-windows-debug-smoke",
+      "inherits": "ci-windows-debug",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "name": "^frazil_smoke$"
+        }
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-common",
+      "inherits": "ci-windows-debug",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-common$"
+        }
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-a1",
+      "inherits": "ci-windows-debug",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-a1$"
+        }
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-b1",
+      "inherits": "ci-windows-debug",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-b1$"
+        }
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-b2",
+      "inherits": "ci-windows-debug",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-b2$"
+        }
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-d1",
+      "inherits": "ci-windows-debug",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-d1$"
+        }
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-protect",
+      "inherits": "ci-windows-debug",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-protect$"
+        }
+      }
+    },
+    {
+      "name": "ci-windows-debug-preview",
+      "inherits": "ci-windows-debug",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-preview$"
+        }
       }
     }
   ]

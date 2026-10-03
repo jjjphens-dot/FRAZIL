@@ -6,6 +6,11 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      full_validation:
+        description: Run complete Debug, Release and ASAN validation serially
+        type: boolean
+        required: false
+        default: false
       flow_d1_latency:
         description: Run the full synthetic D1 latency study on an independent Release runner
         type: boolean
@@ -22,106 +27,181 @@ permissions:
   contents: read
 
 jobs:
-  windows-debug:
-    name: Windows Debug / CMake / CTest
-    runs-on: windows-latest
-
+  impact:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.route.outputs.modules }}
+      water: ${{ steps.route.outputs.water }}
+      testdata: ${{ steps.route.outputs.testdata }}
+      research_dependencies: ${{ steps.route.outputs.research_dependencies }}
     steps:
-      - name: Check out source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select affected test modules
+        id: route
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            python tools/test_impact.py --github-output "$GITHUB_OUTPUT" CMakeLists.txt testdata/manifest.json
+          else
+            python tools/test_impact.py --base "$BASE" --head "$HEAD" --github-output "$GITHUB_OUTPUT"
+          fi
 
-      - name: Check repository portability
-        shell: pwsh
-        run: python tools/check_portability.py
-
-      - name: Test repository portability scanner
-        shell: pwsh
-        run: python tools/test_check_portability.py
-
-      - name: Check Markdown internal links
-        shell: pwsh
-        run: python tools/check_markdown_links.py
-
-      - name: Test Markdown internal-link scanner
-        shell: pwsh
-        run: python tools/test_check_markdown_links.py
-
-      - name: Check VS Code task references
-        shell: pwsh
-        run: python tools/check_vscode_tasks.py
-
-      - name: Test VS Code task reference checker
-        shell: pwsh
-        run: python tools/test_check_vscode_tasks.py
-
-      - name: Test build safety wrapper
-        shell: pwsh
-        run: python tools/test_build_safe.py
-
-      - name: Verify reference input corpus
-        shell: pwsh
-        run: python tools/verify_testdata.py
-
-      - name: Test reference input corpus verifier
-        shell: pwsh
-        run: python tools/test_testdata.py
-
-      - name: Enable MSVC developer environment
-        uses: ilammy/msvc-dev-cmd@v1
+  ci-core:
+    name: Core build and fast regression
+    needs: impact
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-
-      - name: Cache pinned JUCE checkout
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: external/JUCE
           key: juce-9.0.1-e18f7f506c0b96f2c738a0bcd7fe6467a5005ad8-${{ runner.os }}
-
       - name: Restore pinned dependencies
         shell: pwsh
         run: ./tools/bootstrap_dependencies.ps1
-
-      - name: Install DSP experiment analysis dependencies
+      - name: Repository checks and tooling regressions
+        shell: pwsh
+        run: |
+          foreach ($script in @('check_portability', 'test_check_portability', 'check_markdown_links',
+              'test_check_markdown_links', 'check_vscode_tasks', 'test_check_vscode_tasks',
+              'test_build_safe', 'test_check_test_paths', 'test_test_impact')) {
+            python "tools/$script.py"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Configure core without research dependencies
         shell: pwsh
         run: |
           $ciPython = python -c "import sys; print(sys.executable)"
+          cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=OFF -DFRAZIL_BUILD_WATER_PREVIEW=OFF "-DPython3_EXECUTABLE:FILEPATH=$ciPython"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & $ciPython -c "import sys; print('Dependency interpreter:', sys.executable); print(sys.version)"
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & $ciPython -m pip install -r requirements-dsp.txt
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          "FRAZIL_CI_PYTHON=$ciPython" >> $env:GITHUB_ENV
+          python tools/check_test_paths.py --preset ci-windows-debug
+      - name: Safe core build
+        run: python tools/build_safe.py --preset ci-windows-debug-core
+      - name: Core fast including lightweight corpus verification
+        run: ctest --preset ci-windows-debug-core --output-junit core.xml
+      - name: Deep corpus regeneration on corpus or generator changes
+        if: ${{ needs.impact.outputs.testdata == 'true' }}
+        run: ctest --preset ci-windows-debug-full -R '^frazil_testdata_regeneration$' --output-junit testdata.xml
+      - name: Preserve first-run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-core-${{ github.sha }}
+          path: |
+            build/ci-windows-debug/*.xml
+            build/ci-windows-debug/Testing/Temporary/*.log
+            build/safe-build/*.log
 
-      - name: Configure
+  ci-water-fast:
+    name: Affected Water module fast paths
+    needs: [impact, ci-core]
+    if: ${{ needs.impact.outputs.water == 'true' }}
+    runs-on: windows-latest
+    env:
+      MODULES: ${{ needs.impact.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - uses: actions/cache@v4
+        with:
+          path: external/JUCE
+          key: juce-9.0.1-e18f7f506c0b96f2c738a0bcd7fe6467a5005ad8-${{ runner.os }}
+      - name: Restore pinned dependencies
+        shell: pwsh
+        run: ./tools/bootstrap_dependencies.ps1
+      - name: Select one Python interpreter
         shell: pwsh
         run: |
-          # Bind CMake to the interpreter that owns the installed dependencies, not a second discovery.
-          cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=ON "-DPython3_EXECUTABLE:FILEPATH=$env:FRAZIL_CI_PYTHON"
+          $ciPython = python -c "import sys; print(sys.executable)"
+          "FRAZIL_CI_PYTHON=$ciPython" >> $env:GITHUB_ENV
+      - name: Install dependencies only for selected Python audio tests
+        if: ${{ needs.impact.outputs.research_dependencies == 'true' }}
+        shell: pwsh
+        run: '& $env:FRAZIL_CI_PYTHON -m pip install -r requirements-dsp.txt'
+      - name: Configure and check all scoped selectors
+        shell: pwsh
+        run: |
+          $preview = if (($env:MODULES | ConvertFrom-Json) -contains 'preview') { 'ON' } else { 'OFF' }
+          cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON "-DFRAZIL_BUILD_WATER_PREVIEW=$preview" "-DPython3_EXECUTABLE:FILEPATH=$env:FRAZIL_CI_PYTHON"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $cacheEntry = Select-String -Path build/ci-windows-debug/CMakeCache.txt -Pattern '^Python3_EXECUTABLE:FILEPATH='
-          $cmakePython = ($cacheEntry.Line -split '=', 2)[1]
-          $testJson = ctest --preset ci-windows-debug -R '^frazil_water_protect_listening$' --show-only=json-v1
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $listeningTests = @((($testJson -join "`n") | ConvertFrom-Json).tests)
-          if ($listeningTests.Count -ne 1) { throw 'Protect listening test must remain registered' }
-          $ctestPython = $listeningTests[0].command[0]
-          foreach ($actual in @($cmakePython, $ctestPython)) {
-            if (!$actual -or [IO.Path]::GetFullPath($actual) -ine [IO.Path]::GetFullPath($env:FRAZIL_CI_PYTHON)) {
-              throw "Python interpreter mismatch: expected $env:FRAZIL_CI_PYTHON, got $actual"
-            }
+          python tools/check_test_paths.py --preset ci-windows-debug
+      - name: Build and run affected modules serially
+        shell: pwsh
+        run: |
+          foreach ($module in ($env:MODULES | ConvertFrom-Json)) {
+            & $env:FRAZIL_CI_PYTHON tools/build_safe.py --preset "ci-windows-debug-$module"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            ctest --preset "ci-windows-debug-$module" --output-junit "$module.xml"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
-          Write-Host "Python identity PASS: pip=$env:FRAZIL_CI_PYTHON; CMake=$cmakePython; CTest=$ctestPython"
+      - name: Preserve first-run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-water-fast-${{ github.sha }}
+          path: |
+            build/ci-windows-debug/*.xml
+            build/ci-windows-debug/Testing/Temporary/*.log
+            build/safe-build/*.log
 
-      - name: Build
-        run: python tools/build_safe.py --preset ci-windows-debug
-
-      - name: Test
-        run: ctest --preset ci-windows-debug
+  validation-full:
+    name: Full ${{ matrix.preset }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_validation }}
+    needs: ci-core
+    runs-on: windows-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        preset: [windows-debug, windows-release, windows-asan]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - uses: actions/cache@v4
+        with:
+          path: external/JUCE
+          key: juce-9.0.1-e18f7f506c0b96f2c738a0bcd7fe6467a5005ad8-${{ runner.os }}
+      - name: Restore pinned dependencies
+        shell: pwsh
+        run: ./tools/bootstrap_dependencies.ps1
+      - name: Bind full research dependencies to CMake Python
+        shell: pwsh
+        run: |
+          $ciPython = python -c "import sys; print(sys.executable)"
+          & $ciPython -m pip install -r requirements-dsp.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --preset ${{ matrix.preset }} -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=ON "-DPython3_EXECUTABLE:FILEPATH=$ciPython"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Safe full build
+        run: python tools/build_safe.py --preset ${{ matrix.preset }}-full
+      - name: Complete validation including research, listening mechanics and performance
+        run: ctest --preset ${{ matrix.preset }}-full --output-junit full.xml
+      - name: Preserve first-run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-${{ matrix.preset }}-${{ github.sha }}
+          path: |
+            build/${{ matrix.preset }}/*.xml
+            build/${{ matrix.preset }}/Testing/Temporary/*.log
+            build/safe-build/*.log
 
   flow-d1-latency:
     name: Optional D1 numerical and native resource study
     if: ${{ github.event_name == 'workflow_dispatch' && (inputs.flow_d1_latency || inputs.flow_d1_convergence) }}
-    needs: windows-debug
+    needs: ci-core
     runs-on: windows-latest
     timeout-minutes: 90
     env:
@@ -154,7 +234,7 @@ jobs:
           $studyPython = python -c "import sys; print(sys.executable)"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "FRAZIL_D1_PYTHON=$studyPython" >> $env:GITHUB_ENV
-          & $studyPython -m pip install numpy==2.3.4 scipy==1.17.1 soundfile==0.13.1 matplotlib==3.10.8
+          & $studyPython -m pip install -r requirements-dsp.txt
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "Commit: $env:GITHUB_SHA" > $env:FRAZIL_D1_STUDY_ROOT/provenance.txt
           & $studyPython -c "import sys,numpy,scipy; print(sys.version); print(numpy.__version__,scipy.__version__)" >> $env:FRAZIL_D1_STUDY_ROOT/provenance.txt

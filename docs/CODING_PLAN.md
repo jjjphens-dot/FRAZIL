@@ -2,7 +2,15 @@
 
 ## Test path infrastructure maintenance
 
-The [test-path execution plan](research/test-path-systematic-refactor/FRAZIL_Test_Path_Systematic_Refactor_Agent_Plan.md) sequences classification/build decoupling before CLI/matrix splitting, research isolation, Preview groups and CI routing. The [P0 review follow-up](research/test-path-systematic-refactor/FRAZIL_Test_Path_Refactor_P0_Agent_Command_After_Review.md) restricts the current implementation to P0, with true module-fast intersections and a stop for review. Preserve coverage and compare Full before/after each relevant phase; do not convert fast regression into milestone, listening or production acceptance. [Coverage mapping](testing/TEST_PATH_MATRIX.md) records routing; live results stay in its execution record. This work changes no milestone dependencies or product contract.
+The user-authorized [implementation command](research/test-path-systematic-refactor/FRAZIL_Test_Path_Systematic_Refactor_Implementation_Agent_Command.md)
+supersedes the earlier P0-only stop. Execute actual CLI/matrix separation, D1 research
+isolation, Preview logical groups, testdata verify/regeneration separation and impact-based
+CI routing on the current Water implementation. Preserve all original assertions and full
+matrices. This is test infrastructure, not a change to milestone dependencies or product
+contracts. Full includes research, performance observations and listening-pack mechanics;
+Fast never substitutes for research, human listening, Host or production acceptance.
+[Coverage and commands](testing/TEST_PATH_MATRIX.md) follow actual CTest registration;
+[execution and unresolved failures](testing/TEST_PATH_EXECUTION.md) record measured status.
 
 ## Proposed minimum-practical latency policy (ARCH-LAT-002)
 

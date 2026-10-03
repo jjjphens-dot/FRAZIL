@@ -9,10 +9,12 @@
 - Ninja；可以使用系统 PATH 中的 Ninja，也可以把本地副本放在 repository-local 的 tools/bin。
 - MSVC v143 和 Windows SDK，且 MSVC developer environment 已初始化，使 cl、rc 和 mt 可以被工具发现。
 - Python 用于 DSP 实验和跨平台工具；Python 依赖见 requirements-dsp.txt。
-- 启用 `FRAZIL_BUILD_WATER_EXPERIMENT=ON` 时，先运行 `python -m pip install -r requirements-dsp.txt`；
-  Protect listening-pack CTest 使用其中的 NumPy/SoundFile 并调用真实 research renderer。Hosted CI 同样安装
-  该依赖文件；安装依赖的解释器必须与 CMake 的 `Python3_EXECUTABLE` 和生成的 CTest 命令一致。
-  未启用 research 的 production build 不新增 Python 包依赖。
+- Core-only validation uses the Python standard library. Water B1/D1 fast CLI tests and
+  full research validation require `python -m pip install -r requirements-dsp.txt`.
+  CI installs this canonical file only for jobs selecting those paths. Bind CMake's
+  `Python3_EXECUTABLE` to the same interpreter that installed dependencies.
+  CTest temporary directories are kept in the configured build tree; ASAN runtime PATH
+  discovery/copy remains in effect for every newly registered Water test.
 - JUCE 9.0.1 由 tools/bootstrap_dependencies.ps1 获取和校验；external/JUCE 是生成的本地依赖目录，不提交到 FRAZIL 主仓库。
 - pluginval 仅在执行 VST3 验证时需要；工具版本和下载来源由验证记录维护。
 
@@ -120,7 +122,7 @@ object 为零依赖，不得信任 header-only 修改后的增量结果。在同
 再 `cmake --fresh --preset <preset>`（保留所需 configure options），通过安全 wrapper 重新构建并确认
 依赖列表实际包含修改的头文件；必要时使用新的本地 build tree。此为本机编码诊断，不修改共享并发限制。
 
-Fast/core/module/full execution and opt-in configuration requirements: [test-path matrix](testing/TEST_PATH_MATRIX.md). Legacy build/test presets retain full configured coverage; CI routing is unchanged at P0.
+Fast/core/module/full execution and opt-in configuration requirements: [test-path matrix](testing/TEST_PATH_MATRIX.md). Legacy build/test presets retain full configured coverage; CI uses Core plus affected module-fast paths, with explicit full validation dispatch.
 
 ## VS Code
 

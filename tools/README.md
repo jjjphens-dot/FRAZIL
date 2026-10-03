@@ -2,9 +2,19 @@
 
 ## Selective safe builds
 
-`build_safe.py` accepts the explicit core/fast/full build presets and Debug module profiles listed in the [test-path matrix](../docs/testing/TEST_PATH_MATRIX.md). All paths retain memory preflight, six default jobs and the eight-job ceiling. After configure, `python tools/check_test_paths.py` checks actual preset selections against module/tier labels and repeated `-L` intersections; `python tools/test_check_test_paths.py` covers wrong-selection regressions.
+`build_safe.py` accepts explicit core/fast/full profiles and Debug/CI Debug module
+profiles from the [matrix](../docs/testing/TEST_PATH_MATRIX.md). All retain the same memory
+preflight, six default jobs and eight-job ceiling. `check_test_paths.py --preset windows-debug`
+(or `ci-windows-debug`) checks actual CTest selections, label intersections and singleton Smoke.
+`test_check_test_paths.py` and `test_build_safe.py` exercise these guards.
 
-项目相关外部工具的配置位置。
+`test_impact.py --base <git-ref> --head <git-ref>` computes CI modules from local quoted
+C++ include closure and explicitly linked implementation files. Unknown infrastructure,
+new/deleted files, Python scripts and shared configs conservatively select all modules.
+Private test-source changes select their owner; production-only sources select Core unless
+actually consumed by Water. `test_test_impact.py` checks transitive and linked dependencies.
+Fast Python audio tests and Full install canonical `requirements-dsp.txt`; Core requires
+only the standard library. No dependency versions are copied into the workflow.
 
 ## 固定依赖恢复
 

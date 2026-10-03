@@ -2,7 +2,17 @@
 
 ## Test execution paths
 
-The test-path refactor preserves required coverage while separating daily regression from full validation. See the [coverage matrix](testing/TEST_PATH_MATRIX.md) for labels, build/test entries and pending CLI/matrix splits. Module presets select module AND fast through derived labels, checked by `tools/check_test_paths.py`. Module labels alone still select full module coverage. Fast excludes study/native/listening/evidence suites; the unchanged B2 correctness suite still prints diagnostic timing (explicit P0 exception, no wall-clock gate). Full means all tests registered by the selected configure options, not listening or candidate acceptance.
+Daily regression uses core/module AND fast selections. A1/B1/B2 representative paths,
+renderer/B1/D1 smoke and schema contracts, and six independently selectable Preview groups
+are registered separately from full matrices, native/oracle studies, listening-pack validation
+and B2/Preview performance observations. There is no mixed-purpose B2 Fast exception.
+`verify_testdata.py` runs in Core/Fast; `test_testdata.py` runs in Full or CI on corpus/generator changes.
+All historical assertion responsibilities are mapped in the [coverage matrix](testing/TEST_PATH_MATRIX.md).
+Full means every registered test for the enabled configure options. Legacy base test presets
+remain unfiltered. `tools/check_test_paths.py` verifies orthogonal labels, exact intersections
+and the singleton Smoke path. CI routing follows the [workflow](GITHUB_WORKFLOW.md#7-ci-分层计划).
+Full results and first failures remain [separate evidence](testing/TEST_PATH_EXECUTION.md),
+not candidate acceptance or a claim that historical runtime faults are fixed.
 
 ## R3.1 validation closeout
 
@@ -46,7 +56,7 @@ Results are recorded only in [bridge evidence](evidence/WATER_PREVIEW_A1_B1_D1_B
 
 ## Reworked Preview bridge regression
 
-`preview_reworked_core_tests.cpp` joins existing `frazil_water_preview`: Legacy default, runtime core dirty/A/B/history/reset,
+`preview_reworked_core_tests.cpp` runs in `frazil_water_preview_core`: Legacy default, runtime core dirty/A/B/history/reset,
 v5 import to Legacy, D-only rejection, six direct-reference chains at44.1/48/96kHz, deterministic reset,
 finite/channel isolation, Protect inactivity and unchanged C/baseline. Reference comparisons exclude monitor gain/trim/transition.
 Existing Preview, v1-v5 session, mapping, Protect and audition regressions remain registered.
@@ -66,7 +76,8 @@ Flow D1 research tests cover independent SI and interpolation oracles, path/spee
 bounds, domains1..10, finite-float extremes, zero history, exact U0/A0, reset,
 channel isolation and partitions1/7/32/64/128/256/257/512/1024 at three rates.
 The existing isolated B1 allocation observer also exercises D1 process/reset.
-`frazil_water_flow_d1_cli` checks actual descriptor snapshot, strict rejection,
+`frazil_water_d1_cli_contract` checks strict rejection and descriptor snapshot;
+`frazil_water_flow_d1_cli` retains the complete rate/partition matrix,
 explicit mode isolation and carrier-once composition. Independent kernel comparison,
 preserved30186b8 decoded legacy regression, performance and fixed-source study are
 separate from human listening. See [D1 execution](evidence/WATER_FLOW_D1_EXECUTION.md).
@@ -884,7 +895,7 @@ Commands, actual results and limitations: [research README](../experiments/water
 
 ### Standalone Water preview regression
 
-With both research/preview options enabled, `frazil_water_preview` CTest compares all nine preview
+With both research/preview options enabled, `frazil_water_preview_core` CTest compares all nine preview
 compositions to the unchanged research DSP at 44.1/48/96 kHz, checks fixed-seed reset, stereo isolation,
 finite output, engineering-control effects, rejected invalid configs and renderer-compatible export.
 It requires no audio device. GUI/physical-output operations are separately observed; see

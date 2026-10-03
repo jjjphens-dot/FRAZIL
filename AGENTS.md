@@ -233,6 +233,11 @@ ctest --preset windows-debug
 - Tracked reference-machine evidence 可以记录 OS、工具版本、SDK/toolchain 版本和泛化后的路径占位符，但不得保存开发者原始绝对路径。
 - 确实需要保存的本机原始路径只能存在于 ignored/untracked local evidence 中，不得提交到 Git。
 
+日常测试按 [TEST_PATH_MATRIX](docs/testing/TEST_PATH_MATRIX.md) 使用 Core/模块 AND Fast；
+完整矩阵、native/listening/performance 与 testdata regeneration 保留在 Full。
+CI 按 [GITHUB_WORKFLOW](docs/GITHUB_WORKFLOW.md#7-ci-分层计划) 路由实际影响模块；
+Full dispatch、首次失败保留和构建资源安全规则适用于所有路径，Fast 不替代阶段验收。
+
 其他预设：`windows-release`、`windows-asan`。本机完整 MSVC 环境命令见 `docs/ENVIRONMENT.md`。
 
 按变更范围执行最小验证：

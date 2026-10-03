@@ -159,6 +159,10 @@ find_package(Python3 COMPONENTS Interpreter REQUIRED)
 add_executable(frazil_smoke tests/smoke/smoke.cpp)
 target_compile_features(frazil_smoke PRIVATE cxx_std_20)
 add_test(NAME frazil_smoke COMMAND frazil_smoke)
+add_test(NAME frazil_testdata_verify COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/verify_testdata.py")
+set_tests_properties(frazil_testdata_verify PROPERTIES LABELS "core;fast;unit")
+add_test(NAME frazil_testdata_regeneration COMMAND "${Python3_EXECUTABLE}" -X faulthandler "${PROJECT_SOURCE_DIR}/tools/test_testdata.py")
+set_tests_properties(frazil_testdata_regeneration PROPERTIES LABELS "core;slow;unit")
 
 juce_add_console_app(frazil_render
     PRODUCT_NAME "FRAZIL Offline Render"
@@ -392,3 +396,14 @@ if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
         )
     endif()
 endif()
+
+get_property(core_registered_tests DIRECTORY PROPERTY TESTS)
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test-tmp")
+foreach(test IN LISTS core_registered_tests)
+    set_property(TEST ${test} APPEND PROPERTY ENVIRONMENT_MODIFICATION
+        "TEMP=set:${CMAKE_BINARY_DIR}/test-tmp" "TMP=set:${CMAKE_BINARY_DIR}/test-tmp")
+    get_test_property(${test} LABELS labels)
+    if("core" IN_LIST labels AND "fast" IN_LIST labels)
+        set_property(TEST ${test} APPEND PROPERTY LABELS fast-core)
+    endif()
+endforeach()

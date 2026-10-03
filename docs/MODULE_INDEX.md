@@ -2,7 +2,13 @@
 
 ## Test infrastructure routing
 
-Test modules retain their existing sources and responsibilities. CMake aggregate targets now select core/fast/module/full dependencies; `frazil_smoke` is independent. See [test-path coverage](testing/TEST_PATH_MATRIX.md); no production module interface changes.
+CMake owns module/tier/kind classification and explicit core/fast/module/full build
+closures. Renderer/B1/D1 CLI responsibilities are separate scripts with shared fixture/audio
+helpers; compatibility commands run all extracted responsibilities. A1/B1/B2 executables
+select representative or complete matrices. B2 and Preview timing have separate slow
+registrations. Preview exposes six logical groups in one executable. `tools/test_impact.py`
+owns conservative CI dependency routing. See the [coverage matrix](testing/TEST_PATH_MATRIX.md).
+No production module, model, or public interface changed.
 
 ## R3.1 validation closeout
 
@@ -133,7 +139,7 @@ do not depend on the preview. Tests and limitations: [validation](evidence/WATER
 
 The control-bridge integration adds isolated `preview/TimeValue.h` UI/tooling helpers for adaptive
 ms/s display and strict exact entry. They own no session or DSP state, use only the C++ standard
-library, and are tested by `frazil_water_preview`; all research time widgets consume these helpers.
+library, and are tested by `frazil_water_preview_core`; all research time widgets consume these helpers.
 See [staged execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
 `ControlDescriptor.h` supplies typed IDs, module groups, units/display policy, baseline provenance,
 range and lifecycle metadata for the 28 research controls (21 original, two Modal Motion fields, the Droplet scheduling gate and onset probability, and three explicit C comparison options). `PreviewSettings` consumes the descriptors

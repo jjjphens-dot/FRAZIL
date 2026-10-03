@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 using namespace frazil::water::research;
@@ -17,7 +18,15 @@ bool near(double a, double b, double tolerance = 1e-10) {
     return std::abs(a - b) < tolerance;
 }
 } // namespace
-int main() {
+int main(int argc, char** argv) {
+    if (argc > 2 || (argc == 2 && std::string_view(argv[1]) != "--full" &&
+                     std::string_view(argv[1]) != "--fast")) {
+        std::cerr << "Expected --fast or --full\n";
+        return 2;
+    }
+    const bool full = argc == 1 || std::string_view(argv[1]) == "--full";
+    const std::vector<double> rates =
+        full ? std::vector<double>{44100., 48000., 96000.} : std::vector<double>{48000.};
     using frazil::water::preview::PreviewEventRecord;
     using frazil::water::preview::PreviewEventTrace;
     {
@@ -166,7 +175,7 @@ int main() {
         check(pool->counters().requested == 0 && pool->bandObservation(1).bandCounters.started == 0,
               "reset clears cumulative counters");
     }
-    for (double rate : {44100., 48000., 96000.}) {
+    for (double rate : rates) {
         auto observed = std::make_unique<BubbleA1>();
         auto reference = std::make_unique<BubbleA1>();
         auto queue = std::make_unique<PreviewEventTrace>();
@@ -218,7 +227,7 @@ int main() {
     const double maximumTau = 4 / (.13 / .05 + .0072 / std::pow(.05, 1.5));
     const double lifetimeBound = maximumTau * std::log(maximumAmplitude / 1e-5);
     check(lifetimeBound < 29.942, "independent global audible-envelope lifetime");
-    for (double rate : {44100., 48000., 96000.}) {
+    for (double rate : rates) {
         check(lifetimeBound + 2 / rate < BubbleA1Voice::kMaximumLifetimeSeconds,
               "30s guard exceeds global bound plus sample margin");
         BubbleA1Event adversary;
@@ -358,7 +367,7 @@ int main() {
         }
     // Shared-frame oracle: each carrier must be collinear with a REAL stereo frame from
     // the window, including quadrature/decorrelated/unequal transient cases and swap ties.
-    for (double rate : {44100., 48000., 96000.})
+    for (double rate : rates)
         for (int scenario = 0; scenario < 8; ++scenario) {
             SharedExcitationAnalyzer analyzer, swappedAnalyzer;
             check(analyzer.prepare(rate) && swappedAnalyzer.prepare(rate), "stereo oracle prepare");
@@ -463,7 +472,7 @@ int main() {
     (void)pool->process();
     check(pool->counters().started == beforeStart + 1, "release then replacement");
 
-    for (double rate : {44100., 48000., 96000.}) {
+    for (double rate : rates) {
         auto a = std::make_unique<BubbleA1>();
         auto swapped = std::make_unique<BubbleA1>();
         cfg = {};
@@ -481,7 +490,8 @@ int main() {
             output.push_back(y);
         }
         check(a->requested() > 0, "nonempty events");
-        for (int block : {1, 7, 32, 64, 128, 256, 257, 512, 1024}) {
+        for (int block : (full ? std::vector<int>{1, 7, 32, 64, 128, 256, 257, 512, 1024}
+                               : std::vector<int>{1, 128, 257, 1024})) {
             a->reset();
             for (std::size_t start = 0; start < samples.size(); start += block)
                 for (std::size_t i = start; i < std::min(samples.size(), start + block); ++i)
@@ -544,7 +554,7 @@ int main() {
         check(!a->prepare({rate, 42}, cfg) && a->process({1, 1}) == StereoFrame{},
               "failed prepare silent");
     }
-    for (double rate : {44100., 48000., 96000.}) {
+    for (double rate : rates) {
         auto a = std::make_unique<BubbleA1>();
         for (double gamma : {0., 6.})
             for (double alpha : {.75, 2.25})

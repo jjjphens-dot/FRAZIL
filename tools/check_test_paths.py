@@ -81,11 +81,14 @@ def query(preset: str, *filters: str) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--preset", default="windows-debug", choices=("windows-debug",))
+    parser.add_argument("--preset", default="windows-debug", choices=("windows-debug", "ci-windows-debug"))
     args = parser.parse_args()
     try:
         full = inventory_tests(query(args.preset + "-full"))
         findings = validate_inventory(full)
+        smoke = set(inventory_tests(query(args.preset + "-smoke")))
+        if smoke != {"frazil_smoke"}:
+            findings.append(f"Smoke build/test path contains unrelated tests: {sorted(smoke)}")
         for module in (None, "core", *MODULES):
             suffix = "fast" if module is None else "preview" if module == "water-preview" else module
             preset = args.preset + "-" + suffix

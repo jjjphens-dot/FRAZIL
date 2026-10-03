@@ -2,7 +2,16 @@
 
 ## Test execution paths
 
-Research no longer builds through `frazil_smoke`. Use explicit fast/module/full build targets and CTest presets in the [coverage matrix](../../../docs/testing/TEST_PATH_MATRIX.md). Module presets select module AND fast. Mixed CLI/native/listening/evidence and the extended B1 matrix remain Full; A1/B2 complete correctness suites are Fast, with B2 timing diagnostics explicitly retained pending P2. This routing does not alter research acceptance.
+Research builds through explicit aggregate/module targets; `frazil_smoke` has no
+research dependencies. [The coverage matrix](../../../docs/testing/TEST_PATH_MATRIX.md)
+lists the renderer/B1/D1 smoke, contract, full/native/listening entries, A1/B1/B2 `--fast`
+and `--full` runners, and separate B2 performance executable. No-argument matrix runners
+retain full coverage; old CLI commands delegate to all extracted paths.
+
+Preview accepts `--group core|session|diagnostics|audition|parameters|workflow` (one value),
+each registered independently. Its timing observation uses the separate `performance`
+group and is excluded from Fast. No-argument Preview still runs all tests; `--device-smoke`
+is unchanged. Unknown groups return failure. Research acceptance and DSP are unchanged.
 
 ## R3.1 validation closeout
 
