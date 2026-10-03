@@ -2,7 +2,7 @@
 
 ## Selective safe builds
 
-`build_safe.py` accepts the explicit core/fast/full build presets and Debug module profiles listed in the [test-path matrix](../docs/testing/TEST_PATH_MATRIX.md). All paths retain memory preflight, six default jobs and the eight-job ceiling.
+`build_safe.py` accepts the explicit core/fast/full build presets and Debug module profiles listed in the [test-path matrix](../docs/testing/TEST_PATH_MATRIX.md). All paths retain memory preflight, six default jobs and the eight-job ceiling. After configure, `python tools/check_test_paths.py` checks actual preset selections against module/tier labels and repeated `-L` intersections; `python tools/test_check_test_paths.py` covers wrong-selection regressions.
 
 项目相关外部工具的配置位置。
 

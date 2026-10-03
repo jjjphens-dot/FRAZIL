@@ -2,7 +2,7 @@
 
 ## Test execution paths
 
-Daily regression uses `windows-debug-fast`; core/module/full build and CTest selections are documented in the [coverage matrix](../docs/testing/TEST_PATH_MATRIX.md). P0 preserves all tests; module selections still include unsplit slow suites.
+Daily regression uses `windows-debug-fast`; core/module/full build and CTest selections are documented in the [coverage matrix](../docs/testing/TEST_PATH_MATRIX.md). P0 preserves all tests. Module presets select module AND fast; a module label alone includes slow tests. The matrix documents the unchanged B2 timing diagnostics and later split boundaries.
 
 当前测试 target：
 

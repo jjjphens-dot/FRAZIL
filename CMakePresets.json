@@ -339,7 +339,7 @@
       },
       "filter": {
         "include": {
-          "label": "^water-common$"
+          "label": "^fast-water-common$"
         }
       }
     },
@@ -352,7 +352,7 @@
       },
       "filter": {
         "include": {
-          "label": "^water-a1$"
+          "label": "^fast-water-a1$"
         }
       }
     },
@@ -365,7 +365,7 @@
       },
       "filter": {
         "include": {
-          "label": "^water-b1$"
+          "label": "^fast-water-b1$"
         }
       }
     },
@@ -378,7 +378,7 @@
       },
       "filter": {
         "include": {
-          "label": "^water-b2$"
+          "label": "^fast-water-b2$"
         }
       }
     },
@@ -391,7 +391,7 @@
       },
       "filter": {
         "include": {
-          "label": "^water-d1$"
+          "label": "^fast-water-d1$"
         }
       }
     },
@@ -404,7 +404,7 @@
       },
       "filter": {
         "include": {
-          "label": "^water-protect$"
+          "label": "^fast-water-protect$"
         }
       }
     },
@@ -417,7 +417,7 @@
       },
       "filter": {
         "include": {
-          "label": "^water-preview$"
+          "label": "^fast-water-preview$"
         }
       }
     },

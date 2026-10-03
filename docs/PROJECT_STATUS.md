@@ -2,7 +2,7 @@
 
 ## Test path infrastructure
 
-P0 implementation is local on the latest research branch, not merged main: labels, build/test profiles and smoke separation are implemented. Core 7/7 and Fast 27/27 pass; Full is 41/42 before and after with different retained failures, so acceptance is BLOCKED. CLI/matrix splitting and CI routing remain pending. Actual results and open failures: [execution record](testing/TEST_PATH_EXECUTION.md).
+P0 review follow-up is implemented locally on the current research baseline: module presets now select module AND fast, with matching build groups and an executable selection checker. Core 7/7, Fast 29/29, every module-fast preset and Full Debug 42/42 pass in the current run. P0 COMPLETE / READY FOR REVIEW; P1 NOT STARTED. The first attempt's convergence timeout and Python/SciPy access violation remain OPEN; this pass does not establish their root cause or resolution. CI routing and P1-P6 remain pending. [Execution and retained failures](testing/TEST_PATH_EXECUTION.md).
 
 ## R3.1 validation closeout
 

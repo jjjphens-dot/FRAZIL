@@ -2,7 +2,7 @@
 
 ## Test execution paths
 
-The test-path refactor preserves required coverage while separating daily regression from full validation. See the [coverage matrix](testing/TEST_PATH_MATRIX.md) for labels, build/test entries and pending CLI/matrix splits. Fast excludes known mixed research suites; module labels still select full module coverage. Full means all tests registered by the selected configure options, not listening or candidate acceptance.
+The test-path refactor preserves required coverage while separating daily regression from full validation. See the [coverage matrix](testing/TEST_PATH_MATRIX.md) for labels, build/test entries and pending CLI/matrix splits. Module presets select module AND fast through derived labels, checked by `tools/check_test_paths.py`. Module labels alone still select full module coverage. Fast excludes study/native/listening/evidence suites; the unchanged B2 correctness suite still prints diagnostic timing (explicit P0 exception, no wall-clock gate). Full means all tests registered by the selected configure options, not listening or candidate acceptance.
 
 ## R3.1 validation closeout
 

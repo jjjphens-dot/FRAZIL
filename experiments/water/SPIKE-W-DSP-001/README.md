@@ -2,7 +2,7 @@
 
 ## Test execution paths
 
-Research no longer builds through `frazil_smoke`. Use explicit fast/module/full build targets and CTest presets in the [coverage matrix](../../../docs/testing/TEST_PATH_MATRIX.md). Mixed CLI, native, listening, evidence and large matrices remain Full; this routing does not alter research acceptance.
+Research no longer builds through `frazil_smoke`. Use explicit fast/module/full build targets and CTest presets in the [coverage matrix](../../../docs/testing/TEST_PATH_MATRIX.md). Module presets select module AND fast. Mixed CLI/native/listening/evidence and the extended B1 matrix remain Full; A1/B2 complete correctness suites are Fast, with B2 timing diagnostics explicitly retained pending P2. This routing does not alter research acceptance.
 
 ## R3.1 validation closeout
 

@@ -124,8 +124,10 @@ if(FRAZIL_BUILD_WATER_PREVIEW)
 endif()
 
 
-# P0 preserves every existing registration and assertion. Mixed CLI/matrix suites
-# stay slow until their smoke/contract coverage is separated in subsequent phases.
+# P0 preserves every existing registration and assertion. A1 and B2 correctness
+# executables are bounded regression workloads; retain their complete bodies in Fast.
+# B2 prints diagnostic timing but never gates on it (separation remains P2).
+# Mixed CLI/study suites and the extended B1 matrix remain Slow.
 set_tests_properties(frazil_water_baseline PROPERTIES LABELS "water-common;fast;property")
 set_tests_properties(frazil_water_features PROPERTIES LABELS "water-common;fast;property")
 set_tests_properties(frazil_water_modal PROPERTIES LABELS "water-common;fast;property")
@@ -139,18 +141,18 @@ set_tests_properties(frazil_water_activity PROPERTIES LABELS "water-common;fast;
 set_tests_properties(frazil_water_fluid PROPERTIES LABELS "water-common;fast;property")
 set_tests_properties(frazil_water_event_pool PROPERTIES LABELS "water-common;fast;property")
 set_tests_properties(frazil_water_mapping PROPERTIES LABELS "water-common;fast;property")
-set_tests_properties(frazil_water_bubble_a1 PROPERTIES LABELS "water-a1;slow;property;research")
+set_tests_properties(frazil_water_bubble_a1 PROPERTIES LABELS "water-a1;fast;property")
 set_tests_properties(frazil_water_bubble_a1_cull_gate PROPERTIES LABELS "water-a1;slow;property;evidence;research")
 set_tests_properties(frazil_water_droplet_b1_physics PROPERTIES LABELS "water-b1;fast;unit")
 set_tests_properties(frazil_water_droplet_b1_onset PROPERTIES LABELS "water-b1;fast;unit")
 set_tests_properties(frazil_water_droplet_b1 PROPERTIES LABELS "water-b1;slow;property;research")
-set_tests_properties(frazil_water_droplet_b1_allocation PROPERTIES LABELS "water-b1;water-d1;fast;property")
-set_tests_properties(frazil_water_droplet_b2 PROPERTIES LABELS "water-b2;slow;property;performance;research")
+set_tests_properties(frazil_water_droplet_b1_allocation PROPERTIES LABELS "water-common;water-b1;water-d1;fast;property")
+set_tests_properties(frazil_water_droplet_b2 PROPERTIES LABELS "water-b2;fast;property")
 set_tests_properties(frazil_water_flow_d1 PROPERTIES LABELS "water-d1;fast;property")
 set_tests_properties(frazil_water_protect_detector PROPERTIES LABELS "water-protect;fast;unit")
 set_tests_properties(frazil_water_protect PROPERTIES LABELS "water-protect;fast;property")
 set_tests_properties(frazil_water_flow_d1_latency_native PROPERTIES LABELS "water-d1;slow;native;research")
-set_tests_properties(frazil_water_evidence_tools PROPERTIES LABELS "research-validation;slow;unit;evidence;research")
+set_tests_properties(frazil_water_evidence_tools PROPERTIES LABELS "water-common;research-validation;slow;unit;evidence;research")
 set_tests_properties(frazil_water_experiment_render_cli PROPERTIES LABELS "water-common;water-protect;slow;cli;render;research")
 set_tests_properties(frazil_water_protect_listening PROPERTIES LABELS "water-protect;slow;listening;research")
 set_tests_properties(frazil_water_bubble_a1_cli PROPERTIES LABELS "water-a1;slow;cli;render;research")
@@ -164,7 +166,23 @@ if(FRAZIL_BUILD_WATER_PREVIEW)
     set_tests_properties(frazil_water_preview PROPERTIES LABELS "water-preview;fast;integration")
 endif()
 
+# Derived labels encode module AND tier for CTest presets (whose label field is
+# one regex). Keep module/tier/kind authoritative; never maintain aliases by hand.
+get_property(water_registered_tests DIRECTORY PROPERTY TESTS)
+foreach(water_test IN LISTS water_registered_tests)
+    get_test_property(${water_test} LABELS water_labels)
+    if("fast" IN_LIST water_labels)
+        foreach(water_label IN LISTS water_labels)
+            if(water_label MATCHES "^water-")
+                set_property(TEST ${water_test} APPEND PROPERTY LABELS "fast-${water_label}")
+            endif()
+        endforeach()
+    endif()
+endforeach()
+
 add_custom_target(frazil_water_fast_tests DEPENDS
+    frazil_water_bubble_a1_tests
+    frazil_water_droplet_b2_tests
     frazil_water_experiment_tests
     frazil_water_features_tests
     frazil_water_modal_tests
@@ -193,6 +211,7 @@ add_custom_target(frazil_water_full_tests DEPENDS ${water_test_targets}
     frazil_water_experiment_render frazil_water_performance frazil_water_research_cases
     frazil_water_bubble_a1_performance frazil_water_droplet_b1_performance
     frazil_water_flow_d1_performance frazil_water_flow_d1_source_probe)
+# Module build groups match the module-fast test presets, not the full label.
 add_custom_target(frazil_water_common_test_group DEPENDS
     frazil_water_experiment_tests
     frazil_water_features_tests
@@ -207,25 +226,21 @@ add_custom_target(frazil_water_common_test_group DEPENDS
     frazil_water_fluid_tests
     frazil_water_event_pool_tests
     frazil_water_mapping_tests
-    frazil_water_experiment_render)
+    frazil_water_droplet_b1_allocation_tests)
 add_custom_target(frazil_water_a1_test_group DEPENDS
-    frazil_water_bubble_a1_tests frazil_water_bubble_a1_cull_gate_tests frazil_water_experiment_render)
+    frazil_water_bubble_a1_tests)
 add_custom_target(frazil_water_b1_test_group DEPENDS
-    frazil_water_droplet_b1_tests
     frazil_water_droplet_b1_physics_tests
     frazil_water_droplet_b1_onset_tests
-    frazil_water_droplet_b1_allocation_tests
-    frazil_water_experiment_render)
+    frazil_water_droplet_b1_allocation_tests)
 add_custom_target(frazil_water_b2_test_group DEPENDS
-    frazil_water_droplet_b2_tests frazil_water_experiment_render)
+    frazil_water_droplet_b2_tests)
 add_custom_target(frazil_water_d1_test_group DEPENDS
     frazil_water_flow_d1_tests
-    frazil_water_droplet_b1_allocation_tests
-    frazil_water_flow_d1_latency_native
-    frazil_water_flow_d1_source_probe
-    frazil_water_experiment_render)
+    frazil_water_droplet_b1_allocation_tests)
 add_custom_target(frazil_water_protect_test_group DEPENDS
-    frazil_water_protect_detector_tests frazil_water_protect_tests frazil_water_experiment_render)
+    frazil_water_protect_detector_tests
+    frazil_water_protect_tests)
 if(FRAZIL_BUILD_WATER_PREVIEW)
     add_custom_target(frazil_water_preview_test_group DEPENDS frazil_water_preview_tests)
 endif()
