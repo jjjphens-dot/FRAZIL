@@ -2,6 +2,26 @@
 
 ## Test execution paths
 
+Generate a validation plan before execution, for example
+`python tools/plan_validation.py --base HEAD~1 --head HEAD`. Known test-tool modifications
+select tooling regressions, not native Water builds; unknown/new/deleted executable
+infrastructure remains conservative. The plan reports scope, purpose and exclusions.
+
+**Final Validation means final validation of the task's affected scope, not unconditional
+All-assets Full.** Full is an available asset set, not the default iteration path. Changed
+documentation/routing does not invalidate unrelated DSP or performance evidence. Older
+results retain their original commit identity as unchanged-scope supporting evidence;
+they must never be relabelled as a new HEAD PASS. Source, build, dependency or test changes
+invalidate the affected scope. Explicit stage/release/complete-reproduction gates still
+require a frozen HEAD and their complete prescribed scope. Do not duplicate local and
+Hosted heavy matrices without a stated environment or acceptance reason.
+
+Phase A manual purposes are targeted Fast (one module/configuration), explicit Full (one
+configuration), bounded Python diagnostic (one test/failure/hypothesis), or one D1 Release
+study. Full never automatically starts diagnostics. Dedicated correctness, memory-safety
+and Release performance selectors and their unique-assertion audit remain Phase B/C work;
+targeted ASAN Fast is not a claim of complete module memory-safety acceptance.
+
 Daily regression uses core/module AND fast selections. A1/B1/B2 representative paths,
 renderer/B1/D1 smoke and schema contracts, and six independently selectable Preview groups
 are registered separately from full matrices, native/oracle studies, listening-pack validation

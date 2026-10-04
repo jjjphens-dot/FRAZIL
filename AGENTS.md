@@ -104,6 +104,8 @@ Contract Review
 ```
 
 功能完成后不得跳过独立的 Code Quality Review 或 Comment & Documentation Pass。
+Final Validation 是本任务受影响范围的最终验证，不是无条件 Debug/Release/ASAN Full。
+验证前先记录 purpose、影响范围与命令；只有明确阶段/发布/完整复现 gate 才要求冻结 HEAD 的完整矩阵。
 
 ### Documentation Impact Check / Synchronization Gate
 
@@ -220,10 +222,15 @@ Developer/Experiment control 不等于 production Host parameter。`water.model`
 例如 <repo-root>/build/，或由 CMakeUserPresets.json 指定且符合第 0.2 节工作区边界的本地构建目录。
 
 ```powershell
+python tools/plan_validation.py --base HEAD~1 --head HEAD
+# 按计划选择；仅工具变更无需执行下面的 native build/test 示例。
 cmake --preset windows-debug
-python tools/build_safe.py --preset windows-debug
-ctest --preset windows-debug
+python tools/build_safe.py --preset windows-debug-fast
+ctest --preset windows-debug-fast
 ```
+
+模块小修优先使用相应模块 preset。旧 base preset 保留兼容；`windows-debug-full` 等最大集合只按显式验收目的运行。
+Python A/B 必须绑定具体故障、假设、测试、配置和超时，不得作为 Full 的自动后续步骤。
 
 ### Repository Portability Rules
 

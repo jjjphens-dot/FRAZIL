@@ -11,12 +11,18 @@
 - Python 用于 DSP 实验和跨平台工具；Python 依赖见 requirements-dsp.txt。
 - Core-only validation uses the Python standard library. Water B1/D1 fast CLI tests and
   full research validation require `python -m pip install -r requirements-dsp.txt`.
-  CI uses a clean Python 3.12.x through setup-python and installs this canonical file only for jobs selecting those paths. Docs-only policy checks use Ubuntu without MSVC/JUCE/configure/build. Bind CMake's
+  CI uses a clean Python 3.12.x through setup-python and installs this canonical file only for jobs selecting those paths. Docs-only and known tooling-only policy checks use Ubuntu without MSVC/JUCE/configure/build. Bind CMake's
   `Python3_EXECUTABLE` to the same interpreter that installed dependencies.
   CTest temporary directories are kept in the configured build tree; ASAN runtime PATH
   discovery/copy remains in effect for every newly registered Water test.
 - JUCE 9.0.1 由 tools/bootstrap_dependencies.ps1 获取和校验；external/JUCE 是生成的本地依赖目录，不提交到 FRAZIL 主仓库。
 - pluginval 仅在执行 VST3 验证时需要；工具版本和下载来源由验证记录维护。
+
+Run `tools/plan_validation.py` before validation. Manual `validation.yml` requests select
+one configuration and purpose; they do not start the daily CI graph. Python diagnostics
+are explicit and failure-specific, not environment setup after every Full. The safe build
+wrapper accepts an allowlisted `--target` for a selected module/diagnostic helper while
+retaining the same memory and job limits. No toolchain or dependency version changed.
 
 Visual Studio IDE 不是项目必需品。VS Code、Developer PowerShell for Visual Studio 或 x64 Native Tools command prompt 均可作为开发入口；关键是 CMake 能通过 PATH 找到所需工具。
 

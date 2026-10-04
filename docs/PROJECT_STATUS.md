@@ -2,6 +2,19 @@
 
 ## Test path infrastructure
 
+Resource scheduling Phase A follows the command at `3d44c33`, starting from `95e5968`.
+Implemented on the refactor branch: separate PR/manual workflows, explicit one-config
+requests, known-tool-only routing, a non-executing validation planner, bounded single-test
+Python diagnostics and cancellation-safe triggers. No automatic Python A/B follows Full.
+Targeted Fast builds use allowlisted targets through the existing safe wrapper.
+Tooling regression and workflow/selection checks are recorded in the
+[Phase A execution entry](testing/TEST_PATH_EXECUTION.md#resource-scheduling-phase-a).
+Phase B/C correctness-memory-performance separation and harness audit, Phase D module
+union, independent review and merge remain pending. No new native Full or Hosted acceptance
+is claimed by this scheduling change; the following results retain their original identities.
+
+### Earlier review evidence (07bf7b4)
+
 The review remediation is published at `07bf7b4` on `codex/refactor/test-paths` in
 [draft PR #44](https://github.com/jjjphens-dot/FRAZIL/pull/44), based on Water `ff75735`.
 Docs-only CI gating, precise Python ownership, five additional Full performance observations

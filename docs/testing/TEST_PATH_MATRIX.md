@@ -76,8 +76,12 @@ Renderer changes select common/B1/D1/Protect; shared DSP headers select every ac
 (including Preview/B2 where appropriate); RandomSource.cpp selects all Water modules.
 Private A1 or Preview session tests select their respective owner. Unmapped/new/deleted
 infrastructure/scripts/configs select all modules. Pure production files unconsumed by Water
-select Core. Full dispatch runs Debug/Release/ASAN sequentially; full studies are never silently
-deleted. Dependencies come from requirements-dsp.txt only for applicable Python-audio/full jobs.
+select Core. Modified allowlisted validation tools select only tooling checks. Independent
+manual dispatch selects one purpose/module/configuration; explicit Full retains all registered
+tests in that configuration, without daily jobs or automatic diagnostics. Study assets remain
+available separately. Dependencies come from requirements-dsp.txt only for applicable jobs.
+Phase B/C correctness, memory-safety and performance purpose selectors and Phase D CI module
+union are not yet implemented. The inventory below is unchanged by scheduling Phase A.
 
 ## Actual CTest inventory
 

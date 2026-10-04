@@ -1,10 +1,11 @@
 # Test path systematic refactor execution
 
-Date: 2026-10-04. Status: **INCOMPLETE — Hosted ASAN timeout fix under validation**.
+Date: 2026-10-04. Status: **INCOMPLETE — scheduling Phase A implemented; Phase B-D pending**.
 
 Remediation `07bf7b4514a0fdefca594c7f6bfc9b558bb05b86` is published on remote
 `codex/refactor/test-paths` in [draft PR #44](https://github.com/jjjphens-dot/FRAZIL/pull/44).
-Current RF-001 through RF-008 results are recorded in [Review follow-up](#review-follow-up).
+Earlier RF-001 through RF-008 results are recorded in [Review follow-up](#review-follow-up).
+Current scheduling work is recorded in [Resource scheduling Phase A](#resource-scheduling-phase-a).
 Everything from **Execution baseline** through **Historical blockers and next checkpoint**
 below describes reviewed implementation `545dd33`, not the current remediation. Its original
 failures and then-pending Hosted status are retained as dated evidence, not replaced by diagnostics.
@@ -486,3 +487,110 @@ Removed coverage: none. Production DSP/audio/defaults/Host/state/routing/latency
 Architecture/parameter/state/realtime/performance-acceptance impacts: N/A. Pluginval, real DAW,
 human listening and production performance acceptance: NOT RUN/N/A for this infrastructure
 change. Independent PR approval and merge remain pending; self-review is not formal approval.
+
+## Resource scheduling Phase A
+
+Starting HEAD: `95e596841dd4e3870e8804175df65c5244cc67fa`.
+Branch: `codex/refactor/test-paths`; existing draft PR #44. Planning authority is the
+[latest remote command, 3d44c33](https://github.com/jjjphens-dot/FRAZIL/blob/3d44c33/docs/research/test-path-systematic-refactor/FRAZIL_Validation_Scheduling_Resource_Remediation_Agent_Command.md).
+That documentation branch was read, not merged over the current implementation.
+This entry completes the bounded Phase A implementation, not the entire remediation plan.
+Earlier commands/results above are historical; current invocation syntax is in
+[the workflow contract](../GITHUB_WORKFLOW.md#impact-based-test-jobs).
+
+### Validation plan and examples
+
+Before execution, scope was frozen to routing, workflow triggers, diagnostic process control
+and the existing safe-build wrapper's explicit target override. Selected checks: tooling unit
+regressions, syntax/YAML, existing CTest registration and read-only Ninja closure, docs/portability.
+No production/native source, CMake registration, assertions, matrices or dependencies changed.
+Local and Hosted Full, performance, real Python A/B, pluginval/DAW/listening: N/A — unaffected.
+No new native build was necessary; configured metadata checks do not claim a fresh build PASS.
+
+Actual planner outputs are retained locally in `build/test-path/scheduling-phase-a/examples.json`:
+
+| Input | Selected scope | Excluded heavy work |
+|---|---|---|
+| README wording only | docs/policy checks | all native builds, performance, diagnostics |
+| Actual `48502d8..95e5968` diff | tooling checks only | all Water builds, Full, performance, diagnostics |
+| D1 source probe modification | Core + D1 Fast | A1 performance and automatic Full; focused provenance work remains task-specific |
+| DropletB1.h modification | Core + common/B1/B2/D1/Protect/Preview consumers | unrelated A1 and automatic Full/performance |
+| Explicit Full, all, Release | one Release Full, all 67 registered assets | Debug/ASAN companions and Python A/B |
+| Explicit targeted D1 ASAN | D1 group build + four D1 Fast CTests | other modules, regeneration, timing loops |
+| Explicit testdata diagnosis | one configured test; at most four paired cases | renderer and native compilation |
+
+The planner's automatic scope is the daily regression selection, not an automatic declaration
+that every research-specific assertion has been revalidated. Phase B/C will add dedicated
+correctness, memory-safety and Release performance purposes after the unique-assertion audit.
+Requests for those unavailable purposes fail rather than silently broadening to Full.
+
+### CI graph and removed execution
+
+| Entry | Before | Phase A |
+|---|---|---|
+| Ordinary PR | impact -> Core -> selected module loops | printed plan -> policy/Core -> selected module loops; obsolete Fast run cancellation |
+| Manual targeted | no independent bounded entry | request plan -> one config/group build -> selected Fast intersection |
+| Manual diagnostic | automatic eight cases after each Full | explicit failure/test/config/hypothesis -> at most four cases; stop on timeout/cancel |
+| Manual D1 study | Core/all-module daily jobs + Release build-all/CTest + study | request plan -> selected helpers -> original numerical/native study |
+| Manual Full | daily jobs plus three Full configs plus 24 diagnostic cases | one explicitly requested Full config; zero automatic diagnostic cases |
+| Manual performance | part of Full | dedicated selector deferred to Phase B/C; all assets still available in explicit Full |
+
+No assertion or registered test was removed. **Removed test coverage: none.** Full inventory
+remains 67; Fast remains 42. CI module-loop deduplication remains Phase D, so no deduplication
+savings are claimed yet. Separate manual runs use a distinct concurrency group; ordinary
+pushes cannot restart/cancel them. Cancellation may upload evidence but cannot start new
+diagnostic or research computation. A targeted ASAN Fast PASS would not mean complete
+memory-safety acceptance.
+
+### Executed validation and resource evidence
+
+The first functional check used `python tools/<name>.py` for each script below. Quality review
+then made the manual job's successful-plan prerequisite explicit and corrected its safe-build
+log artifact path; only the affected workflow regression and syntax checks were repeated.
+
+| Command | Why selected / invalidated evidence | Result / elapsed |
+|---|---|---|
+| `python tools/test_test_impact.py` | new allowlist, real diff handling and D1 probe ownership | 15/15 PASS, 15.60 s |
+| `python tools/test_plan_validation.py` | new explicit request schema, exclusions and rejection paths | 12/12 PASS, 1.29 s |
+| `python tools/test_python_test_ab.py` | changed timeout, process tree, case limit and cancellation | 5/5 PASS, 1.70 s; synthetic cases and one harmless sleeping child |
+| `python tools/test_validation_workflow.py` | daily/manual isolation and cancellation guards changed | 6/6 PASS, 0.014 s |
+| `python tools/test_build_safe.py` | target override must retain original safety semantics | PASS; expected mock refusal is part of test |
+| `python tools/test_check_test_paths.py` | retain existing selection/closure oracle | 15/15 PASS |
+| `python tools/check_portability.py`, `python tools/check_markdown_links.py`, `git diff --check` | changed paths/docs/commands | PASS |
+| `python -m py_compile` on new planner/diagnostic/regression scripts | changed Python syntax | PASS |
+| YAML parse of workflow files | workflow split/input syntax | PASS; parsing is not Hosted execution |
+| `python tools/check_test_paths.py --build-closure` | existing native closure must remain intact | PASS using existing configured Debug metadata; no bodies run |
+| `ctest --preset windows-asan-fast -L '^fast-water-d1$' --show-only=json-v1` plus selected Ninja graph | new manual target/filter pairing | four tests, closure PASS |
+| Release Preview and Debug all-Fast metadata plus selected Ninja graphs | representative cross-config/Preview selectors | six / 42 tests, closure PASS |
+| `ctest --preset windows-release-full --show-only=json-v1` | preserve complete asset inventory | 67 registrations; no bodies run |
+
+Tooling-only cost is tens of seconds locally, with zero compiler/DSP/performance execution.
+Fast historical ~36 s and D1 module historical ~2 s are supporting evidence from the earlier
+refactor, not freshly measured current-HEAD timings. Performance was not measured. Diagnostic
+work is capped at four cases, each 1..600 seconds (default120), stopping at first timeout/cancel;
+metadata queries have separate bounded deadlines. Explicit Full remains expensive and unmeasured
+in this phase. No setup, dependency installation, configure, build, performance or actual
+environment diagnosis was launched locally for this change. Hosted job wall time is unmeasured;
+no CPU-time saving claim is made.
+
+### Quality, documentation and remaining boundaries
+
+Contract Review -> Implementation -> Functional Validation -> Code Quality Review ->
+Comment & Documentation Pass -> Final Validation completed for Phase A. Review checked
+closed input sets, safe shell argument passing, process ownership/termination, preserved
+environment semantics, mixed/structural fail-closed routing, build-target safety, first-failure
+retention and separation of actual test execution from registration evidence.
+
+Documentation synchronization covers AGENTS, Code Standards, Coding Plan, Testing, GitHub
+Workflow, Environment, Module Index, Project Status, test-path matrix/ledger and tools/tests
+READMEs. Documentation Governance was reviewed without changes: existing CI/contract matrix
+already applies. Root README and CMake/presets reviewed without changes: existing build assets
+and compatibility entrypoints remain valid; canonical daily agent example now uses scoped Fast.
+Cross-document status is Phase A only; Phase B/C selectors/harness audit and Phase D module
+union are pending. Historical failure records and the ignored earlier evidence patch are preserved.
+
+Scheduler validation has no known local blocker; Hosted execution of the new manual workflow
+is NOT RUN. The local Python runtime/environment cause remains OPEN with no new diagnosis.
+Water research/human acceptance gates remain separate and unchanged. Water DSP, audio behavior,
+Host parameters, state, routing, latency and perceptual contracts are unchanged. Independent
+approval, merge and release are not claimed.

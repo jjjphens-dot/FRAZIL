@@ -9,9 +9,15 @@ CI routing on the current Water implementation. Preserve all original assertions
 matrices. This is test infrastructure, not a change to milestone dependencies or product
 contracts. Full includes research, performance observations and listening-pack mechanics;
 Fast never substitutes for research, human listening, Host or production acceptance.
-Review follow-up `258e21a` requires docs-only policy gating, precise Python ownership, actual
-canonical performance execution and exact-head local/Hosted validation. Production scope
-and the original first-failure evidence remain unchanged.
+Review follow-up `258e21a` established docs-only policy gating, precise Python ownership and
+canonical performance execution. The subsequent user-authorized
+[resource scheduling command at 3d44c33](https://github.com/jjjphens-dot/FRAZIL/blob/3d44c33/docs/research/test-path-systematic-refactor/FRAZIL_Validation_Scheduling_Resource_Remediation_Agent_Command.md)
+supersedes unconditional local/Hosted exact-head matrix repetition. Execute Phase A first:
+explicit diagnostic triggers, independent manual dispatch, known-tool routing and a validation
+planner. Phase B/C purpose selectors and performance correctness audit, then Phase D module
+union remain subsequent work. Synchronize affected documentation with each implementation.
+Production scope and original first-failure evidence remain unchanged. Final Validation is
+the final check of the affected scope; full frozen-head acceptance is reserved for explicit gates.
 [Coverage and commands](testing/TEST_PATH_MATRIX.md) follow actual CTest registration;
 [execution and unresolved failures](testing/TEST_PATH_EXECUTION.md) record measured status.
 

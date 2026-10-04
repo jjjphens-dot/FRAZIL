@@ -13,6 +13,10 @@ build with `tools/build_safe.py --preset <profile>`, then run the matching CTest
 Core includes lightweight corpus verification. Full includes deep regeneration, original
 Water matrices, isolated native/listening/performance validation and all Preview groups.
 Smoke selects only `frazil_smoke`. The execution report retains failures as well as passes.
+Start with `tools/plan_validation.py` to select scope. Full does not imply automatic diagnostics;
+explicit diagnostics require one observed failure, test, configuration and hypothesis.
+Routing/planner/workflow/diagnostic regressions use synthetic cases and a short-lived child,
+not actual regeneration or renderer studies. Native test assertions and Full assets are unchanged.
 
 当前测试 target：
 

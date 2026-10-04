@@ -1,9 +1,26 @@
 """Regression checks for transitive dependency routing and conservative fallbacks."""
 import unittest
-from test_impact import MODULES, SPIKE, dependencies, executable_doc_diff, route
+from test_impact import MODULES, SPIKE, TOOLING, dependencies, executable_doc_diff, route, tooling_doc_diff
 
 
 class ImpactTests(unittest.TestCase):
+    def test_known_tooling_is_lightweight_but_structural_is_conservative(self):
+        for path in TOOLING:
+            result = route([path])
+            self.assertTrue(result["tooling_required"], path)
+            self.assertFalse(result["native_build_required"], path)
+            self.assertEqual(result["modules"], [], path)
+            self.assertEqual(route([path], structural={path})["modules"], list(MODULES), path)
+
+    def test_tooling_docs_and_mixed_native_changes(self):
+        self.assertTrue(tooling_doc_diff("+python tools/test_test_impact.py"))
+        self.assertFalse(tooling_doc_diff("+python tools/test_test_impact.py; cmake --build build"))
+        self.assertFalse(tooling_doc_diff("+python tools/new_tool.py"))
+        result = route(["tools/test_impact.py", "tools/README.md"],
+                       executable_docs={"tools/README.md"}, tooling_docs={"tools/README.md"})
+        self.assertFalse(result["native_build_required"])
+        self.assertTrue(route(["tools/test_impact.py", "src/app/AudioEngine.cpp"])["core_required"])
+
     def test_real_transitive_dependencies(self):
         closure = dependencies([SPIKE / "tests/droplet_b2_tests.cpp"])
         self.assertIn((SPIKE / "dsp/DropletB1.h").as_posix(), closure)

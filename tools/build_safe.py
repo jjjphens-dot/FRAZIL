@@ -32,6 +32,12 @@ SUPPORTED_PRESETS = BASE_PRESETS + tuple(
     f"{base}-{profile}" for base in BASE_PRESETS for profile in TEST_PROFILES
     if base in {"windows-debug", "ci-windows-debug"} or profile in ("core", "fast", "full")
 )
+# Narrow manual diagnostics/targeted jobs still use the same safety preflight.
+SCOPED_TARGETS = (
+    "frazil_core_tests", "frazil_fast_tests", "frazil_water_experiment_render",
+    "frazil_water_d1_research_tests", "frazil_water_preview_test_group",
+    *(f"frazil_water_{module}_test_group" for module in ("common", "a1", "b1", "b2", "d1", "protect")),
+)
 
 
 class MemoryStatusEx(ctypes.Structure):
@@ -101,7 +107,9 @@ def available_physical_memory() -> int | None:
     return int(status.ullAvailPhys)
 
 
-def build_command(preset: str, jobs: int) -> list[str]:
+def build_command(preset: str, jobs: int, target: str | None = None) -> list[str]:
+    if target is not None and target not in SCOPED_TARGETS:
+        raise ValueError(f"unsupported scoped target: {target}")
     return [
         "cmake",
         "--build",
@@ -109,7 +117,7 @@ def build_command(preset: str, jobs: int) -> list[str]:
         preset,
         "--parallel",
         str(validate_job_count(jobs)),
-    ]
+    ] + (["--target", target] if target else [])
 
 
 def tail_log(log_path: Path, line_count: int = 80) -> list[str]:
@@ -137,6 +145,7 @@ def main() -> int:
     parser.add_argument("--preset", choices=SUPPORTED_PRESETS, required=True)
     parser.add_argument("--jobs", type=int, default=DEFAULT_BUILD_JOBS)
     parser.add_argument("--check-only", action="store_true")
+    parser.add_argument("--target", choices=SCOPED_TARGETS)
     args = parser.parse_args()
 
     try:
@@ -153,7 +162,7 @@ def main() -> int:
 
     log_path = ROOT / "build" / "safe-build" / f"{args.preset}.log"
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    command = build_command(args.preset, jobs)
+    command = build_command(args.preset, jobs, args.target)
     print(
         f"Build safety check: PASS (preset={args.preset}, jobs={jobs}, "
         f"log={log_path.relative_to(ROOT)})"

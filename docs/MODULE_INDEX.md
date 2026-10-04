@@ -7,7 +7,10 @@ closures. Renderer/B1/D1 CLI responsibilities are separate scripts with shared f
 helpers; compatibility commands run all extracted responsibilities. A1/B1/B2 executables
 select representative or complete matrices. B2 and Preview timing have separate slow
 registrations. Preview exposes six logical groups in one executable. `tools/test_impact.py`
-owns conservative CI dependency routing. See the [coverage matrix](testing/TEST_PATH_MATRIX.md).
+owns conservative CI dependency routing. `tools/plan_validation.py` adds purpose/request
+validation without executing workloads; `python_test_ab.py` owns explicit bounded diagnostics.
+Daily CI and manual validation are separate workflows. Known tool changes have dedicated
+lightweight regressions. See the [coverage matrix](testing/TEST_PATH_MATRIX.md).
 No production module, model, or public interface changed.
 
 ## R3.1 validation closeout

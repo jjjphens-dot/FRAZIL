@@ -94,6 +94,9 @@ std::size_t delayWriteIndex_ {};
 3. Comment & Documentation Pass：公共接口、关键算法注释、模块 README、`docs/MODULE_INDEX.md`、ADR/计划/测试合同按影响范围同步；
 4. 最终验证并在 PR 写出实际命令和结果；无影响项写 `N/A`。
 
+最终验证遵循 `TESTING.md` 的影响范围与 evidence invalidation 规则，不因提交 ID 改变就无条件
+重跑所有 Full。先记录 validation plan；阶段/发布的完整冻结验收仍按其明确 gate 执行。
+
 实现前必须执行 [Documentation Impact Check](DOCUMENT_GOVERNANCE.md#5-documentation-synchronization-gate)：
 普通 bounded task 使用 Targeted Check，只检查直接相关 contract/module/evidence；仅命中该文档定义的 Full Gate
 trigger 时才执行完整 Documentation Synchronization Gate。必要更新与实现放在同一个 PR，且只对直接相关但
