@@ -174,3 +174,31 @@ not new hard budgets. None belongs to Fast. B2 and Preview retain their existing
 its Ninja aggregate and rejects performance/native-study helpers in Fast. It also requires
 canonical performance registrations for each enabled domain; Full execution results remain
 separate evidence from the build graph.
+
+## Bounded runtime investigation
+
+When Full timing identifies one slow benchmark, the safe build wrapper accepts the seven
+existing benchmark executable targets: `frazil_performance`, `frazil_water_performance`,
+`frazil_water_bubble_a1_performance`, `frazil_water_droplet_b1_performance`,
+`frazil_water_droplet_b2_performance`, `frazil_water_flow_d1_performance` and
+`frazil_water_preview_tests`. The last runner also owns Preview functional groups, but the
+CTest filter below selects only the requested entry. This build override retains memory
+checks and the six-job default/eight-job ceiling; arbitrary targets remain rejected.
+
+Example, from an initialized MSVC environment with canonical research dependencies already
+installed and CMake bound to that Python interpreter:
+
+```powershell
+python tools/build_safe.py --preset windows-release-full --check-only
+cmake --preset windows-release -DFRAZIL_BUILD_WATER_EXPERIMENT=ON
+python tools/build_safe.py --preset windows-release-full --target frazil_water_bubble_a1_performance
+ctest --preset windows-release-full -R '^frazil_water_a1_performance$' --parallel 1 --timeout 600 --output-on-failure
+```
+
+Preview additionally needs `FRAZIL_BUILD_WATER_PREVIEW=ON`. Run configuration comparisons
+serially and retain the first result; timeout is a diagnostic failure, not permission to
+retry until green. The 600-second example is an investigation deadline, not a performance
+budget. Debug/ASAN runs investigate validation cost; production callback measurements use
+Release and their existing protocol. A filtered PASS is only that entry's evidence, never
+Full or complete correctness/memory-safety acceptance. All existing cases/loops, Full67 and
+Fast42 remain unchanged; Phase B/C purpose selectors and assertion migration are still pending.

@@ -22,7 +22,10 @@ class WorkflowTests(unittest.TestCase):
     def test_independent_concurrency(self):
         self.assertIn("cancel-in-progress: true", self.fast)
         self.assertIn("group: frazil-fast-", self.fast)
-        self.assertIn("group: frazil-explicit-${{ github.run_id }}", self.manual)
+        concurrency = self.manual.split("\nconcurrency:\n", 1)[1].split("\njobs:", 1)[0]
+        self.assertIn("group: frazil-explicit-${{ github.ref }}", concurrency)
+        self.assertNotIn("github.run_id", concurrency)
+        self.assertNotIn("github.sha", concurrency)
         self.assertIn("cancel-in-progress: false", self.manual)
         self.assertNotIn("needs: ci-core", self.manual)
         self.assertNotIn("matrix:", self.manual)

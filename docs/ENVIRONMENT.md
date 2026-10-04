@@ -21,7 +21,8 @@
 Run `tools/plan_validation.py` before validation. Manual `validation.yml` requests select
 one configuration and purpose; they do not start the daily CI graph. Python diagnostics
 are explicit and failure-specific, not environment setup after every Full. The safe build
-wrapper accepts an allowlisted `--target` for a selected module/diagnostic helper while
+wrapper accepts an allowlisted `--target` for a selected module/diagnostic helper or existing
+canonical benchmark executable (see the [matrix](testing/TEST_PATH_MATRIX.md)) while
 retaining the same memory and job limits. No toolchain or dependency version changed.
 
 Visual Studio IDE 不是项目必需品。VS Code、Developer PowerShell for Visual Studio 或 x64 Native Tools command prompt 均可作为开发入口；关键是 CMake 能通过 PATH 找到所需工具。
@@ -205,28 +206,30 @@ it does not claim physical-device or GUI acceptance.
 
 ## Optional D1 independent-machine research run
 
-The existing CI workflow accepts explicit `workflow_dispatch` input
-`flow_d1_latency=true`. Default push/PR/manual CI stays unchanged. After the standard
-Debug job passes, an independent Windows runner performs a safe six-job Release
-build, full device-free CTest with Preview OFF, synthetic source export, the complete
-EXP-W-FD-002 numerical screen and native resource matrix. It uploads summary CSVs,
+The separate `validation.yml` workflow accepts `purpose=research,module=water-d1`,
+`configuration=release,study=latency`. After its request plan passes, an independent
+Windows runner builds only the selected study helpers through the safe six-job wrapper,
+with Preview OFF and without a preceding daily CI or Full CTest run. It then runs synthetic
+source export, the complete EXP-W-FD-002 numerical screen and native resource matrix. It uploads summary CSVs,
 provenance and failure logs for30 days; generated audio/NPZ and per-case output files
 are excluded. No private listening sources or credentials are uploaded.
 
-This diagnostic job pins Python3.12.4, NumPy2.3.4 and SciPy1.17.1 to compare with the
-failing local baseline; these are not new project-wide version requirements. The
+This diagnostic job pins Python3.12.4 and installs `requirements-dsp.txt` to compare with the
+failing local baseline; the Python pin is not a new project-wide version requirement. The
 same captured interpreter installs dependencies, configures CMake and runs studies.
-Manual trigger: `gh workflow run ci.yml --ref <review-branch> -f flow_d1_latency=true`.
+After default-branch activation, the manual trigger is
+`gh workflow run validation.yml --ref <review-branch> -f purpose=research -f module=water-d1 -f configuration=release -f study=latency`.
+Activation prerequisites and same-ref concurrency follow [GitHub Workflow](GITHUB_WORKFLOW.md).
 Hosted measurements must be identified separately from local reference-machine
 measurements. A successful independent run does not establish the cause or repair of
 local Python/native failures; see the [D1 study](evidence/WATER_FLOW_D1_LATENCY_STUDY.md).
 
 
-The same optional job accepts `flow_d1_convergence=true` for the bounded
+The same optional job accepts `study=convergence` for the bounded
 [FD-003](../experiments/water/EXP-W-FD-003.md) registry, minimum-guard search,
 shortlist-only native measurements and cross-rate/event diagnostics. Choose exactly
-one research input per dispatch; both defaults are false. Example:
-`gh workflow run ci.yml --ref <review-branch> -f flow_d1_convergence=true`.
+one study per dispatch; the default is `none` and is rejected for research. Example after activation:
+`gh workflow run validation.yml --ref <review-branch> -f purpose=research -f module=water-d1 -f configuration=release -f study=convergence`.
 The convergence artifact is `flow-d1-convergence-<code-commit>` and adds synthetic
 event CSVs and cross-rate summaries, still excluding audio/NPZ/private sources.
 Generated directories are separate from the historical FD-002 run.

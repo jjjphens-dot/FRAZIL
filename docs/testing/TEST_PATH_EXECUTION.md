@@ -6,6 +6,10 @@ Remediation `07bf7b4514a0fdefca594c7f6bfc9b558bb05b86` is published on remote
 `codex/refactor/test-paths` in [draft PR #44](https://github.com/jjjphens-dot/FRAZIL/pull/44).
 Earlier RF-001 through RF-008 results are recorded in [Review follow-up](#review-follow-up).
 Current scheduling work is recorded in [Resource scheduling Phase A](#resource-scheduling-phase-a).
+The2026-10-05 [Sound Lead runtime follow-up](SOUND_LEAD_RUNTIME_20261005.md) measures fetched
+`392fce0` (Debug Full67/67,393.13s; Fast42/42,33.00s), compares the same A1 workload across
+configurations and records bounded local tooling/workflow fixes. It does not replace earlier
+failures, claim full Release/ASAN acceptance, or change the still-pending Phase B-D status.
 Everything from **Execution baseline** through **Historical blockers and next checkpoint**
 below describes reviewed implementation `545dd33`, not the current remediation. Its original
 failures and then-pending Hosted status are retained as dated evidence, not replaced by diagnostics.

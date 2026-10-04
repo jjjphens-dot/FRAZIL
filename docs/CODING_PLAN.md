@@ -20,6 +20,11 @@ Production scope and original first-failure evidence remain unchanged. Final Val
 the final check of the affected scope; full frozen-head acceptance is reserved for explicit gates.
 [Coverage and commands](testing/TEST_PATH_MATRIX.md) follow actual CTest registration;
 [execution and unresolved failures](testing/TEST_PATH_EXECUTION.md) record measured status.
+Phase A closeout uses stable per-ref manual concurrency and records default-branch Hosted
+activation separately from local implementation, following the
+[closeout command at 39bcb0f](https://github.com/jjjphens-dot/FRAZIL/blob/39bcb0f/docs/research/test-path-systematic-refactor/FRAZIL_PhaseA_Closeout_PhaseB_Validation_Separation_Agent_Command.md).
+Allowlisted canonical benchmark leaf builds support bounded runtime investigation; they do
+not implement Phase B/C purpose separation or complete its unique-assertion audit.
 
 ## Proposed minimum-practical latency policy (ARCH-LAT-002)
 

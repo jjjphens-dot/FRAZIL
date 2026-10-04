@@ -2,6 +2,22 @@
 
 ## Test path infrastructure
 
+### Sound Lead local follow-up (2026-10-05)
+
+Fetched implementation `392fce0` (PR #44), distinguished from docs-only `39bcb0f` and
+main `3c95e47`. On the Sound Lead machine, its unchanged native/CTest baseline passes
+Debug Full67/67 in393.13s and Fast42/42 in33.00s; the first run reproduces minutes-long
+Full cost, but no Python crash/timeout. A1 Debug82.00s versus Release11.36s uses the same
+30-case workload; ASAN also passes in214.71s (18.9 times Release).
+[Environment, results and limits](testing/SOUND_LEAD_RUNTIME_20261005.md).
+These results do not close the collaborator's original Python failure or any human gate.
+
+Local candidate changes add safe canonical benchmark leaf builds, per-ref explicit-workflow
+serialization and corrected research commands. No native assertions or timing loops changed.
+Default-branch tree/API check on2026-10-05 finds no `validation.yml` on main and only the
+existing FRAZIL CI registered: Hosted activation **BLOCKED / NOT RUN**. Independent review,
+merge and Phase B-D remain pending. Earlier Phase A results below retain their own identity.
+
 Resource scheduling Phase A follows the command at `3d44c33`, starting from `95e5968`.
 Implemented on the refactor branch: separate PR/manual workflows, explicit one-config
 requests, known-tool-only routing, a non-executing validation planner, bounded single-test

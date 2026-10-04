@@ -21,6 +21,10 @@ configuration), bounded Python diagnostic (one test/failure/hypothesis), or one 
 study. Full never automatically starts diagnostics. Dedicated correctness, memory-safety
 and Release performance selectors and their unique-assertion audit remain Phase B/C work;
 targeted ASAN Fast is not a claim of complete module memory-safety acceptance.
+For an observed slow test, [bounded runtime investigation](testing/TEST_PATH_MATRIX.md#bounded-runtime-investigation)
+can build and run its existing canonical executable alone. Debug/ASAN wall times explain
+validation cost; they are not production performance evidence. Manual Hosted activation
+and per-ref concurrency boundaries follow [GitHub Workflow](GITHUB_WORKFLOW.md).
 
 Daily regression uses core/module AND fast selections. A1/B1/B2 representative paths,
 renderer/B1/D1 smoke and schema contracts, and six independently selectable Preview groups
@@ -1076,12 +1080,14 @@ test-only coefficient-import prototype, not runtime D1 replacement. Manual nativ
 resource evidence uses full warmed measurements only on overlap-reference; short
 CTest timings are not performance evidence. See EXP-W-FD-002 and the linked study.
 
-An explicitly dispatched independent-machine D1 study is available through CI's
-`flow_d1_latency=true` input. It runs after standard Debug validation and generates
+An explicitly dispatched independent-machine D1 study is implemented in `validation.yml`
+with `purpose=research,module=water-d1,configuration=release,study=latency`.
+After the request plan and selected-helper safe build, it generates
 fresh synthetic sources and a complete Release numerical/native matrix. Summary
 artifacts preserve failed attempts; no private listening material is used. This is
 manual research evidence, not an added default PR gate, human acceptance or a fix for
-local environment faults. Environment/provenance details are in ENVIRONMENT.md.
+local environment faults. It does not prepend daily Debug or Full validation. Hosted
+activation prerequisites and environment/provenance details are in ENVIRONMENT.md.
 
 
 ## D1 convergence validation (EXP-W-FD-003)

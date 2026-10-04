@@ -139,6 +139,32 @@ def assert_preset_allowlist_matches_repository() -> None:
         assert command == ["cmake", "--build", "--preset", preset, "--parallel", "6"]
 
 
+def assert_benchmark_target_keeps_safety_boundary() -> None:
+    arguments = ["build_safe.py", "--preset", "windows-asan-full", "--target",
+                 "frazil_water_bubble_a1_performance"]
+    required = required_memory_bytes(6)
+    with (
+        patch.object(sys, "argv", arguments),
+        patch.dict(build_safe.os.environ, {"CMAKE_BUILD_PARALLEL_LEVEL": "6"}),
+        patch.object(build_safe, "available_physical_memory", return_value=required) as memory,
+        patch.object(build_safe, "run_build", return_value=0) as runner,
+    ):
+        assert build_safe.main() == 0
+        assert runner.call_args.args[0] == [
+            "cmake", "--build", "--preset", "windows-asan-full", "--parallel", "6",
+            "--target", "frazil_water_bubble_a1_performance"]
+        runner.reset_mock()
+        memory.return_value = required - 1
+        assert build_safe.main() == 2
+        runner.assert_not_called()
+    for invalid_target in ("all", "install", "not-a-target", "frazil_performance;install"):
+        try:
+            build_command("windows-debug-full", 6, invalid_target)
+        except ValueError:
+            continue
+        raise AssertionError(f"arbitrary target accepted: {invalid_target}")
+
+
 def main() -> int:
     assert validate_job_count(1) == 1
     assert validate_job_count(6) == 6
@@ -173,6 +199,7 @@ def main() -> int:
     assert_memory_failure_refuses_build()
     assert_tail_is_bounded()
     assert_preset_allowlist_matches_repository()
+    assert_benchmark_target_keeps_safety_boundary()
     print("Build safety regression tests: PASS")
     return 0
 

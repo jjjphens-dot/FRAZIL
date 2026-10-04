@@ -37,6 +37,12 @@ SCOPED_TARGETS = (
     "frazil_core_tests", "frazil_fast_tests", "frazil_water_experiment_render",
     "frazil_water_d1_research_tests", "frazil_water_preview_test_group",
     *(f"frazil_water_{module}_test_group" for module in ("common", "a1", "b1", "b2", "d1", "protect")),
+    # Investigate a measured slow entry without compiling the entire Full closure.
+    # These are existing canonical executables; this adds no validation purpose.
+    "frazil_performance", "frazil_water_performance",
+    "frazil_water_bubble_a1_performance", "frazil_water_droplet_b1_performance",
+    "frazil_water_droplet_b2_performance", "frazil_water_flow_d1_performance",
+    "frazil_water_preview_tests",
 )
 
 
@@ -165,6 +171,7 @@ def main() -> int:
     command = build_command(args.preset, jobs, args.target)
     print(
         f"Build safety check: PASS (preset={args.preset}, jobs={jobs}, "
+        f"target={args.target or 'preset-default'}, "
         f"log={log_path.relative_to(ROOT)})"
     )
 

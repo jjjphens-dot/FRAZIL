@@ -7,6 +7,11 @@ profiles from the [matrix](../docs/testing/TEST_PATH_MATRIX.md). All retain the 
 preflight, six default jobs and eight-job ceiling. `check_test_paths.py --preset windows-debug`
 (or `ci-windows-debug`) checks actual CTest selections, label intersections and singleton Smoke.
 `test_check_test_paths.py` and `test_build_safe.py` exercise these guards.
+For runtime investigation, `--target` also allows the existing product, Legacy, A1, B1,
+B2 and D1 benchmark executables and the Preview runner. This overrides the preset's build
+target only; select the corresponding CTest explicitly as shown in the
+[matrix](../docs/testing/TEST_PATH_MATRIX.md#bounded-runtime-investigation).
+It does not create a dedicated performance/correctness/memory validation purpose.
 
 `test_impact.py --base <git-ref> --head <git-ref>` computes CI modules from local quoted
 C++ includes, explicitly linked implementation files and Python entrypoints/local imports.

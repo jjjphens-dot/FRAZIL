@@ -272,8 +272,17 @@ require `purpose=diagnostic`, one test/config, an observed Python failure class 
 hypothesis. At most four direct/CTest/site cases run, with an explicit per-case deadline;
 timeout/cancellation stops subsequent cases and terminates the active process tree.
 Only evidence upload uses `always()`; new computation requires success and no cancellation.
-Explicit runs use their own run-ID concurrency group and are not restarted/cancelled by
-later PR pushes. Cancel an obsolete explicit run deliberately; do not dispatch duplicates.
+Explicit runs use a stable per-ref concurrency group, separate from daily PR runs.
+Only one explicit request on the same ref runs at a time; later PR pushes cannot cancel it.
+The default GitHub queue retains only one pending request: a newer request can replace an
+older pending request, even with `cancel-in-progress: false`. This is not a durable request
+queue. Cancel an obsolete running request deliberately; do not dispatch duplicates.
+See [GitHub concurrency semantics](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency).
+
+Hosted activation is separate from implementation: `workflow_dispatch` requires the workflow
+file on the default branch. Before that prerequisite is satisfied, record Hosted validation
+as BLOCKED/NOT RUN; a local planner/test PASS is not a Hosted PASS. Do not merge or dispatch
+solely to manufacture acceptance evidence. See [GitHub dispatch requirements](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch).
 The independent D1 Release study remains available as `purpose=research,module=water-d1`
 with one `study=latency|convergence`, building only its helpers without prepended Full tests.
 Dedicated performance/correctness purposes and CI module union are deferred to Phase B-D.

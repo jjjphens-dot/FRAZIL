@@ -45,9 +45,10 @@ on:
 permissions:
   contents: read
 
-# A later PR push cannot cancel or restart an explicit frozen-run request.
+# Serialize explicit runs on the same ref, independently of daily PR cancellation.
+# Keep the running request; GitHub's default queue replaces an older pending request.
 concurrency:
-  group: frazil-explicit-${{ github.run_id }}
+  group: frazil-explicit-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:

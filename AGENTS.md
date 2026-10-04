@@ -106,6 +106,8 @@ Contract Review
 功能完成后不得跳过独立的 Code Quality Review 或 Comment & Documentation Pass。
 Final Validation 是本任务受影响范围的最终验证，不是无条件 Debug/Release/ASAN Full。
 验证前先记录 purpose、影响范围与命令；只有明确阶段/发布/完整复现 gate 才要求冻结 HEAD 的完整矩阵。
+手动 Hosted 验收按 ref 串行并与日常 PR 取消组隔离；workflow 默认分支激活条件与 pending 替换限制见
+[GitHub Workflow](docs/GITHUB_WORKFLOW.md)。本地 PASS 不替代未激活的 Hosted 验证。
 
 ### Documentation Impact Check / Synchronization Gate
 
