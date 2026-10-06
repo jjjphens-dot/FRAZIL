@@ -223,14 +223,18 @@ Developer/Experiment control 不等于 production Host parameter。`water.model`
 
 ```powershell
 python tools/plan_validation.py --base HEAD~1 --head HEAD
-# 按计划选择；仅工具变更无需执行下面的 native build/test 示例。
 cmake --preset windows-debug
-python tools/build_safe.py --preset windows-debug-fast
-ctest --preset windows-debug-fast
+python tools/build_safe.py --preset windows-debug-build
 ```
 
-模块小修优先使用相应模块 preset。旧 base preset 保留兼容；`windows-debug-full` 等最大集合只按显式验收目的运行。
-Python A/B 必须绑定具体故障、假设、测试、配置和超时，不得作为 Full 的自动后续步骤。
+默认 Build Stage 只构建 `FRAZIL_All`，不执行 CTest。CURRENT 由 `tests/current_modules.json`
+统一声明，当前仅 A1/B2/D1；C 必须有真实实现和测试后再注册。独立 Test Stage 先打印计划，
+通过 `tools/run_current_tests.py --preset windows-debug --modules a1,b2,d1 --execute`
+构建模块并集一次、执行一次；日常小修只选受影响模块，不得每次实现后自动扩大 Debug。
+ASAN 用于显式 CURRENT memory-safety，性能只在显式 Release CURRENT performance 测量。
+历史 A0/B1/common/Preview/research/listening/evidence 保留在显式 archive，不默认注册。
+本规则是用户授权的 PR #44 测试治理修订，与 `docs/CODING_PLAN.md` 同步，不改变产品合同。
+Python A/B 必须绑定具体故障、假设、测试、配置和超时，不是 Full 的自动后续步骤。
 
 ### Repository Portability Rules
 
@@ -240,10 +244,8 @@ Python A/B 必须绑定具体故障、假设、测试、配置和超时，不得
 - Tracked reference-machine evidence 可以记录 OS、工具版本、SDK/toolchain 版本和泛化后的路径占位符，但不得保存开发者原始绝对路径。
 - 确实需要保存的本机原始路径只能存在于 ignored/untracked local evidence 中，不得提交到 Git。
 
-日常测试按 [TEST_PATH_MATRIX](docs/testing/TEST_PATH_MATRIX.md) 使用 Core/模块 AND Fast；
-完整矩阵、native/listening/performance 与 testdata regeneration 保留在 Full。
-CI 按 [GITHUB_WORKFLOW](docs/GITHUB_WORKFLOW.md#7-ci-分层计划) 路由实际影响模块；
-Full dispatch、首次失败保留和构建资源安全规则适用于所有路径，Fast 不替代阶段验收。
+独立 Test Stage 和 archive/Host 入口见 [TEST_PATH_MATRIX](docs/testing/TEST_PATH_MATRIX.md)。
+CI 构建与测试分 job，只执行所选 CURRENT 并集；首次失败和构建资源安全规则保持不变。
 
 其他预设：`windows-release`、`windows-asan`。本机完整 MSVC 环境命令见 `docs/ENVIRONMENT.md`。
 

@@ -15,11 +15,10 @@ jobs:
   impact:
     runs-on: ubuntu-latest
     outputs:
-      modules: ${{ steps.route.outputs.modules }}
-      water: ${{ steps.route.outputs.water }}
+      active_modules: ${{ steps.route.outputs.active_modules }}
+      build_required: ${{ steps.route.outputs.build_required }}
+      test_required: ${{ steps.route.outputs.test_required }}
       core_required: ${{ steps.route.outputs.core_required }}
-      testdata: ${{ steps.route.outputs.testdata }}
-      research_dependencies: ${{ steps.route.outputs.research_dependencies }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,76 +33,36 @@ jobs:
             echo "Missing comparison base; refusing an unscoped plan" >&2
             exit 1
           else
-            python tools/plan_validation.py --context pr --base "$BASE" --head "$HEAD" --github-output "$GITHUB_OUTPUT"
+            python tools/plan_validation.py --context pr --stage test --base "$BASE" --head "$HEAD" --github-output "$GITHUB_OUTPUT"
           fi
 
   ci-core:
-    name: Core build and fast regression
-    needs: impact
-    # Keep the required check name present for docs-only changes, on a lightweight runner.
-    runs-on: ${{ needs.impact.outputs.core_required == 'true' && 'windows-latest' || 'ubuntu-latest' }}
+    name: Repository policy checks
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - uses: ilammy/msvc-dev-cmd@v1
-        if: ${{ needs.impact.outputs.core_required == 'true' }}
-        with:
-          arch: x64
-      - uses: actions/cache@v4
-        if: ${{ needs.impact.outputs.core_required == 'true' }}
-        with:
-          path: external/JUCE
-          key: juce-9.0.1-e18f7f506c0b96f2c738a0bcd7fe6467a5005ad8-${{ runner.os }}
-      - name: Restore pinned dependencies
-        if: ${{ needs.impact.outputs.core_required == 'true' }}
-        shell: pwsh
-        run: ./tools/bootstrap_dependencies.ps1
-      - name: Repository checks and tooling regressions
+      - name: Lightweight policy and routing regressions
         shell: pwsh
         run: |
           foreach ($script in @('check_portability', 'test_check_portability', 'check_markdown_links',
               'test_check_markdown_links', 'check_vscode_tasks', 'test_check_vscode_tasks',
               'test_build_safe', 'test_check_test_paths', 'test_test_impact', 'test_performance_observation',
-              'test_plan_validation', 'test_python_test_ab', 'test_validation_workflow')) {
+              'test_plan_validation', 'test_python_test_ab', 'test_validation_workflow', 'test_current_modules')) {
             python "tools/$script.py"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
-      - name: Configure core without research dependencies
-        if: ${{ needs.impact.outputs.core_required == 'true' }}
-        shell: pwsh
-        run: |
-          $ciPython = python -c "import sys; print(sys.executable)"
-          cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=OFF -DFRAZIL_BUILD_WATER_PREVIEW=OFF "-DPython3_EXECUTABLE:FILEPATH=$ciPython"
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python tools/check_test_paths.py --preset ci-windows-debug
-      - name: Safe core build
-        if: ${{ needs.impact.outputs.core_required == 'true' }}
-        run: python tools/build_safe.py --preset ci-windows-debug-core
-      - name: Core fast including lightweight corpus verification
-        if: ${{ needs.impact.outputs.core_required == 'true' }}
-        run: ctest --preset ci-windows-debug-core --output-junit core.xml
-      - name: Deep corpus regeneration on corpus or generator changes
-        if: ${{ needs.impact.outputs.core_required == 'true' && needs.impact.outputs.testdata == 'true' }}
-        run: ctest --preset ci-windows-debug-full -R '^frazil_testdata_regeneration$' --output-junit testdata.xml
-      - name: Preserve first-run evidence
-        if: ${{ always() && needs.impact.outputs.core_required == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-core-${{ github.sha }}
-          path: |
-            build/ci-windows-debug/*.xml
-            build/ci-windows-debug/Testing/Temporary/*.log
-            build/safe-build/*.log
+          python tools/generate_current_presets.py --check
 
-  ci-water-fast:
-    name: Affected Water module fast paths
+  ci-build:
     needs: [impact, ci-core]
-    if: ${{ needs.impact.outputs.water == 'true' }}
+    if: ${{ needs.impact.outputs.build_required == 'true' }}
     runs-on: windows-latest
+    timeout-minutes: 30
     env:
-      MODULES: ${{ needs.impact.outputs.modules }}
+      MODULES: ${{ needs.impact.outputs.active_modules }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -119,37 +78,114 @@ jobs:
       - name: Restore pinned dependencies
         shell: pwsh
         run: ./tools/bootstrap_dependencies.ps1
-      - name: Select one Python interpreter
+      - name: Configure isolated scope
         shell: pwsh
         run: |
           $ciPython = python -c "import sys; print(sys.executable)"
-          "FRAZIL_CI_PYTHON=$ciPython" >> $env:GITHUB_ENV
-      - name: Install dependencies only for selected Python audio tests
-        if: ${{ needs.impact.outputs.research_dependencies == 'true' }}
-        shell: pwsh
-        run: '& $env:FRAZIL_CI_PYTHON -m pip install -r requirements-dsp.txt'
-      - name: Configure and check all scoped selectors
+          cmake --preset ci-windows-debug "-DPython3_EXECUTABLE:FILEPATH=$ciPython"
+          exit $LASTEXITCODE
+      - name: Build project without CTest
         shell: pwsh
         run: |
-          $preview = if (($env:MODULES | ConvertFrom-Json) -contains 'preview') { 'ON' } else { 'OFF' }
-          cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON "-DFRAZIL_BUILD_WATER_PREVIEW=$preview" "-DPython3_EXECUTABLE:FILEPATH=$env:FRAZIL_CI_PYTHON"
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python tools/check_test_paths.py --preset ci-windows-debug
-      - name: Build and run affected modules serially
-        shell: pwsh
-        run: |
-          foreach ($module in ($env:MODULES | ConvertFrom-Json)) {
-            & $env:FRAZIL_CI_PYTHON tools/build_safe.py --preset "ci-windows-debug-$module"
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            ctest --preset "ci-windows-debug-$module" --output-junit "$module.xml"
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          }
+          python tools/build_safe.py --preset ci-windows-debug-build
+          exit $LASTEXITCODE
       - name: Preserve first-run evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-water-fast-${{ github.sha }}
+          name: ci-build-${{ github.sha }}
           path: |
             build/ci-windows-debug/*.xml
             build/ci-windows-debug/Testing/Temporary/*.log
+            build/safe-build/*.log
+
+  ci-current-tests:
+    needs: [impact, ci-build]
+    if: ${{ needs.impact.outputs.test_required == 'true' && needs.impact.outputs.active_modules != '[]' }}
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      MODULES: ${{ needs.impact.outputs.active_modules }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - uses: actions/cache@v4
+        with:
+          path: external/JUCE
+          key: juce-9.0.1-e18f7f506c0b96f2c738a0bcd7fe6467a5005ad8-${{ runner.os }}
+      - name: Restore pinned dependencies
+        shell: pwsh
+        run: ./tools/bootstrap_dependencies.ps1
+      - name: Configure isolated scope
+        shell: pwsh
+        run: |
+          $ciPython = python -c "import sys; print(sys.executable)"
+          cmake --preset ci-windows-debug "-DPython3_EXECUTABLE:FILEPATH=$ciPython"
+          exit $LASTEXITCODE
+      - name: Run separate Test Stage once
+        shell: pwsh
+        run: |
+          python tools/check_current_tests.py --preset ci-windows-debug
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $selected = ($env:MODULES | ConvertFrom-Json) -join ","
+          python tools/run_current_tests.py --preset ci-windows-debug --modules $selected --execute
+          exit $LASTEXITCODE
+      - name: Preserve first-run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-current-tests-${{ github.sha }}
+          path: |
+            build/ci-windows-debug/*.xml
+            build/ci-windows-debug/Testing/Temporary/*.log
+            build/safe-build/*.log
+
+  ci-host-tests:
+    needs: [impact, ci-build]
+    if: ${{ needs.impact.outputs.test_required == 'true' && needs.impact.outputs.core_required == 'true' }}
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      MODULES: ${{ needs.impact.outputs.active_modules }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - uses: actions/cache@v4
+        with:
+          path: external/JUCE
+          key: juce-9.0.1-e18f7f506c0b96f2c738a0bcd7fe6467a5005ad8-${{ runner.os }}
+      - name: Restore pinned dependencies
+        shell: pwsh
+        run: ./tools/bootstrap_dependencies.ps1
+      - name: Configure isolated scope
+        shell: pwsh
+        run: |
+          $ciPython = python -c "import sys; print(sys.executable)"
+          cmake --preset ci-windows-debug-host "-DPython3_EXECUTABLE:FILEPATH=$ciPython"
+          exit $LASTEXITCODE
+      - name: Run separate Test Stage once
+        shell: pwsh
+        run: |
+          python tools/build_safe.py --preset ci-windows-debug-core
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ctest --preset ci-windows-debug-core --no-tests=error --output-junit host.xml
+          exit $LASTEXITCODE
+      - name: Preserve first-run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-host-tests-${{ github.sha }}
+          path: |
+            build/ci-windows-debug-host/*.xml
+            build/ci-windows-debug-host/Testing/Temporary/*.log
             build/safe-build/*.log

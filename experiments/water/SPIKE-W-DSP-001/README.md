@@ -2,21 +2,15 @@
 
 ## Test execution paths
 
-Research builds through explicit aggregate/module targets; `frazil_smoke` has no
-research dependencies. [The coverage matrix](../../../docs/testing/TEST_PATH_MATRIX.md)
-lists the renderer/B1/D1 smoke, contract, full/native/listening entries, A1/B1/B2 `--fast`
-and `--full` runners, and separate B2 performance executable. No-argument matrix runners
-retain full coverage; old CLI commands delegate to all extracted paths.
-
-`frazil_water_flow_d1_source_probe <new-directory> --events-only` exports all 12 A1/B1
-event cases and authority without unrelated transfer/trajectory/sample CSV work. Convergence
-uses this mode with its original 120-second deadline. The default full exporter is retained;
-remediation compares both modes' event/authority bytes and rejects unknown options.
-
-Preview accepts `--group core|session|diagnostics|audition|parameters|workflow` (one value),
-each registered independently. Its timing observation uses the separate `performance`
-group and is excluded from Fast. No-argument Preview still runs all tests; `--device-smoke`
-is unchanged. Unknown groups return failure. Research acceptance and DSP are unchanged.
+`CurrentTests.cmake` reads `tests/current_modules.json` (repository root): A1/B2/D1 native
+`--current` and stdlib CLI contracts form six default tests. Representative matrices retain
+finite/reset/stereo/partition/schema/lifecycle/capacity/allocation checks. D1 owns its own
+allocation test; B2 retains only its actual B1 prerequisites. Performance registers separately
+in Release, including D1/A1+B2+D1. `HistoricalTests.cmake` preserves the old complete matrices,
+source-probe/native studies, Preview groups, listening packs and evidence tests, opt-in only.
+Production `FRAZIL_All` has no test/research dependency. Build and Test Stage are separate;
+see the [matrix](../../../docs/testing/TEST_PATH_MATRIX.md) for commands and extension.
+No DSP/default/descriptor/Host state contract changed; historical failures remain open.
 
 ## R3.1 validation closeout
 

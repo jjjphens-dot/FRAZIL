@@ -10,10 +10,11 @@
 using namespace frazil::water::research;
 int main(int argc, char** argv) {
     if (argc > 2 || (argc == 2 && std::string_view(argv[1]) != "--full" &&
-                     std::string_view(argv[1]) != "--fast")) {
-        std::cerr << "Expected --fast or --full\n";
+                     std::string_view(argv[1]) != "--fast" && std::string_view(argv[1]) != "--current")) {
+        std::cerr << "Expected --current, --fast or --full\n";
         return 2;
     }
+    const bool current = argc == 2 && std::string_view(argv[1]) == "--current";
     const bool full = argc == 1 || std::string_view(argv[1]) == "--full";
     const std::vector<double> rates =
         full ? std::vector<double>{44100., 48000., 96000.} : std::vector<double>{48000.};
@@ -85,6 +86,13 @@ int main(int argc, char** argv) {
         for (double spacing : {8., 20., 40., 80.})
             for (double pulse : {8., 10., 20., 40., 80.})
                 for (double amplitude : {.1, .8}) {
+                    // Below/equal/above spacing, pulse width and amplitude boundaries.
+                    if (current && !((spacing == 8. && pulse == 8. && amplitude == .1) ||
+                                     (spacing == 20. && pulse == 10. && amplitude == .8) ||
+                                     (spacing == 40. && pulse == 40. && amplitude == .1) ||
+                                     (spacing == 80. && pulse == 20. && amplitude == .8) ||
+                                     (spacing == 8. && pulse == 80. && amplitude == .8)))
+                        continue;
                     c = {};
                     c.values[static_cast<std::size_t>(B1Parameter::spacing)] = spacing;
                     check(changed->prepare({rate, 42}, c), "spacing fixture prepare");
@@ -142,6 +150,20 @@ int main(int argc, char** argv) {
         for (int n = 0; n < static_cast<int>(rate * 3); ++n)
             candidate->process({});
         check(candidate->pool().active() == 0, "FULL finite tail drains");
+        if (current) {
+            candidate->reset();
+            allocationtest::allocations = 0;
+            allocationtest::observing = true;
+            bool partition = true;
+            for (int start = 0; start < static_cast<int>(rate); start += 257)
+                for (int n = start; n < std::min(start + 257, static_cast<int>(rate)); ++n) {
+                    const float x = n % 960 < 96 ? .3f * std::sin(.13f * n) : 0;
+                    partition &= candidate->process({x, x}) == first[n];
+                }
+            candidate->reset();
+            allocationtest::observing = false;
+            check(partition && allocationtest::allocations == 0, "B2 odd partition/reset allocation free");
+        }
         // Exercise copied pool lifecycle independently for the new stereo voice.
         auto event = changed->lastEligible();
         event.center.physics = DropletB1Model::make(DropletB1Config{});
@@ -158,23 +180,37 @@ int main(int argc, char** argv) {
         }
         check(allFinite && pool->active() == 0 && pool->counters().started == 32,
               "B2 overload completes bounded replacements");
-        auto a = std::make_unique<BubbleA1>(), acmp = std::make_unique<BubbleA1>();
-        BubbleA1Config ac;
-        ac.depthAmplitudeGamma = .5;
-        check(a->prepare({rate, 42}) && acmp->prepare({rate, 42}, ac), "A1 mapping prepare");
-        bool identity = true;
-        for (int n = 0; n < 10000; ++n) {
-            a->process({.2f, .2f});
-            acmp->process({.2f, .2f});
-            const auto& x = a->lastRequestedEvent();
-            const auto& y = acmp->lastRequestedEvent();
-            identity &= a->pool().counters().started == acmp->pool().counters().started &&
-                        a->pool().active() == acmp->pool().active() &&
-                        a->pool().counters().steals == acmp->pool().counters().steals &&
-                        a->requested() == acmp->requested() && x.bin == y.bin &&
-                        x.riseXi == y.riseXi && x.depthExcitationProxy == y.depthExcitationProxy;
+        if (!current) {
+            auto a = std::make_unique<BubbleA1>(), acmp = std::make_unique<BubbleA1>();
+            BubbleA1Config ac;
+            ac.depthAmplitudeGamma = .5;
+            check(a->prepare({rate, 42}) && acmp->prepare({rate, 42}, ac), "A1 mapping prepare");
+            bool identity = true;
+            for (int n = 0; n < 10000; ++n) {
+                a->process({.2f, .2f});
+                acmp->process({.2f, .2f});
+                const auto& x = a->lastRequestedEvent();
+                const auto& y = acmp->lastRequestedEvent();
+                identity &= a->pool().counters().started == acmp->pool().counters().started &&
+                            a->pool().active() == acmp->pool().active() &&
+                            a->pool().counters().steals == acmp->pool().counters().steals &&
+                            a->requested() == acmp->requested() && x.bin == y.bin &&
+                            x.riseXi == y.riseXi && x.depthExcitationProxy == y.depthExcitationProxy;
         }
         check(identity, "A1 gamma leaves scheduler RNG radius and rise exact");
+        }
+    }
+    if (current) {
+        auto crossRate = std::make_unique<DropletB2>();
+        check(crossRate->prepare({96000., 42}), "B2 cross-rate prepare");
+        std::uint32_t noise = 123;
+        for (int n = 0; n < 4096; ++n) {
+            noise = noise * 1664525u + 1013904223u;
+            const float x = n < 2048 ? .25f * std::sin(n * .13f)
+                                    : .25f * (static_cast<float>(noise >> 8) / 8388608.f - 1.f);
+            const auto out = crossRate->process({x, -x});
+            check(std::isfinite(out[0]) && std::isfinite(out[1]), "B2 bounded sine/noise finite");
+        }
     }
     std::cout << "B2 failures=" << failures << '\n';
     return failures ? 1 : 0;

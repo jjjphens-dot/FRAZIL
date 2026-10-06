@@ -1,14 +1,76 @@
 # Test path systematic refactor execution
 
-Date: 2026-10-04. Status: **INCOMPLETE — scheduling Phase A implemented; Phase B-D pending**.
+## CURRENT low-resource revision (2026-10-07)
 
-Remediation `07bf7b4514a0fdefca594c7f6bfc9b558bb05b86` is published on remote
-`codex/refactor/test-paths` in [draft PR #44](https://github.com/jjjphens-dot/FRAZIL/pull/44).
-Earlier RF-001 through RF-008 results are recorded in [Review follow-up](#review-follow-up).
-Current scheduling work is recorded in [Resource scheduling Phase A](#resource-scheduling-phase-a).
-Everything from **Execution baseline** through **Historical blockers and next checkpoint**
-below describes reviewed implementation `545dd33`, not the current remediation. Its original
-failures and then-pending Hosted status are retained as dated evidence, not replaced by diagnostics.
+Baseline: remote `codex/refactor/test-paths` at `392fce0`; latest remote runtime report
+`c79c65a` and planning `39bcb0f` were inspected. The user's subsequent CURRENT plan supersedes
+the old all-assets/default inventory and Phase A-only scope. Existing unrelated changes in
+the primary worktree were preserved. This is a tested working-tree revision, not a claim
+of clean-head Hosted or release acceptance. Continue [draft PR #44](https://github.com/jjjphens-dot/FRAZIL/pull/44).
+
+Mandatory phases:
+
+1. **Contract Review:** scope is test registration/coverage and scheduling. CURRENT=A1/B2/D1;
+   archives preserved, real future C via registry. Production DSP/parameter/state/routing/
+   latency/defaults and human/Host gates unchanged. Build/CI policy triggers full documentation review.
+2. **Implementation:** shared registry, generated presets, production-only aggregate, explicit
+   correctness/memory/performance profiles, representative native matrices, stdlib CLI schema
+   and render checks, CI union, manual-only historical/research/diagnostic paths.
+3. **Functional Validation:** commands/results below. No legacy Full or automatic diagnostic.
+4. **Code Quality Review:** checked scope, dependency direction, target closures, selection
+   deduplication, unknown/C rejection, zero-test failure, resource wrapper, test helpers and
+   assertion ownership. Found/fixed B2 reset ordering so tail-drain assertion remains non-vacuous;
+   CLI negative cases cover every writable lower/upper bound. Metadata guard caught temporary
+   registration leakage during CMake guard cleanup; guards repaired before publication.
+5. **Comment & Documentation Pass:** synchronized AGENTS, Coding Plan, Testing, Environment,
+   workflow policy, project status, module index, matrix and root/tools/tests/Water readmes.
+   Historical evidence is dated rather than rewritten as current success.
+6. **Final Validation:** targeted correction tests, registration/build graphs, tooling guards,
+   workflow parsing, links/portability and diff checks. No repeated unrelated native matrices.
+
+| Actual command / scope | Result |
+|---|---|
+| `tools/vscode_cmake.cmd windows-debug`; `python tools/check_current_tests.py --preset windows-debug` | CURRENT six registrations; per-module and production/test closures PASS |
+| `tools/vscode_build_safe.cmd --preset windows-debug-build` | Project compile/link PASS, no CTest |
+| `tools/vscode_build_safe.cmd --preset windows-debug-current-tests` | Three native runners plus shared renderer PASS |
+| `ctest --preset windows-debug-a1-test` / `windows-debug-b2-test` / `windows-debug-d1-test` | Each 2/2 PASS; 1.94 / 1.41 / 0.52 seconds |
+| `ctest --preset windows-debug-current-tests` | Initial CURRENT 6/6 PASS, 3.21 seconds |
+| `tools/vscode_cmake.cmd windows-asan`; safe `windows-asan-current-memory`; matching CTest | CURRENT 6/6 PASS, 7.08 seconds; no timing loops |
+| `tools/vscode_cmake.cmd windows-release-performance`; safe `windows-release-current-performance`; matching CTest | 3/3 PASS, 13.04 seconds: A1 30 rows, B2 six rows, D1/current composition 18 rows |
+| After review correction: safe `windows-debug-b2-test` and `windows-asan-b2-test`, then corresponding CURRENT CTest `-R '(b2$|_cli$)'` | Debug4/4 PASS 3.70 seconds; ASAN4/4 PASS 6.56 seconds; only changed B2/CLI rerun |
+| `tools/vscode_cmake.cmd windows-debug-all`; `ctest --preset windows-debug-full --show-only=json-v1` | 76 registrations = 67 historical + six CURRENT correctness + three CURRENT performance; no bodies executed |
+| `python tools/run_current_tests.py --preset windows-debug --modules b2,a1,b2` | Read-only union is exactly A1/B2 four unique entries |
+
+Tooling guards passed: planner7, impact6, registry/presets4, observation5, diagnostic5,
+workflow7 and archive-selection15 unit cases; build safety, VS Code, portability and link
+scanner regressions also passed. YAML parsing, generated-preset drift, final CURRENT
+Debug/ASAN/Release registration graphs and explicit archive selector/helper closures passed.
+
+Times are CTest wall time on this machine, not formal CPU budgets, an equal-workload speedup,
+or clean-head Hosted evidence. Ignored first-run logs/JUnit remain under `build/test-path`,
+`build/windows-debug`, `build/windows-asan`, `build/windows-release-performance`, and
+`build/safe-build`. Build wrapper limits remained six jobs with memory preflight; pipelines
+ran serially. Existing first failures and the ignored prior follow-up patch were preserved.
+
+Performance assertion audit: A1's timing harness reports observations; lifecycle/capacity/
+finite/reset/allocation assertions remain native CURRENT. B2's full three-rate sine/noise
+measurement stays in explicit performance while bounded 96k finite coverage also runs in
+CURRENT correctness. D1 retains independent native kernel/trajectory oracles and finite/reset/
+stereo checks; allocation formerly bundled in the B1 runner now belongs to D1. Timing alone
+does not establish realtime budgets or close historical acceptance gates.
+
+Documentation Review: architecture, PARAMETERS, code standards, physical-model/perceptual
+contracts and historical R3.1 evidence were reviewed for impact and need no content change:
+no product algorithm, defaults, public interface, state, latency or acceptance decision moved.
+Registry/preset/README/module index and plan/status/testing/workflow facts are synchronized.
+The controlled AGENTS policy is linked to this user-authorized PR #44 revision in document governance.
+Not executed: historical Full/Preview/listening/evidence/numerical studies, new Python A/B,
+pluginval, DAW/human listening, Hosted manual ASAN/performance. Independent approval/merge pending.
+
+## Historical scheduling and refactor records
+
+Everything below retains its original baseline/results and first failures. Older Phase A-D
+pending labels describe that historical checkpoint, not the CURRENT implementation above.
 
 ## Execution baseline
 

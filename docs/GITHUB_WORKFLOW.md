@@ -210,77 +210,27 @@ PR 描述记录 Implementation/Acceptance DRI、PR creator、reviewer 和 review
 
 ## 7. CI 分层计划
 
-### PR / change-triggered validation
+`ci.yml` routes real changes using `plan_validation.py --context pr --stage test`.
+`ci-core` retains lightweight policy checks on Ubuntu. `ci-build` compiles `FRAZIL_All`
+through `ci-windows-debug-build`, without CTest. After build succeeds, `ci-current-tests`
+builds the affected CURRENT union and executes it once; the registry selects A1/B2/D1 today.
+`ci-host-tests` runs for actual app/plugin/UI/core impact. Known modified validation tools
+and wording-only docs stay lightweight; unknown/new/deleted executable infrastructure selects
+CURRENT. No ordinary Full, ASAN, performance, research, deep corpus or diagnostic execution.
+CURRENT needs only stdlib Python, selected by setup-python and bound to CMake.
 
-- 所有 PR：changed-file/policy sanity，以及与实际变更相关的 docs/template validity 和 consistency；
-- `src/**`、production test infrastructure、CMake/presets、dependency/bootstrap、CI workflow、build scripts 或
-  unknown executable tooling：Windows portable Debug configure/build/CTest、portability validation 和相关 tests；
-- known test-routing/diagnostic tools with dedicated regressions：轻量 tooling checks，不自动启动 native build；
-- app/DSP/parameter/state/routing：按影响增加 unit/property/integration 与必要 render smoke；
-- plugin/Host：按影响增加 plugin integration/pluginval；DAW matrix 只在 HOST、compatibility、milestone 或
-  release gate 执行；
-- pure docs/template/non-executable governance：不要求无关 build、CTest、RENDER-001、DSP 或 plugin jobs。
+Manual `validation.yml` defaults to `purpose=build`. Explicit test purposes are `targeted`,
+`memory-safety` (ASAN), `performance` (Release), `core`, `historical`, `full`; separate
+investigation purposes are `diagnostic` and `research`. Module input contains registered IDs
+separated by commas or `all`; research requires `d1` and one named study. Print/validate the
+request before Windows setup. Build the chosen target union once. Diagnostics require one
+observed Python failure and hypothesis, at most four bounded cases. No automatic escalation.
 
-source format 检查只对其覆盖的 source path 生效。CI 即使因平台配置对 docs-only PR 自动运行额外 job，也不把
-这些额外结果改写为该类 PR 的人工 acceptance requirement。
-
-### Scheduled/nightly
-
-- Release + ASAN；
-- sample-rate/block-size 扩展矩阵；
-- pluginval strictness 5；
-- deterministic render regression；
-- 多轮 automation/state fuzz。
-
-### Manual/release
-
-- clean release packaging；
-- pluginval 与 Steinberg validator（接入后）；
-- 目标 DAW matrix；
-- artifact hash、版本、changelog、license/notice。
-
-CI 不应使用本机盘符、compiler/SDK 安装目录或用户名路径。`windows-debug`、`windows-release`、`windows-asan` 与 `ci-windows-debug` 共享 portable tool discovery；本地差异通过 ignored `CMakeUserPresets.json` 注入，CI 不读取该文件。
-
-### Impact-based test jobs
-
-`impact` compares PR base/head or push before/head through `tools/plan_validation.py`,
-which reuses `tools/test_impact.py`. Missing/invalid Git bases fail rather than inventing
-changed files or silently skipping tests. Manual requests use a separate workflow.
-Local quoted C++ includes, linked sources and Python import closures determine consumers.
-Unknown/new/deleted executable/config/build files conservatively select all modules.
-Modified allowlisted routing/selector/diagnostic tools and their dedicated regressions use
-policy/tooling checks without native builds. Added/deleted allowlisted files remain broad.
-`core_required` keeps docs/template/governance wording changes on an Ubuntu lightweight
-`ci-core` policy check, preserving the existing check name. MSVC, JUCE, configure, build and
-Core CTest run only for executable impact. Documentation diffs changing commands/presets
-are conservatively engineering-impacting. Core uses only the Python standard library.
-`ci-water-fast` builds/runs selected module-fast presets serially and installs canonical
-`requirements-dsp.txt` only when selected B1/D1 Python audio checks need it.
-
-Testdata/generator changes additionally run deep corpus regeneration. Ordinary CI has no
-manual trigger; same-PR obsolete Fast runs may be cancelled using its concurrency group.
-The separate `validation.yml` workflow accepts purpose/module/configuration and validates
-the request before setting up Windows. It never prepends Core/all-Water/testdata jobs.
-`purpose=targeted` builds only the selected Fast target and runs its module intersection.
-`purpose=full,module=all` explicitly runs one requested configuration, including all
-configured native, convergence, listening-pack and performance observations.
-Five previously build-only canonical benchmarks now execute through finite/schema/case
-validators; B2/Preview retain their native observations. No new timing budget is enforced.
-Hosted jobs use a clean Python 3.12.x selected by setup-python and bind that interpreter to
-CMake. Full preserves its first-run log and runs no automatic Python A/B. Diagnostics
-require `purpose=diagnostic`, one test/config, an observed Python failure class and a concrete
-hypothesis. At most four direct/CTest/site cases run, with an explicit per-case deadline;
-timeout/cancellation stops subsequent cases and terminates the active process tree.
-Only evidence upload uses `always()`; new computation requires success and no cancellation.
-Explicit runs use their own run-ID concurrency group and are not restarted/cancelled by
-later PR pushes. Cancel an obsolete explicit run deliberately; do not dispatch duplicates.
-The independent D1 Release study remains available as `purpose=research,module=water-d1`
-with one `study=latency|convergence`, building only its helpers without prepended Full tests.
-Dedicated performance/correctness purposes and CI module union are deferred to Phase B-D.
-These are engineering paths, not
-human listening or production acceptance. Preserve first-run JUnit/CTest/build logs using
-the workflow artifacts; unexplained failures must not be replaced by retry-until-pass.
-Changing the YAML does not demonstrate Hosted success or change remote protection rules.
+PR concurrency cancels superseded PR runs. Manual requests serialize per ref without
+cancellation and do not share the PR group. Do not dispatch duplicates. Only evidence upload
+uses `always()`; computation requires success and no cancellation. First-run JUnit/CTest/build
+logs and existing memory/job guards remain. YAML changes do not prove Hosted success, change
+remote protections, or imply independent review/human listening/production acceptance.
 
 ## 8. Release 与版本
 

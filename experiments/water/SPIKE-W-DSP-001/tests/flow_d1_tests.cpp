@@ -1,10 +1,19 @@
+#include "AllocationObserver.h"
 #include "dsp/FlowD1.h"
+#include <string_view>
 
 #include <iostream>
 #include <limits>
 #include <vector>
 using namespace frazil::water::research;
-int main() {
+int main(int argc, char** argv) {
+    if (argc > 2 || (argc == 2 && std::string_view(argv[1]) != "--current" &&
+                    std::string_view(argv[1]) != "--full")) {
+        std::cerr << "Expected --current or --full\n";
+        return 2;
+    }
+    const bool current = argc == 2 && std::string_view(argv[1]) == "--current";
+    const auto rates = current ? std::vector<double>{48000.} : std::vector<double>{44100., 48000., 96000.};
     int failures = 0;
     const auto check = [&](bool value, const char* name) {
         if (!value && failures++ < 12)
@@ -34,7 +43,7 @@ int main() {
     check(FlowD1Model::characteristicRateHz({.2, .06, .015}) ==
               .5 * FlowD1Model::characteristicRateHz({.2, .03, .015}),
           "L ratio");
-    for (double rate : {44100., 48000., 96000.}) {
+    for (double rate : rates) {
         FlowD1 flow;
         check(flow.prepare({rate, 42}), "prepare");
         for (int i = 0; i < 10000; ++i)
@@ -51,6 +60,8 @@ int main() {
         }
         for (double u : {0., std::numeric_limits<double>::denorm_min(), .05, .2, 1.}) {
             for (double length : {.005, .03, .2}) {
+                if (current && length != .03 && !(u == 1. && length == .005))
+                    continue;
                 FlowD1Trajectory t, repeat, other;
                 FlowD1Config c{u, length, .05};
                 check(t.prepare({rate, 42}, c) && repeat.prepare({rate, 42}, c) &&
@@ -125,7 +136,7 @@ int main() {
                   "correction ownership");
             reference.push_back(y);
         }
-        for (int block : {1, 7, 32, 64, 128, 256, 257, 512, 1024}) {
+        for (int block : (current ? std::vector<int>{128, 257} : std::vector<int>{1, 7, 32, 64, 128, 256, 257, 512, 1024})) {
             flow.reset();
             for (int start = 0; start < 20000; start += block)
                 for (int n = start; n < std::min(start + block, 20000); ++n) {
@@ -155,6 +166,22 @@ int main() {
         FlowD1 f;
         check(!f.prepare({rate, 42}), "invalid rate");
         check(f.process({1, 1}).transferred == FlowD1WideFrame{}, "invalid rate safe");
+    }
+    if (current) {
+        // The D1 invariant formerly lived in the historical B1 allocation executable.
+        FlowD1 flow;
+        check(flow.prepare({96000., 42}, {1, .005, .05}), "cross-rate allocation prepare");
+        allocationtest::allocations = 0;
+        allocationtest::observing = true;
+        double sum = 0;
+        for (int n = 0; n < 8192; ++n) {
+            if (n == 4096)
+                flow.reset();
+            sum += flow.process({float(std::sin(n * .1)), 0}).transferred[0];
+        }
+        allocationtest::observing = false;
+        check(allocationtest::allocations == 0 && std::isfinite(sum),
+              "D1 process/reset allocation observation");
     }
     std::cout << "D1 failures=" << failures << '\n';
     return failures ? 1 : 0;

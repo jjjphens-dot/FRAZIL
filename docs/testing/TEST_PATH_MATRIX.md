@@ -1,94 +1,85 @@
 # Test path coverage matrix
 
-Authoritative Water base: `ff75735`; systematic implementation follows the
-[latest command](../research/test-path-systematic-refactor/FRAZIL_Test_Path_Systematic_Refactor_Implementation_Agent_Command.md),
-superseding the P0-only stop. The configured Water+Preview inventory now has 67 entries (five canonical performance observations added by review follow-up).
-Original responsibilities remain; registration count changes are splits and additional Fast paths.
+## CURRENT policy (2026-10-07)
 
-## Commands and selectors
+CURRENT is A1/B2/D1, selected from `tests/current_modules.json`. The old 67-test inventory
+is archival. `FRAZIL_TEST_PROFILE=CURRENT` is default; `CORE`, `HISTORICAL`, `ALL` require
+explicit configuration. Base and `-build` presets compile only `FRAZIL_All`.
+
+| Module | Native correctness / memory | CLI contract | Explicit Release observations |
+|---|---|---|---|
+| A1 | `frazil_current_a1`: finite/reset/stereo/partition, lifecycle/trace/capacity/allocation/gamma identity; representative corners | `frazil_current_a1_cli`: descriptor/schema, two rates, deterministic render/partition | `frazil_current_a1_performance`: 30 original rate/capacity/profile rows |
+| B2 | `frazil_current_b2`: B1 prerequisites, finite/lifecycle/capacity/spacing/stereo/reset/partition/allocation; bounded 96k sine/noise | `frazil_current_b2_cli`: B2 descriptor/schema/render | `frazil_current_b2_performance`: six rate/fixture observations |
+| D1 | `frazil_current_d1`: independent kernel/trajectory oracle, finite/stereo/drain/prepare/partition, 96k allocation | `frazil_current_d1_cli`: D1 schema and A1+B2+D1 render | `frazil_current_d1_performance`: 18 D1/A1+B2+D1 rate/block rows |
+
+Correctness/memory register six tests; performance registers three. CURRENT excludes separate
+B1/common/Preview/listening/study/evidence suites and timing loops. A1/B2 parameter products
+and D1 rate/partition products are representative under `--current`; no-argument/`--full`
+matrices remain historical. D1 allocation now belongs to its own runner. CLI tests render
+tiny synthetic PCM fixtures and decode float WAV output with stdlib.
+
+## Build Stage
 
 ```powershell
-cmake --preset windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=ON
-python tools/build_safe.py --preset windows-debug-fast
-ctest --preset windows-debug-fast
-python tools/build_safe.py --preset windows-debug-water-b1
-ctest --preset windows-debug-water-b1
-python tools/build_safe.py --preset windows-debug-full
-ctest --preset windows-debug-full
-python tools/check_test_paths.py --build-closure
+python tools/plan_validation.py --base HEAD~1 --head HEAD
+cmake --preset windows-debug
+python tools/check_current_tests.py --preset windows-debug
+python tools/build_safe.py --preset windows-debug-build
 ```
 
-Debug and CI Debug suffixes: `smoke`, `core`, `fast`, `water-common`, `water-a1`,
-`water-b1`, `water-b2`, `water-d1`, `water-protect`, `preview`, `full`.
-Release/ASAN suffixes: `core`, `fast`, `full`. Configure the unsuffixed base first;
-all suffixed build/test presets share that configured tree. Full with Water/Preview OFF
-only means all enabled tests, not the complete research suite. Both ON register 67.
+No CTest executes here. Existing six-job default, eight-job ceiling, physical-memory
+preflight and serial native pipelines remain mandatory.
 
-Core uses derived `fast-core`; module presets use derived `fast-water-*` aliases.
-Aliases derive from authoritative module AND tier labels. Equivalent CLI:
-`ctest --preset windows-debug-full -L '^fast$' -L '^water-b1$'`.
-One module label alone selects its slow entries too; `fast|water-b1` would be OR.
-Smoke uses the exact `frazil_smoke` name; CLI smoke labels do not expand the L0 build path.
-`noTestsAction=error` makes disabled selections fail. Preview groups can be selected
-with `ctest --preset windows-debug-preview -L '^preview-session$'`, or the native runner's
-`--group session`. The six values are core/session/diagnostics/audition/parameters/workflow.
+## Separate Test Stage
 
-## Coverage moved, not removed
+```powershell
+python tools/plan_validation.py --purpose targeted --module a1,b2,d1
+python tools/run_current_tests.py --preset windows-debug --modules a1,b2,d1 --execute
+```
 
-| Original responsibility | Fast/contract path | Full/research path |
-|---|---|---|
-| render_cli_test: decoded baseline/residual, rates/blocks, composition, modal excitation/motion, Protect, schema/lexical corpus, overwrite | render_cli_smoke (48k/128, finite/length, refusal); render_cli_contract (strict schema, inactive/active, trace/source collisions) | render_cli_full_matrix retains three rates/full block matrix, all modes/C3/motion/Protect, complete malformed lexical corpus |
-| droplet_b1_cli_test: descriptor, stereo/swap, partitions, causal timing, admission0, composition, strict ranges/modes, real study builder | b1_cli_smoke (48k/128+257, tail length/isolation/repeat); b1_cli_contract (every writable bound, version/mode/Protect rejection) | b1_cli_full_matrix retains every original rate/block/stereo/timing case; b1_listening_pack_validation retains 26 cases, 10 legacy rows, 30 blank reviewer rows |
-| flow_d1_cli_test: descriptor, off identity, default equality, full composition, silence, every mode/range reject, independent native source oracle | d1_cli_smoke (48k/128+257); d1_cli_contract (all old schema/legacy mode rejections) | d1_cli_full_matrix retains three-rate, all partitions/compositions and silence; d1_native_oracle_validation retains source probe and exact residual/full oracle |
-| bubble_a1_tests: lifecycle/RNG/trace/analytic guard, stereo, finite, reset, capacity, partitions and corners | --fast retains all assertions at 48k, blocks1/128/257/1024; every capacity/corner retained | --full/no argument retains original three-rate and full block matrix |
-| droplet_b1_tests: internal pool domain, admission/radius/persistence, stereo, onset/due/start, lifecycle, reset, queue/capacity | --fast retains assertions at48k, blocks1/128/257/1024, stress capacities16/256; internal domain and queue boundaries unchanged | --full/no argument retains original rates/blocks and capacities16/32/64/128/256 |
-| droplet_b2_tests: ablation/allocation, radius/spread/beat, spacing, attack/silence, deterministic reset, finite tail/lifecycle, gamma identity | --fast retains all correctness cases at48k; no chrono/timing | --full retains three-rate correctness; droplet_b2_performance retains complete sine/noise finite checks and callback observations at all three rates |
-| D1 latency-native/remediation/convergence/latency analysis | existing functional/property/allocation and new smoke/contract | unchanged studies retain native helper dependencies, timeout/failure policies; all slow/research |
-| Preview original runner: monitor/time, reworked/direct core parity, sessions/codecs, Protect/diagnostics, audition, descriptor/parameters, workflow/operations, timing | core, session, diagnostics, audition, parameters, workflow groups partition all original functions and inline assertions | separate performance group retains original timing loop; no-argument command still runs everything; device smoke unchanged |
-| testdata verify vs generation/semantic/reproducibility | frazil_testdata_verify | frazil_testdata_regeneration; also selected by CI for testdata/generator changes |
+The runner verifies exact metadata, builds the union once, then runs every selection once.
+Individual build/test pairs: `windows-debug-a1-test`, `windows-debug-b2-test`,
+`windows-debug-d1-test`; combined: `windows-debug-current-tests`. Release/ASAN counterparts
+are generated from the registry. Routine changes select only affected modules.
 
-Removed coverage: **none**. Old CLI filenames remain compatibility wrappers. Mechanical AST
-comparison retained all60 original renderer assertions and14 D1 assertions; B1's27 assertions
-are retained with its negative helper strengthened from nonzero to exit2. Descriptor equality
-is repeated in independent entries. D1's imported helper also now requires exit2, so a native
-crash cannot satisfy a rejection. C++ `--full` preserves every original matrix axis and check.
-No thresholds were relaxed. Fast does not contain research/native/performance/listening/evidence.
+```powershell
+# Explicit memory-safety stage:
+cmake --preset windows-asan
+python tools/run_current_tests.py --preset windows-asan --purpose memory-safety --execute
+# Explicit timing stage, no ASAN:
+cmake --preset windows-release-performance
+python tools/run_current_tests.py --preset windows-release --purpose performance --execute
+```
 
-D1 convergence uses the source probe's `--events-only` mode with the original 120-second
-deadline. It retains all three rates, four profiles and every A1/B1 sample/admission, omitting
-only independent D1 transfer/trajectory calculation and unused sample CSVs. The remediation
-test retains full export and compares all 12 event CSVs plus authority byte-for-byte against
-event mode, checks its exact file inventory and rejects unknown options. Full coverage and
-the 67-entry registration count are unchanged; first Hosted timeout evidence is in the ledger.
+## Adding C
 
-## Build ownership and CI
+Add real native/current sources, impact seeds, renderer mode/config descriptor and performance
+source/validator in `tests/current_modules.json`, then run `python tools/generate_current_presets.py`.
+The current schema requires real source paths; it does not create placeholder tests.
+Run registry/preset checks and configure metadata checks. CMake, planner, union selection and
+CI all read the registry. A new timing schema may require a validator in
+`performance_observation.py`; scheduling needs no C-specific branch. No C entry exists today.
 
-Smoke has only `frazil_smoke.exe`. Core owns its six native executables plus Python tests.
-Fast/module aggregates include exactly selected executables and real renderer helpers;
-the isolated D1 research aggregate owns source-probe/native-latency/render helpers.
-Full retains the entire former smoke research closure, including manual study/benchmark tools.
-Ninja read-only graph checks compare the executable closure with actual selected CTest commands.
-ASAN runtime copy and PATH apply to every new native target/CTest; temporary files stay in build.
+## Explicit archives and Host contracts
 
-The lightweight CI Core policy check always runs; Windows Core build/CTest requires executable
-impact. Module routing follows local C++ includes, linked sources and Python imports.
-Renderer changes select common/B1/D1/Protect; shared DSP headers select every actual dependent
-(including Preview/B2 where appropriate); RandomSource.cpp selects all Water modules.
-Private A1 or Preview session tests select their respective owner. Unmapped/new/deleted
-infrastructure/scripts/configs select all modules. Pure production files unconsumed by Water
-select Core. Modified allowlisted validation tools select only tooling checks. Independent
-manual dispatch selects one purpose/module/configuration; explicit Full retains all registered
-tests in that configuration, without daily jobs or automatic diagnostics. Study assets remain
-available separately. Dependencies come from requirements-dsp.txt only for applicable jobs.
-Phase B/C correctness, memory-safety and performance purpose selectors and Phase D CI module
-union are not yet implemented. The inventory below is unchanged by scheduling Phase A.
+`windows-debug-historical` configure plus `windows-debug-historical-tests` build/CTest opts
+into old assets. `windows-debug-all` configure contains current plus historical; old `-full`,
+`-fast`, `-water-*`, `-preview` build/test presets now use this tree. `windows-debug-host`
+configures Host/core contracts for `windows-debug-core` build/CTest. Release/ASAN/CI variants
+exist. `check_test_paths.py --historical` requires configured `-all` and `-host` trees.
+Preservation does not imply rerunning or closing old failures.
 
-## Actual CTest inventory
+CI separates production build from affected CURRENT union and Host Test Stage jobs.
+Unknown executable infrastructure conservatively selects CURRENT; archived tests stay
+archival. Full/performance/research/diagnostics require the manual workflow. See
+[execution results](TEST_PATH_EXECUTION.md).
+
+## Historical CTest inventory (not default)
 
 The following 62-entry snapshot belongs to reviewed implementation `545dd33`; seconds are its
 first systematic Debug Full run, including the failed testdata process (timing is not a PASS
 assertion). The five canonical performance entries in the review-follow-up table below bring
-the current inventory to 67 without replacing these historical timings. See
+the historical inventory to 67 without replacing these historical timings. See
 [execution results](TEST_PATH_EXECUTION.md) for status and retained first failures.
 
 | CTest | Module | Tier / kind | Command / helper | Seconds |
@@ -170,7 +161,7 @@ not new hard budgets. None belongs to Fast. B2 and Preview retain their existing
 | frazil_water_b1_performance | frazil_water_droplet_b1_performance | water-b1 / slow / performance+research | 120 rate/capacity/radius/persistence/profile cases |
 | frazil_water_d1_performance | frazil_water_flow_d1_performance | water-d1 / slow / performance+research | 36 rate/block/profile cases |
 
-`check_test_paths.py --build-closure` checks every selected native executable/helper against
+`check_test_paths.py --historical --build-closure` checks every selected native executable/helper against
 its Ninja aggregate and rejects performance/native-study helpers in Fast. It also requires
 canonical performance registrations for each enabled domain; Full execution results remain
 separate evidence from the build graph.

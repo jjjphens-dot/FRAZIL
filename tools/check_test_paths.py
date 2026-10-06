@@ -140,10 +140,13 @@ def query(preset: str, *filters: str) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--preset", default="windows-debug", choices=("windows-debug", "ci-windows-debug"))
+    parser.add_argument("--historical", action="store_true", help="Inspect explicit -all and -host trees")
     parser.add_argument("--build-closure", action="store_true", help="Also inspect read-only Ninja target graphs")
     args = parser.parse_args()
+    if not args.historical:
+        return subprocess.call([sys.executable, str(ROOT / "tools/check_current_tests.py"), "--preset", args.preset])
     try:
-        full_inventory = query(args.preset + "-full")
+        full_inventory = query(args.preset + "-full", "-LE", "^current$")
         full = inventory_tests(full_inventory)
         findings = validate_inventory(full)
         findings += validate_performance(full)

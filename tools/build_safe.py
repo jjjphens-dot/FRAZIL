@@ -5,38 +5,31 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import json
 import os
 import subprocess
 import sys
 from collections.abc import Mapping
 from pathlib import Path
+from current_modules import load_modules
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_BUILD_JOBS = 8
 DEFAULT_BUILD_JOBS = 6
 BASE_AVAILABLE_MEMORY_BYTES = 2 * 1024 * 1024 * 1024
 MEMORY_PER_JOB_BYTES = 512 * 1024 * 1024
-BASE_PRESETS = (
-    "windows-debug",
-    "windows-release",
-    "windows-asan",
-    "ci-windows-debug",
-)
-
-# Explicit preset families keep arbitrary names out of command/log construction.
-TEST_PROFILES = (
-    "smoke", "core", "fast", "full", "water-common", "water-a1", "water-b1",
-    "water-b2", "water-d1", "water-protect", "preview",
-)
-SUPPORTED_PRESETS = BASE_PRESETS + tuple(
-    f"{base}-{profile}" for base in BASE_PRESETS for profile in TEST_PROFILES
-    if base in {"windows-debug", "ci-windows-debug"} or profile in ("core", "fast", "full")
-)
+# Only tracked preset names are accepted; resource limits are unchanged.
+SUPPORTED_PRESETS = tuple(p["name"] for p in json.loads(
+    (ROOT / "CMakePresets.json").read_text(encoding="utf-8"))["buildPresets"])
 # Narrow manual diagnostics/targeted jobs still use the same safety preflight.
 SCOPED_TARGETS = (
     "frazil_core_tests", "frazil_fast_tests", "frazil_water_experiment_render",
     "frazil_water_d1_research_tests", "frazil_water_preview_test_group",
     *(f"frazil_water_{module}_test_group" for module in ("common", "a1", "b1", "b2", "d1", "protect")),
+    "FRAZIL_All", "frazil_test_current", "frazil_test_current_performance",
+    *(f"frazil_test_{module}_{purpose}" for module in load_modules()
+      for purpose in ("current", "performance")),
+    *(entry["performance_target"] for entry in load_modules().values()),
 )
 
 
@@ -107,9 +100,10 @@ def available_physical_memory() -> int | None:
     return int(status.ullAvailPhys)
 
 
-def build_command(preset: str, jobs: int, target: str | None = None) -> list[str]:
-    if target is not None and target not in SCOPED_TARGETS:
-        raise ValueError(f"unsupported scoped target: {target}")
+def build_command(preset: str, jobs: int, target: str | list[str] | None = None) -> list[str]:
+    targets = [target] if isinstance(target, str) else target or []
+    if any(value not in SCOPED_TARGETS for value in targets):
+        raise ValueError(f"unsupported scoped target: {targets}")
     return [
         "cmake",
         "--build",
@@ -117,7 +111,7 @@ def build_command(preset: str, jobs: int, target: str | None = None) -> list[str
         preset,
         "--parallel",
         str(validate_job_count(jobs)),
-    ] + (["--target", target] if target else [])
+    ] + (["--target", *dict.fromkeys(targets)] if targets else [])
 
 
 def tail_log(log_path: Path, line_count: int = 80) -> list[str]:
@@ -145,7 +139,7 @@ def main() -> int:
     parser.add_argument("--preset", choices=SUPPORTED_PRESETS, required=True)
     parser.add_argument("--jobs", type=int, default=DEFAULT_BUILD_JOBS)
     parser.add_argument("--check-only", action="store_true")
-    parser.add_argument("--target", choices=SCOPED_TARGETS)
+    parser.add_argument("--target", choices=SCOPED_TARGETS, nargs="+")
     args = parser.parse_args()
 
     try:

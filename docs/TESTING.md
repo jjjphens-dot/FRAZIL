@@ -1,38 +1,35 @@
 # FRAZIL 测试、听测与发布门槛
 
-## Test execution paths
+## CURRENT and separate validation stages
 
-Generate a validation plan before execution, for example
-`python tools/plan_validation.py --base HEAD~1 --head HEAD`. Known test-tool modifications
-select tooling regressions, not native Water builds; unknown/new/deleted executable
-infrastructure remains conservative. The plan reports scope, purpose and exclusions.
+Default CTest registration is **A1 + B2 + D1**: six correctness entries. The canonical
+registry is `tests/current_modules.json`; [commands and ownership](testing/TEST_PATH_MATRIX.md)
+include adding real future C tests. CURRENT CLI checks use Python's standard library.
+B2's internal B1 prerequisites remain covered without a separate B1 suite.
 
-**Final Validation means final validation of the task's affected scope, not unconditional
-All-assets Full.** Full is an available asset set, not the default iteration path. Changed
-documentation/routing does not invalidate unrelated DSP or performance evidence. Older
-results retain their original commit identity as unchanged-scope supporting evidence;
-they must never be relabelled as a new HEAD PASS. Source, build, dependency or test changes
-invalidate the affected scope. Explicit stage/release/complete-reproduction gates still
-require a frozen HEAD and their complete prescribed scope. Do not duplicate local and
-Hosted heavy matrices without a stated environment or acceptance reason.
+`python tools/plan_validation.py --base HEAD~1 --head HEAD` prints `build_required`,
+`test_required`, `active_modules`, `memory_safety_required`, `performance_required` and
+`research_required`. It executes nothing. Default local Build Stage configures `windows-debug`
+and builds `windows-debug-build` through the safe wrapper: only `FRAZIL_All`, no CTest or
+research/test/benchmark executables. Test Stage is an explicit separate decision.
 
-Phase A manual purposes are targeted Fast (one module/configuration), explicit Full (one
-configuration), bounded Python diagnostic (one test/failure/hypothesis), or one D1 Release
-study. Full never automatically starts diagnostics. Dedicated correctness, memory-safety
-and Release performance selectors and their unique-assertion audit remain Phase B/C work;
-targeted ASAN Fast is not a claim of complete module memory-safety acceptance.
+Run `python tools/run_current_tests.py --preset windows-debug --modules a1,b2,d1 --execute`
+to print the plan, verify exact selection, build the selected union once and invoke CTest once.
+Omit `--execute` for metadata only. Module presets support individual investigation.
+ASAN CURRENT memory-safety and Release CURRENT performance are separate explicit purposes;
+observations validate finite complete data without inventing a wall-clock budget.
 
-Daily regression uses core/module AND fast selections. A1/B1/B2 representative paths,
-renderer/B1/D1 smoke and schema contracts, and six independently selectable Preview groups
-are registered separately from full matrices, native/oracle studies, listening-pack validation
-and canonical product/Legacy/A1/B1/B2/D1/Preview performance observations. There is no mixed-purpose B2 Fast exception.
-`verify_testdata.py` runs in Core/Fast; `test_testdata.py` runs in Full or CI on corpus/generator changes.
-All historical assertion responsibilities are mapped in the [coverage matrix](testing/TEST_PATH_MATRIX.md).
-Full means every registered test for the enabled configure options. Legacy base test presets
-remain unfiltered. `tools/check_test_paths.py` verifies orthogonal labels, exact intersections
-and the singleton Smoke path; `--build-closure` also verifies native helper dependencies and Full performance registration. Performance adapters validate complete finite measurements without introducing wall-clock budgets. CI routing follows the [workflow](GITHUB_WORKFLOW.md#7-ci-分层计划).
-Full results and first failures remain [separate evidence](testing/TEST_PATH_EXECUTION.md),
-not candidate acceptance or a claim that historical runtime faults are fixed.
+`python tools/check_current_tests.py --preset windows-debug` checks unfiltered registration,
+module selectors and Ninja closures. `check_test_paths.py` delegates to it unless
+`--historical` requests archive checks. A0/B1/old D/common/Preview, studies, listening-pack
+mechanics, full testdata regeneration and evidence matrices require `HISTORICAL`/`ALL`.
+Historical commands below require the archive configure tree; old results remain dated.
+
+Final Validation is proportional to affected scope. Wording-only edits do not invalidate
+unrelated DSP/performance evidence. Release/Host/listening gates retain prescribed acceptance
+requirements. Do not relabel older evidence as current HEAD PASS, automatically repeat local
+and Hosted heavy matrices, or escalate failures to Full/diagnostics. Original failures stay
+in the [execution ledger](testing/TEST_PATH_EXECUTION.md).
 
 ## R3.1 validation closeout
 

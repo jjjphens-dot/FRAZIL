@@ -14,7 +14,7 @@ def fixture(kind):
 
 class ObservationTests(unittest.TestCase):
     def test_complete_observations_without_budget(self):
-        for kind in ("legacy", "a1", "b1", "d1"):
+        for kind in ("legacy", "a1", "b1", "d1", "d1-current"):
             validate(kind, fixture(kind))
 
     def test_missing_duplicate_nonfinite_and_schema(self):
@@ -25,6 +25,21 @@ class ObservationTests(unittest.TestCase):
         for broken in mutations:
             with self.subTest(broken=broken[-80:]), self.assertRaises(ValueError):
                 validate("d1", broken)
+
+    def test_current_b2_completeness_and_finite_values(self):
+        data = "\n".join(f"B2 diagnostic rate={rate} fixture={fixture} eligible=1 mean_callback_us=2 max_callback_us=3 callback_budget_us=100"
+                         for rate in (44100, 48000, 96000) for fixture in (0, 1))
+        validate("b2", data)
+        for bad in (data.rsplit("\n", 1)[0], data + "\n" + data.splitlines()[0], data.replace("mean_callback_us=2", "mean_callback_us=nan")):
+            with self.assertRaises(ValueError):
+                validate("b2", bad)
+
+    def test_current_d1_excludes_b1(self):
+        data = fixture("d1-current")
+        self.assertNotIn("A1+B1+D1", data)
+        self.assertEqual(len(data.splitlines()), 19)
+        with self.assertRaises(ValueError):
+            validate("d1-current", fixture("d1"))
 
     def test_product_scenarios(self):
         data = ""

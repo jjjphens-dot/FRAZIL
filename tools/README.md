@@ -1,24 +1,22 @@
 # tools/
 
-## Selective safe builds
+## Build first and CURRENT tests
 
-`build_safe.py` accepts explicit core/fast/full profiles and Debug/CI Debug module
-profiles from the [matrix](../docs/testing/TEST_PATH_MATRIX.md). All retain the same memory
-preflight, six default jobs and eight-job ceiling. `check_test_paths.py --preset windows-debug`
-(or `ci-windows-debug`) checks actual CTest selections, label intersections and singleton Smoke.
-`test_check_test_paths.py` and `test_build_safe.py` exercise these guards.
+`plan_validation.py --base HEAD~1 --head HEAD` prints a non-executing plan, defaulting to
+Build Stage. `build_safe.py --preset windows-debug-build` compiles only `FRAZIL_All`.
+All builds retain physical-memory preflight, six jobs by default and eight maximum.
+Explicit Test Stage uses `run_current_tests.py --preset windows-debug --modules a1,b2,d1
+--execute` (one line); its registry-based target union and CTest selection each run once.
+`--purpose memory-safety` requires ASAN; `--purpose performance` requires Release.
 
-`test_impact.py --base <git-ref> --head <git-ref>` computes CI modules from local quoted
-C++ includes, explicitly linked implementation files and Python entrypoints/local imports.
-Known Python changes select their actual consumers; shared helpers select every dependent
-module. Unknown infrastructure and new/deleted executable files conservatively select all
-modules. Private test-source changes select their owner; production-only sources select Core
-unless actually consumed by Water. Wording-only documentation changes retain the lightweight
-Core policy check without Windows build/CTest; executable commands in documentation are
-checked conservatively, including Windows backslash paths and script-path casing.
-`test_test_impact.py` covers these routing decisions.
-Fast Python audio tests and Full install canonical `requirements-dsp.txt`; Core requires
-only the standard library. No dependency versions are copied into the workflow.
+`current_modules.py` reads the single real-module registry, `generate_current_presets.py`
+generates presets, and `check_current_tests.py` validates unfiltered CTest inventory and
+build closures without running test bodies. `test_current_modules.py` covers drift/leaks.
+`test_impact.py` follows CURRENT C++ dependencies and contract ownership; archived test
+changes do not activate CURRENT. Unknown/new/deleted infrastructure fails conservatively
+into CURRENT. Actual app/plugin/UI/core changes have a separate Host test path. Modified
+known tools and wording-only docs stay lightweight. CURRENT CLI needs only stdlib; explicit
+historical research still uses `requirements-dsp.txt`. See the [matrix](../docs/testing/TEST_PATH_MATRIX.md).
 
 ## 固定依赖恢复
 
@@ -100,11 +98,11 @@ WAV stream.
 
 大型第三方二进制文件默认不提交到仓库。当前已将 Ninja 1.13.2 和 pluginval 1.0.4 放置在 `tools/bin`，下载归档位于 `tools/downloads`；两者均已加入 `.gitignore`，来源和版本需在环境审计中记录。
 
-## Test-path review follow-up tools
+## Explicit diagnostics and observations
 
-- `test_impact.py` emits `core_required` and uses local Python imports as well as C++ includes. Docs-only wording uses policy checks; command/preset edits and executable changes request engineering checks. Added/deleted executable paths remain conservative.
-- `performance_observation.py <kind> <executable>` executes the existing product/Legacy/A1/B1/D1 benchmark once and validates schema, complete identities and finite observations, without timing thresholds. `test_performance_observation.py` checks rejection behavior.
-- `check_test_paths.py --build-closure` verifies selected native helpers against read-only Ninja graphs and requires Full performance entries.
-- `plan_validation.py --base HEAD~1 --head HEAD` prints the actual changed-file validation plan without executing it. Modified known validation tools select tooling tests; new/deleted/unknown executable infrastructure remains broad. Explicit requests use `--context dispatch --purpose targeted|full|diagnostic|research --module <module> --configuration debug|release|asan`. Unsupported future purposes fail instead of silently selecting Full.
-- `python_test_ab.py --preset windows-debug-full --test testdata --failure python-process --hypothesis "Compare configured and no-user-site execution" --timeout-seconds 120 --max-cases 4 --output build/python-ab-debug` diagnoses one already-observed failure using the configured interpreter, working directory and environment modifications. Select `render_cli` for the renderer instead. There is no default multi-test matrix. A new output directory is required; timeout/cancel terminates the process tree and stops later cases. Logs never replace original failures.
-- `build_safe.py --preset windows-asan-fast --target frazil_water_d1_test_group` builds only the selected target under the unchanged memory/job limits; pair it with `ctest --preset windows-asan-fast -L '^fast-water-d1$' --no-tests=error`. This is targeted Fast under ASAN, not complete correctness/memory-safety acceptance.
+`performance_observation.py <kind> <executable>` validates complete finite observation rows,
+without introducing timing budgets. CURRENT kinds are a1, b2 and d1-current; other kinds are
+historical. `check_test_paths.py --historical --build-closure` checks explicit archive trees;
+its default delegates to the CURRENT checker. `python_test_ab.py` remains an explicit,
+failure/hypothesis-bound diagnostic with at most four cases and timeout/cancellation cleanup.
+It never follows Full automatically. See `plan_validation.py --help` for manual purposes.

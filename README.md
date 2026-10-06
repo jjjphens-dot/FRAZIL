@@ -4,7 +4,7 @@ FRAZIL 是一个以 Water / Ice 声音材质化为核心的实时音频效果器
 
 M1 Exit 已批准并完成状态收口，当前进入 Water pre-M2 preparation 与 Developer Sound/Debug Tooling acceptance follow-up：Windows + JUCE 9.0.1 构建链路、静态参数合同、Snapshot/Mapper 和基础 gain/mix skeleton 已接入，wet path 仍为 pass-through，Water / Ice / Routing 生产 DSP 尚未实现。HOST-001 的 Live/FL primary matrix 已验收；`Development Validated` 仅适用于记录的 Windows x64 Debug VST3 范围，不表示 `Officially Supported`，REAPER 仍延期且无支持声明。详细事实基线见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)，实施顺序见 [`docs/CODING_PLAN.md`](docs/CODING_PLAN.md)。
 
-测试入口：日常使用 Core/模块 AND Fast，完整研究验证使用 Full；命令、覆盖与 CI 路由见
+测试入口：默认只构建项目；独立 Test Stage 仅选择 CURRENT A1/B2/D1，历史研究显式执行；命令、覆盖与 CI 路由见
 [测试路径矩阵](docs/testing/TEST_PATH_MATRIX.md)，实际结果与未解决项见
 [执行报告](docs/testing/TEST_PATH_EXECUTION.md)。
 
@@ -62,8 +62,9 @@ python tools/check_vscode_tasks.py
 
 ```powershell
 cmake --preset windows-debug
-python tools/build_safe.py --preset windows-debug
-ctest --preset windows-debug-fast
+python tools/build_safe.py --preset windows-debug-build
+# 独立 Test Stage（需要测试时显式执行）
+python tools/run_current_tests.py --preset windows-debug --modules a1,b2,d1 --execute
 ```
 
 The CTest preset also runs the RENDER-001 offline smoke through `frazil_render`;
@@ -77,7 +78,7 @@ complete current engine configuration plus input/output metadata and hashes.
 Windows 工具链初始化、pluginval 和本地配置见 [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)。
 所有构建输出、Python 环境和工具缓存必须保持 repository-local 或由 ignored local configuration 指定，并且不得提交。
 
-Fast/core/module/full execution and opt-in configuration requirements: [test-path matrix](docs/testing/TEST_PATH_MATRIX.md). Legacy build/test presets retain full configured coverage; CI selects Core and affected module-fast paths, with explicit Full dispatch.
+Build Stage, CURRENT A1/B2/D1 and explicit Host/archive commands: [test-path matrix](docs/testing/TEST_PATH_MATRIX.md). CI separates project build from the affected CURRENT union; historical/Full remains manual.
 
 ## 仓库
 

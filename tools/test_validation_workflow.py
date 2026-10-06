@@ -22,7 +22,7 @@ class WorkflowTests(unittest.TestCase):
     def test_independent_concurrency(self):
         self.assertIn("cancel-in-progress: true", self.fast)
         self.assertIn("group: frazil-fast-", self.fast)
-        self.assertIn("group: frazil-explicit-${{ github.run_id }}", self.manual)
+        self.assertIn("group: frazil-explicit-${{ github.ref }}", self.manual)
         self.assertIn("cancel-in-progress: false", self.manual)
         self.assertNotIn("needs: ci-core", self.manual)
         self.assertNotIn("matrix:", self.manual)
@@ -53,6 +53,14 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("--target frazil_water_d1_research_tests", study)
         self.assertNotIn("ctest --preset windows-release", study)
         self.assertNotIn("full_validation", self.manual)
+
+    def test_build_stage_cannot_invoke_tests(self):
+        build = self.fast.split("  ci-build:", 1)[1].split("  ci-current-tests:", 1)[0]
+        self.assertIn("--preset ci-windows-debug-build", build)
+        self.assertNotIn("ctest --", build.lower())
+        self.assertNotIn("foreach ($module", self.fast)
+        self.assertNotIn("requirements-dsp.txt", self.fast)
+        self.assertIn("--stage test", self.fast)
 
     def test_regressions_are_in_daily_policy(self):
         for name in ("test_plan_validation", "test_python_test_ab", "test_validation_workflow"):

@@ -7,16 +7,14 @@ and authority bytes between modes; convergence retains its 120-second timeout an
 
 ## Test execution paths
 
-Use `windows-debug-core`, `windows-debug-fast`, or a module-fast suffix from the
-[coverage matrix](../docs/testing/TEST_PATH_MATRIX.md). Configure the base preset first;
-build with `tools/build_safe.py --preset <profile>`, then run the matching CTest preset.
-Core includes lightweight corpus verification. Full includes deep regeneration, original
-Water matrices, isolated native/listening/performance validation and all Preview groups.
-Smoke selects only `frazil_smoke`. The execution report retains failures as well as passes.
-Start with `tools/plan_validation.py` to select scope. Full does not imply automatic diagnostics;
-explicit diagnostics require one observed failure, test, configuration and hypothesis.
-Routing/planner/workflow/diagnostic regressions use synthetic cases and a short-lived child,
-not actual regeneration or renderer studies. Native test assertions and Full assets are unchanged.
+Default CURRENT is A1/B2/D1, declared in `current_modules.json`. Configure `windows-debug`
+and build `windows-debug-build` first; this builds only the project. Explicit Test Stage:
+`python tools/run_current_tests.py --preset windows-debug --modules a1,b2,d1 --execute`.
+The runner prints its plan, verifies selection, builds the union once and runs it once.
+Memory-safety and Release performance are separate purposes. The [matrix](../docs/testing/TEST_PATH_MATRIX.md)
+records per-module cases, archive/Host presets and real future C registration. No C placeholder.
+Archived source-probe/study/testdata/Preview/common/B1 suites remain opt-in. The target list
+below describes available historical/Host assets, not default CURRENT registration.
 
 当前测试 target：
 
@@ -82,5 +80,5 @@ not actual regeneration or renderer studies. Native test assertions and Full ass
 Full executes product, Legacy Water, A1, B1 and D1 canonical performance programs via
 `tools/performance_observation.py`, alongside the existing B2 and Preview entries. These
 slow entries validate complete finite observations, not an unapproved timing budget.
-Daily Fast selections exclude every performance observation. See the
+CURRENT correctness/memory excludes every performance observation. This paragraph describes explicit historical Full only. See the
 [coverage matrix](../docs/testing/TEST_PATH_MATRIX.md#canonical-full-performance-execution).

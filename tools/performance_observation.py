@@ -7,6 +7,7 @@ import csv
 import io
 import itertools
 import math
+import re
 import subprocess
 import sys
 
@@ -20,9 +21,10 @@ def expected_cases(kind: str) -> tuple[tuple[str, ...], set[tuple[str, ...]]]:
         return ("rate", "capacity", "radius_mm", "persistence", "profile"), set(itertools.product(
             rates, ("16", "32", "64", "128", "256"), ("0.2", "7"), ("0.25", "4"),
             ("normal-onsets", "stress-onsets")))
-    if kind == "d1":
+    if kind in {"d1", "d1-current"}:
         return ("rate", "block", "profile"), set(itertools.product(
-            rates, ("32", "128", "1024"), ("linear-kernel", "lagrange3-kernel", "D1", "A1+B1+D1")))
+            rates, ("32", "128", "1024"), ("D1", "A1+B2+D1") if kind == "d1-current" else
+            ("linear-kernel", "lagrange3-kernel", "D1", "A1+B1+D1")))
     if kind == "legacy":
         names = ["M1", "M1+C", "M1+D", "A", "B", "AB", "AD", "BD", "ABD"]
         names += [f"C_motion_{depth}" for depth in ("0.000000", "0.175000", "0.350000")]
@@ -35,6 +37,22 @@ def expected_cases(kind: str) -> tuple[tuple[str, ...], set[tuple[str, ...]]]:
 
 
 def validate(kind: str, output: str) -> None:
+    if kind == "b2":
+        seen = set()
+        for line in output.splitlines():
+            if not line.startswith("B2 diagnostic "):
+                continue
+            fields = dict(re.findall(r"(\w+)=([^ ]+)", line))
+            identity = (fields["rate"], fields["fixture"])
+            if identity in seen:
+                raise ValueError("duplicate B2 observation")
+            seen.add(identity)
+            for key in ("eligible", "mean_callback_us", "max_callback_us", "callback_budget_us"):
+                if not math.isfinite(float(fields[key])) or float(fields[key]) < 0:
+                    raise ValueError(f"invalid B2 observation: {key}")
+        if seen != set(itertools.product(("44100", "48000", "96000"), ("0", "1"))):
+            raise ValueError("incomplete B2 observations")
+        return
     if kind == "product":
         scenarios = output.split("scenario=")[1:]
         if len(scenarios) != 2 or {s.splitlines()[0] for s in scenarios} != {"steady-state", "parameter-retarget"}:
@@ -85,10 +103,11 @@ def validate(kind: str, output: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=("product", "legacy", "a1", "b1", "d1"))
+    parser.add_argument("kind", choices=("product", "legacy", "a1", "b1", "b2", "d1", "d1-current"))
     parser.add_argument("executable")
     args = parser.parse_args()
-    result = subprocess.run([args.executable], capture_output=True, text=True, encoding="utf-8", errors="replace")
+    command = [args.executable] + (["--current"] if args.kind == "d1-current" else [])
+    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
     # Keep native streams even on failure; never retry a measurement inside this adapter.
     print(result.stdout, end="")
     print(result.stderr, end="", file=sys.stderr)

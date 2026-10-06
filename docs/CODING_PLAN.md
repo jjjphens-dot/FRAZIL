@@ -2,24 +2,23 @@
 
 ## Test path infrastructure maintenance
 
-The user-authorized [implementation command](research/test-path-systematic-refactor/FRAZIL_Test_Path_Systematic_Refactor_Implementation_Agent_Command.md)
-supersedes the earlier P0-only stop. Execute actual CLI/matrix separation, D1 research
-isolation, Preview logical groups, testdata verify/regeneration separation and impact-based
-CI routing on the current Water implementation. Preserve all original assertions and full
-matrices. This is test infrastructure, not a change to milestone dependencies or product
-contracts. Full includes research, performance observations and listening-pack mechanics;
-Fast never substitutes for research, human listening, Host or production acceptance.
-Review follow-up `258e21a` established docs-only policy gating, precise Python ownership and
-canonical performance execution. The subsequent user-authorized
-[resource scheduling command at 3d44c33](https://github.com/jjjphens-dot/FRAZIL/blob/3d44c33/docs/research/test-path-systematic-refactor/FRAZIL_Validation_Scheduling_Resource_Remediation_Agent_Command.md)
-supersedes unconditional local/Hosted exact-head matrix repetition. Execute Phase A first:
-explicit diagnostic triggers, independent manual dispatch, known-tool routing and a validation
-planner. Phase B/C purpose selectors and performance correctness audit, then Phase D module
-union remain subsequent work. Synchronize affected documentation with each implementation.
-Production scope and original first-failure evidence remain unchanged. Final Validation is
-the final check of the affected scope; full frozen-head acceptance is reserved for explicit gates.
-[Coverage and commands](testing/TEST_PATH_MATRIX.md) follow actual CTest registration;
-[execution and unresolved failures](testing/TEST_PATH_EXECUTION.md) record measured status.
+The 2026-10-07 user-authorized CURRENT/low-resource plan supersedes the previous all-assets
+daily inventory and Phase A-only stop. Continue `codex/refactor/test-paths` from `392fce0`.
+CURRENT is **A1 + B2 + D1**, declared in `tests/current_modules.json`. C joins only with real
+implementation, tests and contract entries; no placeholder passes. Production Build Gate
+compiles `FRAZIL_All` only. Local implementation does not implicitly start CTest. A separate
+Test Stage builds the affected CURRENT union once and runs each selected test once.
+Memory-safety uses CURRENT ASAN; timing uses CURRENT uninstrumented Release. Historical
+A0/B1/common/Preview/studies/listening/evidence remain explicit archive assets, outside
+default registration and CI. B2 retains actual B1 prerequisites without a separate B1 suite.
+Representative CURRENT cases retain finite/reset/stereo/partition/schema/lifecycle/capacity/
+allocation contracts; historical full Cartesian matrices remain available.
+
+[Coverage and commands](testing/TEST_PATH_MATRIX.md) and the [execution ledger](testing/TEST_PATH_EXECUTION.md)
+record implementation and validation. This changes test/CI policy only: production DSP,
+public parameters/state/routing/latency, defaults and milestone/human gates remain unchanged.
+Historical first failures retain their original identities. Independent review and merge
+remain separate from implementation and local test completion.
 
 ## Proposed minimum-practical latency policy (ARCH-LAT-002)
 

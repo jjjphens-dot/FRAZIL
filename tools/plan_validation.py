@@ -1,109 +1,118 @@
 #!/usr/bin/env python3
-"""Plan scoped validation without configuring, building or executing test bodies.
-
-Phase A supports existing Fast, explicit one-config Full, isolated D1 studies and
-failure-specific Python diagnostics. Dedicated correctness/memory/performance
-purposes remain unavailable until their coverage audit and selectors are ready.
-"""
+"""Build first; enter an explicit CURRENT test stage without escalating its scope."""
 from __future__ import annotations
 
 import argparse
 import json
 from pathlib import Path
 
-from test_impact import MODULES, changed_impact, route
+from current_modules import select_modules, selection_label, targets
+from test_impact import changed_impact, route
 
-PURPOSES = ("auto", "targeted", "full", "diagnostic", "research")
+PURPOSES = ("auto", "build", "targeted", "memory-safety", "performance", "core",
+            "historical", "full", "diagnostic", "research")
 FAILURES = ("none", "python-process", "interpreter", "ctest-environment")
-CHECKS = ["test_test_impact", "test_plan_validation", "test_python_test_ab",
-          "test_validation_workflow", "test_check_test_paths", "test_build_safe",
-          "check_portability", "check_markdown_links"]
 
 
 def diagnostic_eligible(failure: str, *, requested: bool, cancelled: bool = False) -> bool:
     return requested and not cancelled and failure in FAILURES[1:]
 
 
-def plan(*, context: str = "local", purpose: str = "auto", impact: dict | None = None,
-         module: str = "core", configuration: str = "debug", diagnostic_test: str = "none",
-         failure: str = "none", hypothesis: str = "", timeout_seconds: int = 120,
-         study: str = "none", cancelled: bool = False) -> dict:
-    if context not in {"local", "pr", "dispatch"} or purpose not in PURPOSES:
-        raise ValueError("unsupported context or purpose")
-    if configuration not in {"debug", "release", "asan"} or module not in {"core", "all", *MODULES}:
-        raise ValueError("unsupported configuration or module")
-    if cancelled:
-        raise ValueError("cancelled request must not schedule new work")
-    if purpose == "auto" and context == "dispatch":
+def plan(*, context="local", purpose="auto", impact=None, module="all", configuration="debug",
+         stage="build", diagnostic_test="none", failure="none", hypothesis="", timeout_seconds=120,
+         study="none", cancelled=False):
+    if context not in {"local", "pr", "dispatch"} or purpose not in PURPOSES or stage not in {"build", "test"}:
+        raise ValueError("unsupported context, purpose or stage")
+    if configuration not in {"debug", "release", "asan"} or cancelled:
+        raise ValueError("unsupported configuration or cancelled request")
+    if context == "dispatch" and purpose == "auto":
         raise ValueError("dispatch requires an explicit purpose")
-    if purpose != "auto" and context == "pr":
-        raise ValueError("PR changes cannot request heavy/manual purposes")
+    if context == "pr" and purpose not in {"auto", "build", "targeted", "core"}:
+        raise ValueError("PR cannot escalate to memory/performance/research/historical/diagnostic")
     if purpose != "diagnostic" and (diagnostic_test != "none" or failure != "none" or hypothesis):
         raise ValueError("diagnostic inputs require diagnostic purpose")
     if study != "none" and purpose != "research":
-        raise ValueError("study input requires research purpose")
-    result = dict(purpose=purpose, context=context, modules=[], water=False,
-                  core_required=False, tooling_required=False, native_build_required=False,
-                  testdata=False, research_dependencies=False, performance_required=False,
-                  diagnostics_required=False, checks=[], configure_preset="", build_preset="",
-                  build_target="", test_preset="", test_label="", reason=[])
+        raise ValueError("study requires explicit research purpose")
+    base = "ci-windows-debug" if context == "pr" and configuration == "debug" else f"windows-{configuration}"
+    result = dict(purpose=purpose, context=context, stage=stage, active_modules=[],
+        build_required=False, test_required=False, core_required=False, tooling_required=False,
+        native_build_required=False, memory_safety_required=False, performance_required=False,
+        research_required=False, historical_required=False, diagnostics_required=False,
+        configure_preset=base, build_preset=base + "-build", test_build_preset="",
+        build_targets=[], test_preset="", test_label="", reason=[])
     if purpose == "auto":
         if impact is None:
-            raise ValueError("automatic planning requires actual changed-file impact")
-        result.update(impact)
-        result["checks"] = CHECKS
-        result["purpose"] = ("targeted" if impact["native_build_required"] else
-                             "tooling" if impact["tooling_required"] else "docs-only")
-        result["reason"] = ["changed-file impact; no automatic Full, timing or diagnostics"]
-        return result
-
-    base = f"windows-{configuration}"
-    result.update(configure_preset=base, reason=[f"explicit {purpose}: {module}/{configuration}"])
-    if purpose == "targeted":
-        label = "water-preview" if module == "preview" else module
-        target = ("frazil_fast_tests" if module == "all" else "frazil_core_tests" if module == "core"
-                  else f"frazil_water_{module.removeprefix('water-')}_test_group")
-        result.update(build_preset=base + "-fast", build_target=target, test_preset=base + "-fast",
-                      test_label="^fast$" if module == "all" else f"^fast-{label}$",
-                      native_build_required=True, core_required=module in {"core", "all"},
-                      modules=list(MODULES) if module == "all" else [] if module == "core" else [module],
-                      water=module != "core", research_dependencies=module in {"all", "water-b1", "water-d1"})
-    elif purpose == "full":
+            raise ValueError("automatic planning requires real changed-file impact")
+        result.update({key: impact[key] for key in ("active_modules", "build_required", "core_required", "tooling_required")})
+        result["reason"] = impact["reason"] + ["Build and Test Stage are independent; no implicit heavy validation"]
+        result["test_required"] = stage == "test" and bool(result["active_modules"] or result["core_required"])
+    elif purpose == "build":
+        result["build_required"] = True
+        result["reason"] = ["project compile/link only; no CTest"]
+    elif purpose in {"targeted", "memory-safety", "performance"}:
+        if purpose == "memory-safety" and configuration != "asan":
+            raise ValueError("memory-safety requires ASAN")
+        if purpose == "performance" and configuration != "release":
+            raise ValueError("performance requires Release")
+        result.update(active_modules=select_modules(module.split(",")), build_required=True,
+                      test_required=True, stage="test", reason=["explicit CURRENT " + purpose])
+    elif purpose == "core":
+        result.update(build_required=True, test_required=True, core_required=True, stage="test",
+                      configure_preset=base + "-host", build_preset=base + "-core", test_build_preset=base + "-core",
+                      test_preset=base + "-core", reason=["explicit Host/core contracts"])
+    elif purpose in {"historical", "full"}:
         if module != "all":
-            raise ValueError("Full requires module=all; it is one explicitly selected configuration")
-        result.update(build_preset=base + "-full", test_preset=base + "-full",
-                      native_build_required=True, core_required=True, modules=list(MODULES),
-                      water=True, testdata=True, research_dependencies=True, performance_required=True)
+            raise ValueError("archive profiles require module=all")
+        result.update(build_required=True, test_required=True, stage="test", historical_required=True,
+                      configure_preset=base + ("-all" if purpose == "full" else "-historical"),
+                      test_build_preset=base + ("-full" if purpose == "full" else "-historical-tests"),
+                      test_preset=base + ("-full" if purpose == "full" else "-historical-tests"),
+                      reason=["explicit archival/forensic assets, never normal Final Validation"])
     elif purpose == "diagnostic":
         if not diagnostic_eligible(failure, requested=True) or not hypothesis.strip():
-            raise ValueError("diagnostics require a Python failure class and a concrete hypothesis")
+            raise ValueError("diagnostic requires observed Python failure and hypothesis")
         if diagnostic_test not in {"testdata", "render_cli"} or not 1 <= timeout_seconds <= 600:
-            raise ValueError("select one diagnostic test and a timeout in 1..600 seconds")
-        if module != ("core" if diagnostic_test == "testdata" else "water-common"):
-            raise ValueError("diagnostic module must match the selected test")
-        render = diagnostic_test == "render_cli"
-        result.update(diagnostics_required=True, diagnostic_test=diagnostic_test,
-                      failure=failure, hypothesis=hypothesis.strip(), timeout_seconds=timeout_seconds,
-                      case_limit=4, test_preset=base + "-full", water=render,
-                      native_build_required=render, research_dependencies=render,
-                      build_preset=base + "-fast" if render else "",
-                      build_target="frazil_water_experiment_render" if render else "")
+            raise ValueError("select one diagnostic test and timeout 1..600")
+        result.update(configure_preset=base + "-all", diagnostics_required=True,
+                      diagnostic_test=diagnostic_test, failure=failure, hypothesis=hypothesis,
+                      timeout_seconds=timeout_seconds, case_limit=4, test_preset=base + "-full",
+                      test_build_preset=base + "-full" if diagnostic_test == "render_cli" else "",
+                      build_targets=["frazil_water_experiment_render"] if diagnostic_test == "render_cli" else [],
+                      reason=["explicit failure investigation only"])
     else:
-        if module != "water-d1" or configuration != "release" or study not in {"latency", "convergence"}:
-            raise ValueError("Phase A research dispatch requires D1/Release and one explicit study")
-        result.update(study=study, water=True, modules=[module], native_build_required=True,
-                      research_dependencies=True, build_preset=base + "-fast",
-                      build_target="frazil_water_d1_research_tests")
+        if configuration != "release" or module != "d1" or study not in {"latency", "convergence"}:
+            raise ValueError("research requires D1/Release and one named study")
+        result.update(configure_preset=base + "-historical", research_required=True, study=study,
+                      test_build_preset=base + "-historical-tests", build_targets=["frazil_water_d1_research_tests"],
+                      reason=["explicit historical D1 study; CURRENT remains unaffected"])
+    if purpose == "auto" and result["test_required"] and result["core_required"] and not result["active_modules"]:
+        result.update(configure_preset=base + "-host", build_preset=base + "-core",
+                      test_build_preset=base + "-core", test_preset=base + "-core")
+    if result["active_modules"] and result["test_required"]:
+        selected_purpose = purpose if purpose in {"memory-safety", "performance"} else "correctness"
+        result["build_targets"] = targets(result["active_modules"], selected_purpose)
+        result["test_label"] = selection_label(result["active_modules"], selected_purpose)
+        result["test_build_preset"] = base + "-current-tests"
+        result["test_preset"] = base + "-current-tests"
+        if purpose == "memory-safety":
+            result.update(memory_safety_required=True, test_build_preset="windows-asan-current-memory",
+                          test_preset="windows-asan-current-memory")
+        elif purpose == "performance":
+            result.update(performance_required=True, configure_preset="windows-release-performance",
+                          test_build_preset="windows-release-current-performance",
+                          test_preset="windows-release-current-performance")
+    result["native_build_required"] = result["build_required"]
     return result
 
 
-def main() -> None:
+def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--context", choices=("local", "pr", "dispatch"), default="local")
     parser.add_argument("--purpose", choices=PURPOSES, default="auto")
+    parser.add_argument("--stage", choices=("build", "test"), default="build")
     parser.add_argument("--base")
     parser.add_argument("--head", default="HEAD")
-    parser.add_argument("--module", choices=("core", *MODULES, "all"), default="core")
+    parser.add_argument("--module", default="all", help="registered IDs separated by commas, or all")
     parser.add_argument("--configuration", choices=("debug", "release", "asan"), default="debug")
     parser.add_argument("--diagnostic-test", default="none")
     parser.add_argument("--failure", default="none")
@@ -114,15 +123,14 @@ def main() -> None:
     parser.add_argument("paths", nargs="*")
     args = parser.parse_args()
     if args.purpose == "auto" and not args.base and not args.paths:
-        parser.error("provide --base/--head or changed paths; missing input is not docs-only")
+        parser.error("provide a real comparison base or changed paths")
     impact = None
     if args.purpose == "auto":
         impact = changed_impact(args.base, args.head) if args.base else route(args.paths)
     try:
-        result = plan(context=args.context, purpose=args.purpose, impact=impact,
-                      module=args.module, configuration=args.configuration,
-                      diagnostic_test=args.diagnostic_test, failure=args.failure,
-                      hypothesis=args.hypothesis, timeout_seconds=args.timeout_seconds, study=args.study)
+        result = plan(context=args.context, purpose=args.purpose, impact=impact, stage=args.stage,
+            module=args.module, configuration=args.configuration, diagnostic_test=args.diagnostic_test,
+            failure=args.failure, hypothesis=args.hypothesis, timeout_seconds=args.timeout_seconds, study=args.study)
     except ValueError as error:
         parser.error(str(error))
     result.update(base=args.base, head=args.head)
@@ -130,9 +138,8 @@ def main() -> None:
     if args.github_output:
         with args.github_output.open("a", encoding="utf-8") as stream:
             for key, value in result.items():
-                # Strings are raw workflow values; lists/bools are JSON, never shell code.
                 if isinstance(value, str) and ("\n" in value or "\r" in value):
-                    continue  # Free-text hypothesis stays in the printed plan only.
+                    continue
                 stream.write(f"{key}={value if isinstance(value, str) else json.dumps(value)}\n")
 
 

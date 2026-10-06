@@ -164,6 +164,12 @@ account。相同 repository + branch + PR + auth session 的成功检查可以�
 push、改写 author、force push、rewrite history 或新建无意义 PR。没有 open PR 时按普通 push/PR 创建流程
 处理；文档 PR 与 code PR 使用同一规则。
 
+The user-authorized CURRENT test-policy revision in PR #44 synchronizes `AGENTS.md`,
+Coding Plan, Testing, Environment, GitHub workflow, module index/readmes and the test matrix.
+Build Stage does not execute tests; explicit Test Stage uses registry-selected CURRENT
+modules. This changes validation scheduling/coverage policy, not product acceptance gates.
+Historical evidence retains its original commit/configuration and first failures.
+
 ### 5.4 Final Report
 
 Agent 完成任务时按风险比例报告。所有任务至少说明 changed files、实际 validation、未执行检查和结果；

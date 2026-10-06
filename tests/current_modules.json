@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "modules": [
+    {
+      "id": "a1",
+      "native_target": "frazil_water_bubble_a1_tests",
+      "sources": [
+        "tests/bubble_a1_tests.cpp",
+        "tests/AllocationObserver.cpp"
+      ],
+      "impact_seeds": [
+        "dsp/BubbleA1.h",
+        "tests/bubble_a1_tests.cpp"
+      ],
+      "mode": "a1",
+      "config_key": "bubbleA1",
+      "version": 3,
+      "descriptor": "--describe-bubble-a1-v3",
+      "contract": "bubble-a1-v3.json",
+      "performance_target": "frazil_water_bubble_a1_performance",
+      "performance_source": "tests/bubble_a1_performance.cpp",
+      "performance_kind": "a1"
+    },
+    {
+      "id": "b2",
+      "native_target": "frazil_water_droplet_b2_tests",
+      "sources": [
+        "tests/droplet_b2_tests.cpp",
+        "tests/AllocationObserver.cpp"
+      ],
+      "impact_seeds": [
+        "dsp/DropletB2.h",
+        "tests/droplet_b2_tests.cpp"
+      ],
+      "mode": "b2",
+      "config_key": "dropletB2",
+      "version": 1,
+      "descriptor": "--describe-droplet-b2",
+      "contract": "droplet-b2-v1.json",
+      "performance_target": "frazil_water_droplet_b2_performance",
+      "performance_source": "tests/droplet_b2_performance.cpp",
+      "performance_kind": "b2"
+    },
+    {
+      "id": "d1",
+      "native_target": "frazil_water_flow_d1_tests",
+      "sources": [
+        "tests/flow_d1_tests.cpp",
+        "tests/AllocationObserver.cpp"
+      ],
+      "impact_seeds": [
+        "dsp/FlowD1.h",
+        "tests/flow_d1_tests.cpp",
+        "tests/flow_d1_source_probe.cpp"
+      ],
+      "mode": "a1b2d1",
+      "config_key": "flowD1",
+      "version": 1,
+      "descriptor": "--describe-flow-d1",
+      "contract": "flow-d1-v1.json",
+      "performance_target": "frazil_water_flow_d1_performance",
+      "performance_source": "tests/flow_d1_performance.cpp",
+      "performance_kind": "d1-current"
+    }
+  ]
+}

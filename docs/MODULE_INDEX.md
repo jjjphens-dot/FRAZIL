@@ -2,16 +2,15 @@
 
 ## Test infrastructure routing
 
-CMake owns module/tier/kind classification and explicit core/fast/module/full build
-closures. Renderer/B1/D1 CLI responsibilities are separate scripts with shared fixture/audio
-helpers; compatibility commands run all extracted responsibilities. A1/B1/B2 executables
-select representative or complete matrices. B2 and Preview timing have separate slow
-registrations. Preview exposes six logical groups in one executable. `tools/test_impact.py`
-owns conservative CI dependency routing. `tools/plan_validation.py` adds purpose/request
-validation without executing workloads; `python_test_ab.py` owns explicit bounded diagnostics.
-Daily CI and manual validation are separate workflows. Known tool changes have dedicated
-lightweight regressions. See the [coverage matrix](testing/TEST_PATH_MATRIX.md).
-No production module, model, or public interface changed.
+`tests/current_modules.json` owns CURRENT A1/B2/D1 identities, sources, impact seeds, renderer
+contracts and performance bindings. CMake `CurrentTests.cmake`, generated presets and Python
+planner/runner consume this registry; future C requires real sources, not placeholder tests.
+`HistoricalTests.cmake` owns archived suites. `test_impact.py` routes CURRENT dependencies;
+`plan_validation.py` separates Build Stage and explicit Test Stage/purpose. `run_current_tests.py`
+executes the selected union once. `check_current_tests.py` checks registrations/build closures.
+CURRENT CLI uses stdlib PCM/float WAV decoding. Performance adapters validate observations,
+while failure-specific Python diagnostics remain explicit. Production module boundaries and
+public interfaces are unchanged. See the [matrix](testing/TEST_PATH_MATRIX.md).
 
 ## R3.1 validation closeout
 

@@ -153,16 +153,34 @@ target_link_libraries(FRAZIL
 
 juce_generate_juce_header(FRAZIL)
 
+set(FRAZIL_TEST_PROFILE "CURRENT" CACHE STRING "CURRENT, CORE, HISTORICAL or ALL")
+set_property(CACHE FRAZIL_TEST_PROFILE PROPERTY STRINGS CURRENT CORE HISTORICAL ALL)
+set(FRAZIL_TEST_PURPOSE "correctness" CACHE STRING "correctness, memory-safety or performance")
+set_property(CACHE FRAZIL_TEST_PURPOSE PROPERTY STRINGS correctness memory-safety performance)
+if(NOT FRAZIL_TEST_PROFILE MATCHES "^(CURRENT|CORE|HISTORICAL|ALL)$")
+    message(FATAL_ERROR "Unknown FRAZIL_TEST_PROFILE")
+endif()
+if(NOT FRAZIL_TEST_PURPOSE MATCHES "^(correctness|memory-safety|performance)$")
+    message(FATAL_ERROR "Unknown FRAZIL_TEST_PURPOSE")
+endif()
+if(FRAZIL_TEST_PROFILE STREQUAL "CURRENT" AND FRAZIL_TEST_PURPOSE STREQUAL "performance"
+   AND (NOT CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_CXX_FLAGS MATCHES "sanitize"))
+    message(FATAL_ERROR "CURRENT performance requires uninstrumented Release")
+endif()
 enable_testing()
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 add_executable(frazil_smoke tests/smoke/smoke.cpp)
 target_compile_features(frazil_smoke PRIVATE cxx_std_20)
-add_test(NAME frazil_smoke COMMAND frazil_smoke)
-add_test(NAME frazil_testdata_verify COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/verify_testdata.py")
-set_tests_properties(frazil_testdata_verify PROPERTIES LABELS "core;fast;unit")
-add_test(NAME frazil_testdata_regeneration COMMAND "${Python3_EXECUTABLE}" -X faulthandler "${PROJECT_SOURCE_DIR}/tools/test_testdata.py")
-set_tests_properties(frazil_testdata_regeneration PROPERTIES LABELS "core;slow;unit")
+if(FRAZIL_TEST_PROFILE MATCHES "^(CORE|HISTORICAL|ALL)$")
+    add_test(NAME frazil_smoke COMMAND frazil_smoke)
+    add_test(NAME frazil_testdata_verify COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/verify_testdata.py")
+    set_tests_properties(frazil_testdata_verify PROPERTIES LABELS "core;fast;unit")
+endif()
+if(FRAZIL_TEST_PROFILE MATCHES "^(HISTORICAL|ALL)$")
+    add_test(NAME frazil_testdata_regeneration COMMAND "${Python3_EXECUTABLE}" -X faulthandler "${PROJECT_SOURCE_DIR}/tools/test_testdata.py")
+    set_tests_properties(frazil_testdata_regeneration PROPERTIES LABELS "core;slow;unit")
+endif()
 
 juce_add_console_app(frazil_render
     PRODUCT_NAME "FRAZIL Offline Render"
@@ -203,7 +221,9 @@ add_executable(frazil_tests
 target_compile_features(frazil_tests PRIVATE cxx_std_20)
 target_include_directories(frazil_tests PRIVATE src)
 target_link_libraries(frazil_tests PRIVATE juce::juce_audio_basics juce::juce_audio_processors)
-add_test(NAME frazil_unit COMMAND frazil_tests)
+if(FRAZIL_TEST_PROFILE MATCHES "^(CORE|HISTORICAL|ALL)$")
+    add_test(NAME frazil_unit COMMAND frazil_tests)
+endif()
 
 juce_add_console_app(frazil_plugin_integration
     PRODUCT_NAME "FRAZIL Plugin Integration"
@@ -230,7 +250,9 @@ target_link_libraries(frazil_plugin_integration
         juce::juce_audio_processors
 )
 juce_generate_juce_header(frazil_plugin_integration)
-add_test(NAME frazil_plugin_integration COMMAND frazil_plugin_integration)
+if(FRAZIL_TEST_PROFILE MATCHES "^(CORE|HISTORICAL|ALL)$")
+    add_test(NAME frazil_plugin_integration COMMAND frazil_plugin_integration)
+endif()
 
 juce_add_console_app(frazil_processor_property
     PRODUCT_NAME "FRAZIL Processor Property Harness"
@@ -257,7 +279,9 @@ target_link_libraries(frazil_processor_property
         juce::juce_audio_processors
 )
 juce_generate_juce_header(frazil_processor_property)
-add_test(NAME frazil_processor_property COMMAND frazil_processor_property)
+if(FRAZIL_TEST_PROFILE MATCHES "^(CORE|HISTORICAL|ALL)$")
+    add_test(NAME frazil_processor_property COMMAND frazil_processor_property)
+endif()
 
 juce_add_console_app(frazil_latency_contract
     PRODUCT_NAME "FRAZIL Latency Contract"
@@ -285,11 +309,13 @@ target_link_libraries(frazil_latency_contract
         juce::juce_audio_processors
 )
 juce_generate_juce_header(frazil_latency_contract)
-add_test(
-    NAME frazil_latency_contract
-    COMMAND frazil_latency_contract
-            --input "${CMAKE_CURRENT_SOURCE_DIR}/testdata/input/zero_state_response__impulse.wav"
-)
+if(FRAZIL_TEST_PROFILE MATCHES "^(CORE|HISTORICAL|ALL)$")
+    add_test(
+        NAME frazil_latency_contract
+        COMMAND frazil_latency_contract
+                --input "${CMAKE_CURRENT_SOURCE_DIR}/testdata/input/zero_state_response__impulse.wav"
+    )
+endif()
 
 add_executable(frazil_performance
     tests/performance/performance_main.cpp
@@ -316,6 +342,7 @@ target_link_libraries(frazil_performance PRIVATE juce::juce_audio_basics)
 if(WIN32)
     target_link_libraries(frazil_performance PRIVATE Psapi)
 endif()
+if(FRAZIL_TEST_PROFILE MATCHES "^(CORE|HISTORICAL|ALL)$")
 add_test(
     NAME frazil_render
     COMMAND ${Python3_EXECUTABLE}
@@ -331,24 +358,29 @@ add_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/test_render_cli.py
             --renderer $<TARGET_FILE:frazil_render>
 )
+endif()
 
 # Test execution profiles do not change test assertions or production linkage.
-set_tests_properties(frazil_smoke PROPERTIES LABELS "core;fast;smoke")
-set_tests_properties(frazil_unit PROPERTIES LABELS "core;fast;unit")
-set_tests_properties(frazil_plugin_integration PROPERTIES LABELS "core;fast;integration")
-set_tests_properties(frazil_processor_property PROPERTIES LABELS "core;fast;property")
-set_tests_properties(frazil_latency_contract PROPERTIES LABELS "core;fast;integration")
-set_tests_properties(frazil_render PROPERTIES LABELS "core;fast;render")
-set_tests_properties(frazil_render_cli PROPERTIES LABELS "core;fast;cli")
+if(FRAZIL_TEST_PROFILE MATCHES "^(CORE|HISTORICAL|ALL)$")
+    set_tests_properties(frazil_smoke PROPERTIES LABELS "core;fast;smoke")
+    set_tests_properties(frazil_unit PROPERTIES LABELS "core;fast;unit")
+    set_tests_properties(frazil_plugin_integration PROPERTIES LABELS "core;fast;integration")
+    set_tests_properties(frazil_processor_property PROPERTIES LABELS "core;fast;property")
+    set_tests_properties(frazil_latency_contract PROPERTIES LABELS "core;fast;integration")
+    set_tests_properties(frazil_render PROPERTIES LABELS "core;fast;render")
+    set_tests_properties(frazil_render_cli PROPERTIES LABELS "core;fast;cli")
+endif()
 
 add_custom_target(frazil_core_tests DEPENDS
     frazil_smoke frazil_tests frazil_plugin_integration frazil_processor_property
     frazil_latency_contract frazil_render)
 add_custom_target(frazil_fast_tests DEPENDS frazil_core_tests)
 add_custom_target(frazil_full_tests DEPENDS frazil_core_tests frazil_performance)
-add_test(NAME frazil_product_performance COMMAND "${Python3_EXECUTABLE}"
-    "${PROJECT_SOURCE_DIR}/tools/performance_observation.py" product $<TARGET_FILE:frazil_performance>)
-set_tests_properties(frazil_product_performance PROPERTIES LABELS "core;slow;performance")
+if(FRAZIL_TEST_PROFILE MATCHES "^(HISTORICAL|ALL)$")
+    add_test(NAME frazil_product_performance COMMAND "${Python3_EXECUTABLE}"
+        "${PROJECT_SOURCE_DIR}/tools/performance_observation.py" product $<TARGET_FILE:frazil_performance>)
+    set_tests_properties(frazil_product_performance PROPERTIES LABELS "core;slow;performance")
+endif()
 
 # Research targets are opt-in and never linked into the production plugin.
 option(FRAZIL_BUILD_WATER_EXPERIMENT "Build the standalone Water DSP research candidates" OFF)
@@ -358,8 +390,10 @@ if(FRAZIL_BUILD_WATER_PREVIEW AND NOT FRAZIL_BUILD_WATER_EXPERIMENT)
 endif()
 if(FRAZIL_BUILD_WATER_EXPERIMENT)
     add_subdirectory(experiments/water/SPIKE-W-DSP-001)
-    add_dependencies(frazil_fast_tests frazil_water_fast_tests)
-    add_dependencies(frazil_full_tests frazil_water_full_tests)
+    if(TARGET frazil_water_full_tests)
+        add_dependencies(frazil_fast_tests frazil_water_fast_tests)
+        add_dependencies(frazil_full_tests frazil_water_full_tests)
+    endif()
 endif()
 
 # MSVC ASAN uses a dynamic runtime DLL. Keep test execution independent from the
@@ -369,12 +403,14 @@ if(MSVC AND CMAKE_CXX_FLAGS MATCHES "/fsanitize=address")
     set(frazil_asan_runtime_dll
         "${frazil_msvc_tool_bin_dir}/clang_rt.asan_dynamic-x86_64.dll")
 
+    get_property(frazil_core_registered_tests DIRECTORY PROPERTY TESTS)
+    if(frazil_core_registered_tests)
     set_property(
-        TEST frazil_smoke frazil_unit frazil_plugin_integration frazil_processor_property
-             frazil_latency_contract frazil_render frazil_render_cli frazil_product_performance
+        TEST ${frazil_core_registered_tests}
         PROPERTY ENVIRONMENT_MODIFICATION
                  "PATH=path_list_prepend:${frazil_msvc_tool_bin_dir}"
     )
+    endif()
     foreach(
         frazil_test_target
         IN ITEMS frazil_smoke frazil_tests frazil_plugin_integration frazil_processor_property

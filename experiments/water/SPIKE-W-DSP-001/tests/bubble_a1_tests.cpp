@@ -20,10 +20,11 @@ bool near(double a, double b, double tolerance = 1e-10) {
 } // namespace
 int main(int argc, char** argv) {
     if (argc > 2 || (argc == 2 && std::string_view(argv[1]) != "--full" &&
-                     std::string_view(argv[1]) != "--fast")) {
-        std::cerr << "Expected --fast or --full\n";
+                     std::string_view(argv[1]) != "--fast" && std::string_view(argv[1]) != "--current")) {
+        std::cerr << "Expected --current, --fast or --full\n";
         return 2;
     }
+    const bool current = argc == 2 && std::string_view(argv[1]) == "--current";
     const bool full = argc == 1 || std::string_view(argv[1]) == "--full";
     const std::vector<double> rates =
         full ? std::vector<double>{44100., 48000., 96000.} : std::vector<double>{48000.};
@@ -245,6 +246,10 @@ int main(int argc, char** argv) {
             for (double maximum : {2., 10., 50.})
                 for (double gamma : {0., 2., 6.})
                     for (double alpha : {.75, 1.5, 2.25}) {
+                        if (current && !((minimum == .2 && maximum == 2. && gamma == 0. && alpha == .75) ||
+                                         (minimum == 10. && maximum == 50. && gamma == 6. && alpha == 2.25) ||
+                                         (minimum == 1. && maximum == 10. && gamma == 2. && alpha == 1.5)))
+                            continue;
                         if (minimum >= maximum)
                             continue;
                         BubbleA1Config corner;
@@ -602,6 +607,28 @@ int main(int argc, char** argv) {
           "macro endpoints");
     check(high.radiusMinMm > low.radiusMinMm && high.radiusMaxMm > low.radiusMaxMm,
           "Size direction");
+    if (current) {
+        const double rate = 96000.;
+        auto a = std::make_unique<BubbleA1>(), acmp = std::make_unique<BubbleA1>();
+        BubbleA1Config ac;
+        ac.depthAmplitudeGamma = .5;
+        check(a->prepare({rate, 42}) && acmp->prepare({rate, 42}, ac), "A1 mapping prepare");
+        bool identity = true;
+        for (int n = 0; n < 10000; ++n) {
+            a->process({.2f, .2f});
+            acmp->process({.2f, .2f});
+            const auto& x = a->lastRequestedEvent();
+            const auto& y = acmp->lastRequestedEvent();
+            identity &= a->pool().counters().started == acmp->pool().counters().started &&
+                        a->pool().active() == acmp->pool().active() &&
+                        a->pool().counters().steals == acmp->pool().counters().steals &&
+                        a->requested() == acmp->requested() && x.bin == y.bin &&
+                        x.riseXi == y.riseXi && x.depthExcitationProxy == y.depthExcitationProxy;
+        }
+        check(identity, "A1 gamma leaves scheduler RNG radius and rise exact");
+        a->reset();
+        check(a->requested() == 0, "cross-rate reset clears scheduler");
+    }
     std::cout << "bubble_a1 failures=" << failures << '\n';
     return failures ? 1 : 0;
 }

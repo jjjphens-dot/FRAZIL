@@ -4,22 +4,21 @@ on:
   workflow_dispatch:
     inputs:
       purpose:
-        description: Explicit purpose (targeted means existing Fast regression)
+        description: Build first; testing requires an explicit purpose
         type: choice
-        options: [targeted, full, diagnostic, research]
-        default: targeted
+        options: [build, targeted, memory-safety, performance, core, historical, full, diagnostic, research]
+        default: build
       module:
-        description: One module; Full requires all
-        type: choice
-        options: [core, water-common, water-a1, water-b1, water-b2, water-d1, water-protect, preview, all]
-        default: core
+        description: Registered CURRENT IDs separated by commas, or all; research requires d1
+        type: string
+        default: all
       configuration:
         description: One configuration (D1 research requires release)
         type: choice
         options: [debug, release, asan]
         default: debug
       diagnostic_test:
-        description: Diagnostic only; testdata requires core, render_cli requires water-common
+        description: Diagnostic only; select one observed failing Python path
         type: choice
         options: [none, testdata, render_cli]
         default: none
@@ -47,7 +46,7 @@ permissions:
 
 # A later PR push cannot cancel or restart an explicit frozen-run request.
 concurrency:
-  group: frazil-explicit-${{ github.run_id }}
+  group: frazil-explicit-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -57,11 +56,11 @@ jobs:
       purpose: ${{ steps.plan.outputs.purpose }}
       configure_preset: ${{ steps.plan.outputs.configure_preset }}
       build_preset: ${{ steps.plan.outputs.build_preset }}
-      build_target: ${{ steps.plan.outputs.build_target }}
+      test_build_preset: ${{ steps.plan.outputs.test_build_preset }}
+      build_targets: ${{ steps.plan.outputs.build_targets }}
+      test_required: ${{ steps.plan.outputs.test_required }}
       test_preset: ${{ steps.plan.outputs.test_preset }}
       test_label: ${{ steps.plan.outputs.test_label }}
-      water: ${{ steps.plan.outputs.water }}
-      research_dependencies: ${{ steps.plan.outputs.research_dependencies }}
     steps:
       - uses: actions/checkout@v4
       - name: Validate request and print its bounded execution plan
@@ -95,7 +94,8 @@ jobs:
     env:
       CONFIGURE_PRESET: ${{ needs.plan.outputs.configure_preset }}
       BUILD_PRESET: ${{ needs.plan.outputs.build_preset }}
-      BUILD_TARGET: ${{ needs.plan.outputs.build_target }}
+      TEST_BUILD_PRESET: ${{ needs.plan.outputs.test_build_preset }}
+      BUILD_TARGETS: ${{ needs.plan.outputs.build_targets }}
       TEST_PRESET: ${{ needs.plan.outputs.test_preset }}
       TEST_LABEL: ${{ needs.plan.outputs.test_label }}
       PURPOSE: ${{ needs.plan.outputs.purpose }}
@@ -115,29 +115,29 @@ jobs:
         shell: pwsh
         run: ./tools/bootstrap_dependencies.ps1
       - name: Install only selected research dependencies
-        if: ${{ needs.plan.outputs.research_dependencies == 'true' }}
+        if: ${{ inputs.purpose == 'full' || inputs.purpose == 'historical' || inputs.purpose == 'diagnostic' }}
         run: python -m pip install -r requirements-dsp.txt
       - name: Configure the requested scope
         shell: pwsh
-        env:
-          WATER: ${{ needs.plan.outputs.water }}
-          MODULE: ${{ inputs.module }}
         run: |
           $ciPython = python -c "import sys; print(sys.executable)"
-          $water = if ($env:WATER -eq 'true') { 'ON' } else { 'OFF' }
-          $preview = if ($env:MODULE -in @('all', 'preview')) { 'ON' } else { 'OFF' }
-          cmake --preset $env:CONFIGURE_PRESET "-DFRAZIL_BUILD_WATER_EXPERIMENT=$water" "-DFRAZIL_BUILD_WATER_PREVIEW=$preview" "-DPython3_EXECUTABLE:FILEPATH=$ciPython"
+          cmake --preset $env:CONFIGURE_PRESET "-DPython3_EXECUTABLE:FILEPATH=$ciPython"
           exit $LASTEXITCODE
-      - name: Safe build of selected targets only
-        if: ${{ success() && !cancelled() && needs.plan.outputs.build_preset != '' }}
+      - name: Build project without executing tests
+        if: ${{ success() && !cancelled() && inputs.purpose == 'build' }}
+        shell: pwsh
+        run: python tools/build_safe.py --preset $env:BUILD_PRESET
+      - name: Safe build of selected test targets once
+        if: ${{ success() && !cancelled() && needs.plan.outputs.test_build_preset != '' }}
         shell: pwsh
         run: |
-          $buildArgs = @('--preset', $env:BUILD_PRESET)
-          if ($env:BUILD_TARGET) { $buildArgs += @('--target', $env:BUILD_TARGET) }
+          $buildArgs = @('--preset', $env:TEST_BUILD_PRESET)
+          $targets = @($env:BUILD_TARGETS | ConvertFrom-Json)
+          if ($targets.Count -gt 0) { $buildArgs += @('--target') + $targets }
           python tools/build_safe.py @buildArgs
           exit $LASTEXITCODE
       - name: Run the selected regression or explicit Full once
-        if: ${{ success() && !cancelled() && needs.plan.outputs.purpose != 'diagnostic' }}
+        if: ${{ success() && !cancelled() && needs.plan.outputs.test_required == 'true' }}
         shell: pwsh
         run: |
           $testArgs = @('--preset', $env:TEST_PRESET, '--no-tests=error', '--output-junit', 'selected.xml')
@@ -210,14 +210,14 @@ jobs:
           "Commit: $env:GITHUB_SHA" > $env:FRAZIL_D1_STUDY_ROOT/provenance.txt
           & $studyPython -c "import sys,numpy,scipy; print(sys.version); print(numpy.__version__,scipy.__version__)" >> $env:FRAZIL_D1_STUDY_ROOT/provenance.txt
           Get-CimInstance Win32_Processor | Select-Object Name,NumberOfCores,NumberOfLogicalProcessors | Format-List >> $env:FRAZIL_D1_STUDY_ROOT/provenance.txt
-          cmake --preset windows-release -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=OFF "-DPython3_EXECUTABLE:FILEPATH=$studyPython"
+          cmake --preset windows-release-historical -DFRAZIL_BUILD_WATER_EXPERIMENT=ON -DFRAZIL_BUILD_WATER_PREVIEW=OFF "-DPython3_EXECUTABLE:FILEPATH=$studyPython"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Safe build of the selected study helpers
-        run: python tools/build_safe.py --preset windows-release-fast --target frazil_water_d1_research_tests
+        run: python tools/build_safe.py --preset windows-release-historical-tests --target frazil_water_d1_research_tests
       - name: Generate synthetic native sources and complete numerical screen
         shell: pwsh
         run: |
-          & build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_source_probe.exe $env:FRAZIL_D1_STUDY_ROOT/sources
+          & build/windows-release-historical/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_source_probe.exe $env:FRAZIL_D1_STUDY_ROOT/sources
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $script = if ("${{ inputs.study == 'convergence' }}" -eq "true") { 'flow_d1_convergence_study.py' } else { 'flow_d1_latency_study.py' }
           & $env:FRAZIL_D1_PYTHON "experiments/water/SPIKE-W-DSP-001/render/$script" --sources $env:FRAZIL_D1_STUDY_ROOT/sources --output $env:FRAZIL_D1_STUDY_ROOT/study > $env:FRAZIL_D1_STUDY_ROOT/study.log 2>&1
@@ -228,9 +228,9 @@ jobs:
         shell: pwsh
         run: |
           if ("${{ inputs.study == 'convergence' }}" -eq "true") {
-            & $env:FRAZIL_D1_PYTHON experiments/water/SPIKE-W-DSP-001/render/flow_d1_convergence_native.py --native build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_latency_native.exe --sources $env:FRAZIL_D1_STUDY_ROOT/sources --study $env:FRAZIL_D1_STUDY_ROOT/study --output $env:FRAZIL_D1_STUDY_ROOT/native > $env:FRAZIL_D1_STUDY_ROOT/native.log 2>&1
+            & $env:FRAZIL_D1_PYTHON experiments/water/SPIKE-W-DSP-001/render/flow_d1_convergence_native.py --native build/windows-release-historical/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_latency_native.exe --sources $env:FRAZIL_D1_STUDY_ROOT/sources --study $env:FRAZIL_D1_STUDY_ROOT/study --output $env:FRAZIL_D1_STUDY_ROOT/native > $env:FRAZIL_D1_STUDY_ROOT/native.log 2>&1
           } else {
-            & $env:FRAZIL_D1_PYTHON experiments/water/SPIKE-W-DSP-001/render/flow_d1_latency_native_study.py --native build/windows-release/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_latency_native.exe --sources $env:FRAZIL_D1_STUDY_ROOT/sources --selection $env:FRAZIL_D1_STUDY_ROOT/study/SELECTION.csv --output $env:FRAZIL_D1_STUDY_ROOT/native > $env:FRAZIL_D1_STUDY_ROOT/native.log 2>&1
+            & $env:FRAZIL_D1_PYTHON experiments/water/SPIKE-W-DSP-001/render/flow_d1_latency_native_study.py --native build/windows-release-historical/experiments/water/SPIKE-W-DSP-001/frazil_water_flow_d1_latency_native.exe --sources $env:FRAZIL_D1_STUDY_ROOT/sources --selection $env:FRAZIL_D1_STUDY_ROOT/study/SELECTION.csv --output $env:FRAZIL_D1_STUDY_ROOT/native > $env:FRAZIL_D1_STUDY_ROOT/native.log 2>&1
           }
           $studyExit = $LASTEXITCODE
           Get-Content $env:FRAZIL_D1_STUDY_ROOT/native.log -Tail 30
@@ -257,6 +257,6 @@ jobs:
             ${{ env.FRAZIL_D1_STUDY_ROOT }}/study/report.json
             ${{ env.FRAZIL_D1_STUDY_ROOT }}/native/NATIVE.csv
             ${{ env.FRAZIL_D1_STUDY_ROOT }}/native/RESOURCES.csv
-            build/safe-build/windows-release-fast.log
+            build/safe-build/windows-release-historical-tests.log
             ${{ env.FRAZIL_D1_STUDY_ROOT }}/cross-rate/*.csv
             ${{ env.FRAZIL_D1_STUDY_ROOT }}/sources/*-events.csv
