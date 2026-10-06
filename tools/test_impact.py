@@ -96,6 +96,8 @@ def route(paths: list[str], root: Path = ROOT, *, structural: set[str] | None = 
         if path not in structural and (path in TOOLING or path in tooling_docs):
             tooling_required = True
             continue
+        if path.startswith(("src/plugin/", "src/app/", "src/ui/", "src/dsp/")):
+            build_required = core_required = True
         if path in structural:
             selected.update(registry)
             build_required = True
@@ -106,7 +108,7 @@ def route(paths: list[str], root: Path = ROOT, *, structural: set[str] | None = 
         elif path in renderer or path == (SPIKE / "tests/current_cli_test.py").as_posix():
             selected.update(registry)
             build_required = True
-        elif path.startswith(("src/plugin/", "src/app/", "src/ui/", "tests/unit/", "tests/integration/",
+        elif path.startswith(("src/plugin/", "src/app/", "src/ui/", "src/dsp/", "tests/unit/", "tests/integration/",
                               "tests/property/", "tests/smoke/", "tests/render/", "tests/latency/")):
             build_required = core_required = True
         elif path.startswith(str(SPIKE / "tests").replace("\\", "/") + "/") and (root / path).is_file():

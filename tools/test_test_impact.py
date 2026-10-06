@@ -27,6 +27,14 @@ class ImpactTests(unittest.TestCase):
         self.assertTrue(result["core_required"])
         self.assertEqual(result["active_modules"], [])
 
+    def test_production_dsp_keeps_host_contracts(self):
+        result = route(["src/dsp/primitives/LinearSmoother.cpp"])
+        self.assertTrue(result["core_required"])
+        self.assertEqual(result["active_modules"], [])
+        shared = route(["src/dsp/primitives/RandomSource.cpp"])
+        self.assertTrue(shared["core_required"])
+        self.assertEqual(shared["active_modules"], list(MODULES))
+
     def test_document_commands_and_tooling(self):
         self.assertFalse(route(["docs/TESTING.md"])["build_required"])
         self.assertFalse(executable_doc_diff("+Clarify the testing policy"))

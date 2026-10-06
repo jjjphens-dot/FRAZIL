@@ -214,7 +214,7 @@ PR 描述记录 Implementation/Acceptance DRI、PR creator、reviewer 和 review
 `ci-core` retains lightweight policy checks on Ubuntu. `ci-build` compiles `FRAZIL_All`
 through `ci-windows-debug-build`, without CTest. After build succeeds, `ci-current-tests`
 builds the affected CURRENT union and executes it once; the registry selects A1/B2/D1 today.
-`ci-host-tests` runs for actual app/plugin/UI/core impact. Known modified validation tools
+`ci-host-tests` runs for actual app/plugin/UI/production-DSP/core impact. Known modified validation tools
 and wording-only docs stay lightweight; unknown/new/deleted executable infrastructure selects
 CURRENT. No ordinary Full, ASAN, performance, research, deep corpus or diagnostic execution.
 CURRENT needs only stdlib Python, selected by setup-python and bound to CMake.

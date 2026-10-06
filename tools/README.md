@@ -14,7 +14,7 @@ generates presets, and `check_current_tests.py` validates unfiltered CTest inven
 build closures without running test bodies. `test_current_modules.py` covers drift/leaks.
 `test_impact.py` follows CURRENT C++ dependencies and contract ownership; archived test
 changes do not activate CURRENT. Unknown/new/deleted infrastructure fails conservatively
-into CURRENT. Actual app/plugin/UI/core changes have a separate Host test path. Modified
+into CURRENT. Actual app/plugin/UI/production-DSP/core changes have a separate Host test path. Modified
 known tools and wording-only docs stay lightweight. CURRENT CLI needs only stdlib; explicit
 historical research still uses `requirements-dsp.txt`. See the [matrix](../docs/testing/TEST_PATH_MATRIX.md).
 

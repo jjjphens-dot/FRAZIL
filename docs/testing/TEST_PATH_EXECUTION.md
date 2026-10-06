@@ -41,7 +41,7 @@ Mandatory phases:
 | `tools/vscode_cmake.cmd windows-debug-all`; `ctest --preset windows-debug-full --show-only=json-v1` | 76 registrations = 67 historical + six CURRENT correctness + three CURRENT performance; no bodies executed |
 | `python tools/run_current_tests.py --preset windows-debug --modules b2,a1,b2` | Read-only union is exactly A1/B2 four unique entries |
 
-Tooling guards passed: planner7, impact6, registry/presets4, observation5, diagnostic5,
+Tooling guards passed: planner7, impact7, registry/presets4, observation5, diagnostic5,
 workflow7 and archive-selection15 unit cases; build safety, VS Code, portability and link
 scanner regressions also passed. YAML parsing, generated-preset drift, final CURRENT
 Debug/ASAN/Release registration graphs and explicit archive selector/helper closures passed.
@@ -58,6 +58,10 @@ measurement stays in explicit performance while bounded 96k finite coverage also
 CURRENT correctness. D1 retains independent native kernel/trajectory oracles and finite/reset/
 stereo checks; allocation formerly bundled in the B1 runner now belongs to D1. Timing alone
 does not establish realtime budgets or close historical acceptance gates.
+
+Final routing review also retained Host/core validation for production DSP changes, including
+shared RandomSource changes that must select both CURRENT and Host. Only tooling guards were
+rerun for this router correction; native evidence above remains unchanged.
 
 Documentation Review: architecture, PARAMETERS, code standards, physical-model/perceptual
 contracts and historical R3.1 evidence were reviewed for impact and need no content change:
