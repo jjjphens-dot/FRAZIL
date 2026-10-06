@@ -6,6 +6,12 @@ Default CTest registration is **A1 + B2 + D1**: six correctness entries. The can
 registry is `tests/current_modules.json`; [commands and ownership](testing/TEST_PATH_MATRIX.md)
 include adding real future C tests. CURRENT CLI checks use Python's standard library.
 B2's internal B1 prerequisites remain covered without a separate B1 suite.
+Registry schema v2 requires native correctness; CLI/performance are optional, memory reuses
+native (and any registered CLI). Explicit unavailable performance requests fail; `all` means
+all modules having that capability and also fails when none exist. A1/D1 global historical
+RandomDomain checks run only outside `--current`; module identities and current contracts stay.
+CI reuses one Windows checkout/environment/configure tree: production Build Gate first,
+conditional CURRENT union second. Failed build prevents tests; affected Host/core stays separate.
 
 `python tools/plan_validation.py --base HEAD~1 --head HEAD` prints `build_required`,
 `test_required`, `active_modules`, `memory_safety_required`, `performance_required` and

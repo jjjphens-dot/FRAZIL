@@ -2,6 +2,14 @@
 
 ## Test path infrastructure
 
+R1-R3 review closure on baseline `24d1379`: one Windows CI context now owns ordered Build
+and conditional CURRENT Test stages; Host/core routing remains intact. Registry v2 requires
+native correctness only, with optional CLI/performance. A1/D1 global historical RNG ID
+checks remain archival. CURRENT registry is still exactly A1/B2/D1; no C placeholder.
+The baseline [Hosted run 37503611316](https://github.com/jjjphens-dot/FRAZIL/actions/runs/37503611316)
+completed SUCCESS, including CURRENT; Host/core was correctly skipped. This baseline result
+is distinct from validation of the review changes in the [ledger](testing/TEST_PATH_EXECUTION.md).
+
 The 2026-10-07 CURRENT revision is implemented on `codex/refactor/test-paths` from `392fce0`:
 A1/B2/D1 registry, production-only Build Gate, separate Test Stage, representative correctness,
 stdlib CLI contracts, explicit ASAN/Release purposes and CI union execution. Archives remain

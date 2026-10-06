@@ -3,14 +3,20 @@
 ## Test execution paths
 
 `CurrentTests.cmake` reads `tests/current_modules.json` (repository root): A1/B2/D1 native
-`--current` and stdlib CLI contracts form six default tests. Representative matrices retain
+`--current` and stdlib CLI contracts form six default tests. Registry v2 requires native
+correctness only; CLI/performance are optional capabilities for future modules. Memory reuses
+native plus any registered CLI. No C placeholder is registered. Representative matrices retain
 finite/reset/stereo/partition/schema/lifecycle/capacity/allocation checks. D1 owns its own
 allocation test; B2 retains only its actual B1 prerequisites. Performance registers separately
 in Release, including D1/A1+B2+D1. `HistoricalTests.cmake` preserves the old complete matrices,
 source-probe/native studies, Preview groups, listening packs and evidence tests, opt-in only.
 Production `FRAZIL_All` has no test/research dependency. Build and Test Stage are separate;
 see the [matrix](../../../docs/testing/TEST_PATH_MATRIX.md) for commands and extension.
-No DSP/default/descriptor/Host state contract changed; historical failures remain open.
+CI executes production Build Gate then conditional CURRENT tests in one Windows context
+and configure tree; Host/core remains independently impact-gated. Global historical RNG
+ID/seed assertions in A1/D1 execute only outside `--current`; module-specific identity and
+all genuine current invariants remain. No DSP/default/descriptor/Host state contract changed;
+historical failures remain open.
 
 ## R3.1 validation closeout
 

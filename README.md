@@ -78,7 +78,7 @@ complete current engine configuration plus input/output metadata and hashes.
 Windows 工具链初始化、pluginval 和本地配置见 [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)。
 所有构建输出、Python 环境和工具缓存必须保持 repository-local 或由 ignored local configuration 指定，并且不得提交。
 
-Build Stage, CURRENT A1/B2/D1 and explicit Host/archive commands: [test-path matrix](docs/testing/TEST_PATH_MATRIX.md). CI separates project build from the affected CURRENT union; historical/Full remains manual.
+Build Stage, CURRENT A1/B2/D1 and explicit Host/archive commands: [test-path matrix](docs/testing/TEST_PATH_MATRIX.md). CI uses one Windows context for sequential Build Gate and conditional CURRENT Test Stage; Host/core has its own tree only when needed. Historical/Full remains manual.
 
 ## 仓库
 

@@ -228,7 +228,7 @@ python tools/build_safe.py --preset windows-debug-build
 ```
 
 默认 Build Stage 只构建 `FRAZIL_All`，不执行 CTest。CURRENT 由 `tests/current_modules.json`
-统一声明，当前仅 A1/B2/D1；C 必须有真实实现和测试后再注册。独立 Test Stage 先打印计划，
+统一声明，当前仅 A1/B2/D1；C 只需真实 native correctness 即可注册；CLI/performance 为可选 capability，memory 默认复用 native。独立 Test Stage 先打印计划，
 通过 `tools/run_current_tests.py --preset windows-debug --modules a1,b2,d1 --execute`
 构建模块并集一次、执行一次；日常小修只选受影响模块，不得每次实现后自动扩大 Debug。
 ASAN 用于显式 CURRENT memory-safety，性能只在显式 Release CURRENT performance 测量。
@@ -245,7 +245,9 @@ Python A/B 必须绑定具体故障、假设、测试、配置和超时，不是
 - 确实需要保存的本机原始路径只能存在于 ignored/untracked local evidence 中，不得提交到 Git。
 
 独立 Test Stage 和 archive/Host 入口见 [TEST_PATH_MATRIX](docs/testing/TEST_PATH_MATRIX.md)。
-CI 构建与测试分 job，只执行所选 CURRENT 并集；首次失败和构建资源安全规则保持不变。
+CI 在同一 Windows job/tree 内先执行生产 Build Gate，成功后才进入条件 CURRENT Test Stage，
+复用 checkout/Python/MSVC/JUCE/configure；Host/core 仅受影响时使用独立 CORE tree。
+CURRENT 并集只执行一次，首次失败和构建资源安全规则保持不变。
 
 其他预设：`windows-release`、`windows-asan`。本机完整 MSVC 环境命令见 `docs/ENVIRONMENT.md`。
 

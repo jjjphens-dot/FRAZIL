@@ -6,7 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
-from current_modules import select_modules, selection_label, targets
+from current_modules import select_for_purpose, selection_label, targets
 from test_impact import changed_impact, route
 
 PURPOSES = ("auto", "build", "targeted", "memory-safety", "performance", "core",
@@ -54,7 +54,7 @@ def plan(*, context="local", purpose="auto", impact=None, module="all", configur
             raise ValueError("memory-safety requires ASAN")
         if purpose == "performance" and configuration != "release":
             raise ValueError("performance requires Release")
-        result.update(active_modules=select_modules(module.split(",")), build_required=True,
+        result.update(active_modules=select_for_purpose(module.split(","), purpose), build_required=True,
                       test_required=True, stage="test", reason=["explicit CURRENT " + purpose])
     elif purpose == "core":
         result.update(build_required=True, test_required=True, core_required=True, stage="test",

@@ -82,10 +82,11 @@ def route(paths: list[str], root: Path = ROOT, *, structural: set[str] | None = 
     registry = load_modules()
     owners: dict[str, set[str]] = {}
     for module, entry in registry.items():
-        for path in dependencies([SPIKE / source for source in entry["impact_seeds"] + entry["sources"]] +
+        for path in dependencies([SPIKE / source for source in entry.get("impact_seeds", []) + entry["native"]["sources"]] +
                                  [Path("src/dsp/primitives/RandomSource.cpp")], root):
             owners.setdefault(path, set()).add(module)
-        owners.setdefault((SPIKE.parent / "contracts" / entry["contract"]).as_posix(), set()).add(module)
+        if "cli" in entry:
+            owners.setdefault((SPIKE.parent / "contracts" / entry["cli"]["contract"]).as_posix(), set()).add(module)
     renderer = dependencies([SPIKE / "render/render_main.cpp"], root)
     selected, reasons = set(), []
     build_required = core_required = tooling_required = False
@@ -106,7 +107,7 @@ def route(paths: list[str], root: Path = ROOT, *, structural: set[str] | None = 
             selected.update(owners[path])
             build_required = True
         elif path in renderer or path == (SPIKE / "tests/current_cli_test.py").as_posix():
-            selected.update(registry)
+            selected.update(name for name, entry in registry.items() if "cli" in entry)
             build_required = True
         elif path.startswith(("src/plugin/", "src/app/", "src/ui/", "src/dsp/", "tests/unit/", "tests/integration/",
                               "tests/property/", "tests/smoke/", "tests/render/", "tests/latency/")):

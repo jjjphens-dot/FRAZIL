@@ -10,7 +10,11 @@ Explicit Test Stage uses `run_current_tests.py --preset windows-debug --modules 
 `--purpose memory-safety` requires ASAN; `--purpose performance` requires Release.
 
 `current_modules.py` reads the single real-module registry, `generate_current_presets.py`
-generates presets, and `check_current_tests.py` validates unfiltered CTest inventory and
+generates presets. Schema v2 requires native correctness and permits optional CLI/performance.
+Inventory and safe target discovery use actual capabilities; explicit unavailable performance
+requests fail instead of falling back. `all` performance selects capable modules and rejects
+an empty result. Native-only C needs no renderer. CI reuses one Windows environment/configure
+for sequential Build Gate and conditional Test Stage. `check_current_tests.py` validates unfiltered CTest inventory and
 build closures without running test bodies. `test_current_modules.py` covers drift/leaks.
 `test_impact.py` follows CURRENT C++ dependencies and contract ownership; archived test
 changes do not activate CURRENT. Unknown/new/deleted infrastructure fails conservatively

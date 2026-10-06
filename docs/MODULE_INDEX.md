@@ -3,11 +3,13 @@
 ## Test infrastructure routing
 
 `tests/current_modules.json` owns CURRENT A1/B2/D1 identities, sources, impact seeds, renderer
-contracts and performance bindings. CMake `CurrentTests.cmake`, generated presets and Python
+contracts and performance bindings. Schema v2 requires `native`, permits optional `cli` and
+`performance`, and derives inventory/targets from capabilities (memory reuses native). CMake `CurrentTests.cmake`, generated presets and Python
 planner/runner consume this registry; future C requires real sources, not placeholder tests.
 `HistoricalTests.cmake` owns archived suites. `test_impact.py` routes CURRENT dependencies;
 `plan_validation.py` separates Build Stage and explicit Test Stage/purpose. `run_current_tests.py`
-executes the selected union once. `check_current_tests.py` checks registrations/build closures.
+executes the selected union once. CI reuses one Windows context/tree across Build Gate and
+conditional Test Stage; affected Host/core retains its own tree. `check_current_tests.py` checks registrations/build closures.
 CURRENT CLI uses stdlib PCM/float WAV decoding. Performance adapters validate observations,
 while failure-specific Python diagnostics remain explicit. Production module boundaries and
 public interfaces are unchanged. See the [matrix](testing/TEST_PATH_MATRIX.md).

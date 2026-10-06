@@ -42,10 +42,10 @@ def read_float_wave(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     modules = load_modules()
-    parser.add_argument("--module", choices=modules, required=True)
+    parser.add_argument("--module", choices=[name for name, entry in modules.items() if "cli" in entry], required=True)
     parser.add_argument("--renderer", type=Path, required=True)
     args = parser.parse_args()
-    module = modules[args.module]
+    module = modules[args.module]["cli"]
     renderer = args.renderer.resolve()
     def invoke(*arguments, expected=0):
         result = subprocess.run([str(renderer), *map(str, arguments)], capture_output=True,

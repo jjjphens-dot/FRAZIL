@@ -167,7 +167,9 @@ push、改写 author、force push、rewrite history 或新建无意义 PR。没�
 The user-authorized CURRENT test-policy revision in PR #44 synchronizes `AGENTS.md`,
 Coding Plan, Testing, Environment, GitHub workflow, module index/readmes and the test matrix.
 Build Stage does not execute tests; explicit Test Stage uses registry-selected CURRENT
-modules. This changes validation scheduling/coverage policy, not product acceptance gates.
+modules. R1-R3 review closure reuses a single CI Windows context for ordered stages and
+makes CLI/performance optional registry capabilities; native correctness remains required.
+This changes validation scheduling/coverage policy, not product acceptance gates.
 Historical evidence retains its original commit/configuration and first failures.
 
 ### 5.4 Final Report

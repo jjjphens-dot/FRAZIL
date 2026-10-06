@@ -8,7 +8,7 @@ import json
 import subprocess
 import sys
 
-from current_modules import ROOT, select_modules
+from current_modules import ROOT, expected_tests
 from plan_validation import plan
 
 
@@ -19,17 +19,15 @@ def main():
     parser.add_argument("--purpose", choices=("correctness", "memory-safety", "performance"), default="correctness")
     parser.add_argument("--execute", action="store_true")
     args = parser.parse_args()
-    modules = select_modules(args.modules.split(","))
     configuration = args.preset.removeprefix("ci-").removeprefix("windows-")
     request = plan(context="pr" if args.preset.startswith("ci-") else "local",
                    purpose="targeted" if args.purpose == "correctness" else args.purpose,
-                   module=",".join(modules), configuration=configuration)
+                   module=args.modules, configuration=configuration)
     print("VALIDATION PLAN\n" + json.dumps(request, indent=2), flush=True)
     selection = ["ctest", "--preset", request["test_preset"], "-L", request["test_label"]]
     inventory = json.loads(subprocess.check_output(selection + ["--show-only=json-v1"], cwd=ROOT, text=True))
     names = [t["name"] for t in inventory["tests"]]
-    suffixes = ("_performance",) if args.purpose == "performance" else ("", "_cli")
-    expected = {f"frazil_current_{module}{suffix}" for module in modules for suffix in suffixes}
+    expected = expected_tests(request["active_modules"], args.purpose)
     if set(names) != expected or len(names) != len(expected):
         raise SystemExit("configured CURRENT selection is empty, stale or has duplicate/unrelated tests")
     print("Selected once: " + ", ".join(names), flush=True)

@@ -5,9 +5,13 @@
 The 2026-10-07 user-authorized CURRENT/low-resource plan supersedes the previous all-assets
 daily inventory and Phase A-only stop. Continue `codex/refactor/test-paths` from `392fce0`.
 CURRENT is **A1 + B2 + D1**, declared in `tests/current_modules.json`. C joins only with real
-implementation, tests and contract entries; no placeholder passes. Production Build Gate
+native implementation/correctness; CLI and performance capability blocks are optional.
+Memory reuses native; optional CLI is also instrumented when present. No placeholder passes. Production Build Gate
 compiles `FRAZIL_All` only. Local implementation does not implicitly start CTest. A separate
 Test Stage builds the affected CURRENT union once and runs each selected test once.
+R1-R3 final review keeps both stages in one Windows CI context/configure tree, leaves Host/core
+independent only for actual impact, and moves global RNG compatibility assertions to historical
+invocations. The production Build Gate must succeed before CURRENT tests begin.
 Memory-safety uses CURRENT ASAN; timing uses CURRENT uninstrumented Release. Historical
 A0/B1/common/Preview/studies/listening/evidence remain explicit archive assets, outside
 default registration and CI. B2 retains actual B1 prerequisites without a separate B1 suite.

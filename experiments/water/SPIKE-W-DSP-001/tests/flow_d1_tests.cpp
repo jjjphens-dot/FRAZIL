@@ -20,19 +20,23 @@ int main(int argc, char** argv) {
             std::cerr << name << '\n';
     };
     const auto near = [](double a, double b, double e = 1e-12) { return std::abs(a - b) <= e; };
-    // Hard-coded historical numeric identities, not derived from enum values.
-    const std::array domains{RandomDomain::bubble,
-                             RandomDomain::droplet,
-                             RandomDomain::flow,
-                             RandomDomain::modalMotion,
-                             RandomDomain::dropletActivity,
-                             RandomDomain::bubbleA1,
-                             RandomDomain::dropletB1Identity,
-                             RandomDomain::dropletB1Admission,
-                             RandomDomain::dropletB1Jitter,
-                             RandomDomain::flowD1};
-    for (std::size_t i = 0; i < domains.size(); ++i)
-        check(static_cast<std::uint64_t>(domains[i]) == i + 1, "domain identity");
+    // Global compatibility belongs to the explicit historical invocation.
+    if (!current) {
+        // Hard-coded historical numeric identities, not derived from enum values.
+        const std::array domains{RandomDomain::bubble,
+                                 RandomDomain::droplet,
+                                 RandomDomain::flow,
+                                 RandomDomain::modalMotion,
+                                 RandomDomain::dropletActivity,
+                                 RandomDomain::bubbleA1,
+                                 RandomDomain::dropletB1Identity,
+                                 RandomDomain::dropletB1Admission,
+                                 RandomDomain::dropletB1Jitter,
+                                 RandomDomain::flowD1};
+        for (std::size_t i = 0; i < domains.size(); ++i)
+            check(static_cast<std::uint64_t>(domains[i]) == i + 1, "domain identity");
+    }
+    check(static_cast<std::uint64_t>(RandomDomain::flowD1) == 10, "current module random domain");
     check(near(FlowD1Model::delaySeconds(.015), .000010107816711590296), "independent SI oracle");
     check(near(FlowD1Model::characteristicRateHz({.2, .03, .015}), 20.0 / 3),
           "transport timescale");

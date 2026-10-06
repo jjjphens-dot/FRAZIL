@@ -202,24 +202,28 @@ int main(int argc, char** argv) {
               "observed process has no allocations or transport loss");
     }
 
-    // Preserve the numeric identity of EVERY historic stream, including named A1 domain 6.
-    const std::array domains{RandomDomain::bubble,
-                             RandomDomain::droplet,
-                             RandomDomain::flow,
-                             RandomDomain::modalMotion,
-                             RandomDomain::dropletActivity,
-                             RandomDomain::bubbleA1,
-                             RandomDomain::dropletB1Identity,
-                             RandomDomain::dropletB1Admission,
-                             RandomDomain::dropletB1Jitter};
-    for (std::size_t i = 0; i < domains.size(); ++i) {
-        check(static_cast<std::uint64_t>(domains[i]) == i + 1, "stable domain ID");
-        for (RandomSource::Seed seed : {0u, 42u, 20260916u}) {
-            ResearchConfig research{48000, seed};
-            check(research.seedFor(domains[i]) == RandomSource::deriveInstanceSeed(seed, i + 1),
-                  "named domain retains exact historical seed");
+    // Global compatibility belongs to the explicit historical invocation.
+    if (!current) {
+        // Preserve the numeric identity of EVERY historic stream, including named A1 domain 6.
+        const std::array domains{RandomDomain::bubble,
+                                 RandomDomain::droplet,
+                                 RandomDomain::flow,
+                                 RandomDomain::modalMotion,
+                                 RandomDomain::dropletActivity,
+                                 RandomDomain::bubbleA1,
+                                 RandomDomain::dropletB1Identity,
+                                 RandomDomain::dropletB1Admission,
+                                 RandomDomain::dropletB1Jitter};
+        for (std::size_t i = 0; i < domains.size(); ++i) {
+            check(static_cast<std::uint64_t>(domains[i]) == i + 1, "stable domain ID");
+            for (RandomSource::Seed seed : {0u, 42u, 20260916u}) {
+                ResearchConfig research{48000, seed};
+                check(research.seedFor(domains[i]) == RandomSource::deriveInstanceSeed(seed, i + 1),
+                      "named domain retains exact historical seed");
+            }
         }
     }
+    check(static_cast<std::uint64_t>(RandomDomain::bubbleA1) == 6, "current module random domain");
     // Independent all-domain bound, not a call to production physics/config metadata.
     // Every unnormalized radius amplitude >=1 => weighted second-moment norm >=1.
     // Rmax/Rmin<=250, alpha<=2.25, carrier<=sqrt(2), proxy/gain<=1.

@@ -54,13 +54,29 @@ class WorkflowTests(unittest.TestCase):
         self.assertNotIn("ctest --preset windows-release", study)
         self.assertNotIn("full_validation", self.manual)
 
-    def test_build_stage_cannot_invoke_tests(self):
-        build = self.fast.split("  ci-build:", 1)[1].split("  ci-current-tests:", 1)[0]
-        self.assertIn("--preset ci-windows-debug-build", build)
-        self.assertNotIn("ctest --", build.lower())
+    def test_one_windows_context_with_ordered_conditional_stages(self):
+        self.assertNotIn("  ci-current-tests:", self.fast)
+        build = self.fast.split("  ci-build-current:", 1)[1].split("  ci-host-tests:", 1)[0]
+        self.assertEqual(build.count("actions/checkout@"), 1)
+        self.assertEqual(build.count("actions/setup-python@"), 1)
+        self.assertEqual(build.count("ilammy/msvc-dev-cmd@"), 1)
+        self.assertEqual(build.count("./tools/bootstrap_dependencies.ps1"), 1)
+        self.assertEqual(build.count("cmake --preset ci-windows-debug"), 1)
+        stage1, stage2 = build.split("      - name: Stage 2", 1)
+        self.assertIn("--preset ci-windows-debug-build", stage1)
+        self.assertNotIn("ctest --", stage1.lower())
+        self.assertIn("exit $LASTEXITCODE", stage1)
+        condition = stage2.split("shell:", 1)[0]
+        self.assertIn("success() && !cancelled()", condition)
+        self.assertIn("test_required == 'true'", condition)
+        self.assertIn("active_modules != '[]'", condition)
+        self.assertEqual(stage2.count("run_current_tests.py"), 1)
         self.assertNotIn("foreach ($module", self.fast)
         self.assertNotIn("requirements-dsp.txt", self.fast)
         self.assertIn("--stage test", self.fast)
+        host = self.fast.split("  ci-host-tests:", 1)[1]
+        self.assertIn("core_required == 'true'", host)
+        self.assertIn("needs: [impact, ci-build-current]", host)
 
     def test_regressions_are_in_daily_policy(self):
         for name in ("test_plan_validation", "test_python_test_ab", "test_validation_workflow"):

@@ -56,7 +56,7 @@ jobs:
           }
           python tools/generate_current_presets.py --check
 
-  ci-build:
+  ci-build-current:
     needs: [impact, ci-core]
     if: ${{ needs.impact.outputs.build_required == 'true' }}
     runs-on: windows-latest
@@ -84,50 +84,13 @@ jobs:
           $ciPython = python -c "import sys; print(sys.executable)"
           cmake --preset ci-windows-debug "-DPython3_EXECUTABLE:FILEPATH=$ciPython"
           exit $LASTEXITCODE
-      - name: Build project without CTest
+      - name: Stage 1 - production Build Gate
         shell: pwsh
         run: |
           python tools/build_safe.py --preset ci-windows-debug-build
           exit $LASTEXITCODE
-      - name: Preserve first-run evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-build-${{ github.sha }}
-          path: |
-            build/ci-windows-debug/*.xml
-            build/ci-windows-debug/Testing/Temporary/*.log
-            build/safe-build/*.log
-
-  ci-current-tests:
-    needs: [impact, ci-build]
-    if: ${{ needs.impact.outputs.test_required == 'true' && needs.impact.outputs.active_modules != '[]' }}
-    runs-on: windows-latest
-    timeout-minutes: 30
-    env:
-      MODULES: ${{ needs.impact.outputs.active_modules }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-      - uses: actions/cache@v4
-        with:
-          path: external/JUCE
-          key: juce-9.0.1-e18f7f506c0b96f2c738a0bcd7fe6467a5005ad8-${{ runner.os }}
-      - name: Restore pinned dependencies
-        shell: pwsh
-        run: ./tools/bootstrap_dependencies.ps1
-      - name: Configure isolated scope
-        shell: pwsh
-        run: |
-          $ciPython = python -c "import sys; print(sys.executable)"
-          cmake --preset ci-windows-debug "-DPython3_EXECUTABLE:FILEPATH=$ciPython"
-          exit $LASTEXITCODE
-      - name: Run separate Test Stage once
+      - name: Stage 2 - selected CURRENT Test Stage
+        if: ${{ success() && !cancelled() && needs.impact.outputs.test_required == 'true' && needs.impact.outputs.active_modules != '[]' }}
         shell: pwsh
         run: |
           python tools/check_current_tests.py --preset ci-windows-debug
@@ -139,14 +102,14 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-current-tests-${{ github.sha }}
+          name: ci-build-current-${{ github.sha }}
           path: |
             build/ci-windows-debug/*.xml
             build/ci-windows-debug/Testing/Temporary/*.log
             build/safe-build/*.log
 
   ci-host-tests:
-    needs: [impact, ci-build]
+    needs: [impact, ci-build-current]
     if: ${{ needs.impact.outputs.test_required == 'true' && needs.impact.outputs.core_required == 'true' }}
     runs-on: windows-latest
     timeout-minutes: 30

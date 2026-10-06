@@ -8,8 +8,8 @@ from current_modules import ROOT, load_modules
 BASES = ("windows-debug", "windows-release", "windows-asan", "ci-windows-debug")
 
 
-def generate(data):
-    modules = load_modules()
+def generate(data, modules=None):
+    modules = load_modules() if modules is None else modules
     # Generated entries carry a vendor marker; hand-maintained historical presets stay intact.
     for section in ("configurePresets", "buildPresets", "testPresets"):
         data[section] = [p for p in data[section] if "frazil/current" not in p.get("vendor", {})]

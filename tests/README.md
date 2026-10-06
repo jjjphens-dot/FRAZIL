@@ -12,7 +12,12 @@ and build `windows-debug-build` first; this builds only the project. Explicit Te
 `python tools/run_current_tests.py --preset windows-debug --modules a1,b2,d1 --execute`.
 The runner prints its plan, verifies selection, builds the union once and runs it once.
 Memory-safety and Release performance are separate purposes. The [matrix](../docs/testing/TEST_PATH_MATRIX.md)
-records per-module cases, archive/Host presets and real future C registration. No C placeholder.
+records per-module cases, archive/Host presets and real future C registration. Schema v2
+requires native correctness; CLI and performance are optional, memory reuses native.
+A1/D1 global RNG numeric-ID/seed compatibility lives in non-CURRENT invocations; current
+module identity/finite/reset/stereo/partition/lifecycle/capacity/allocation contracts remain.
+CI Build/Test stages share one Windows environment and configure tree, with Host/core only
+when impacted. No C placeholder.
 Archived source-probe/study/testdata/Preview/common/B1 suites remain opt-in. The target list
 below describes available historical/Host assets, not default CURRENT registration.
 

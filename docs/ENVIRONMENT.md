@@ -153,9 +153,12 @@ CURRENT/Host/archive configure and Test Stage commands: [test-path matrix](testi
 
 ## Portable CI Workflow
 
-Hosted CI uses separate `ci-build` and affected CURRENT/Host test jobs. Configure
+Hosted CI reuses one `ci-build-current` Windows context for ordered Build and CURRENT Test
+stages: one checkout, Python/MSVC/JUCE setup and CURRENT configure. Configure
 `ci-windows-debug`, build `ci-windows-debug-build` through the safe wrapper (no CTest), then
-explicitly run the registry-selected union with `run_current_tests.py --preset ci-windows-debug`.
+after Build Gate success, conditionally run the registry-selected union with
+`run_current_tests.py --preset ci-windows-debug --execute` in that same tree.
+Registry v2 supports native-only modules, optional CLI/performance; memory reuses native.
 Production/Host impact additionally configures `ci-windows-debug-host` and selects Core.
 The CURRENT job needs stdlib Python only; no automatic research dependency installation.
 Manual ASAN CURRENT memory and Release CURRENT performance run independently of PR jobs.

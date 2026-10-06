@@ -211,9 +211,12 @@ PR 描述记录 Implementation/Acceptance DRI、PR creator、reviewer 和 review
 ## 7. CI 分层计划
 
 `ci.yml` routes real changes using `plan_validation.py --context pr --stage test`.
-`ci-core` retains lightweight policy checks on Ubuntu. `ci-build` compiles `FRAZIL_All`
-through `ci-windows-debug-build`, without CTest. After build succeeds, `ci-current-tests`
-builds the affected CURRENT union and executes it once; the registry selects A1/B2/D1 today.
+`ci-core` retains lightweight policy checks on Ubuntu. One Windows job `ci-build-current`
+checks out, sets up Python/MSVC/JUCE and configures CURRENT exactly once. Stage 1 uses
+`ci-windows-debug-build` to compile only `FRAZIL_All`. Stage 2 runs only after success, when
+`test_required` is true and the module union is nonempty: build and execute that union once.
+Both stages reuse the same checkout/environment/build tree; build failure prevents tests.
+The registry selects A1/B2/D1 today; native is required, CLI/performance optional.
 `ci-host-tests` runs for actual app/plugin/UI/production-DSP/core impact. Known modified validation tools
 and wording-only docs stay lightweight; unknown/new/deleted executable infrastructure selects
 CURRENT. No ordinary Full, ASAN, performance, research, deep corpus or diagnostic execution.

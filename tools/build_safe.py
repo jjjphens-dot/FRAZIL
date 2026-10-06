@@ -11,7 +11,7 @@ import subprocess
 import sys
 from collections.abc import Mapping
 from pathlib import Path
-from current_modules import load_modules
+from current_modules import registered_build_targets
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_BUILD_JOBS = 8
@@ -27,9 +27,7 @@ SCOPED_TARGETS = (
     "frazil_water_d1_research_tests", "frazil_water_preview_test_group",
     *(f"frazil_water_{module}_test_group" for module in ("common", "a1", "b1", "b2", "d1", "protect")),
     "FRAZIL_All", "frazil_test_current", "frazil_test_current_performance",
-    *(f"frazil_test_{module}_{purpose}" for module in load_modules()
-      for purpose in ("current", "performance")),
-    *(entry["performance_target"] for entry in load_modules().values()),
+    *registered_build_targets(),
 )
 
 

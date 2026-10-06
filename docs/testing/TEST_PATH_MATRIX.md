@@ -51,14 +51,67 @@ cmake --preset windows-release-performance
 python tools/run_current_tests.py --preset windows-release --purpose performance --execute
 ```
 
-## Adding C
+## Capabilities and adding C
 
-Add real native/current sources, impact seeds, renderer mode/config descriptor and performance
-source/validator in `tests/current_modules.json`, then run `python tools/generate_current_presets.py`.
-The current schema requires real source paths; it does not create placeholder tests.
-Run registry/preset checks and configure metadata checks. CMake, planner, union selection and
-CI all read the registry. A new timing schema may require a validator in
-`performance_observation.py`; scheduling needs no C-specific branch. No C entry exists today.
+| Module | Native correctness | CLI | Memory | Performance |
+|---|---|---|---|---|
+| A1 | yes | yes | native + registered CLI under ASAN | yes |
+| B2 | yes | yes | native + registered CLI under ASAN | yes |
+| D1 | yes | yes | native + registered CLI under ASAN | yes |
+| C (not registered) | when implemented | optional | native minimum | optional |
+
+Schema v2 requires `id` and `native` (real target/nonempty sources); `impact_seeds` augments
+source ownership when supplied. `cli` and `performance` are optional but must be complete
+when present. Memory reuses native; registered CLI also runs under ASAN. No separate memory
+harness is required. Current A1 has all capabilities:
+
+```json
+{
+  "id": "a1",
+  "impact_seeds": [
+    "dsp/BubbleA1.h",
+    "tests/bubble_a1_tests.cpp"
+  ],
+  "native": {
+    "target": "frazil_water_bubble_a1_tests",
+    "sources": [
+      "tests/bubble_a1_tests.cpp",
+      "tests/AllocationObserver.cpp"
+    ]
+  },
+  "cli": {
+    "mode": "a1",
+    "config_key": "bubbleA1",
+    "version": 3,
+    "descriptor": "--describe-bubble-a1-v3",
+    "contract": "bubble-a1-v3.json"
+  },
+  "performance": {
+    "target": "frazil_water_bubble_a1_performance",
+    "source": "tests/bubble_a1_performance.cpp",
+    "kind": "a1"
+  }
+}
+```
+
+Hypothetical future C, **not an actual registry entry**:
+
+```json
+{"id":"c","native":{"target":"frazil_water_c_tests","sources":["tests/c_tests.cpp"]}}
+```
+
+Once that real native implementation/test exists, register it and run
+`python tools/generate_current_presets.py`. CMake, checker, runner and planner derive one
+native C test, without requiring renderer/descriptor/performance. Add those capability
+blocks later when implemented. Explicit `purpose=performance,module=c` without capability
+is rejected, as is a mixed explicit selection containing it. Performance `all` selects only
+registered performance capabilities, failing if none exist; it never falls back to Full.
+Safe-build allowlisting includes only actually registered capability targets.
+
+A1's complete historical domains1..9 IDs and three-seed mapping, and D1's domains1..10 IDs,
+now run only in non-CURRENT invocations. A1 domain6/D1 domain10 and genuine current physical,
+finite/reset/stereo/partition/lifecycle/capacity/allocation invariants remain. The independent
+A1 amplitude/lifetime bound spans its current parameter domain and is deliberately retained.
 
 ## Explicit archives and Host contracts
 
@@ -69,7 +122,8 @@ configures Host/core contracts for `windows-debug-core` build/CTest. Release/ASA
 exist. `check_test_paths.py --historical` requires configured `-all` and `-host` trees.
 Preservation does not imply rerunning or closing old failures.
 
-CI separates production build from affected CURRENT union and Host Test Stage jobs.
+CI reuses one Windows job/context/tree for Stage 1 production Build Gate and Stage 2
+conditional CURRENT union. Only impacted Host/core uses a separate CORE tree/job.
 Unknown executable infrastructure conservatively selects CURRENT; archived tests stay
 archival. Full/performance/research/diagnostics require the manual workflow. See
 [execution results](TEST_PATH_EXECUTION.md).

@@ -5,15 +5,14 @@ from pathlib import Path
 import re
 import subprocess
 
-from current_modules import ROOT, load_modules, selection_label
+from current_modules import ROOT, load_modules, selection_label, expected_tests
 from check_test_paths import validate_build_closure
 
 
-def validate_inventory(inventory, modules, purpose="correctness"):
-    suffixes = ("_performance",) if purpose == "performance" else ("", "_cli")
-    expected = {f"frazil_current_{m}{s}" for m in modules for s in suffixes}
+def validate_inventory(inventory, modules, purpose="correctness", registry=None):
+    expected = expected_tests(modules, purpose, registry)
     names = [test["name"] for test in inventory["tests"]]
-    if set(names) != expected or len(names) != len(expected):
+    if not expected or set(names) != expected or len(names) != len(expected):
         raise ValueError(f"CURRENT inventory differs: expected={sorted(expected)}, got={names}")
     for test in inventory["tests"]:
         props = {p["name"]: p["value"] for p in test["properties"]}
@@ -51,7 +50,9 @@ def main():
         raise SystemExit("\n".join(findings))
     if purpose != "performance" and re.search(r"performance.*\.exe|source_probe.*\.exe|latency_native.*\.exe", graph(target)):
         raise SystemExit("CURRENT build includes historical study or timing executable")
-    for module in modules:
+    for module, entry in modules.items():
+        if purpose == "performance" and "performance" not in entry:
+            continue
         selected = json.loads(subprocess.check_output(["ctest", "--test-dir", str(build), "-L",
             selection_label([module], purpose), "--show-only=json-v1"], text=True))
         validate_inventory(selected, [module], purpose)

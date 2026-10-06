@@ -1,5 +1,73 @@
 # Test path systematic refactor execution
 
+## R1-R3 final review closure (2026-10-07)
+
+Starting HEAD: `24d13792a9e54a3815d9fec92ccd986baac0f255`. Branch:
+`codex/refactor/test-paths`; [PR #44](https://github.com/jjjphens-dot/FRAZIL/pull/44).
+The user-supplied final review limits this revision to R1-R3; earlier CURRENT architecture,
+B2 prerequisites and Host/core production-DSP routing remain. No new C module is registered.
+
+Baseline [Hosted run 37503611316](https://github.com/jjjphens-dot/FRAZIL/actions/runs/37503611316)
+was queried live: exact HEAD24d1379, overall SUCCESS, impact/policy/production build/CURRENT
+all PASS, Host/core SKIPPED. Its two Windows configure steps each took78 seconds; the second
+CURRENT job occupied117 seconds including setup/configure/build/test/artifact work. These are
+Hosted elapsed durations, not CPU measurements or a projected saving for this revision.
+
+- **R1:** `ci-build-current` now has one checkout/Python/MSVC/JUCE setup and one CURRENT
+  configure. Stage1 builds only `FRAZIL_All`; Stage2 requires success, no cancellation,
+  `test_required=true` and a nonempty module union. It reuses the tree, builds once and runs
+  CTest once. Host/core remains an independent CORE-tree job only when actually affected.
+  Workflow regression verifies ordering, success gate, single setup/configure and Host gate.
+- **R2:** registry schema2 nests required `native` and optional `cli`/`performance`.
+  CMake, checker, runner, planner, generated presets, impact routing and safe target discovery
+  derive actual capabilities. Native-only extension works; explicit unavailable performance
+  is rejected. Performance `all` selects capable modules and rejects an empty result.
+  The checked-in registry is exactly a1/b2/d1. Synthetic C fixtures are not production entries.
+- **R3:** A1's global domains1..9 numeric IDs and three-seed compatibility checks, and D1's
+  domains1..10 numeric IDs, now execute only under non-CURRENT historical invocations.
+  A1 domain6 and D1 domain10 remain current; all finite/reset/stereo/partition/lifecycle/
+  capacity/allocation, A1 amplitude/lifetime bounds, and D1 trajectory/delay oracles remain.
+  B2 and all DSP/performance harness implementations are unchanged.
+
+Mandatory phases completed: Contract Review (three findings/unchanged production contracts),
+Implementation, Functional Validation, independent Code Quality Review of the diff and
+capability/CI gates, Comment & Documentation Pass, Final Validation. New code only supports
+actual optional capabilities; no alternate production path or global mutable state was added.
+Generic default-ALL hardening was not expanded: the explicit production preset/graph is
+already test-free; broad unrelated CMake target changes are outside these three findings.
+
+| Actual validation | Result |
+|---|---|
+| `tools/vscode_cmake.cmd windows-debug`; `check_current_tests.py --preset windows-debug` | Six registrations, module selectors and production/current closures PASS |
+| `tools/vscode_build_safe.cmd --preset windows-debug-build` | Production Build Gate PASS; no CTest |
+| Safe `windows-debug-current-tests`, then `ctest --preset windows-debug-a1-test`, `windows-debug-d1-test`, `windows-debug-b2-test` | Each2/2 PASS; 2.51 / 0.54 / 1.96 seconds |
+| After quality review: `ctest --preset windows-debug-current-tests` | CURRENT6/6 PASS,4.22 seconds |
+| Configure `windows-asan`, safe `windows-asan-current-memory`, matching CTest | CURRENT6/6 PASS,9.44 seconds; affected registration/native paths justify this run |
+| Configure `windows-release-performance`; CTest show-only and `check_current_tests.py` | Three performance registrations/closures PASS; exact command arrays equal before/after; performance bodies NOT RUN |
+| Isolated CMake capability fixture under ignored build directory | Full-capability fixture plus native-only fixture register3 correctness entries; native-only graph has no renderer/performance dependency or performance target. Configure/metadata only, no fixture bodies built/run |
+| `test_current_modules`, `test_plan_validation`, `test_test_impact`, `test_validation_workflow` | 7 cases each PASS |
+| `test_build_safe`, `test_check_test_paths`, `test_performance_observation`, `generate_current_presets.py --check` | PASS; archive-selector15 and observation5 cases; preset file has no generated drift |
+| YAML/PowerShell syntax, portability, internal links, diff check | PASS |
+
+CTest wall times are local observations, not CPU-saving claims. All native pipelines were
+serial, safe wrapper default6/max8 and physical-memory preflight unchanged. Ignored evidence:
+`build/test-path/review-r123-*`, JUnit under Debug/ASAN trees and safe-build logs. The safety
+unit test deliberately simulates unavailable memory; actual builds passed their preflight.
+
+CURRENT inventory remains A1(native+CLI)2, B2(native+CLI)2, D1(native+CLI)2: total6; ASAN6;
+performance3. Host tests were not rerun locally because production/Host code is unaffected;
+production-DSP/shared-dependency routing remains covered by tooling regressions.
+Historical Full67 / ALL76 / Preview / listening / D1 research / Python A/B: **NOT RUN —
+unaffected**. Release timing harness bodies were not rerun; no pluginval/DAW/human acceptance.
+
+Documentation synchronized: AGENTS, Testing, Coding Plan, GitHub workflow, Environment,
+Project Status, Matrix/Execution, tests/tools/Water/root README, Module Index and document
+governance. Architecture, PARAMETERS/state, code standards and perceptual/physical-model
+contracts reviewed for impact, no content update required: Water DSP/audio/defaults/Host
+parameters/state/routing/latency/perceptual contracts are unchanged. Cross-document policy,
+capability ownership and commands agree. Independent approval/merge remain pending; baseline
+Hosted PASS above is not a claim about the new revision's Hosted result.
+
 ## CURRENT low-resource revision (2026-10-07)
 
 Baseline: remote `codex/refactor/test-paths` at `392fce0`; latest remote runtime report
