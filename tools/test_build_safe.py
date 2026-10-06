@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -128,6 +129,16 @@ def assert_tail_is_bounded() -> None:
     assert lines[-1] == "line-199"
 
 
+def assert_preset_allowlist_matches_repository() -> None:
+    presets = json.loads((build_safe.ROOT / "CMakePresets.json").read_text(encoding="utf-8"))
+    declared = {preset["name"] for preset in presets["buildPresets"]}
+    assert set(build_safe.SUPPORTED_PRESETS) == declared
+    # New selection paths must retain the same bounded concurrency contract.
+    for preset in declared:
+        command = build_command(preset, 6)
+        assert command == ["cmake", "--build", "--preset", preset, "--parallel", "6"]
+
+
 def main() -> int:
     assert validate_job_count(1) == 1
     assert validate_job_count(6) == 6
@@ -161,6 +172,7 @@ def main() -> int:
     assert_check_only_does_not_run_build()
     assert_memory_failure_refuses_build()
     assert_tail_is_bounded()
+    assert_preset_allowlist_matches_repository()
     print("Build safety regression tests: PASS")
     return 0
 

@@ -9,12 +9,18 @@
 - Ninja；可以使用系统 PATH 中的 Ninja，也可以把本地副本放在 repository-local 的 tools/bin。
 - MSVC v143 和 Windows SDK，且 MSVC developer environment 已初始化，使 cl、rc 和 mt 可以被工具发现。
 - Python 用于 DSP 实验和跨平台工具；Python 依赖见 requirements-dsp.txt。
-- 启用 `FRAZIL_BUILD_WATER_EXPERIMENT=ON` 时，先运行 `python -m pip install -r requirements-dsp.txt`；
-  Protect listening-pack CTest 使用其中的 NumPy/SoundFile 并调用真实 research renderer。Hosted CI 同样安装
-  该依赖文件；安装依赖的解释器必须与 CMake 的 `Python3_EXECUTABLE` 和生成的 CTest 命令一致。
-  未启用 research 的 production build 不新增 Python 包依赖。
+- CURRENT A1/B2/D1 and Core validation use the Python standard library. Only explicit
+  historical research needs `python -m pip install -r requirements-dsp.txt`. CI binds the
+  setup-python interpreter to CMake; docs/tooling-only policy uses Ubuntu. CTest temp files
+  stay in the build tree; ASAN runtime discovery/copy applies to CURRENT native targets.
 - JUCE 9.0.1 由 tools/bootstrap_dependencies.ps1 获取和校验；external/JUCE 是生成的本地依赖目录，不提交到 FRAZIL 主仓库。
 - pluginval 仅在执行 VST3 验证时需要；工具版本和下载来源由验证记录维护。
+
+Run `tools/plan_validation.py` before validation. Manual `validation.yml` requests select
+one configuration and purpose; they do not start the daily CI graph. Python diagnostics
+are explicit and failure-specific, not environment setup after every Full. The safe build
+wrapper accepts an allowlisted `--target` for a selected module/diagnostic helper while
+retaining the same memory and job limits. No toolchain or dependency version changed.
 
 Visual Studio IDE 不是项目必需品。VS Code、Developer PowerShell for Visual Studio 或 x64 Native Tools command prompt 均可作为开发入口；关键是 CMake 能通过 PATH 找到所需工具。
 
@@ -73,18 +79,19 @@ tracked 的 CMakePresets.json、.vscode/tasks.json 和 CI workflow 不包含开�
     python tools/verify_testdata.py
     cmake --list-presets
     cmake --preset windows-debug
-    python tools/build_safe.py --preset windows-debug
-    ctest --preset windows-debug
+    python tools/build_safe.py --preset windows-debug-build
+
+这是独立 Build Stage，不运行测试。需要测试时显式执行：
+
+    python tools/run_current_tests.py --preset windows-debug --modules a1,b2,d1 --execute
 
 其他配置：
 
     cmake --preset windows-release
-    python tools/build_safe.py --preset windows-release
-    ctest --preset windows-release
+    python tools/build_safe.py --preset windows-release-build
 
     cmake --preset windows-asan
-    python tools/build_safe.py --preset windows-asan
-    ctest --preset windows-asan
+    python tools/build_safe.py --preset windows-asan-build
 
 CTest also runs the repository's RENDER-001 offline smoke. It writes generated
 WAV output and its audit manifest only under the ignored preset build tree,
@@ -104,12 +111,13 @@ cmake --preset windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON "-DPython3_EXECU
 if ($LASTEXITCODE -ne 0) { throw 'Configure failed' }
 & $frazilPython tools/build_safe.py --preset windows-debug
 if ($LASTEXITCODE -ne 0) { throw 'Safe build failed' }
-ctest --preset windows-debug --output-on-failure
+# 独立 Test Stage，不随构建自动触发：
+& $frazilPython tools/run_current_tests.py --preset windows-debug --execute
 ```
 
 引号保留带空格的 executable 路径。Release/ASAN 如需启用 research，也用同一变量显式 configure 对应
 preset，串行构建/测试。可从对应 `build/<preset>/CMakeCache.txt` 的 `Python3_EXECUTABLE` 与
-`ctest --preset <preset> -R '^frazil_water_protect_listening$' --show-only=json-v1` 的 command 首项复核路径。
+`ctest --preset <preset>-current-tests -R '^frazil_current_a1_cli$' --show-only=json-v1` 的 command 首项复核路径。
 
 ASAN configure 会从 C++ 编译器位置发现 MSVC runtime directory；测试 target 会把 clang_rt.asan_dynamic-x86_64.dll 复制到可执行文件旁，并为 CTest 注入同一目录。因此构建仍需 VS Code/MSVC developer environment，但构建完成后可从普通 PowerShell、VS Code 测试面板或可执行文件目录运行 ASAN 测试。
 
@@ -119,6 +127,8 @@ ASAN configure 会从 C++ 编译器位置发现 MSVC runtime directory；测试 
 object 为零依赖，不得信任 header-only 修改后的增量结果。在同一 developer shell 执行 `chcp 65001`，
 再 `cmake --fresh --preset <preset>`（保留所需 configure options），通过安全 wrapper 重新构建并确认
 依赖列表实际包含修改的头文件；必要时使用新的本地 build tree。此为本机编码诊断，不修改共享并发限制。
+
+CURRENT/Host/archive configure and Test Stage commands: [test-path matrix](testing/TEST_PATH_MATRIX.md). Old base build presets now build production only; default registration is CURRENT, and archive presets require separate explicit configure trees.
 
 ## VS Code
 
@@ -143,28 +153,16 @@ object 为零依赖，不得信任 header-only 修改后的增量结果。在同
 
 ## Portable CI Workflow
 
-GitHub Actions 和其他已初始化 MSVC developer environment 的 Windows 机器使用：
-
-    .\tools\bootstrap_dependencies.ps1
-    python tools/check_portability.py
-    python tools/check_markdown_links.py
-    python tools/check_vscode_tasks.py
-    $frazilPython = python -c "import sys; print(sys.executable)"
-    & $frazilPython -m pip install -r requirements-dsp.txt
-    cmake --preset ci-windows-debug -DFRAZIL_BUILD_WATER_EXPERIMENT=ON "-DPython3_EXECUTABLE:FILEPATH=$frazilPython"
-    python tools/build_safe.py --preset ci-windows-debug
-    ctest --preset ci-windows-debug
-
-Hosted CI explicitly enables the standalone Water research targets so their property and decoded-render
-tests run alongside the production regression suite. Local builds leave the option OFF unless explicitly
-requested; details are in [the research README](../experiments/water/SPIKE-W-DSP-001/README.md).
-
-Hosted CI captures `sys.executable` once, installs dependencies with it and passes that exact executable through
-`FRAZIL_CI_PYTHON` to CMake. Configure checks the cache and generated listening-test command against the captured
-path, failing on mismatch or missing test registration, and logs all three paths. In this standard Debug job no interpreter version or
-machine-specific path is hardcoded; the unchanged listening regression still executes in the full CTest suite.
-
-ci-windows-debug 不引用个人盘符、用户名或工具安装目录。CI 在 configure 前运行 portability scan。
+Hosted CI reuses one `ci-build-current` Windows context for ordered Build and CURRENT Test
+stages: one checkout, Python/MSVC/JUCE setup and CURRENT configure. Configure
+`ci-windows-debug`, build `ci-windows-debug-build` through the safe wrapper (no CTest), then
+after Build Gate success, conditionally run the registry-selected union with
+`run_current_tests.py --preset ci-windows-debug --execute` in that same tree.
+Registry v2 supports native-only modules, optional CLI/performance; memory reuses native.
+Production/Host impact additionally configures `ci-windows-debug-host` and selects Core.
+The CURRENT job needs stdlib Python only; no automatic research dependency installation.
+Manual ASAN CURRENT memory and Release CURRENT performance run independently of PR jobs.
+See [workflow policy](GITHUB_WORKFLOW.md#7-ci-分层计划). Old reference evidence below is dated.
 
 ## Reference Machine
 

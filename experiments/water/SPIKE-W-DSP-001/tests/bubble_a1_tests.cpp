@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 using namespace frazil::water::research;
@@ -17,7 +18,16 @@ bool near(double a, double b, double tolerance = 1e-10) {
     return std::abs(a - b) < tolerance;
 }
 } // namespace
-int main() {
+int main(int argc, char** argv) {
+    if (argc > 2 || (argc == 2 && std::string_view(argv[1]) != "--full" &&
+                     std::string_view(argv[1]) != "--fast" && std::string_view(argv[1]) != "--current")) {
+        std::cerr << "Expected --current, --fast or --full\n";
+        return 2;
+    }
+    const bool current = argc == 2 && std::string_view(argv[1]) == "--current";
+    const bool full = argc == 1 || std::string_view(argv[1]) == "--full";
+    const std::vector<double> rates =
+        full ? std::vector<double>{44100., 48000., 96000.} : std::vector<double>{48000.};
     using frazil::water::preview::PreviewEventRecord;
     using frazil::water::preview::PreviewEventTrace;
     {
@@ -166,7 +176,7 @@ int main() {
         check(pool->counters().requested == 0 && pool->bandObservation(1).bandCounters.started == 0,
               "reset clears cumulative counters");
     }
-    for (double rate : {44100., 48000., 96000.}) {
+    for (double rate : rates) {
         auto observed = std::make_unique<BubbleA1>();
         auto reference = std::make_unique<BubbleA1>();
         auto queue = std::make_unique<PreviewEventTrace>();
@@ -192,24 +202,28 @@ int main() {
               "observed process has no allocations or transport loss");
     }
 
-    // Preserve the numeric identity of EVERY historic stream, including named A1 domain 6.
-    const std::array domains{RandomDomain::bubble,
-                             RandomDomain::droplet,
-                             RandomDomain::flow,
-                             RandomDomain::modalMotion,
-                             RandomDomain::dropletActivity,
-                             RandomDomain::bubbleA1,
-                             RandomDomain::dropletB1Identity,
-                             RandomDomain::dropletB1Admission,
-                             RandomDomain::dropletB1Jitter};
-    for (std::size_t i = 0; i < domains.size(); ++i) {
-        check(static_cast<std::uint64_t>(domains[i]) == i + 1, "stable domain ID");
-        for (RandomSource::Seed seed : {0u, 42u, 20260916u}) {
-            ResearchConfig research{48000, seed};
-            check(research.seedFor(domains[i]) == RandomSource::deriveInstanceSeed(seed, i + 1),
-                  "named domain retains exact historical seed");
+    // Global compatibility belongs to the explicit historical invocation.
+    if (!current) {
+        // Preserve the numeric identity of EVERY historic stream, including named A1 domain 6.
+        const std::array domains{RandomDomain::bubble,
+                                 RandomDomain::droplet,
+                                 RandomDomain::flow,
+                                 RandomDomain::modalMotion,
+                                 RandomDomain::dropletActivity,
+                                 RandomDomain::bubbleA1,
+                                 RandomDomain::dropletB1Identity,
+                                 RandomDomain::dropletB1Admission,
+                                 RandomDomain::dropletB1Jitter};
+        for (std::size_t i = 0; i < domains.size(); ++i) {
+            check(static_cast<std::uint64_t>(domains[i]) == i + 1, "stable domain ID");
+            for (RandomSource::Seed seed : {0u, 42u, 20260916u}) {
+                ResearchConfig research{48000, seed};
+                check(research.seedFor(domains[i]) == RandomSource::deriveInstanceSeed(seed, i + 1),
+                      "named domain retains exact historical seed");
+            }
         }
     }
+    check(static_cast<std::uint64_t>(RandomDomain::bubbleA1) == 6, "current module random domain");
     // Independent all-domain bound, not a call to production physics/config metadata.
     // Every unnormalized radius amplitude >=1 => weighted second-moment norm >=1.
     // Rmax/Rmin<=250, alpha<=2.25, carrier<=sqrt(2), proxy/gain<=1.
@@ -218,7 +232,7 @@ int main() {
     const double maximumTau = 4 / (.13 / .05 + .0072 / std::pow(.05, 1.5));
     const double lifetimeBound = maximumTau * std::log(maximumAmplitude / 1e-5);
     check(lifetimeBound < 29.942, "independent global audible-envelope lifetime");
-    for (double rate : {44100., 48000., 96000.}) {
+    for (double rate : rates) {
         check(lifetimeBound + 2 / rate < BubbleA1Voice::kMaximumLifetimeSeconds,
               "30s guard exceeds global bound plus sample margin");
         BubbleA1Event adversary;
@@ -236,6 +250,10 @@ int main() {
             for (double maximum : {2., 10., 50.})
                 for (double gamma : {0., 2., 6.})
                     for (double alpha : {.75, 1.5, 2.25}) {
+                        if (current && !((minimum == .2 && maximum == 2. && gamma == 0. && alpha == .75) ||
+                                         (minimum == 10. && maximum == 50. && gamma == 6. && alpha == 2.25) ||
+                                         (minimum == 1. && maximum == 10. && gamma == 2. && alpha == 1.5)))
+                            continue;
                         if (minimum >= maximum)
                             continue;
                         BubbleA1Config corner;
@@ -358,7 +376,7 @@ int main() {
         }
     // Shared-frame oracle: each carrier must be collinear with a REAL stereo frame from
     // the window, including quadrature/decorrelated/unequal transient cases and swap ties.
-    for (double rate : {44100., 48000., 96000.})
+    for (double rate : rates)
         for (int scenario = 0; scenario < 8; ++scenario) {
             SharedExcitationAnalyzer analyzer, swappedAnalyzer;
             check(analyzer.prepare(rate) && swappedAnalyzer.prepare(rate), "stereo oracle prepare");
@@ -463,7 +481,7 @@ int main() {
     (void)pool->process();
     check(pool->counters().started == beforeStart + 1, "release then replacement");
 
-    for (double rate : {44100., 48000., 96000.}) {
+    for (double rate : rates) {
         auto a = std::make_unique<BubbleA1>();
         auto swapped = std::make_unique<BubbleA1>();
         cfg = {};
@@ -481,7 +499,8 @@ int main() {
             output.push_back(y);
         }
         check(a->requested() > 0, "nonempty events");
-        for (int block : {1, 7, 32, 64, 128, 256, 257, 512, 1024}) {
+        for (int block : (full ? std::vector<int>{1, 7, 32, 64, 128, 256, 257, 512, 1024}
+                               : std::vector<int>{1, 128, 257, 1024})) {
             a->reset();
             for (std::size_t start = 0; start < samples.size(); start += block)
                 for (std::size_t i = start; i < std::min(samples.size(), start + block); ++i)
@@ -544,7 +563,7 @@ int main() {
         check(!a->prepare({rate, 42}, cfg) && a->process({1, 1}) == StereoFrame{},
               "failed prepare silent");
     }
-    for (double rate : {44100., 48000., 96000.}) {
+    for (double rate : rates) {
         auto a = std::make_unique<BubbleA1>();
         for (double gamma : {0., 6.})
             for (double alpha : {.75, 2.25})
@@ -592,6 +611,28 @@ int main() {
           "macro endpoints");
     check(high.radiusMinMm > low.radiusMinMm && high.radiusMaxMm > low.radiusMaxMm,
           "Size direction");
+    if (current) {
+        const double rate = 96000.;
+        auto a = std::make_unique<BubbleA1>(), acmp = std::make_unique<BubbleA1>();
+        BubbleA1Config ac;
+        ac.depthAmplitudeGamma = .5;
+        check(a->prepare({rate, 42}) && acmp->prepare({rate, 42}, ac), "A1 mapping prepare");
+        bool identity = true;
+        for (int n = 0; n < 10000; ++n) {
+            a->process({.2f, .2f});
+            acmp->process({.2f, .2f});
+            const auto& x = a->lastRequestedEvent();
+            const auto& y = acmp->lastRequestedEvent();
+            identity &= a->pool().counters().started == acmp->pool().counters().started &&
+                        a->pool().active() == acmp->pool().active() &&
+                        a->pool().counters().steals == acmp->pool().counters().steals &&
+                        a->requested() == acmp->requested() && x.bin == y.bin &&
+                        x.riseXi == y.riseXi && x.depthExcitationProxy == y.depthExcitationProxy;
+        }
+        check(identity, "A1 gamma leaves scheduler RNG radius and rise exact");
+        a->reset();
+        check(a->requested() == 0, "cross-rate reset clears scheduler");
+    }
     std::cout << "bubble_a1 failures=" << failures << '\n';
     return failures ? 1 : 0;
 }

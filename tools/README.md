@@ -1,6 +1,26 @@
 # tools/
 
-项目相关外部工具的配置位置。
+## Build first and CURRENT tests
+
+`plan_validation.py --base HEAD~1 --head HEAD` prints a non-executing plan, defaulting to
+Build Stage. `build_safe.py --preset windows-debug-build` compiles only `FRAZIL_All`.
+All builds retain physical-memory preflight, six jobs by default and eight maximum.
+Explicit Test Stage uses `run_current_tests.py --preset windows-debug --modules a1,b2,d1
+--execute` (one line); its registry-based target union and CTest selection each run once.
+`--purpose memory-safety` requires ASAN; `--purpose performance` requires Release.
+
+`current_modules.py` reads the single real-module registry, `generate_current_presets.py`
+generates presets. Schema v2 requires native correctness and permits optional CLI/performance.
+Inventory and safe target discovery use actual capabilities; explicit unavailable performance
+requests fail instead of falling back. `all` performance selects capable modules and rejects
+an empty result. Native-only C needs no renderer. CI reuses one Windows environment/configure
+for sequential Build Gate and conditional Test Stage. `check_current_tests.py` validates unfiltered CTest inventory and
+build closures without running test bodies. `test_current_modules.py` covers drift/leaks.
+`test_impact.py` follows CURRENT C++ dependencies and contract ownership; archived test
+changes do not activate CURRENT. Unknown/new/deleted infrastructure fails conservatively
+into CURRENT. Actual app/plugin/UI/production-DSP/core changes have a separate Host test path. Modified
+known tools and wording-only docs stay lightweight. CURRENT CLI needs only stdlib; explicit
+historical research still uses `requirements-dsp.txt`. See the [matrix](../docs/testing/TEST_PATH_MATRIX.md).
 
 ## 固定依赖恢复
 
@@ -81,3 +101,12 @@ WAV stream.
 - AudioPluginHost 的构建说明或路径配置
 
 大型第三方二进制文件默认不提交到仓库。当前已将 Ninja 1.13.2 和 pluginval 1.0.4 放置在 `tools/bin`，下载归档位于 `tools/downloads`；两者均已加入 `.gitignore`，来源和版本需在环境审计中记录。
+
+## Explicit diagnostics and observations
+
+`performance_observation.py <kind> <executable>` validates complete finite observation rows,
+without introducing timing budgets. CURRENT kinds are a1, b2 and d1-current; other kinds are
+historical. `check_test_paths.py --historical --build-closure` checks explicit archive trees;
+its default delegates to the CURRENT checker. `python_test_ab.py` remains an explicit,
+failure/hypothesis-bound diagnostic with at most four cases and timeout/cancellation cleanup.
+It never follows Full automatically. See `plan_validation.py --help` for manual purposes.

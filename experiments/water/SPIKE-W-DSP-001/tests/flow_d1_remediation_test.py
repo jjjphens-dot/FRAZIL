@@ -29,6 +29,22 @@ class NumericalEvidenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=local, prefix='numerical-') as temp:
             root = Path(temp) / 'sources'
             subprocess.run([PROBE, str(root)],check=True,capture_output=True,text=True)
+            # The provenance-only path must preserve every event of the full exporter.
+            event_root = Path(temp) / 'events-only'
+            subprocess.run([PROBE, str(event_root), '--events-only'], check=True,
+                           capture_output=True, text=True, timeout=120)
+            event_names = {f'{rate}-{profile}-events.csv'
+                           for rate in (44100,48000,96000)
+                           for profile in ('reference','edge','overlap-reference','sustained-edge')}
+            self.assertEqual({p.name for p in event_root.iterdir()}, event_names | {'authority.json'})
+            for name in sorted(event_names | {'authority.json'}):
+                with self.subTest(export=name):
+                    self.assertEqual((event_root/name).read_bytes(), (root/name).read_bytes())
+            invalid_root = Path(temp) / 'invalid-mode'
+            invalid = subprocess.run([PROBE, str(invalid_root), '--unknown'],
+                                     capture_output=True, text=True)
+            self.assertEqual(invalid.returncode, 1, invalid.stderr)
+            self.assertFalse(invalid_root.exists())
             authority = json.loads((root/'authority.json').read_text())
             self.assertGreater(source_envelope(authority),23000)
             for rate in (44100,48000,96000):

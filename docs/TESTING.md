@@ -1,5 +1,42 @@
 # FRAZIL 测试、听测与发布门槛
 
+## CURRENT and separate validation stages
+
+Default CTest registration is **A1 + B2 + D1**: six correctness entries. The canonical
+registry is `tests/current_modules.json`; [commands and ownership](testing/TEST_PATH_MATRIX.md)
+include adding real future C tests. CURRENT CLI checks use Python's standard library.
+B2's internal B1 prerequisites remain covered without a separate B1 suite.
+Registry schema v2 requires native correctness; CLI/performance are optional, memory reuses
+native (and any registered CLI). Explicit unavailable performance requests fail; `all` means
+all modules having that capability and also fails when none exist. A1/D1 global historical
+RandomDomain checks run only outside `--current`; module identities and current contracts stay.
+CI reuses one Windows checkout/environment/configure tree: production Build Gate first,
+conditional CURRENT union second. Failed build prevents tests; affected Host/core stays separate.
+
+`python tools/plan_validation.py --base HEAD~1 --head HEAD` prints `build_required`,
+`test_required`, `active_modules`, `memory_safety_required`, `performance_required` and
+`research_required`. It executes nothing. Default local Build Stage configures `windows-debug`
+and builds `windows-debug-build` through the safe wrapper: only `FRAZIL_All`, no CTest or
+research/test/benchmark executables. Test Stage is an explicit separate decision.
+
+Run `python tools/run_current_tests.py --preset windows-debug --modules a1,b2,d1 --execute`
+to print the plan, verify exact selection, build the selected union once and invoke CTest once.
+Omit `--execute` for metadata only. Module presets support individual investigation.
+ASAN CURRENT memory-safety and Release CURRENT performance are separate explicit purposes;
+observations validate finite complete data without inventing a wall-clock budget.
+
+`python tools/check_current_tests.py --preset windows-debug` checks unfiltered registration,
+module selectors and Ninja closures. `check_test_paths.py` delegates to it unless
+`--historical` requests archive checks. A0/B1/old D/common/Preview, studies, listening-pack
+mechanics, full testdata regeneration and evidence matrices require `HISTORICAL`/`ALL`.
+Historical commands below require the archive configure tree; old results remain dated.
+
+Final Validation is proportional to affected scope. Wording-only edits do not invalidate
+unrelated DSP/performance evidence. Release/Host/listening gates retain prescribed acceptance
+requirements. Do not relabel older evidence as current HEAD PASS, automatically repeat local
+and Hosted heavy matrices, or escalate failures to Full/diagnostics. Original failures stay
+in the [execution ledger](testing/TEST_PATH_EXECUTION.md).
+
 ## R3.1 validation closeout
 
 Phase 0 follow-up hardens all 12/84/57/120 canonical row identities and requires live clean Git/binary provenance binding before publication. A1 CLI captures every renderer child (including normal exit-2 config rejection); native crashes cannot satisfy negative tests. Manual `native_parent_environment_ab.py` runs a fixed parent-PATH A/B without changing default CTest environment. `a1_observation_performance.py` retains three complete fixed-order timing rounds and a separately labelled, untimed workload audit. Final full presets and Hosted results must refer to one frozen HEAD; earlier passes are not substitutes.
@@ -42,7 +79,7 @@ Results are recorded only in [bridge evidence](evidence/WATER_PREVIEW_A1_B1_D1_B
 
 ## Reworked Preview bridge regression
 
-`preview_reworked_core_tests.cpp` joins existing `frazil_water_preview`: Legacy default, runtime core dirty/A/B/history/reset,
+`preview_reworked_core_tests.cpp` runs in `frazil_water_preview_core`: Legacy default, runtime core dirty/A/B/history/reset,
 v5 import to Legacy, D-only rejection, six direct-reference chains at44.1/48/96kHz, deterministic reset,
 finite/channel isolation, Protect inactivity and unchanged C/baseline. Reference comparisons exclude monitor gain/trim/transition.
 Existing Preview, v1-v5 session, mapping, Protect and audition regressions remain registered.
@@ -62,7 +99,8 @@ Flow D1 research tests cover independent SI and interpolation oracles, path/spee
 bounds, domains1..10, finite-float extremes, zero history, exact U0/A0, reset,
 channel isolation and partitions1/7/32/64/128/256/257/512/1024 at three rates.
 The existing isolated B1 allocation observer also exercises D1 process/reset.
-`frazil_water_flow_d1_cli` checks actual descriptor snapshot, strict rejection,
+`frazil_water_d1_cli_contract` checks strict rejection and descriptor snapshot;
+`frazil_water_flow_d1_cli` retains the complete rate/partition matrix,
 explicit mode isolation and carrier-once composition. Independent kernel comparison,
 preserved30186b8 decoded legacy regression, performance and fixed-source study are
 separate from human listening. See [D1 execution](evidence/WATER_FLOW_D1_EXECUTION.md).
@@ -826,8 +864,8 @@ python tools/build_safe.py --preset windows-release
 
 ```powershell
 cmake --preset windows-debug
-python tools/build_safe.py --preset windows-debug
-ctest --preset windows-debug
+python tools/build_safe.py --preset windows-debug-fast
+ctest --preset windows-debug-fast
 
 cmake --preset windows-release
 python tools/build_safe.py --preset windows-release
@@ -880,7 +918,7 @@ Commands, actual results and limitations: [research README](../experiments/water
 
 ### Standalone Water preview regression
 
-With both research/preview options enabled, `frazil_water_preview` CTest compares all nine preview
+With both research/preview options enabled, `frazil_water_preview_core` CTest compares all nine preview
 compositions to the unchanged research DSP at 44.1/48/96 kHz, checks fixed-seed reset, stereo isolation,
 finite output, engineering-control effects, rejected invalid configs and renderer-compatible export.
 It requires no audio device. GUI/physical-output operations are separately observed; see

@@ -1,26 +1,33 @@
 #include "dsp/BubbleA1.h"
 #include "dsp/DropletB1.h"
+#include "dsp/DropletB2.h"
 #include "dsp/FlowD1.h"
 
 #include <chrono>
 #include <iostream>
 #include <memory>
 #include <numeric>
+#include <string_view>
 #include <vector>
 using namespace frazil::water::research;
-int main() {
+int main(int argc, char** argv) {
+    if (argc > 2 || (argc == 2 && std::string_view(argv[1]) != "--current"))
+        return 2;
+    const bool current = argc == 2;
     std::cout << "rate,block,profile,mean_us,p95_us,p99_us,worst_us,deadline_us,output_sum\n";
     constexpr int warmup = 100, measured = 1000;
     for (double rate : {44100., 48000., 96000.})
         for (int block : {32, 128, 1024})
-            for (int profile = 0; profile < 4; ++profile) {
+            for (int profile = current ? 2 : 0; profile < 4; ++profile) {
                 FlowD1 flow;
                 flow.prepare({rate, 42}, {.2, .03, .015});
                 FlowD1FractionalDelay cubic;
                 cubic.prepare(rate, .05);
                 auto a = std::make_unique<BubbleA1>();
-                auto b = std::make_unique<DropletB1>();
-                if (!a->prepare({rate, 42}) || !b->prepare({rate, 42}))
+                auto b = current ? nullptr : std::make_unique<DropletB1>();
+                auto b2 = current ? std::make_unique<DropletB2>() : nullptr;
+                if (!a->prepare({rate, 42}) || (b && !b->prepare({rate, 42})) ||
+                    (b2 && !b2->prepare({rate, 42})))
                     return 1;
                 std::array<std::array<float, 8>, 2> linear{};
                 std::size_t write = 0;
@@ -48,7 +55,7 @@ int main() {
                             sink += y[0] + y[1];
                         } else {
                             if (profile == 3) {
-                                auto av = a->process(x), bv = b->process(x);
+                                auto av = a->process(x), bv = current ? b2->process(x) : b->process(x);
                                 for (std::size_t c = 0; c < 2; ++c)
                                     x[c] = float(double(av[c]) + bv[c]);
                             }
@@ -65,7 +72,8 @@ int main() {
                     return 1;
                 double mean = std::accumulate(times.begin(), times.end(), 0.) / measured;
                 std::sort(times.begin(), times.end());
-                const std::array names{"linear-kernel", "lagrange3-kernel", "D1", "A1+B1+D1"};
+                const std::array names{"linear-kernel", "lagrange3-kernel", "D1",
+                                       current ? "A1+B2+D1" : "A1+B1+D1"};
                 std::cout << rate << ',' << block << ',' << names[profile] << ',' << mean << ','
                           << times[949] << ',' << times[989] << ',' << times.back() << ','
                           << block / rate * 1e6 << ',' << sink << '\n';

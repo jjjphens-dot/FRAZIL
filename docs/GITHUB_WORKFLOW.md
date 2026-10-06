@@ -210,35 +210,30 @@ PR 描述记录 Implementation/Acceptance DRI、PR creator、reviewer 和 review
 
 ## 7. CI 分层计划
 
-### PR / change-triggered validation
+`ci.yml` routes real changes using `plan_validation.py --context pr --stage test`.
+`ci-core` retains lightweight policy checks on Ubuntu. One Windows job `ci-build-current`
+checks out, sets up Python/MSVC/JUCE and configures CURRENT exactly once. Stage 1 uses
+`ci-windows-debug-build` to compile only `FRAZIL_All`. Stage 2 runs only after success, when
+`test_required` is true and the module union is nonempty: build and execute that union once.
+Both stages reuse the same checkout/environment/build tree; build failure prevents tests.
+The registry selects A1/B2/D1 today; native is required, CLI/performance optional.
+`ci-host-tests` runs for actual app/plugin/UI/production-DSP/core impact. Known modified validation tools
+and wording-only docs stay lightweight; unknown/new/deleted executable infrastructure selects
+CURRENT. No ordinary Full, ASAN, performance, research, deep corpus or diagnostic execution.
+CURRENT needs only stdlib Python, selected by setup-python and bound to CMake.
 
-- 所有 PR：changed-file/policy sanity，以及与实际变更相关的 docs/template validity 和 consistency；
-- `src/**`、production test infrastructure、CMake/presets、dependency/bootstrap、CI workflow、build scripts 或
-  executable tooling：Windows portable Debug configure/build/CTest、portability validation 和相关 tests；
-- app/DSP/parameter/state/routing：按影响增加 unit/property/integration 与必要 render smoke；
-- plugin/Host：按影响增加 plugin integration/pluginval；DAW matrix 只在 HOST、compatibility、milestone 或
-  release gate 执行；
-- pure docs/template/non-executable governance：不要求无关 build、CTest、RENDER-001、DSP 或 plugin jobs。
+Manual `validation.yml` defaults to `purpose=build`. Explicit test purposes are `targeted`,
+`memory-safety` (ASAN), `performance` (Release), `core`, `historical`, `full`; separate
+investigation purposes are `diagnostic` and `research`. Module input contains registered IDs
+separated by commas or `all`; research requires `d1` and one named study. Print/validate the
+request before Windows setup. Build the chosen target union once. Diagnostics require one
+observed Python failure and hypothesis, at most four bounded cases. No automatic escalation.
 
-source format 检查只对其覆盖的 source path 生效。CI 即使因平台配置对 docs-only PR 自动运行额外 job，也不把
-这些额外结果改写为该类 PR 的人工 acceptance requirement。
-
-### Scheduled/nightly
-
-- Release + ASAN；
-- sample-rate/block-size 扩展矩阵；
-- pluginval strictness 5；
-- deterministic render regression；
-- 多轮 automation/state fuzz。
-
-### Manual/release
-
-- clean release packaging；
-- pluginval 与 Steinberg validator（接入后）；
-- 目标 DAW matrix；
-- artifact hash、版本、changelog、license/notice。
-
-CI 不应使用本机盘符、compiler/SDK 安装目录或用户名路径。`windows-debug`、`windows-release`、`windows-asan` 与 `ci-windows-debug` 共享 portable tool discovery；本地差异通过 ignored `CMakeUserPresets.json` 注入，CI 不读取该文件。
+PR concurrency cancels superseded PR runs. Manual requests serialize per ref without
+cancellation and do not share the PR group. Do not dispatch duplicates. Only evidence upload
+uses `always()`; computation requires success and no cancellation. First-run JUnit/CTest/build
+logs and existing memory/job guards remain. YAML changes do not prove Hosted success, change
+remote protections, or imply independent review/human listening/production acceptance.
 
 ## 8. Release 与版本
 

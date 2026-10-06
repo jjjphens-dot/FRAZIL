@@ -13,14 +13,17 @@
 #include <iostream>
 #include <numbers>
 #include <string>
+#include <string_view>
 
 using namespace frazil::water::research;
 
 // Offline evidence exporter: actual source/trajectory classes, no alternate DSP path.
 // The Python study owns independent interpolation oracles, not this executable.
 int main(int argc, char** argv) {
-    if (argc != 2 || !std::filesystem::create_directory(argv[1])) {
-        std::cerr << "Supply a new output directory under an existing parent.\n";
+    const bool eventsOnly = argc == 3 && std::string_view(argv[2]) == "--events-only";
+    if ((argc != 2 && !eventsOnly) || !std::filesystem::create_directory(argv[1])) {
+        std::cerr << "Supply a new output directory under an existing parent, optionally followed "
+                     "by --events-only.\n";
         return 1;
     }
     const std::filesystem::path root{argv[1]};
@@ -58,8 +61,9 @@ int main(int argc, char** argv) {
             FlowModulator historical;
             const ResearchConfig research{double(rate), 42};
             if (!a.prepare(research, ac) || !b.prepare(research, bc) ||
-                !trajectory.prepare(research, {1, .005, .05}) ||
-                !transfer.prepare(research, {1, .005, .05}) || !historical.prepare(research))
+                (!eventsOnly &&
+                 (!trajectory.prepare(research, {1, .005, .05}) ||
+                  !transfer.prepare(research, {1, .005, .05}) || !historical.prepare(research))))
                 return 1;
             const std::string label = (overlap ? (edge ? "-sustained" : "-overlap") : "") +
                                       std::string(edge ? "-edge" : "-reference");
@@ -80,11 +84,15 @@ int main(int argc, char** argv) {
                           << std::flush;
             };
             progress("start", -1);
-            std::ofstream output(root / (std::to_string(rate) + label + ".csv"));
-            std::ofstream audit(root / (std::to_string(rate) + label + "-audit.csv"));
-            output << std::setprecision(17) << "path_m,a_left,a_right,b_left,b_right\n";
-            audit << std::setprecision(17)
-                  << "input_left,input_right,d0_left,d0_right,d1_left,d1_right\n";
+            std::ofstream output;
+            std::ofstream audit;
+            if (!eventsOnly) {
+                output.open(root / (std::to_string(rate) + label + ".csv"));
+                audit.open(root / (std::to_string(rate) + label + "-audit.csv"));
+                output << std::setprecision(17) << "path_m,a_left,a_right,b_left,b_right\n";
+                audit << std::setprecision(17)
+                      << "input_left,input_right,d0_left,d0_right,d1_left,d1_right\n";
+            }
             std::ofstream events(root / (std::to_string(rate) + label + "-events.csv"));
             events << std::setprecision(17)
                    << "source,id,time_s,radius_m,frequency_hz,identity_token,admitted,due_time_s\n";
@@ -121,25 +129,31 @@ int main(int argc, char** argv) {
                            << ',' << e.randomRank << ',' << (b.counters().admitted != oldAdmitted)
                            << ',' << double(e.dueSample) / rate << '\n';
                 }
-                const StereoFrame cluster{float(double(av[0]) + bv[0] + 0.),
-                                          float(double(av[1]) + bv[1] + 0.)};
-                const auto dv = transfer.process(cluster).transferred;
-                const auto d0 = historical.process(input);
                 simultaneous += av[0] != 0.f && bv[0] != 0.f;
-                output << trajectory.process() << ',' << av[0] << ',' << av[1] << ',' << bv[0]
-                       << ',' << bv[1] << '\n';
-                audit << input[0] << ',' << input[1] << ',' << d0[0] << ',' << d0[1] << ',' << dv[0]
-                      << ',' << dv[1] << '\n';
+                // Event provenance still executes every A1/B1 sample and admission.
+                // Only independent transfer/trajectory work and unused CSVs are omitted.
+                if (!eventsOnly) {
+                    const StereoFrame cluster{float(double(av[0]) + bv[0] + 0.),
+                                              float(double(av[1]) + bv[1] + 0.)};
+                    const auto dv = transfer.process(cluster).transferred;
+                    const auto d0 = historical.process(input);
+                    output << trajectory.process() << ',' << av[0] << ',' << av[1] << ',' << bv[0]
+                           << ',' << bv[1] << '\n';
+                    audit << input[0] << ',' << input[1] << ',' << d0[0] << ',' << d0[1] << ','
+                          << dv[0] << ',' << dv[1] << '\n';
+                }
                 if ((n + 1) % (rate / 4) == 0)
                     progress("render", n);
             }
-            if (!output || !audit || !events || a.requested() == 0 || b.counters().admitted == 0 ||
-                (overlap && !edge && simultaneous == 0))
+            if ((!eventsOnly && (!output || !audit)) || !events || a.requested() == 0 ||
+                b.counters().admitted == 0 || (overlap && !edge && simultaneous == 0))
                 return 1;
-            output.flush();
-            audit.flush();
+            if (!eventsOnly) {
+                output.flush();
+                audit.flush();
+            }
             events.flush();
-            if (!output || !audit || !events)
+            if ((!eventsOnly && (!output || !audit)) || !events)
                 return 1;
             progress("finish", rate - 1);
         }

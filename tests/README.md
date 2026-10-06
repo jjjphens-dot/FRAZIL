@@ -1,5 +1,26 @@
 # tests/
 
+D1 native provenance uses `frazil_water_flow_d1_source_probe <new-directory> --events-only`
+to retain the complete A1/B1 event workload without unrelated D1/sample CSV exports. The
+default invocation still exports the full study. Remediation compares all 12 event files
+and authority bytes between modes; convergence retains its 120-second timeout and assertions.
+
+## Test execution paths
+
+Default CURRENT is A1/B2/D1, declared in `current_modules.json`. Configure `windows-debug`
+and build `windows-debug-build` first; this builds only the project. Explicit Test Stage:
+`python tools/run_current_tests.py --preset windows-debug --modules a1,b2,d1 --execute`.
+The runner prints its plan, verifies selection, builds the union once and runs it once.
+Memory-safety and Release performance are separate purposes. The [matrix](../docs/testing/TEST_PATH_MATRIX.md)
+records per-module cases, archive/Host presets and real future C registration. Schema v2
+requires native correctness; CLI and performance are optional, memory reuses native.
+A1/D1 global RNG numeric-ID/seed compatibility lives in non-CURRENT invocations; current
+module identity/finite/reset/stereo/partition/lifecycle/capacity/allocation contracts remain.
+CI Build/Test stages share one Windows environment and configure tree, with Host/core only
+when impacted. No C placeholder.
+Archived source-probe/study/testdata/Preview/common/B1 suites remain opt-in. The target list
+below describes available historical/Host assets, not default CURRENT registration.
+
 当前测试 target：
 
 - `frazil_smoke`：CTest wiring smoke；
@@ -58,3 +79,11 @@
 
 后续按 `docs/TESTING.md` 增加 DSP property、完整 render regression 和真实 Host/DAW acceptance；
 测试 target 不依赖运行中的插件 editor。
+
+## Full performance observations
+
+Full executes product, Legacy Water, A1, B1 and D1 canonical performance programs via
+`tools/performance_observation.py`, alongside the existing B2 and Preview entries. These
+slow entries validate complete finite observations, not an unapproved timing budget.
+CURRENT correctness/memory excludes every performance observation. This paragraph describes explicit historical Full only. See the
+[coverage matrix](../docs/testing/TEST_PATH_MATRIX.md#canonical-full-performance-execution).

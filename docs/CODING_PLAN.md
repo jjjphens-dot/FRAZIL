@@ -1,5 +1,29 @@
 # FRAZIL 分阶段 Coding Plan
 
+## Test path infrastructure maintenance
+
+The 2026-10-07 user-authorized CURRENT/low-resource plan supersedes the previous all-assets
+daily inventory and Phase A-only stop. Continue `codex/refactor/test-paths` from `392fce0`.
+CURRENT is **A1 + B2 + D1**, declared in `tests/current_modules.json`. C joins only with real
+native implementation/correctness; CLI and performance capability blocks are optional.
+Memory reuses native; optional CLI is also instrumented when present. No placeholder passes. Production Build Gate
+compiles `FRAZIL_All` only. Local implementation does not implicitly start CTest. A separate
+Test Stage builds the affected CURRENT union once and runs each selected test once.
+R1-R3 final review keeps both stages in one Windows CI context/configure tree, leaves Host/core
+independent only for actual impact, and moves global RNG compatibility assertions to historical
+invocations. The production Build Gate must succeed before CURRENT tests begin.
+Memory-safety uses CURRENT ASAN; timing uses CURRENT uninstrumented Release. Historical
+A0/B1/common/Preview/studies/listening/evidence remain explicit archive assets, outside
+default registration and CI. B2 retains actual B1 prerequisites without a separate B1 suite.
+Representative CURRENT cases retain finite/reset/stereo/partition/schema/lifecycle/capacity/
+allocation contracts; historical full Cartesian matrices remain available.
+
+[Coverage and commands](testing/TEST_PATH_MATRIX.md) and the [execution ledger](testing/TEST_PATH_EXECUTION.md)
+record implementation and validation. This changes test/CI policy only: production DSP,
+public parameters/state/routing/latency, defaults and milestone/human gates remain unchanged.
+Historical first failures retain their original identities. Independent review and merge
+remain separate from implementation and local test completion.
+
 ## Proposed minimum-practical latency policy (ARCH-LAT-002)
 
 The user-authorized [ADR-0007](adr/0007-minimum-practical-processing-latency.md)

@@ -1,5 +1,47 @@
 # FRAZIL 当前实现与差距
 
+## Test path infrastructure
+
+R1-R3 review closure on baseline `24d1379`: one Windows CI context now owns ordered Build
+and conditional CURRENT Test stages; Host/core routing remains intact. Registry v2 requires
+native correctness only, with optional CLI/performance. A1/D1 global historical RNG ID
+checks remain archival. CURRENT registry is still exactly A1/B2/D1; no C placeholder.
+The baseline [Hosted run 37503611316](https://github.com/jjjphens-dot/FRAZIL/actions/runs/37503611316)
+completed SUCCESS, including CURRENT; Host/core was correctly skipped. This baseline result
+is distinct from validation of the review changes in the [ledger](testing/TEST_PATH_EXECUTION.md).
+
+The 2026-10-07 CURRENT revision is implemented on `codex/refactor/test-paths` from `392fce0`:
+A1/B2/D1 registry, production-only Build Gate, separate Test Stage, representative correctness,
+stdlib CLI contracts, explicit ASAN/Release purposes and CI union execution. Archives remain
+opt-in. Production DSP/defaults and historical failure conclusions are unchanged.
+Local project build and all individual module Debug selections passed; CURRENT Debug6/6
+(3.21s) and ASAN6/6 (7.08s) passed. See the [execution ledger](testing/TEST_PATH_EXECUTION.md)
+for timing observations, policy checks and limitations. Independent review/Hosted validation/
+merge are not implied. Paragraphs below are historical, not current default policy.
+
+### Earlier review evidence (07bf7b4)
+
+The review remediation is published at `07bf7b4` on `codex/refactor/test-paths` in
+[draft PR #44](https://github.com/jjjphens-dot/FRAZIL/pull/44), based on Water `ff75735`.
+Docs-only CI gating, precise Python ownership, five additional Full performance observations
+and native helper closure checks are implemented. Daily Fast remains 42 tests; complete
+Water+Preview Full contains 67. Local Core8/8, Fast42/42 and all module-fast paths pass.
+All three safe builds pass. First local Full results remain Debug66/67, Release65/67,
+ASAN66/67 with Python process failures; none is replaced by a diagnostic pass.
+
+The [exact-code Hosted run](https://github.com/jjjphens-dot/FRAZIL/actions/runs/37143829885)
+on `07bf7b4` passes Core/module-fast and Debug/Release Full67/67 with clean Python3.12.10;
+ASAN Full is66/67: D1 convergence's full source export exceeds its 120-second timeout.
+Controlled direct/CTest Python diagnostics pass8/8 in each of the three Hosted
+profile but fail4/8 under both local installed3.12.4 and isolated3.12.10. Fresh-cache local
+diagnostics still fail, so the old interpreter version alone does not explain the issue.
+The systematic refactor is INCOMPLETE: the source probe now offers event-only export for
+convergence, retaining every A1/B1 sample and all 12 cases; parity against the full export
+passes locally, with convergence3.31s under ASAN. Its final validation is pending. The local
+Python cause remains unproven. Independent approval, merge and release are pending.
+[Execution, timings and retained failures](testing/TEST_PATH_EXECUTION.md).
+The historical Water convergence timeout, Python/native faults and realtime margin remain OPEN.
+
 ## R3.1 validation closeout
 
 Latest Phase 0 follow-up: publisher completeness/live provenance and per-child crash capture implemented; fixed parent-PATH A/B reproduced one Python write fault in A, none in two B runs (cause still unproven). Three complete timing rounds retain deadline overruns; 57/57 new comparisons are exact. No sound/default/D1 changes. PHASE 0 OPEN / DO NOT START PHASE 1. Final frozen-head Debug/Release/ASAN and Hosted results are linked from the [execution ledger](evidence/R31_VALIDATION_CLOSEOUT.md#phase-0-follow-up-measurement-and-validation-handoff); earlier results below remain dated evidence.

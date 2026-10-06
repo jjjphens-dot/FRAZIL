@@ -104,6 +104,8 @@ Contract Review
 ```
 
 功能完成后不得跳过独立的 Code Quality Review 或 Comment & Documentation Pass。
+Final Validation 是本任务受影响范围的最终验证，不是无条件 Debug/Release/ASAN Full。
+验证前先记录 purpose、影响范围与命令；只有明确阶段/发布/完整复现 gate 才要求冻结 HEAD 的完整矩阵。
 
 ### Documentation Impact Check / Synchronization Gate
 
@@ -220,10 +222,19 @@ Developer/Experiment control 不等于 production Host parameter。`water.model`
 例如 <repo-root>/build/，或由 CMakeUserPresets.json 指定且符合第 0.2 节工作区边界的本地构建目录。
 
 ```powershell
+python tools/plan_validation.py --base HEAD~1 --head HEAD
 cmake --preset windows-debug
-python tools/build_safe.py --preset windows-debug
-ctest --preset windows-debug
+python tools/build_safe.py --preset windows-debug-build
 ```
+
+默认 Build Stage 只构建 `FRAZIL_All`，不执行 CTest。CURRENT 由 `tests/current_modules.json`
+统一声明，当前仅 A1/B2/D1；C 只需真实 native correctness 即可注册；CLI/performance 为可选 capability，memory 默认复用 native。独立 Test Stage 先打印计划，
+通过 `tools/run_current_tests.py --preset windows-debug --modules a1,b2,d1 --execute`
+构建模块并集一次、执行一次；日常小修只选受影响模块，不得每次实现后自动扩大 Debug。
+ASAN 用于显式 CURRENT memory-safety，性能只在显式 Release CURRENT performance 测量。
+历史 A0/B1/common/Preview/research/listening/evidence 保留在显式 archive，不默认注册。
+本规则是用户授权的 PR #44 测试治理修订，与 `docs/CODING_PLAN.md` 同步，不改变产品合同。
+Python A/B 必须绑定具体故障、假设、测试、配置和超时，不是 Full 的自动后续步骤。
 
 ### Repository Portability Rules
 
@@ -232,6 +243,11 @@ ctest --preset windows-debug
 - 机器相关路径必须使用 repo-relative path、environment variable、tool discovery、CMakeUserPresets.json 或 ignored local configuration。
 - Tracked reference-machine evidence 可以记录 OS、工具版本、SDK/toolchain 版本和泛化后的路径占位符，但不得保存开发者原始绝对路径。
 - 确实需要保存的本机原始路径只能存在于 ignored/untracked local evidence 中，不得提交到 Git。
+
+独立 Test Stage 和 archive/Host 入口见 [TEST_PATH_MATRIX](docs/testing/TEST_PATH_MATRIX.md)。
+CI 在同一 Windows job/tree 内先执行生产 Build Gate，成功后才进入条件 CURRENT Test Stage，
+复用 checkout/Python/MSVC/JUCE/configure；Host/core 仅受影响时使用独立 CORE tree。
+CURRENT 并集只执行一次，首次失败和构建资源安全规则保持不变。
 
 其他预设：`windows-release`、`windows-asan`。本机完整 MSVC 环境命令见 `docs/ENVIRONMENT.md`。
 

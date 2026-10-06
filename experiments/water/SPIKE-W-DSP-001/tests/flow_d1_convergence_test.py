@@ -109,7 +109,7 @@ class ConvergenceTests(unittest.TestCase):
         temporary = tempfile.mkdtemp(prefix="convergence-events-", dir=root / "build")
         output = Path(temporary) / "sources"
         run_case(
-            [str(options.probe.resolve()), str(output)],
+            [str(options.probe.resolve()), str(output), "--events-only"],
             Path(temporary), "source-probe-12-cases",
             timeout=120,
         )

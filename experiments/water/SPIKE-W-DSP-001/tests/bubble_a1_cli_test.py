@@ -68,7 +68,7 @@ def run(renderer, source, output, config, block=128, mode="a1-residual", ok=True
         audio, rate = sf.read(output, always_2d=True)
         assert np.isfinite(audio).all()
         return audio, result.stdout
-    assert result.returncode != 0 and not output.exists(), (result.returncode, result.stdout)
+    assert result.returncode == 2 and not output.exists(), (result.returncode, result.stdout, result.stderr)
 
 
 def main():

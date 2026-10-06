@@ -1,5 +1,19 @@
 # FRAZIL Module Index
 
+## Test infrastructure routing
+
+`tests/current_modules.json` owns CURRENT A1/B2/D1 identities, sources, impact seeds, renderer
+contracts and performance bindings. Schema v2 requires `native`, permits optional `cli` and
+`performance`, and derives inventory/targets from capabilities (memory reuses native). CMake `CurrentTests.cmake`, generated presets and Python
+planner/runner consume this registry; future C requires real sources, not placeholder tests.
+`HistoricalTests.cmake` owns archived suites. `test_impact.py` routes CURRENT dependencies;
+`plan_validation.py` separates Build Stage and explicit Test Stage/purpose. `run_current_tests.py`
+executes the selected union once. CI reuses one Windows context/tree across Build Gate and
+conditional Test Stage; affected Host/core retains its own tree. `check_current_tests.py` checks registrations/build closures.
+CURRENT CLI uses stdlib PCM/float WAV decoding. Performance adapters validate observations,
+while failure-specific Python diagnostics remain explicit. Production module boundaries and
+public interfaces are unchanged. See the [matrix](testing/TEST_PATH_MATRIX.md).
+
 ## R3.1 validation closeout
 
 Phase 0 follow-up adds `render/a1_observation_performance.py` for fixed three-round resource evidence and `tests/native_parent_environment_ab.py` for the observed parent runtime-environment hypothesis. These are offline engineering tools, not DSP selectors. The canonical publisher now owns fixed closeout completeness and live binary/Git binding; renderer CLI cases reuse `native_case_evidence.py`.
@@ -129,7 +143,7 @@ do not depend on the preview. Tests and limitations: [validation](evidence/WATER
 
 The control-bridge integration adds isolated `preview/TimeValue.h` UI/tooling helpers for adaptive
 ms/s display and strict exact entry. They own no session or DSP state, use only the C++ standard
-library, and are tested by `frazil_water_preview`; all research time widgets consume these helpers.
+library, and are tested by `frazil_water_preview_core`; all research time widgets consume these helpers.
 See [staged execution](evidence/WATER_UI_CONTROL_BRIDGE_EXECUTION.md).
 `ControlDescriptor.h` supplies typed IDs, module groups, units/display policy, baseline provenance,
 range and lifecycle metadata for the 28 research controls (21 original, two Modal Motion fields, the Droplet scheduling gate and onset probability, and three explicit C comparison options). `PreviewSettings` consumes the descriptors

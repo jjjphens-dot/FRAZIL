@@ -5,22 +5,29 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import json
 import os
 import subprocess
 import sys
 from collections.abc import Mapping
 from pathlib import Path
+from current_modules import registered_build_targets
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_BUILD_JOBS = 8
 DEFAULT_BUILD_JOBS = 6
 BASE_AVAILABLE_MEMORY_BYTES = 2 * 1024 * 1024 * 1024
 MEMORY_PER_JOB_BYTES = 512 * 1024 * 1024
-SUPPORTED_PRESETS = (
-    "windows-debug",
-    "windows-release",
-    "windows-asan",
-    "ci-windows-debug",
+# Only tracked preset names are accepted; resource limits are unchanged.
+SUPPORTED_PRESETS = tuple(p["name"] for p in json.loads(
+    (ROOT / "CMakePresets.json").read_text(encoding="utf-8"))["buildPresets"])
+# Narrow manual diagnostics/targeted jobs still use the same safety preflight.
+SCOPED_TARGETS = (
+    "frazil_core_tests", "frazil_fast_tests", "frazil_water_experiment_render",
+    "frazil_water_d1_research_tests", "frazil_water_preview_test_group",
+    *(f"frazil_water_{module}_test_group" for module in ("common", "a1", "b1", "b2", "d1", "protect")),
+    "FRAZIL_All", "frazil_test_current", "frazil_test_current_performance",
+    *registered_build_targets(),
 )
 
 
@@ -91,7 +98,10 @@ def available_physical_memory() -> int | None:
     return int(status.ullAvailPhys)
 
 
-def build_command(preset: str, jobs: int) -> list[str]:
+def build_command(preset: str, jobs: int, target: str | list[str] | None = None) -> list[str]:
+    targets = [target] if isinstance(target, str) else target or []
+    if any(value not in SCOPED_TARGETS for value in targets):
+        raise ValueError(f"unsupported scoped target: {targets}")
     return [
         "cmake",
         "--build",
@@ -99,7 +109,7 @@ def build_command(preset: str, jobs: int) -> list[str]:
         preset,
         "--parallel",
         str(validate_job_count(jobs)),
-    ]
+    ] + (["--target", *dict.fromkeys(targets)] if targets else [])
 
 
 def tail_log(log_path: Path, line_count: int = 80) -> list[str]:
@@ -127,6 +137,7 @@ def main() -> int:
     parser.add_argument("--preset", choices=SUPPORTED_PRESETS, required=True)
     parser.add_argument("--jobs", type=int, default=DEFAULT_BUILD_JOBS)
     parser.add_argument("--check-only", action="store_true")
+    parser.add_argument("--target", choices=SCOPED_TARGETS, nargs="+")
     args = parser.parse_args()
 
     try:
@@ -143,7 +154,7 @@ def main() -> int:
 
     log_path = ROOT / "build" / "safe-build" / f"{args.preset}.log"
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    command = build_command(args.preset, jobs)
+    command = build_command(args.preset, jobs, args.target)
     print(
         f"Build safety check: PASS (preset={args.preset}, jobs={jobs}, "
         f"log={log_path.relative_to(ROOT)})"

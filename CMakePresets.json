@@ -34,7 +34,11 @@
       "displayName": "Windows Debug",
       "inherits": "portable-windows-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "FRAZIL_TEST_PROFILE": "CURRENT",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "OFF"
       }
     },
     {
@@ -42,7 +46,11 @@
       "displayName": "Windows Release",
       "inherits": "portable-windows-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "FRAZIL_TEST_PROFILE": "CURRENT",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "OFF"
       }
     },
     {
@@ -52,7 +60,11 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_FLAGS": "/fsanitize=address /Zi",
-        "CMAKE_CXX_FLAGS": "/fsanitize=address /Zi /EHsc"
+        "CMAKE_CXX_FLAGS": "/fsanitize=address /Zi /EHsc",
+        "FRAZIL_TEST_PROFILE": "CURRENT",
+        "FRAZIL_TEST_PURPOSE": "memory-safety",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "OFF"
       }
     },
     {
@@ -60,7 +72,177 @@
       "displayName": "CI Windows Debug",
       "inherits": "portable-windows-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "FRAZIL_TEST_PROFILE": "CURRENT",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "OFF"
+      }
+    },
+    {
+      "name": "windows-debug-all",
+      "inherits": "windows-debug",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "ALL",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "ON"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-debug-historical",
+      "inherits": "windows-debug",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "HISTORICAL",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "ON"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-debug-host",
+      "inherits": "windows-debug",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "CORE",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "OFF",
+        "FRAZIL_BUILD_WATER_PREVIEW": "OFF"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-all",
+      "inherits": "windows-release",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "ALL",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "ON"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-historical",
+      "inherits": "windows-release",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "HISTORICAL",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "ON"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-host",
+      "inherits": "windows-release",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "CORE",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "OFF",
+        "FRAZIL_BUILD_WATER_PREVIEW": "OFF"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-all",
+      "inherits": "windows-asan",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "ALL",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "ON"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-historical",
+      "inherits": "windows-asan",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "HISTORICAL",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "ON"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-host",
+      "inherits": "windows-asan",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "CORE",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "OFF",
+        "FRAZIL_BUILD_WATER_PREVIEW": "OFF"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-all",
+      "inherits": "ci-windows-debug",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "ALL",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "ON"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-historical",
+      "inherits": "ci-windows-debug",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "HISTORICAL",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "ON",
+        "FRAZIL_BUILD_WATER_PREVIEW": "ON"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-host",
+      "inherits": "ci-windows-debug",
+      "cacheVariables": {
+        "FRAZIL_TEST_PROFILE": "CORE",
+        "FRAZIL_TEST_PURPOSE": "correctness",
+        "FRAZIL_BUILD_WATER_EXPERIMENT": "OFF",
+        "FRAZIL_BUILD_WATER_PREVIEW": "OFF"
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-performance",
+      "inherits": "windows-release",
+      "cacheVariables": {
+        "FRAZIL_TEST_PURPOSE": "performance"
+      },
+      "vendor": {
+        "frazil/current": {}
       }
     }
   ],
@@ -70,14 +252,7 @@
       "configurePreset": "windows-debug",
       "jobs": 6,
       "targets": [
-        "FRAZIL_All",
-        "frazil_smoke",
-        "frazil_render",
-        "frazil_tests",
-        "frazil_plugin_integration",
-        "frazil_processor_property",
-        "frazil_latency_contract",
-        "frazil_performance"
+        "FRAZIL_All"
       ]
     },
     {
@@ -85,14 +260,7 @@
       "configurePreset": "windows-release",
       "jobs": 6,
       "targets": [
-        "FRAZIL_All",
-        "frazil_smoke",
-        "frazil_render",
-        "frazil_tests",
-        "frazil_plugin_integration",
-        "frazil_processor_property",
-        "frazil_latency_contract",
-        "frazil_performance"
+        "FRAZIL_All"
       ]
     },
     {
@@ -100,14 +268,7 @@
       "configurePreset": "windows-asan",
       "jobs": 6,
       "targets": [
-        "FRAZIL_All",
-        "frazil_smoke",
-        "frazil_render",
-        "frazil_tests",
-        "frazil_plugin_integration",
-        "frazil_processor_property",
-        "frazil_latency_contract",
-        "frazil_performance"
+        "FRAZIL_All"
       ]
     },
     {
@@ -115,15 +276,526 @@
       "configurePreset": "ci-windows-debug",
       "jobs": 6,
       "targets": [
-        "FRAZIL_All",
-        "frazil_smoke",
-        "frazil_render",
-        "frazil_tests",
-        "frazil_plugin_integration",
-        "frazil_processor_property",
-        "frazil_latency_contract",
-        "frazil_performance"
+        "FRAZIL_All"
       ]
+    },
+    {
+      "name": "windows-debug-smoke",
+      "targets": [
+        "frazil_smoke"
+      ],
+      "configurePreset": "windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-debug-core",
+      "targets": [
+        "frazil_core_tests"
+      ],
+      "configurePreset": "windows-debug-host",
+      "jobs": 6
+    },
+    {
+      "name": "windows-debug-fast",
+      "targets": [
+        "frazil_fast_tests"
+      ],
+      "configurePreset": "windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-debug-full",
+      "targets": [
+        "FRAZIL_All",
+        "frazil_full_tests",
+        "frazil_performance"
+      ],
+      "configurePreset": "windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-debug-water-common",
+      "targets": [
+        "frazil_water_common_test_group"
+      ],
+      "configurePreset": "windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-debug-water-a1",
+      "targets": [
+        "frazil_water_a1_test_group"
+      ],
+      "configurePreset": "windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-debug-water-b1",
+      "targets": [
+        "frazil_water_b1_test_group"
+      ],
+      "configurePreset": "windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-debug-water-b2",
+      "targets": [
+        "frazil_water_b2_test_group"
+      ],
+      "configurePreset": "windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-debug-water-d1",
+      "targets": [
+        "frazil_water_d1_test_group"
+      ],
+      "configurePreset": "windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-debug-water-protect",
+      "targets": [
+        "frazil_water_protect_test_group"
+      ],
+      "configurePreset": "windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-debug-preview",
+      "targets": [
+        "frazil_water_preview_test_group"
+      ],
+      "configurePreset": "windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-release-core",
+      "targets": [
+        "frazil_core_tests"
+      ],
+      "configurePreset": "windows-release-host",
+      "jobs": 6
+    },
+    {
+      "name": "windows-release-fast",
+      "targets": [
+        "frazil_fast_tests"
+      ],
+      "configurePreset": "windows-release-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-release-full",
+      "targets": [
+        "FRAZIL_All",
+        "frazil_full_tests",
+        "frazil_performance"
+      ],
+      "configurePreset": "windows-release-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-asan-core",
+      "targets": [
+        "frazil_core_tests"
+      ],
+      "configurePreset": "windows-asan-host",
+      "jobs": 6
+    },
+    {
+      "name": "windows-asan-fast",
+      "targets": [
+        "frazil_fast_tests"
+      ],
+      "configurePreset": "windows-asan-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-asan-full",
+      "targets": [
+        "FRAZIL_All",
+        "frazil_full_tests",
+        "frazil_performance"
+      ],
+      "configurePreset": "windows-asan-all",
+      "jobs": 6
+    },
+    {
+      "name": "ci-windows-debug-core",
+      "targets": [
+        "frazil_core_tests"
+      ],
+      "configurePreset": "ci-windows-debug-host",
+      "jobs": 6
+    },
+    {
+      "name": "ci-windows-debug-fast",
+      "targets": [
+        "frazil_fast_tests"
+      ],
+      "configurePreset": "ci-windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "ci-windows-debug-full",
+      "targets": [
+        "FRAZIL_All",
+        "frazil_full_tests",
+        "frazil_performance"
+      ],
+      "configurePreset": "ci-windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "ci-windows-debug-smoke",
+      "targets": [
+        "frazil_smoke"
+      ],
+      "configurePreset": "ci-windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "ci-windows-debug-water-common",
+      "targets": [
+        "frazil_water_common_test_group"
+      ],
+      "configurePreset": "ci-windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "ci-windows-debug-water-a1",
+      "targets": [
+        "frazil_water_a1_test_group"
+      ],
+      "configurePreset": "ci-windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "ci-windows-debug-water-b1",
+      "targets": [
+        "frazil_water_b1_test_group"
+      ],
+      "configurePreset": "ci-windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "ci-windows-debug-water-b2",
+      "targets": [
+        "frazil_water_b2_test_group"
+      ],
+      "configurePreset": "ci-windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "ci-windows-debug-water-d1",
+      "targets": [
+        "frazil_water_d1_test_group"
+      ],
+      "configurePreset": "ci-windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "ci-windows-debug-water-protect",
+      "targets": [
+        "frazil_water_protect_test_group"
+      ],
+      "configurePreset": "ci-windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "ci-windows-debug-preview",
+      "targets": [
+        "frazil_water_preview_test_group"
+      ],
+      "configurePreset": "ci-windows-debug-all",
+      "jobs": 6
+    },
+    {
+      "name": "windows-debug-build",
+      "configurePreset": "windows-debug",
+      "jobs": 6,
+      "targets": [
+        "FRAZIL_All"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-debug-current-tests",
+      "configurePreset": "windows-debug",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-debug-a1-test",
+      "configurePreset": "windows-debug",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_a1_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-debug-b2-test",
+      "configurePreset": "windows-debug",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_b2_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-debug-d1-test",
+      "configurePreset": "windows-debug",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_d1_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-debug-historical-tests",
+      "configurePreset": "windows-debug-historical",
+      "jobs": 6,
+      "targets": [
+        "frazil_full_tests"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-build",
+      "configurePreset": "windows-release",
+      "jobs": 6,
+      "targets": [
+        "FRAZIL_All"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-current-tests",
+      "configurePreset": "windows-release",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-a1-test",
+      "configurePreset": "windows-release",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_a1_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-b2-test",
+      "configurePreset": "windows-release",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_b2_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-d1-test",
+      "configurePreset": "windows-release",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_d1_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-historical-tests",
+      "configurePreset": "windows-release-historical",
+      "jobs": 6,
+      "targets": [
+        "frazil_full_tests"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-build",
+      "configurePreset": "windows-asan",
+      "jobs": 6,
+      "targets": [
+        "FRAZIL_All"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-current-tests",
+      "configurePreset": "windows-asan",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-a1-test",
+      "configurePreset": "windows-asan",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_a1_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-b2-test",
+      "configurePreset": "windows-asan",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_b2_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-d1-test",
+      "configurePreset": "windows-asan",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_d1_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-historical-tests",
+      "configurePreset": "windows-asan-historical",
+      "jobs": 6,
+      "targets": [
+        "frazil_full_tests"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-build",
+      "configurePreset": "ci-windows-debug",
+      "jobs": 6,
+      "targets": [
+        "FRAZIL_All"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-current-tests",
+      "configurePreset": "ci-windows-debug",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-a1-test",
+      "configurePreset": "ci-windows-debug",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_a1_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-b2-test",
+      "configurePreset": "ci-windows-debug",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_b2_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-d1-test",
+      "configurePreset": "ci-windows-debug",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_d1_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-historical-tests",
+      "configurePreset": "ci-windows-debug-historical",
+      "jobs": 6,
+      "targets": [
+        "frazil_full_tests"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-current-memory",
+      "configurePreset": "windows-asan",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_current"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-current-performance",
+      "configurePreset": "windows-release-performance",
+      "jobs": 6,
+      "targets": [
+        "frazil_test_current_performance"
+      ],
+      "vendor": {
+        "frazil/current": {}
+      }
     }
   ],
   "testPresets": [
@@ -132,6 +804,11 @@
       "configurePreset": "windows-debug",
       "output": {
         "outputOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "label": "^current-.*-correctness$"
+        }
       }
     },
     {
@@ -139,6 +816,11 @@
       "configurePreset": "windows-release",
       "output": {
         "outputOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "label": "^current-.*-correctness$"
+        }
       }
     },
     {
@@ -146,6 +828,11 @@
       "configurePreset": "windows-asan",
       "output": {
         "outputOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "label": "^current-.*-correctness$"
+        }
       }
     },
     {
@@ -153,6 +840,857 @@
       "configurePreset": "ci-windows-debug",
       "output": {
         "outputOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "label": "^current-.*-correctness$"
+        }
+      }
+    },
+    {
+      "name": "windows-debug-smoke",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "name": "^frazil_smoke$"
+        }
+      },
+      "configurePreset": "windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-debug-core",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-core$"
+        }
+      },
+      "configurePreset": "windows-debug-host",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-debug-fast",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast$"
+        }
+      },
+      "configurePreset": "windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-debug-full",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "configurePreset": "windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-debug-water-common",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-common$"
+        }
+      },
+      "configurePreset": "windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-debug-water-a1",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-a1$"
+        }
+      },
+      "configurePreset": "windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-debug-water-b1",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-b1$"
+        }
+      },
+      "configurePreset": "windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-debug-water-b2",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-b2$"
+        }
+      },
+      "configurePreset": "windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-debug-water-d1",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-d1$"
+        }
+      },
+      "configurePreset": "windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-debug-water-protect",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-protect$"
+        }
+      },
+      "configurePreset": "windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-debug-preview",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-preview$"
+        }
+      },
+      "configurePreset": "windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-release-core",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-core$"
+        }
+      },
+      "configurePreset": "windows-release-host",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-release-fast",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast$"
+        }
+      },
+      "configurePreset": "windows-release-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-release-full",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "configurePreset": "windows-release-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-asan-core",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-core$"
+        }
+      },
+      "configurePreset": "windows-asan-host",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-asan-fast",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast$"
+        }
+      },
+      "configurePreset": "windows-asan-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-asan-full",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "configurePreset": "windows-asan-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug-core",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-core$"
+        }
+      },
+      "configurePreset": "ci-windows-debug-host",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug-fast",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast$"
+        }
+      },
+      "configurePreset": "ci-windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug-full",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "configurePreset": "ci-windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug-smoke",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "name": "^frazil_smoke$"
+        }
+      },
+      "configurePreset": "ci-windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-common",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-common$"
+        }
+      },
+      "configurePreset": "ci-windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-a1",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-a1$"
+        }
+      },
+      "configurePreset": "ci-windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-b1",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-b1$"
+        }
+      },
+      "configurePreset": "ci-windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-b2",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-b2$"
+        }
+      },
+      "configurePreset": "ci-windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-d1",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-d1$"
+        }
+      },
+      "configurePreset": "ci-windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug-water-protect",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-protect$"
+        }
+      },
+      "configurePreset": "ci-windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-windows-debug-preview",
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^fast-water-preview$"
+        }
+      },
+      "configurePreset": "ci-windows-debug-all",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-debug-current-tests",
+      "configurePreset": "windows-debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-.*-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-debug-a1-test",
+      "configurePreset": "windows-debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-a1-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-debug-b2-test",
+      "configurePreset": "windows-debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-b2-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-debug-d1-test",
+      "configurePreset": "windows-debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-d1-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-debug-historical-tests",
+      "configurePreset": "windows-debug-historical",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "historical|core"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-current-tests",
+      "configurePreset": "windows-release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-.*-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-a1-test",
+      "configurePreset": "windows-release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-a1-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-b2-test",
+      "configurePreset": "windows-release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-b2-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-d1-test",
+      "configurePreset": "windows-release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-d1-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-historical-tests",
+      "configurePreset": "windows-release-historical",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "historical|core"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-current-tests",
+      "configurePreset": "windows-asan",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-.*-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-a1-test",
+      "configurePreset": "windows-asan",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-a1-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-b2-test",
+      "configurePreset": "windows-asan",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-b2-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-d1-test",
+      "configurePreset": "windows-asan",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-d1-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-historical-tests",
+      "configurePreset": "windows-asan-historical",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "historical|core"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-current-tests",
+      "configurePreset": "ci-windows-debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-.*-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-a1-test",
+      "configurePreset": "ci-windows-debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-a1-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-b2-test",
+      "configurePreset": "ci-windows-debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-b2-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-d1-test",
+      "configurePreset": "ci-windows-debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-d1-correctness$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "ci-windows-debug-historical-tests",
+      "configurePreset": "ci-windows-debug-historical",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "historical|core"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-asan-current-memory",
+      "configurePreset": "windows-asan",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-.*-memory$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
+      }
+    },
+    {
+      "name": "windows-release-current-performance",
+      "configurePreset": "windows-release-performance",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "jobs": 1
+      },
+      "filter": {
+        "include": {
+          "label": "^current-.*-performance$"
+        }
+      },
+      "vendor": {
+        "frazil/current": {}
       }
     }
   ]

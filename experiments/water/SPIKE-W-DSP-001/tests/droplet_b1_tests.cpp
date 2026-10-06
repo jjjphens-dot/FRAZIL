@@ -2,9 +2,18 @@
 #include "dsp/BubbleA1.h"
 
 #include <memory>
+#include <string_view>
 #include <vector>
 using namespace frazil::water::research;
-int main() {
+int main(int argc, char** argv) {
+    if (argc > 2 || (argc == 2 && std::string_view(argv[1]) != "--full" &&
+                     std::string_view(argv[1]) != "--fast")) {
+        std::cerr << "Expected --fast or --full\n";
+        return 2;
+    }
+    const bool full = argc == 1 || std::string_view(argv[1]) == "--full";
+    const std::vector<double> rates =
+        full ? std::vector<double>{44100., 48000., 96000.} : std::vector<double>{48000.};
     b1test::Checks check;
     // Direct module API: storage invariants cannot depend on public config validation.
     {
@@ -41,7 +50,7 @@ int main() {
         publicConfig[B1Parameter::capacity] = 1;
         check(!publicConfig.valid(), "internal capacity1 is not a public choice");
     }
-    for (double rate : {44100., 48000., 96000.}) {
+    for (double rate : rates) {
         const std::size_t frames = static_cast<std::size_t>(rate * 1.1);
         std::vector<StereoFrame> reference(frames);
         auto a = std::make_unique<DropletB1>(), b = std::make_unique<DropletB1>();
@@ -49,7 +58,9 @@ int main() {
         for (std::size_t n = 0; n < frames; ++n)
             reference[n] = a->process(b1test::source(n, rate));
         check(a->counters().eligible > 2, "fixture onsets exercised");
-        for (std::size_t block : {1u, 7u, 32u, 64u, 128u, 256u, 257u, 512u, 1024u}) {
+        for (std::size_t block :
+             (full ? std::vector<std::size_t>{1, 7, 32, 64, 128, 256, 257, 512, 1024}
+                   : std::vector<std::size_t>{1, 128, 257, 1024})) {
             b->reset();
             for (std::size_t start = 0; start < frames; start += block)
                 for (std::size_t n = start; n < std::min(frames, start + block); ++n)
@@ -158,7 +169,8 @@ int main() {
         const auto e = b1test::event(rate, c);
         std::vector<StereoFrame> isolated(300);
         auto pool = std::make_unique<DropletB1VoicePool>();
-        for (std::size_t cap : {16u, 32u, 64u, 128u, 256u}) {
+        for (std::size_t cap : (full ? std::vector<std::size_t>{16, 32, 64, 128, 256}
+                                     : std::vector<std::size_t>{16, 256})) {
             pool->prepare(rate, cap);
             pool->request(e);
             for (int n = 0; n < 300; ++n) {
